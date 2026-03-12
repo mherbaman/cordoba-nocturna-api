@@ -2,11 +2,11 @@
 //   CÓRDOBA NOCTURNA — Servidor Principal
 //   Con Socket.io para chat en tiempo real
 // ================================================
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const { initDatabase, agregarTablaMensajes } = require('./database');
 const { iniciarLimpieza } = require('./limpieza');
@@ -18,11 +18,7 @@ const PORT = process.env.PORT || 3000;
 // ── Socket.io ────────────────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.FRONTEND_URL,
-      'http://localhost:3000',
-      'http://localhost:5500',
-    ],
+    origin: '*',
     methods: ['GET', 'POST']
   }
 });
@@ -42,15 +38,10 @@ io.on('connection', (socket) => {
 // ── Middlewares ──────────────────────────────────────────────────────
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL,
-    'http://localhost:3000',
-    'http://localhost:5500',
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors({ origin: '*' }));
+
+// ── HTML estático ────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Rutas ────────────────────────────────────────────────────────────
 app.use('/auth',        require('./routes/auth'));
@@ -60,15 +51,9 @@ app.use('/matches',     require('./routes/matches'));
 app.use('/mensajes',    require('./routes/mensajes'));
 app.use('/superadmin',  require('./routes/superadmin'));
 
-// ── Ruta de salud ────────────────────────────────────────────────────
+// ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
-  res.json({
-    plataforma: 'Córdoba Nocturna API',
-    version: '1.1.0',
-    estado: '🟢 Online',
-    chat: '🟢 Socket.io activo',
-    timestamp: new Date().toISOString()
-  });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ── Arrancar ─────────────────────────────────────────────────────────
