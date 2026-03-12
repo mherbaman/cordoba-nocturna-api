@@ -10,15 +10,12 @@ const { pool } = require('../database');
 const { authUsuario, authAdmin } = require('../middleware/auth');
 
 // ── POST /sesiones/entrar ────────────────────────────────────────────
-// Usuario escanea el QR y entra a la sala de la noche
-// Si estaba en otro local, se desactiva esa presencia automáticamente
 router.post('/entrar', authUsuario, async (req, res) => {
   const { codigo_qr } = req.body;
 
   if (!codigo_qr) return res.status(400).json({ error: 'Código QR requerido' });
 
   try {
-    // Buscar la sesión por código QR
     const sesionResult = await pool.query(
       'SELECT * FROM sesiones_noche WHERE codigo_qr = $1 AND activa = true',
       [codigo_qr]
@@ -30,13 +27,11 @@ router.post('/entrar', authUsuario, async (req, res) => {
 
     const sesion = sesionResult.rows[0];
 
-    // Desactivar presencias anteriores activas del usuario (se fue de otro local)
     await pool.query(
       'UPDATE presencias SET activa = false WHERE usuario_id = $1 AND activa = true',
       [req.usuario.id]
     );
 
-    // Crear o reactivar presencia en esta sesión
     await pool.query(`
       INSERT INTO presencias (usuario_id, sesion_id, negocio_id, activa, ultima_actividad)
       VALUES ($1, $2, $3, true, NOW())
@@ -44,7 +39,6 @@ router.post('/entrar', authUsuario, async (req, res) => {
       DO UPDATE SET activa = true, ultima_actividad = NOW()
     `, [req.usuario.id, sesion.id, sesion.negocio_id]);
 
-    // Actualizar contador de la sesión
     await pool.query(`
       UPDATE sesiones_noche 
       SET total_usuarios = (
@@ -68,11 +62,9 @@ router.post('/entrar', authUsuario, async (req, res) => {
 });
 
 // ── GET /sesiones/:sesion_id/perfiles ────────────────────────────────
-// Traer los perfiles de todos los que están en la sesión esta noche
-// Excluye al propio usuario y a los que ya vio
+// Con ?todos=true devuelve todos sin filtrar los ya vistos
 router.get('/:sesion_id/perfiles', authUsuario, async (req, res) => {
   try {
-    // Expirar presencias inactivas (más de X horas sin actividad)
     const horas = process.env.SESSION_EXPIRY_HOURS || 2;
     await pool.query(`
       UPDATE presencias SET activa = false
@@ -81,24 +73,42 @@ router.get('/:sesion_id/perfiles', authUsuario, async (req, res) => {
       AND activa = true
     `, [req.params.sesion_id]);
 
-    // Traer perfiles activos — excluir al propio usuario y a los que ya likeó/pasó
-    const result = await pool.query(`
-      SELECT 
-        u.id, u.nombre, u.foto_url, u.vibe, u.edad,
-        p.ultima_actividad
-      FROM presencias p
-      JOIN usuarios u ON u.id = p.usuario_id
-      WHERE p.sesion_id = $1
-        AND p.activa = true
-        AND p.usuario_id != $2
-        AND p.usuario_id NOT IN (
-          SELECT a_usuario FROM likes 
-          WHERE de_usuario = $2 AND sesion_id = $1
-        )
-      ORDER BY p.entro_en DESC
-    `, [req.params.sesion_id, req.usuario.id]);
+    const todos = req.query.todos === 'true';
 
-    res.json(result.rows);
+    let query;
+    if (todos) {
+      // Traer todos — solo excluir al propio usuario
+      query = await pool.query(`
+        SELECT 
+          u.id, u.nombre, u.foto_url, u.vibe, u.edad,
+          p.ultima_actividad
+        FROM presencias p
+        JOIN usuarios u ON u.id = p.usuario_id
+        WHERE p.sesion_id = $1
+          AND p.activa = true
+          AND p.usuario_id != $2
+        ORDER BY RANDOM()
+      `, [req.params.sesion_id, req.usuario.id]);
+    } else {
+      // Normal — excluir ya vistos
+      query = await pool.query(`
+        SELECT 
+          u.id, u.nombre, u.foto_url, u.vibe, u.edad,
+          p.ultima_actividad
+        FROM presencias p
+        JOIN usuarios u ON u.id = p.usuario_id
+        WHERE p.sesion_id = $1
+          AND p.activa = true
+          AND p.usuario_id != $2
+          AND p.usuario_id NOT IN (
+            SELECT a_usuario FROM likes 
+            WHERE de_usuario = $2 AND sesion_id = $1
+          )
+        ORDER BY p.entro_en DESC
+      `, [req.params.sesion_id, req.usuario.id]);
+    }
+
+    res.json(query.rows);
   } catch (err) {
     console.error('Error al traer perfiles:', err);
     res.status(500).json({ error: 'Error interno' });
@@ -106,7 +116,6 @@ router.get('/:sesion_id/perfiles', authUsuario, async (req, res) => {
 });
 
 // ── POST /sesiones/actividad ─────────────────────────────────────────
-// El usuario sigue activo — actualiza timestamp para no expirar
 router.post('/actividad', authUsuario, async (req, res) => {
   const { sesion_id } = req.body;
   try {
@@ -121,13 +130,11 @@ router.post('/actividad', authUsuario, async (req, res) => {
 });
 
 // ── POST /sesiones (admin del local) ────────────────────────────────
-// El dueño del local abre la sala de esta noche
 router.post('/', authAdmin, async (req, res) => {
   const { negocio_id, nombre } = req.body;
-  const codigo_qr = uuidv4().substring(0, 8).toUpperCase(); // ej: "A3F7B2E1"
+  const codigo_qr = uuidv4().substring(0, 8).toUpperCase();
 
   try {
-    // Cerrar sesión anterior si estaba abierta
     await pool.query(
       'UPDATE sesiones_noche SET activa = false, cerrada_en = NOW() WHERE negocio_id = $1 AND activa = true',
       [negocio_id]
@@ -146,14 +153,12 @@ router.post('/', authAdmin, async (req, res) => {
 });
 
 // ── DELETE /sesiones/:id (admin del local) ────────────────────────────
-// El dueño cierra la sala al terminar la noche
 router.delete('/:id', authAdmin, async (req, res) => {
   try {
     await pool.query(
       'UPDATE sesiones_noche SET activa = false, cerrada_en = NOW() WHERE id = $1',
       [req.params.id]
     );
-    // Desactivar todas las presencias
     await pool.query(
       'UPDATE presencias SET activa = false WHERE sesion_id = $1',
       [req.params.id]
