@@ -16,10 +16,12 @@ router.post('/entrar', authUsuario, async (req, res) => {
   if (!codigo_qr) return res.status(400).json({ error: 'Código QR requerido' });
 
   try {
-    const sesionResult = await pool.query(
-      'SELECT * FROM sesiones_noche WHERE codigo_qr = $1 AND activa = true',
-      [codigo_qr]
-    );
+    const sesionResult = await pool.query(`
+      SELECT s.*, n.nombre as negocio_nombre, n.tipo as negocio_tipo
+      FROM sesiones_noche s
+      JOIN negocios n ON n.id = s.negocio_id
+      WHERE s.codigo_qr = $1 AND s.activa = true
+    `, [codigo_qr]);
 
     if (sesionResult.rows.length === 0) {
       return res.status(404).json({ error: 'Sesión no encontrada o ya cerrada' });
@@ -52,7 +54,10 @@ router.post('/entrar', authUsuario, async (req, res) => {
       ok: true,
       sesion_id: sesion.id,
       negocio_id: sesion.negocio_id,
-      mensaje: `Bienvenido a la sesión de esta noche`
+      negocio_nombre: sesion.negocio_nombre,
+      negocio_tipo: sesion.negocio_tipo,
+      sesion_nombre: sesion.nombre,
+      mensaje: `Bienvenido a ${sesion.negocio_nombre}`
     });
 
   } catch (err) {
@@ -62,10 +67,9 @@ router.post('/entrar', authUsuario, async (req, res) => {
 });
 
 // ── GET /sesiones/:sesion_id/perfiles ────────────────────────────────
-// Con ?todos=true devuelve todos sin filtrar los ya vistos
 router.get('/:sesion_id/perfiles', authUsuario, async (req, res) => {
   try {
-    const horas = process.env.SESSION_EXPIRY_HOURS || 2;
+    const horas = process.env.SESSION_EXPIRY_HOURS || 8;
     await pool.query(`
       UPDATE presencias SET activa = false
       WHERE sesion_id = $1
@@ -77,7 +81,6 @@ router.get('/:sesion_id/perfiles', authUsuario, async (req, res) => {
 
     let query;
     if (todos) {
-      // Traer todos — solo excluir al propio usuario
       query = await pool.query(`
         SELECT 
           u.id, u.nombre, u.foto_url, u.vibe, u.edad,
@@ -90,7 +93,6 @@ router.get('/:sesion_id/perfiles', authUsuario, async (req, res) => {
         ORDER BY RANDOM()
       `, [req.params.sesion_id, req.usuario.id]);
     } else {
-      // Normal — excluir ya vistos
       query = await pool.query(`
         SELECT 
           u.id, u.nombre, u.foto_url, u.vibe, u.edad,
