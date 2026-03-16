@@ -156,6 +156,17 @@ body {
 .evento-nombre { font-size:14px;font-weight:600; }
 .evento-fecha { color:var(--muted);font-size:11px;margin-top:2px; }
 .evento-codigo { background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:50px;flex-shrink:0;letter-spacing:1px; }
+/* PROMO MODAL */
+#promo-modal { display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(12px); }
+#promo-modal.show { display:flex; }
+.promo-inner { width:90%;max-width:380px;animation:matchPop .4s ease forwards; }
+.promo-img-wrap { width:100%;border-radius:20px;overflow:hidden;margin-bottom:16px;box-shadow:0 20px 60px rgba(0,0,0,.5); }
+.promo-img-wrap svg { width:100%;display:block; }
+.promo-btns { display:flex;flex-direction:column;gap:10px; }
+.btn-whatsapp { background:#25d366;border:none;color:#fff;padding:14px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%; }
+.btn-instagram { background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border:none;color:#fff;padding:14px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%; }
+.btn-cerrar-promo { background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;width:100%; }
+
 .empty-state { text-align:center;animation:fadeUp .5s ease forwards;padding:32px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%; }
 .empty-state .big-emoji { font-size:60px;margin-bottom:18px; }
 .empty-state h2 { font-family:'Bebas Neue',cursive;font-size:32px;letter-spacing:.5px;margin-bottom:10px; }
@@ -284,7 +295,7 @@ let chatMatchId = null, chatOtro = null;
   <!-- PUBLICIDAD SPLASH -->
   <div style="width:100%;max-width:400px;position:relative;z-index:1;margin-top:16px;">
     <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-align:center;">Sponsors de la noche</div>
-    <div class="ad-banner">
+    <div class="ad-banner" onclick="abrirPromo('biela')">
       <div class="ad-img">🍺</div>
       <div class="ad-info">
         <div class="ad-name">Cervecería La Biela</div>
@@ -292,7 +303,7 @@ let chatMatchId = null, chatOtro = null;
       </div>
       <span class="ad-tag">PROMO</span>
     </div>
-    <div class="ad-banner">
+    <div class="ad-banner" onclick="abrirPromo('pizza')">
       <div class="ad-img">🍕</div>
       <div class="ad-info">
         <div class="ad-name">Pizza Club Córdoba</div>
@@ -359,7 +370,7 @@ let chatMatchId = null, chatOtro = null;
 <div class="screen" id="qr-screen" style="justify-content:flex-start;padding:32px 24px 24px;overflow-y:auto;">
   <div class="qr-inner">
     <!-- PUBLICIDAD QR -->
-    <div class="ad-banner" style="margin-bottom:20px;">
+    <div class="ad-banner" style="margin-bottom:20px;" onclick="abrirPromo('elite')">
       <div class="ad-img">🎶</div>
       <div class="ad-info">
         <div class="ad-name">Disco Élite — VIP esta noche</div>
@@ -430,7 +441,7 @@ let chatMatchId = null, chatOtro = null;
 
   <!-- BANNER PUBLICIDAD SWIPE -->
   <div style="width:100%;max-width:420px;padding:8px 20px 0;">
-    <div class="ad-banner" style="margin:0;">
+    <div class="ad-banner" style="margin:0;" onclick="abrirPromo('fernet')">
       <div class="ad-img">🥃</div>
       <div class="ad-info">
         <div class="ad-name">Fernet Branca — Sponsor oficial</div>
@@ -464,6 +475,22 @@ let chatMatchId = null, chatOtro = null;
     <div class="matches-title">TUS MATCHES 🔥</div>
   </div>
   <div class="matches-list" id="matches-list"></div>
+</div>
+
+<!-- PROMO MODAL -->
+<div id="promo-modal">
+  <div class="promo-inner">
+    <div class="promo-img-wrap" id="promo-img-wrap"></div>
+    <div class="promo-btns">
+      <button class="btn-whatsapp" id="promo-whatsapp" onclick="window.open(this.dataset.url)">
+        💬 Contactar por WhatsApp
+      </button>
+      <button class="btn-instagram" id="promo-instagram" onclick="window.open(this.dataset.url)">
+        📸 Ver en Instagram
+      </button>
+      <button class="btn-cerrar-promo" onclick="cerrarPromo()">← Volver a la app</button>
+    </div>
+  </div>
 </div>
 
 <!-- MATCH OVERLAY -->
@@ -1125,6 +1152,92 @@ async function onModalPhoto(e) {
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+// ─── PROMOS ──────────────────────────────────────────────────────────
+const PROMOS = {
+  biela: {
+    whatsapp: 'https://wa.me/5493514000001',
+    instagram: 'https://instagram.com/cervecerialabielacba',
+    svg: `<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a1a2e"/><stop offset="100%" style="stop-color:#16213e"/></linearGradient></defs>
+      <rect width="380" height="220" fill="url(#bg1)"/>
+      <circle cx="50" cy="50" r="80" fill="rgba(251,191,36,.08)"/>
+      <circle cx="330" cy="180" r="100" fill="rgba(251,191,36,.06)"/>
+      <text x="190" y="60" font-family="Georgia,serif" font-size="52" fill="#fbbf24" text-anchor="middle">🍺</text>
+      <text x="190" y="105" font-family="Georgia,serif" font-size="26" font-weight="bold" fill="#fff" text-anchor="middle">Cervecería La Biela</text>
+      <rect x="60" y="118" width="260" height="2" fill="rgba(251,191,36,.4)" rx="1"/>
+      <text x="190" y="148" font-family="Georgia,serif" font-size="18" fill="#fbbf24" text-anchor="middle">2x1 en jarras</text>
+      <text x="190" y="170" font-family="Georgia,serif" font-size="14" fill="rgba(255,255,255,.6)" text-anchor="middle">Válido hasta las 12am • Córdoba Nocturna</text>
+      <rect x="120" y="188" width="140" height="24" rx="12" fill="rgba(251,191,36,.2)" stroke="rgba(251,191,36,.5)" stroke-width="1"/>
+      <text x="190" y="204" font-family="Georgia,serif" font-size="12" fill="#fbbf24" text-anchor="middle">Mostrá esta promo</text>
+    </svg>`
+  },
+  pizza: {
+    whatsapp: 'https://wa.me/5493514000002',
+    instagram: 'https://instagram.com/pizzaclubcordoba',
+    svg: `<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1c0a00"/><stop offset="100%" style="stop-color:#2d1200"/></linearGradient></defs>
+      <rect width="380" height="220" fill="url(#bg2)"/>
+      <circle cx="40" cy="180" r="90" fill="rgba(239,68,68,.07)"/>
+      <circle cx="340" cy="40" r="80" fill="rgba(239,68,68,.06)"/>
+      <text x="190" y="60" font-family="Georgia,serif" font-size="52" fill="#ef4444" text-anchor="middle">🍕</text>
+      <text x="190" y="105" font-family="Georgia,serif" font-size="26" font-weight="bold" fill="#fff" text-anchor="middle">Pizza Club Córdoba</text>
+      <rect x="60" y="118" width="260" height="2" fill="rgba(239,68,68,.4)" rx="1"/>
+      <text x="190" y="148" font-family="Georgia,serif" font-size="18" fill="#ef4444" text-anchor="middle">20% OFF en toda la carta</text>
+      <text x="190" y="170" font-family="Georgia,serif" font-size="14" fill="rgba(255,255,255,.6)" text-anchor="middle">Mostrá la app en caja • Válido esta noche</text>
+      <rect x="120" y="188" width="140" height="24" rx="12" fill="rgba(239,68,68,.2)" stroke="rgba(239,68,68,.5)" stroke-width="1"/>
+      <text x="190" y="204" font-family="Georgia,serif" font-size="12" fill="#ef4444" text-anchor="middle">Mostrá esta promo</text>
+    </svg>`
+  },
+  elite: {
+    whatsapp: 'https://wa.me/5493514000003',
+    instagram: 'https://instagram.com/discoelitecba',
+    svg: `<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0a001a"/><stop offset="100%" style="stop-color:#1a0035"/></linearGradient></defs>
+      <rect width="380" height="220" fill="url(#bg3)"/>
+      <circle cx="190" cy="110" r="130" fill="rgba(124,58,237,.08)"/>
+      <text x="190" y="60" font-family="Georgia,serif" font-size="52" fill="#a855f7" text-anchor="middle">🎧</text>
+      <text x="190" y="105" font-family="Georgia,serif" font-size="26" font-weight="bold" fill="#fff" text-anchor="middle">Disco Élite</text>
+      <rect x="60" y="118" width="260" height="2" fill="rgba(168,85,247,.4)" rx="1"/>
+      <text x="190" y="148" font-family="Georgia,serif" font-size="18" fill="#a855f7" text-anchor="middle">Entrada VIP libre</text>
+      <text x="190" y="170" font-family="Georgia,serif" font-size="14" fill="rgba(255,255,255,.6)" text-anchor="middle">Hasta las 11pm con Córdoba Nocturna</text>
+      <rect x="120" y="188" width="140" height="24" rx="12" fill="rgba(168,85,247,.2)" stroke="rgba(168,85,247,.5)" stroke-width="1"/>
+      <text x="190" y="204" font-family="Georgia,serif" font-size="12" fill="#a855f7" text-anchor="middle">Mostrá esta promo</text>
+    </svg>`
+  },
+  fernet: {
+    whatsapp: 'https://wa.me/5493514000004',
+    instagram: 'https://instagram.com/fernetbranca',
+    svg: `<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#001a0a"/><stop offset="100%" style="stop-color:#002d12"/></linearGradient></defs>
+      <rect width="380" height="220" fill="url(#bg4)"/>
+      <circle cx="60" cy="60" r="80" fill="rgba(34,197,94,.07)"/>
+      <circle cx="320" cy="160" r="90" fill="rgba(34,197,94,.05)"/>
+      <text x="190" y="60" font-family="Georgia,serif" font-size="52" fill="#22c55e" text-anchor="middle">🥃</text>
+      <text x="190" y="105" font-family="Georgia,serif" font-size="26" font-weight="bold" fill="#fff" text-anchor="middle">Fernet Branca</text>
+      <rect x="60" y="118" width="260" height="2" fill="rgba(34,197,94,.4)" rx="1"/>
+      <text x="190" y="148" font-family="Georgia,serif" font-size="18" fill="#22c55e" text-anchor="middle">Sponsor oficial de la noche</text>
+      <text x="190" y="170" font-family="Georgia,serif" font-size="14" fill="rgba(255,255,255,.6)" text-anchor="middle">La noche empieza con Branca 🌙</text>
+      <rect x="120" y="188" width="140" height="24" rx="12" fill="rgba(34,197,94,.2)" stroke="rgba(34,197,94,.5)" stroke-width="1"/>
+      <text x="190" y="204" font-family="Georgia,serif" font-size="12" fill="#22c55e" text-anchor="middle">Córdoba Nocturna</text>
+    </svg>`
+  }
+};
+
+function abrirPromo(id) {
+  const promo = PROMOS[id];
+  if (!promo) return;
+  document.getElementById('promo-img-wrap').innerHTML = promo.svg;
+  const wa = document.getElementById('promo-whatsapp');
+  const ig = document.getElementById('promo-instagram');
+  wa.dataset.url = promo.whatsapp;
+  ig.dataset.url = promo.instagram;
+  document.getElementById('promo-modal').classList.add('show');
+}
+
+function cerrarPromo() {
+  document.getElementById('promo-modal').classList.remove('show');
 }
 
 // ─── BORRAR MATCH ────────────────────────────────────────────────────
