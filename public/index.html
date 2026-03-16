@@ -735,11 +735,11 @@ async function entrarConQR() {
     const data = await api('/sesiones/entrar', { method:'POST', body:JSON.stringify({codigo_qr: codigo}) });
     sesionId = data.sesion_id;
     localStorage.setItem('cn_sesion', sesionId);
-    // Guardar nombre del negocio si viene
     if (data.negocio_nombre) {
       localStorage.setItem('cn_negocio', data.negocio_nombre);
       mostrarNombreSesion(data.negocio_nombre);
     }
+    if (data.negocio_tipo) localStorage.setItem('cn_tipo', data.negocio_tipo);
     perfiles = []; perfilIdx = 0;
     await cargarPerfiles();
     showScreen('swipe');
@@ -753,6 +753,18 @@ function mostrarNombreSesion(nombre) {
   const el = document.getElementById('sesion-nombre-header');
   if (el && nombre) { el.textContent = '📍 ' + nombre; el.style.display = 'block'; }
 }
+
+const CATEGORIAS = {
+  disco:       { emoji:'🎧', titulo:'¡LA PISTA TE ESPERA!',     sub:'Todavía no hay nadie en la pista.<br>¡Sé el primero en llegar!' },
+  bar:         { emoji:'🍺', titulo:'¡EL BAR ESTÁ SOLO!',       sub:'Todavía no hay nadie en el bar.<br>¡Llegaste temprano!' },
+  pub:         { emoji:'🎸', titulo:'¡EL PUB ESTÁ TRANQUILO!',  sub:'Todavía no llegó nadie.<br>¡La noche recién empieza!' },
+  restaurante: { emoji:'🍽️', titulo:'¡LA MESA TE ESPERA!',     sub:'Todavía no hay comensales.<br>¡Reservá tu lugar!' },
+  gimnasio:    { emoji:'💪', titulo:'¡A ENTRENAR!',              sub:'Todavía no hay nadie en el gym.<br>¡Arrancá primero!' },
+  sunset:      { emoji:'🌅', titulo:'¡QUÉ ATARDECER!',          sub:'Todavía no hay nadie por acá.<br>¡Compartí este momento!' },
+  baile:       { emoji:'💃', titulo:'¡A BAILAR!',                sub:'Todavía no hay nadie en la pista.<br>¡Calentá los pasos!' },
+  festival:    { emoji:'🎪', titulo:'¡QUÉ FESTIVAL!',           sub:'Todavía no hay nadie registrado.<br>¡Explorá el lugar!' },
+  default:     { emoji:'🌙', titulo:'¡NADIE POR AQUÍ AÚN!',     sub:'Todavía no hay nadie en la sala.<br>¡Sé el primero!' }
+};
 
 async function cargarPerfiles() {
   if (!sesionId) return;
@@ -798,11 +810,12 @@ function renderCard() {
       return;
     }
     if (perfiles.length === 0) {
-      // No hay nadie — mostrar mensaje y reintentar cada 30 seg
+      const tipo = localStorage.getItem('cn_tipo') || 'default';
+      const cat = CATEGORIAS[tipo] || CATEGORIAS.default;
       area.innerHTML = `<div class="empty-state">
-        <div class="big-emoji">🕺</div>
-        <h2>NADIE EN LA PISTA</h2>
-        <p>Todavía no hay más personas esta noche.<br>¡Seguí bailando, van a llegar!</p>
+        <div class="big-emoji">${cat.emoji}</div>
+        <h2>${cat.titulo}</h2>
+        <p>${cat.sub}</p>
         <div style="color:var(--muted);font-size:12px;margin-top:8px">Recargando en 30 segundos...</div>
       </div>`;
       setTimeout(async () => { await resetearPerfiles(); }, 30000);
