@@ -251,10 +251,10 @@ tr:hover td { background:rgba(255,255,255,.02); }
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Nombre</th><th>Email</th><th>Vibe</th><th>Edad</th><th>Registrado</th></tr>
+              <tr><th>Nombre</th><th>Código</th><th>Email</th><th>Vibe</th><th>Edad</th><th>Registrado</th></tr>
             </thead>
             <tbody id="usuarios-tbody">
-              <tr><td colspan="5"><div class="loader"></div></td></tr>
+              <tr><td colspan="6"><div class="loader"></div></td></tr>
             </tbody>
           </table>
         </div>
@@ -521,33 +521,69 @@ async function borrarSponsor(id, nombre) {
 // ─── SESIONES ─────────────────────────────────────────────────────────
 async function cargarSesiones() {
   const list = document.getElementById('sesiones-list');
+  list.innerHTML = '<div class="loader"></div>';
   try {
-    const data = await apiAdmin('/superadmin/dashboard');
     const negocios = await apiAdmin('/superadmin/negocios');
+    let sesiones = [];
+    try { sesiones = await apiAdmin('/superadmin/sesiones'); } catch(e) { sesiones = []; }
+
     if (!negocios.length) {
       list.innerHTML = `<div class="empty-state-table"><div class="icon">🌙</div>No hay negocios registrados</div>`;
       return;
     }
-    list.innerHTML = negocios.map(n => `
-      <div class="sesion-card">
-        <div class="sesion-info">
-          <div class="sesion-nombre">${n.nombre}</div>
-          <div class="sesion-meta">
-            <span>📍 ${n.tipo}</span>
-            ${n.sesion_activa ? `<span style="color:#22c55e">🟢 Sesión abierta</span>` : `<span style="color:var(--muted)">⚫ Sin sesión</span>`}
-            ${n.codigo_qr ? `<span>QR: <strong style="color:var(--pink)">${n.codigo_qr}</strong></span>` : ''}
+
+    list.innerHTML = negocios.map(n => {
+      const sesionesNegocio = Array.isArray(sesiones) ? sesiones.filter(s => s.negocio_id === n.id) : [];
+      const activa = sesionesNegocio.find(s => s.activa);
+      const historial = sesionesNegocio.filter(s => !s.activa).slice(0, 4);
+
+      return `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div style="font-size:16px;font-weight:600;">${n.nombre}</div>
+            <div style="color:var(--muted);font-size:12px;">${n.tipo}</div>
           </div>
-        </div>
-        ${n.codigo_qr ? `<div class="sesion-qr">${n.codigo_qr}</div>` : ''}
-        <div class="sesion-actions">
-          ${n.sesion_activa
-            ? `<button class="btn-sm btn-delete" onclick="cerrarSesion('${n.sesion_id}','${n.nombre}')">🔒 Cerrar noche</button>`
-            : `<button class="btn-sm btn-add" style="background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff" onclick="abrirSesion('${n.id}','${n.nombre}')">🌙 Abrir noche</button>`
+          ${activa
+            ? `<button class="btn-sm btn-delete" onclick="cerrarSesion('${activa.id}','${n.nombre}')">🔒 Cerrar noche</button>`
+            : `<button class="btn-sm" style="background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;padding:8px 16px;" onclick="abrirSesion('${n.id}','${n.nombre}')">🌙 Abrir noche</button>`
           }
         </div>
-      </div>`).join('');
+
+        ${activa ? `
+          <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:14px;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <div>
+                <span style="color:#22c55e;font-size:12px;font-weight:600;">🟢 SESIÓN ACTIVA</span>
+                <div style="font-size:14px;font-weight:600;margin-top:2px;">${activa.nombre}</div>
+                <div style="color:var(--muted);font-size:11px;">Abierta: ${new Date(activa.abierta_en).toLocaleString('es-AR')}</div>
+                <div style="color:var(--muted);font-size:11px;">👥 ${activa.total_usuarios} usuarios · ❤️ ${activa.total_matches} matches</div>
+              </div>
+              <div style="font-family:monospace;font-size:24px;font-weight:700;color:var(--pink);background:rgba(255,45,120,.1);padding:10px 18px;border-radius:10px;letter-spacing:3px;">${activa.codigo_qr}</div>
+            </div>
+          </div>` : `
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;margin-bottom:12px;color:var(--muted);font-size:13px;text-align:center;">
+            ⚫ Sin sesión activa
+          </div>`
+        }
+
+        ${historial.length ? `
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">Historial</div>
+          ${historial.map(s => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px;margin-bottom:4px;">
+              <div>
+                <span style="font-size:13px;color:rgba(255,255,255,.6)">${s.nombre}</span>
+                <span style="color:var(--muted);font-size:11px;margin-left:8px">${new Date(s.abierta_en).toLocaleDateString('es-AR')}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.3)">${s.codigo_qr}</span>
+                <span class="badge badge-red" style="font-size:10px;">Cerrada</span>
+              </div>
+            </div>`).join('')}` : ''}
+      </div>`;
+    }).join('');
   } catch(err) {
-    list.innerHTML = `<p style="color:var(--muted)">Error cargando sesiones</p>`;
+    list.innerHTML = `<p style="color:var(--muted)">Error cargando sesiones: ${err.message}</p>`;
   }
 }
 
@@ -620,10 +656,10 @@ function abrirModalNegocio(n={}) {
       </div>
       <div>
         <label class="field-label">Plan</label>
-        <select class="input-field" id="neg-plan">
-          <option value="basico" ${(n.plan||'basico')==='basico'?'selected':''}>Básico</option>
-          <option value="pro" ${n.plan==='pro'?'selected':''}>Pro</option>
-          <option value="premium" ${n.plan==='premium'?'selected':''}>Premium</option>
+        <select class="input-field" id="neg-plan" style="color:#fff;background:#1a0030;">
+          <option value="basico" style="background:#1a0030" ${(n.plan||'basico')==='basico'?'selected':''}>Básico</option>
+          <option value="pro" style="background:#1a0030" ${n.plan==='pro'?'selected':''}>Pro</option>
+          <option value="premium" style="background:#1a0030" ${n.plan==='premium'?'selected':''}>Premium</option>
         </select>
       </div>
       <div class="full">
@@ -679,10 +715,12 @@ async function cargarUsuarios() {
   try {
     const usuarios = await apiAdmin('/superadmin/usuarios');
     if (!usuarios.length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state-table"><div class="icon">👥</div>No hay usuarios aún</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state-table"><div class="icon">👥</div>No hay usuarios aún</div></td></tr>`;
       return;
     }
-    tbody.innerHTML = usuarios.map(u => `
+    tbody.innerHTML = usuarios.map(u => {
+      const codigo = 'USR-' + u.id.substring(0,8);
+      return `
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:10px">
@@ -690,13 +728,20 @@ async function cargarUsuarios() {
             <strong>${u.nombre}</strong>
           </div>
         </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-family:monospace;font-size:12px;color:var(--pink);background:rgba(255,45,120,.1);padding:3px 8px;border-radius:6px">${codigo}</span>
+            <button onclick="navigator.clipboard.writeText('${codigo}');this.textContent='✓'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px">📋</button>
+          </div>
+        </td>
         <td style="color:var(--muted);font-size:13px">${u.email||'—'}</td>
         <td style="font-size:13px">${u.vibe||'—'}</td>
         <td>${u.edad||'—'}</td>
         <td style="color:var(--muted);font-size:12px">${new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
   }
 }
 
