@@ -160,6 +160,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
       <div class="nav-section">Principal</div>
       <button class="nav-item active" onclick="navTo('dashboard',this)"><span class="icon">📊</span> Dashboard</button>
       <button class="nav-item" onclick="navTo('sponsors',this)"><span class="icon">🎯</span> Sponsors</button>
+      <button class="nav-item" onclick="navTo('promo-principal',this)"><span class="icon">📲</span> Promo Principal</button>
       <button class="nav-item" onclick="navTo('sesiones',this)"><span class="icon">🌙</span> Sesiones</button>
       <div class="nav-section" style="margin-top:16px">Gestión</div>
       <button class="nav-item" onclick="navTo('negocios',this)"><span class="icon">🏢</span> Negocios</button>
@@ -184,6 +185,90 @@ tr:hover td { background:rgba(255,255,255,.02); }
         </div>
         <div class="table-wrap" id="dashboard-recent">
           <div class="loader"></div>
+        </div>
+      </div>
+
+      <!-- PROMO PRINCIPAL -->
+      <div class="page" id="page-promo-principal">
+        <div class="page-title">PROMO PRINCIPAL 📲</div>
+        <div class="page-sub">Esta promo aparece en todos los negocios. Los usuarios la ven y te mandan un WhatsApp con su código.</div>
+
+        <div style="background:var(--card);border:1px solid rgba(255,45,120,.25);border-radius:20px;padding:24px;margin-bottom:24px;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px;">⚙️ Configuración</div>
+          <div class="modal-grid">
+            <div class="full">
+              <label class="field-label">Título de la promo</label>
+              <input class="input-field" id="pp-titulo" placeholder="Ej: 2 Fernets x 1 esta noche 🥃">
+            </div>
+            <div class="full">
+              <label class="field-label">Descripción</label>
+              <input class="input-field" id="pp-descripcion" placeholder="Ej: Mandá tu código y retirá en la barra">
+            </div>
+            <div>
+              <label class="field-label">Emoji</label>
+              <input class="input-field" id="pp-emoji" placeholder="🎉" value="🎉">
+            </div>
+            <div>
+              <label class="field-label">Etiqueta</label>
+              <input class="input-field" id="pp-tag" placeholder="GRATIS" value="GRATIS">
+            </div>
+            <div class="full">
+              <label class="field-label">📱 Número de WhatsApp (recibe los mensajes)</label>
+              <input class="input-field" id="pp-whatsapp" placeholder="543512291554" value="543512291554">
+              <div style="color:var(--muted);font-size:11px;margin-top:4px;">Sin el + ni espacios. Ej: 543512291554</div>
+            </div>
+            <div class="full">
+              <label class="field-label">Pantallas donde aparece</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                ${['splash','qr','swipe','matches'].map(p => {
+                  const labels = {splash:'🌙 Inicio',qr:'📱 QR',swipe:'❤️ Swipe',matches:'🔥 Matches'};
+                  return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+                    <input type="checkbox" id="pp-p-${p}" checked style="accent-color:var(--pink)"> ${labels[p]}
+                  </label>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:20px;display:flex;gap:10px;">
+            <button class="btn-primary" onclick="guardarPromoPersonal()">💾 GUARDAR PROMO PRINCIPAL</button>
+            <button class="btn-sm btn-edit" onclick="previsualizarPromo()" style="padding:12px 20px;">👁 Previsualizar</button>
+          </div>
+        </div>
+
+        <!-- PREVIEW -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:16px;">📱 Así la ven los usuarios</div>
+          <div id="pp-preview" style="max-width:380px;">
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,45,120,.2);border-radius:16px;padding:12px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+              <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,rgba(255,45,120,.3),rgba(124,58,237,.3));display:flex;align-items:center;justify-content:center;font-size:22px;" id="pp-prev-emoji">🎉</div>
+              <div style="flex:1;">
+                <div style="font-weight:600;font-size:14px;" id="pp-prev-titulo">Título de la promo</div>
+                <div style="color:var(--pink);font-size:12px;margin-top:2px;" id="pp-prev-desc">Descripción de la promo</div>
+              </div>
+              <span style="background:rgba(255,45,120,.2);color:var(--pink);font-size:10px;font-weight:700;padding:3px 10px;border-radius:50px;" id="pp-prev-tag">GRATIS</span>
+            </div>
+            <div style="margin-top:12px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;">
+              <span style="font-size:24px;">💬</span>
+              <div>
+                <div style="font-size:13px;font-weight:600;color:#25d366;">Participar por WhatsApp</div>
+                <div style="font-size:11px;color:var(--muted);">Abre WhatsApp con tu código ya cargado</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MENSAJES RECIBIDOS -->
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-top:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="font-size:14px;font-weight:600;">📨 Registrar participante</div>
+          </div>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">Cuando recibas un WhatsApp con el código USR-xxxxxxxx, ingresalo acá para registrar el teléfono automáticamente.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <input class="input-field" id="pp-codigo-recibido" placeholder="USR-db69b5bc" style="flex:1;margin:0;min-width:160px;">
+            <input class="input-field" id="pp-tel-recibido" placeholder="351xxxxxxx" style="flex:1;margin:0;min-width:160px;">
+            <button class="btn-primary" style="white-space:nowrap;" onclick="registrarParticipante()">✅ REGISTRAR</button>
+          </div>
+          <div id="pp-registro-msg" style="margin-top:12px;font-size:13px;display:none;"></div>
         </div>
       </div>
 
@@ -327,6 +412,7 @@ function navTo(page, btn) {
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
+  if (page === 'promo-principal') cargarPromoPrincipal();
   if (page === 'dashboard') cargarDashboard();
   if (page === 'sponsors')  cargarSponsors();
   if (page === 'sesiones')  cargarSesiones();
@@ -568,7 +654,10 @@ async function cargarSesiones() {
         }
 
         ${historial.length ? `
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;">Historial</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);">Historial</div>
+            <button onclick="borrarSesionesInactivas('${n.id}')" style="background:none;border:1px solid rgba(255,45,120,.2);color:rgba(255,45,120,.6);padding:4px 10px;border-radius:50px;font-size:11px;cursor:pointer;">🗑 Borrar inactivas</button>
+          </div>
           ${historial.map(s => `
             <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px;margin-bottom:4px;">
               <div>
@@ -578,6 +667,7 @@ async function cargarSesiones() {
               <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-family:monospace;font-size:12px;color:rgba(255,255,255,.3)">${s.codigo_qr}</span>
                 <span class="badge badge-red" style="font-size:10px;">Cerrada</span>
+                <button onclick="borrarSesion('${s.id}')" style="background:none;border:none;color:rgba(255,45,120,.4);cursor:pointer;font-size:14px;padding:2px 4px;">🗑</button>
               </div>
             </div>`).join('')}` : ''}
       </div>`;
@@ -601,6 +691,111 @@ async function cerrarSesion(sesionId, nombre) {
   if (!confirm(`¿Cerrar la sesión de ${nombre}? Se desconectarán todos los usuarios.`)) return;
   try {
     await apiAdmin(`/sesiones/${sesionId}`, { method:'DELETE' });
+    cargarSesiones();
+  } catch(err) { alert(err.message); }
+}
+
+// ─── PROMO PRINCIPAL ─────────────────────────────────────────────────
+async function cargarPromoPrincipal() {
+  try {
+    const sponsors = await apiAdmin('/sponsors');
+    const pp = sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
+    if (pp) {
+      document.getElementById('pp-titulo').value = pp.nombre || '';
+      document.getElementById('pp-descripcion').value = pp.promo || '';
+      document.getElementById('pp-emoji').value = pp.emoji || '🎉';
+      document.getElementById('pp-tag').value = 'GRATIS';
+      document.getElementById('pp-whatsapp').value = pp.whatsapp || '543512291554';
+      const pantallas = pp.pantalla === 'todas' ? ['splash','qr','swipe','matches'] : pp.pantalla.split(',');
+      ['splash','qr','swipe','matches'].forEach(p => {
+        const el = document.getElementById(`pp-p-${p}`);
+        if (el) el.checked = pantallas.includes(p);
+      });
+      actualizarPreviewPromo();
+    }
+  } catch(e) {}
+
+  // Live preview
+  ['pp-titulo','pp-descripcion','pp-emoji','pp-tag'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', actualizarPreviewPromo);
+  });
+}
+
+function actualizarPreviewPromo() {
+  const titulo = document.getElementById('pp-titulo')?.value || 'Título de la promo';
+  const desc   = document.getElementById('pp-descripcion')?.value || 'Descripción de la promo';
+  const emoji  = document.getElementById('pp-emoji')?.value || '🎉';
+  const tag    = document.getElementById('pp-tag')?.value || 'GRATIS';
+  const el1 = document.getElementById('pp-prev-titulo'); if(el1) el1.textContent = titulo;
+  const el2 = document.getElementById('pp-prev-desc');   if(el2) el2.textContent = desc;
+  const el3 = document.getElementById('pp-prev-emoji');  if(el3) el3.textContent = emoji;
+  const el4 = document.getElementById('pp-prev-tag');    if(el4) el4.textContent = tag;
+}
+
+async function guardarPromoPersonal() {
+  const titulo   = document.getElementById('pp-titulo').value.trim();
+  const desc     = document.getElementById('pp-descripcion').value.trim();
+  const emoji    = document.getElementById('pp-emoji').value.trim();
+  const whatsapp = document.getElementById('pp-whatsapp').value.trim();
+  if (!titulo || !desc) { alert('Completá el título y la descripción'); return; }
+  const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`pp-p-${p}`)?.checked);
+  const pantalla  = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
+
+  try {
+    // Buscar si ya existe
+    const sponsors = await apiAdmin('/sponsors');
+    const pp = sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
+    const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, orden:-1 };
+    if (pp) await apiAdmin(`/sponsors/${pp.id}`, { method:'PUT', body:JSON.stringify(body) });
+    else    await apiAdmin('/sponsors', { method:'POST', body:JSON.stringify({...body, activo:true}) });
+    alert('✅ Promo Principal guardada!');
+  } catch(err) { alert(err.message); }
+}
+
+function previsualizarPromo() {
+  actualizarPreviewPromo();
+  document.getElementById('pp-preview').scrollIntoView({ behavior:'smooth' });
+}
+
+async function registrarParticipante() {
+  const codigo = document.getElementById('pp-codigo-recibido').value.trim();
+  const tel    = document.getElementById('pp-tel-recibido').value.trim();
+  const msgEl  = document.getElementById('pp-registro-msg');
+  msgEl.style.display = 'none';
+  if (!codigo || !tel) { alert('Ingresá el código y el teléfono'); return; }
+
+  // Extraer UUID del código USR-xxxxxxxx
+  const partes = codigo.replace('USR-','');
+  try {
+    const data = await apiAdmin(`/superadmin/registrar-telefono`, {
+      method: 'POST',
+      body: JSON.stringify({ codigo_usuario: partes, telefono: tel })
+    });
+    msgEl.style.display = 'block';
+    msgEl.style.color = '#22c55e';
+    msgEl.textContent = `✅ Teléfono registrado para ${data.nombre}`;
+    document.getElementById('pp-codigo-recibido').value = '';
+    document.getElementById('pp-tel-recibido').value = '';
+  } catch(err) {
+    msgEl.style.display = 'block';
+    msgEl.style.color = 'var(--pink)';
+    msgEl.textContent = '❌ ' + err.message;
+  }
+}
+
+// ─── BORRAR SESIONES ──────────────────────────────────────────────────
+async function borrarSesion(sesionId) {
+  if (!confirm('¿Borrar esta sesión del historial?')) return;
+  try {
+    await apiAdmin(`/superadmin/sesiones/${sesionId}`, { method:'DELETE' });
+    cargarSesiones();
+  } catch(err) { alert(err.message); }
+}
+
+async function borrarSesionesInactivas(negocioId) {
+  if (!confirm('¿Borrar todas las sesiones cerradas de este negocio?')) return;
+  try {
+    await apiAdmin(`/superadmin/sesiones/negocio/${negocioId}/inactivas`, { method:'DELETE' });
     cargarSesiones();
   } catch(err) { alert(err.message); }
 }
