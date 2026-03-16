@@ -597,11 +597,15 @@ function abrirModalNegocio(n={}) {
       </div>
       <div>
         <label class="field-label">Tipo</label>
-        <select class="input-field" id="neg-tipo">
-          <option value="disco" ${n.tipo==='disco'?'selected':''}>Disco</option>
-          <option value="bar" ${n.tipo==='bar'?'selected':''}>Bar</option>
-          <option value="restaurante" ${n.tipo==='restaurante'?'selected':''}>Restaurante</option>
-          <option value="pub" ${n.tipo==='pub'?'selected':''}>Pub</option>
+        <select class="input-field" id="neg-tipo" style="color:#fff;background:#1a0030;">
+          <option value="disco" style="background:#1a0030" ${n.tipo==='disco'?'selected':''}>🎧 Discoteca</option>
+          <option value="bar" style="background:#1a0030" ${n.tipo==='bar'?'selected':''}>🍺 Bar</option>
+          <option value="pub" style="background:#1a0030" ${n.tipo==='pub'?'selected':''}>🎸 Pub</option>
+          <option value="restaurante" style="background:#1a0030" ${n.tipo==='restaurante'?'selected':''}>🍽️ Restaurante</option>
+          <option value="gimnasio" style="background:#1a0030" ${n.tipo==='gimnasio'?'selected':''}>💪 Gimnasio</option>
+          <option value="sunset" style="background:#1a0030" ${n.tipo==='sunset'?'selected':''}>🌅 Sunset / Rooftop</option>
+          <option value="baile" style="background:#1a0030" ${n.tipo==='baile'?'selected':''}>💃 Baile / Milonga</option>
+          <option value="festival" style="background:#1a0030" ${n.tipo==='festival'?'selected':''}>🎪 Festival / Evento</option>
         </select>
       </div>
       <div>
