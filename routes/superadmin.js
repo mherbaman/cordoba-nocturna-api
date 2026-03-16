@@ -146,8 +146,58 @@ router.get('/usuarios', authSuperAdmin, async (req, res) => {
   }
 });
 
+// ── GET /superadmin/reportes ─────────────────────────────────────────
+router.get('/reportes', authSuperAdmin, async (req, res) => {
+  const { desde, hasta, negocio_id } = req.query;
+  if (!desde || !hasta) return res.status(400).json({ error: 'Fechas requeridas' });
+  try {
+    const params = [desde, hasta];
+    let whereNegocio = '';
+    if (negocio_id) {
+      params.push(negocio_id);
+      whereNegocio = `AND p.negocio_id = $${params.length}`;
+    }
+
+    const usuarios = await pool.query(`
+      SELECT 
+        u.id, u.nombre, u.email, u.telefono, u.foto_url, u.vibe, u.edad,
+        n.nombre as negocio_nombre,
+        COUNT(p.id) as visitas,
+        MAX(p.entro_en) as ultimo_ingreso
+      FROM presencias p
+      JOIN usuarios u ON u.id = p.usuario_id
+      JOIN negocios n ON n.id = p.negocio_id
+      WHERE p.entro_en BETWEEN $1 AND $2::date + interval '1 day'
+      ${whereNegocio}
+      GROUP BY u.id, u.nombre, u.email, u.telefono, u.foto_url, u.vibe, u.edad, n.nombre
+      ORDER BY MAX(p.entro_en) DESC
+    `, params);
+
+    const sesiones = await pool.query(`
+      SELECT COUNT(*) as total FROM sesiones_noche
+      WHERE abierta_en BETWEEN $1 AND $2::date + interval '1 day'
+      ${negocio_id ? `AND negocio_id = $3` : ''}
+    `, negocio_id ? [desde, hasta, negocio_id] : [desde, hasta]);
+
+    const matches = await pool.query(`
+      SELECT COUNT(*) as total FROM matches
+      WHERE creado_en BETWEEN $1 AND $2::date + interval '1 day'
+      ${negocio_id ? `AND negocio_id = $3` : ''}
+    `, negocio_id ? [desde, hasta, negocio_id] : [desde, hasta]);
+
+    res.json({
+      usuarios:        usuarios.rows,
+      total_sesiones:  parseInt(sesiones.rows[0].total),
+      total_matches:   parseInt(matches.rows[0].total)
+    });
+  } catch (err) {
+    console.error('Error en reportes:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // ── DELETE /superadmin/sesiones/negocio/:id/inactivas ────────────────
-// ⚠️ DEBE IR ANTES de /sesiones/:id para que Express no confunda rutas
+// ⚠️ DEBE IR ANTES de /sesiones/:id
 router.delete('/sesiones/negocio/:id/inactivas', authSuperAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM sesiones_noche WHERE negocio_id = $1 AND activa = false', [req.params.id]);
