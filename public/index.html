@@ -445,6 +445,9 @@ let chatMatchId = null, chatOtro = null;
     <button class="back-btn" onclick="showScreen('swipe')">←</button>
     <div class="matches-title">TUS MATCHES 🔥</div>
   </div>
+  <div style="width:100%;max-width:420px;padding:0 20px 8px;">
+    <div id="ads-matches"></div>
+  </div>
   <div class="matches-list" id="matches-list"></div>
 </div>
 
@@ -554,7 +557,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'swipe') { renderCard(); pingActividad(); cargarMatchCount(); }
-  if (id === 'matches-screen') loadMatches();
+  if (id === 'matches-screen') { loadMatches(); renderizarAds('matches'); }
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────
@@ -1165,7 +1168,11 @@ async function cargarSponsorsApp() {
 function renderizarAds(pantalla) {
   const el = document.getElementById(`ads-${pantalla}`);
   if (!el) return;
-  const filtrados = sponsorsCache.filter(s => s.activo && (s.pantalla === pantalla || s.pantalla === 'todas'));
+  const filtrados = sponsorsCache.filter(s => {
+    if (!s.activo) return false;
+    if (s.pantalla === 'todas') return true;
+    return s.pantalla.split(',').includes(pantalla);
+  });
   if (!filtrados.length) { el.innerHTML = ''; return; }
   el.innerHTML = filtrados.slice(0,2).map(s => `
     <div class="ad-banner" onclick="abrirPromoSponsor('${s.id}')">
@@ -1182,8 +1189,9 @@ function abrirPromoSponsor(id) {
   const s = sponsorsCache.find(x => x.id === id);
   if (!s) return;
   const wrap = document.getElementById('promo-img-wrap');
-  if (s.imagen_url) {
-    wrap.innerHTML = `<img src="${s.imagen_url}" style="width:100%;border-radius:20px;display:block;">`;
+  if (s.imagen_promo || s.imagen_url) {
+    const src = s.imagen_promo || s.imagen_url;
+    wrap.innerHTML = `<img src="${src}" style="width:100%;border-radius:20px;display:block;">`;
   } else {
     wrap.innerHTML = `<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
       <rect width="380" height="220" fill="#0f0019"/>
