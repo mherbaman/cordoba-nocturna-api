@@ -60,7 +60,7 @@ body {
 .ring  { position:absolute;border-radius:50%;animation:pulseRing 3.5s ease-out infinite; }
 .splash-icon { font-size:72px;animation:float 3s ease-in-out infinite;margin-bottom:16px;filter:drop-shadow(0 0 28px rgba(255,45,120,.6)); }
 .splash-content { text-align:center;animation:fadeUp .9s ease forwards;position:relative;z-index:1; }
-.logo { font-family:'Bebas Neue',cursive;font-size:58px;line-height:1;letter-spacing:2px; }
+.logo { font-family:'Bebas Neue',cursive;font-size:clamp(32px,10vw,58px);line-height:1;letter-spacing:2px; }
 .logo span { color:var(--pink); }
 .tagline { color:var(--muted);font-size:15px;margin:10px 0 40px; }
 .splash-btns { display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:340px; }
@@ -136,7 +136,25 @@ body {
 .like-btn { width:74px;height:74px;background:linear-gradient(135deg,var(--pink),var(--purple));box-shadow:0 0 36px rgba(255,45,120,.7);font-size:28px;animation:heartBeat 2s ease infinite;color:#fff; }
 .super-btn { width:60px;height:60px;background:#16a34a;border:2px solid #22c55e!important;box-shadow:0 0 24px rgba(22,163,74,.6);color:#fff;font-size:24px; }
 
-/* EMPTY */
+/* ADS */
+.ad-banner { width:100%;max-width:400px;border-radius:16px;overflow:hidden;border:1px solid rgba(255,45,120,.2);background:rgba(255,255,255,.03);display:flex;align-items:center;gap:12px;padding:12px;margin:8px 0;text-decoration:none;transition:background .2s;cursor:pointer; }
+.ad-banner:hover { background:rgba(255,45,120,.08); }
+.ad-img { width:56px;height:56px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px; }
+.ad-info { flex:1;min-width:0; }
+.ad-name { font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.ad-promo { color:var(--pink);font-size:12px;margin-top:2px; }
+.ad-tag { background:rgba(255,45,120,.15);color:var(--pink);font-size:10px;padding:3px 8px;border-radius:50px;font-weight:600;flex-shrink:0; }
+
+/* EVENTOS */
+.eventos-section { width:100%;max-width:360px;margin-top:20px; }
+.eventos-title { font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px;text-align:left; }
+.evento-card { display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;transition:background .2s; }
+.evento-card:hover { background:rgba(255,45,120,.08); }
+.evento-img { width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,rgba(255,45,120,.3),rgba(124,58,237,.3)); }
+.evento-info { flex:1;min-width:0; }
+.evento-nombre { font-size:14px;font-weight:600; }
+.evento-fecha { color:var(--muted);font-size:11px;margin-top:2px; }
+.evento-codigo { background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:50px;flex-shrink:0;letter-spacing:1px; }
 .empty-state { text-align:center;animation:fadeUp .5s ease forwards;padding:32px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%; }
 .empty-state .big-emoji { font-size:60px;margin-bottom:18px; }
 .empty-state h2 { font-family:'Bebas Neue',cursive;font-size:32px;letter-spacing:.5px;margin-bottom:10px; }
@@ -246,19 +264,40 @@ let chatMatchId = null, chatOtro = null;
 </script>
 
 <!-- SPLASH -->
-<div class="screen active" id="splash">
+<div class="screen active" id="splash" style="justify-content:space-between;padding:32px 24px 24px;">
   <div class="rings">
     <div class="ring" style="width:200px;height:200px;background:radial-gradient(circle,rgba(255,45,120,.15) 0%,transparent 70%);animation-delay:0s;animation-duration:3.5s"></div>
     <div class="ring" style="width:320px;height:320px;background:radial-gradient(circle,rgba(124,58,237,.12) 0%,transparent 70%);animation-delay:.7s;animation-duration:4s"></div>
     <div class="ring" style="width:460px;height:460px;background:radial-gradient(circle,rgba(255,45,120,.08) 0%,transparent 70%);animation-delay:1.4s;animation-duration:4.5s"></div>
   </div>
-  <div class="splash-content">
+  <div class="splash-content" style="position:relative;z-index:1;width:100%;max-width:400px;">
     <div class="splash-icon">🌙</div>
     <div class="logo">CÓRDOBA<span>NOCTURNA</span></div>
     <p class="tagline">conectá con quien está bailando esta noche</p>
     <div class="splash-btns">
       <button class="btn-primary" onclick="showAuth('register')">CREAR PERFIL →</button>
       <button class="btn-secondary" onclick="showAuth('login')">Ya tengo cuenta</button>
+    </div>
+  </div>
+
+  <!-- PUBLICIDAD SPLASH -->
+  <div style="width:100%;max-width:400px;position:relative;z-index:1;margin-top:16px;">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-align:center;">Sponsors de la noche</div>
+    <div class="ad-banner">
+      <div class="ad-img">🍺</div>
+      <div class="ad-info">
+        <div class="ad-name">Cervecería La Biela</div>
+        <div class="ad-promo">2x1 en jarras hasta las 12am 🍻</div>
+      </div>
+      <span class="ad-tag">PROMO</span>
+    </div>
+    <div class="ad-banner">
+      <div class="ad-img">🍕</div>
+      <div class="ad-info">
+        <div class="ad-name">Pizza Club Córdoba</div>
+        <div class="ad-promo">20% OFF mostrando la app 📱</div>
+      </div>
+      <span class="ad-tag">-20%</span>
     </div>
   </div>
 </div>
@@ -316,8 +355,18 @@ let chatMatchId = null, chatOtro = null;
 </div>
 
 <!-- QR SCREEN -->
-<div class="screen" id="qr-screen">
+<div class="screen" id="qr-screen" style="justify-content:flex-start;padding:32px 24px 24px;overflow-y:auto;">
   <div class="qr-inner">
+    <!-- PUBLICIDAD QR -->
+    <div class="ad-banner" style="margin-bottom:20px;">
+      <div class="ad-img">🎶</div>
+      <div class="ad-info">
+        <div class="ad-name">Disco Élite — VIP esta noche</div>
+        <div class="ad-promo">Entrada libre hasta las 11pm con la app</div>
+      </div>
+      <span class="ad-tag">VIP</span>
+    </div>
+
     <div style="font-size:56px;margin-bottom:16px;">📱</div>
     <h2>ESCANEÁ EL QR</h2>
     <p>Ingresá el código del local para entrar a la sala de esta noche.</p>
@@ -328,6 +377,35 @@ let chatMatchId = null, chatOtro = null;
     <button class="btn-primary" onclick="entrarConQR()">ENTRAR A LA NOCHE →</button>
     <div style="margin-top:16px;">
       <button class="btn-secondary" onclick="showScreen('swipe')" style="width:100%;max-width:340px;">Saltear por ahora</button>
+    </div>
+
+    <!-- EVENTOS ACTIVOS -->
+    <div class="eventos-section">
+      <div class="eventos-title">🎉 Eventos activos esta noche</div>
+      <div class="evento-card" onclick="document.getElementById('qr-codigo').value='A3F7B2E1'">
+        <div class="evento-img">🎧</div>
+        <div class="evento-info">
+          <div class="evento-nombre">Disco La Noche</div>
+          <div class="evento-fecha">Hoy — Abierto hasta las 5am</div>
+        </div>
+        <span class="evento-codigo">A3F7B2E1</span>
+      </div>
+      <div class="evento-card" onclick="document.getElementById('qr-codigo').value='B7C2D4E9'">
+        <div class="evento-img">🍹</div>
+        <div class="evento-info">
+          <div class="evento-nombre">Bar El Descontrol</div>
+          <div class="evento-fecha">Hoy — Happy hour hasta las 11pm</div>
+        </div>
+        <span class="evento-codigo">B7C2D4E9</span>
+      </div>
+      <div class="evento-card" onclick="document.getElementById('qr-codigo').value='C5E8F1A2'">
+        <div class="evento-img">🎸</div>
+        <div class="evento-info">
+          <div class="evento-nombre">Rock Café Córdoba</div>
+          <div class="evento-fecha">Hoy — Banda en vivo desde las 10pm</div>
+        </div>
+        <span class="evento-codigo">C5E8F1A2</span>
+      </div>
     </div>
   </div>
 </div>
@@ -654,6 +732,17 @@ function renderCard() {
       </div>`;
       return;
     }
+    if (perfiles.length === 0) {
+      // No hay nadie — mostrar mensaje y reintentar cada 30 seg
+      area.innerHTML = `<div class="empty-state">
+        <div class="big-emoji">🕺</div>
+        <h2>NADIE EN LA PISTA</h2>
+        <p>Todavía no hay más personas esta noche.<br>¡Seguí bailando, van a llegar!</p>
+        <div style="color:var(--muted);font-size:12px;margin-top:8px">Recargando en 30 segundos...</div>
+      </div>`;
+      setTimeout(async () => { await resetearPerfiles(); }, 30000);
+      return;
+    }
     area.innerHTML = `<div class="empty-state">
       <div class="big-emoji">🔄</div>
       <h2>RECARGANDO...</h2>
@@ -747,6 +836,19 @@ async function resetearPerfiles() {
     perfilIdx = 0;
   } catch(err) { perfiles = []; }
   hideLoader();
+  // Si no hay nadie en la sala, mostrar mensaje y reintentar en 30 seg
+  if (perfiles.length === 0) {
+    const area = document.getElementById('card-area');
+    const btns = document.getElementById('action-buttons');
+    btns.style.display = 'none';
+    area.innerHTML = `<div class="empty-state">
+      <div class="big-emoji">🕐</div>
+      <h2>NO HAY NADIE AÚN</h2>
+      <p>Todavía no hay personas en esta sala.<br>Esperá un momento...</p>
+      <button class="btn-primary" onclick="resetearPerfiles()">🔄 Reintentar</button>
+    </div>`;
+    return;
+  }
   renderCard();
   document.getElementById('action-buttons').style.display = 'flex';
 }
