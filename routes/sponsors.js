@@ -7,8 +7,6 @@ const router = express.Router();
 const { pool } = require('../database');
 const { authAdmin } = require('../middleware/auth');
 
-// ── GET /sponsors ─────────────────────────────────────────────────────
-// Pública — la app la usa para mostrar los banners
 router.get('/', async (req, res) => {
   try {
     const { pantalla } = req.query;
@@ -26,26 +24,23 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ── POST /sponsors ────────────────────────────────────────────────────
-// Solo superadmin
 router.post('/', authAdmin, async (req, res) => {
-  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, pantalla, orden } = req.body;
+  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden } = req.body;
   if (!nombre || !promo) return res.status(400).json({ error: 'Nombre y promo son requeridos' });
   try {
     const result = await pool.query(`
-      INSERT INTO sponsors (nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, pantalla, orden)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO sponsors (nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
-    `, [nombre, promo, emoji||'🎯', tag||'PROMO', whatsapp||'', instagram||'', imagen_url||'', pantalla||'todas', orden||0]);
+    `, [nombre, promo, emoji||'🎯', tag||'PROMO', whatsapp||'', instagram||'', imagen_url||'', imagen_promo||'', pantalla||'todas', orden||0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
   }
 });
 
-// ── PUT /sponsors/:id ─────────────────────────────────────────────────
 router.put('/:id', authAdmin, async (req, res) => {
-  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, pantalla, orden, activo } = req.body;
+  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden, activo } = req.body;
   try {
     const result = await pool.query(`
       UPDATE sponsors SET
@@ -56,19 +51,19 @@ router.put('/:id', authAdmin, async (req, res) => {
         whatsapp = COALESCE($5, whatsapp),
         instagram = COALESCE($6, instagram),
         imagen_url = COALESCE($7, imagen_url),
-        pantalla = COALESCE($8, pantalla),
-        orden = COALESCE($9, orden),
-        activo = COALESCE($10, activo)
-      WHERE id = $11
+        imagen_promo = COALESCE($8, imagen_promo),
+        pantalla = COALESCE($9, pantalla),
+        orden = COALESCE($10, orden),
+        activo = COALESCE($11, activo)
+      WHERE id = $12
       RETURNING *
-    `, [nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, pantalla, orden, activo, req.params.id]);
+    `, [nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden, activo, req.params.id]);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
   }
 });
 
-// ── DELETE /sponsors/:id ──────────────────────────────────────────────
 router.delete('/:id', authAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM sponsors WHERE id = $1', [req.params.id]);
