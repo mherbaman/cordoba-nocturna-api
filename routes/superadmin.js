@@ -18,11 +18,9 @@ router.post('/login', async (req, res) => {
       [email]
     );
     if (result.rows.length === 0) return res.status(401).json({ error: 'Acceso denegado' });
-
     const admin = result.rows[0];
     const ok = await bcrypt.compare(password, admin.password_hash);
     if (!ok) return res.status(401).json({ error: 'Acceso denegado' });
-
     const token = jwt.sign(
       { id: admin.id, email: admin.email, es_superadmin: true },
       process.env.JWT_SECRET,
@@ -43,11 +41,10 @@ router.get('/dashboard', authSuperAdmin, async (req, res) => {
       pool.query('SELECT COUNT(*) as total FROM matches'),
       pool.query('SELECT COUNT(*) as total FROM sesiones_noche WHERE activa = true')
     ]);
-
     res.json({
-      negocios:        parseInt(negocios.rows[0].total),
-      usuarios:        parseInt(usuarios.rows[0].total),
-      matches:         parseInt(matches.rows[0].total),
+      negocios:         parseInt(negocios.rows[0].total),
+      usuarios:         parseInt(usuarios.rows[0].total),
+      matches:          parseInt(matches.rows[0].total),
       sesiones_activas: parseInt(sesionesActivas.rows[0].total)
     });
   } catch (err) {
@@ -79,14 +76,10 @@ router.get('/negocios', authSuperAdmin, async (req, res) => {
 });
 
 // ── GET /superadmin/sesiones ─────────────────────────────────────────
-// Todas las sesiones con historial
 router.get('/sesiones', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
-        sn.*,
-        n.nombre as negocio_nombre,
-        n.tipo as negocio_tipo
+      SELECT sn.*, n.nombre as negocio_nombre, n.tipo as negocio_tipo
       FROM sesiones_noche sn
       JOIN negocios n ON n.id = sn.negocio_id
       ORDER BY sn.abierta_en DESC
@@ -142,12 +135,50 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
 router.get('/usuarios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, nombre, email, foto_url, vibe, edad, creado_en, ultimo_login, activo
+      SELECT id, nombre, email, foto_url, vibe, edad, telefono, creado_en, ultimo_login, activo
       FROM usuarios
       ORDER BY creado_en DESC
       LIMIT 100
     `);
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── DELETE /superadmin/sesiones/negocio/:id/inactivas ────────────────
+// ⚠️ DEBE IR ANTES de /sesiones/:id para que Express no confunda rutas
+router.delete('/sesiones/negocio/:id/inactivas', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM sesiones_noche WHERE negocio_id = $1 AND activa = false', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── DELETE /superadmin/sesiones/:id ─────────────────────────────────
+router.delete('/sesiones/:id', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM sesiones_noche WHERE id = $1 AND activa = false', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /superadmin/registrar-telefono ──────────────────────────────
+router.post('/registrar-telefono', authSuperAdmin, async (req, res) => {
+  const { codigo_usuario, telefono } = req.body;
+  if (!codigo_usuario || !telefono) return res.status(400).json({ error: 'Faltan datos' });
+  try {
+    const result = await pool.query(`
+      UPDATE usuarios SET telefono = $1 
+      WHERE id::text LIKE $2 || '%'
+      RETURNING nombre, email
+    `, [telefono, codigo_usuario]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    res.json({ ok: true, nombre: result.rows[0].nombre });
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
   }
