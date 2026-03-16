@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -584,7 +585,7 @@ function doLogout() {
   localStorage.removeItem('cn_usuario');
   localStorage.removeItem('cn_sesion');
   if (socket) socket.disconnect();
-  closeProfile();
+  document.getElementById('profile-modal').classList.remove('show');
   showScreen('splash');
 }
 
@@ -644,6 +645,15 @@ function renderCard() {
   // Loop infinito — cuando se acaban, recarga todos
   if (perfilIdx >= perfiles.length) {
     btns.style.display = 'none';
+    if (!sesionId) {
+      area.innerHTML = `<div class="empty-state">
+        <div class="big-emoji">📱</div>
+        <h2>ESCANEÁ EL QR</h2>
+        <p>Ingresá el código del local para ver perfiles.</p>
+        <button class="btn-primary" onclick="showScreen('qr-screen')">INGRESAR CÓDIGO →</button>
+      </div>`;
+      return;
+    }
     area.innerHTML = `<div class="empty-state">
       <div class="big-emoji">🔄</div>
       <h2>RECARGANDO...</h2>
@@ -730,9 +740,9 @@ function superLike() {
 }
 
 async function resetearPerfiles() {
+  if (!sesionId) { showScreen('qr-screen'); return; }
   showLoader('Recargando...');
   try {
-    // Traer todos los perfiles de la sesión sin filtrar
     perfiles = await api(`/sesiones/${sesionId}/perfiles?todos=true`);
     perfilIdx = 0;
   } catch(err) { perfiles = []; }
@@ -936,7 +946,7 @@ async function openProfile() {
 
 async function closeProfile() {
   // Guardar vibe si cambió
-  if (selectedVibe && selectedVibe !== usuario.vibe) {
+  if (usuario && selectedVibe && selectedVibe !== usuario.vibe) {
     try {
       await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ vibe: selectedVibe }) });
       usuario = { ...usuario, vibe: selectedVibe };
