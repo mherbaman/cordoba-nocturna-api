@@ -443,16 +443,20 @@ function abrirModalSponsor(s={}) {
       </div>
       <div class="full">
         <label class="field-label">Pantalla donde aparece</label>
-        <select class="input-field" id="sp-pantalla">
-          <option value="todas" ${(s.pantalla||'todas')==='todas'?'selected':''}>Todas las pantallas</option>
-          <option value="splash" ${s.pantalla==='splash'?'selected':''}>Solo inicio (splash)</option>
-          <option value="qr" ${s.pantalla==='qr'?'selected':''}>Solo pantalla QR</option>
-          <option value="swipe" ${s.pantalla==='swipe'?'selected':''}>Solo pantalla de swipe</option>
+        <select class="input-field" id="sp-pantalla" style="color:#fff;background:#1a0030;">
+          <option value="todas" style="color:#fff;background:#1a0030;" ${(s.pantalla||'todas')==='todas'?'selected':''}>Todas las pantallas</option>
+          <option value="splash" style="color:#fff;background:#1a0030;" ${s.pantalla==='splash'?'selected':''}>Solo inicio (splash)</option>
+          <option value="qr" style="color:#fff;background:#1a0030;" ${s.pantalla==='qr'?'selected':''}>Solo pantalla QR</option>
+          <option value="swipe" style="color:#fff;background:#1a0030;" ${s.pantalla==='swipe'?'selected':''}>Solo pantalla de swipe</option>
         </select>
       </div>
       <div>
         <label class="field-label">Orden (menor = primero)</label>
         <input class="input-field" id="sp-orden" type="number" value="${s.orden||0}" placeholder="0">
+      </div>
+      <div class="full">
+        <label class="field-label">URL de imagen (opcional)</label>
+        <input class="input-field" id="sp-imagen" value="${s.imagen_url||''}" placeholder="https://miservidor.com/foto.jpg">
       </div>
     </div>
     <div class="modal-actions">
@@ -470,14 +474,15 @@ function editarSponsor(s) {
 
 async function guardarSponsor(id) {
   const body = {
-    nombre:    document.getElementById('sp-nombre').value.trim(),
-    promo:     document.getElementById('sp-promo').value.trim(),
-    emoji:     document.getElementById('sp-emoji').value.trim(),
-    tag:       document.getElementById('sp-tag').value.trim(),
-    whatsapp:  document.getElementById('sp-whatsapp').value.trim(),
-    instagram: document.getElementById('sp-instagram').value.trim(),
-    pantalla:  document.getElementById('sp-pantalla').value,
-    orden:     parseInt(document.getElementById('sp-orden').value)||0
+    nombre:     document.getElementById('sp-nombre').value.trim(),
+    promo:      document.getElementById('sp-promo').value.trim(),
+    emoji:      document.getElementById('sp-emoji').value.trim(),
+    tag:        document.getElementById('sp-tag').value.trim(),
+    whatsapp:   document.getElementById('sp-whatsapp').value.trim(),
+    instagram:  document.getElementById('sp-instagram').value.trim(),
+    imagen_url: document.getElementById('sp-imagen').value.trim(),
+    pantalla:   document.getElementById('sp-pantalla').value,
+    orden:      parseInt(document.getElementById('sp-orden').value)||0
   };
   if (!body.nombre || !body.promo) { alert('Nombre y promo son requeridos'); return; }
   try {
