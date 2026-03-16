@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -417,17 +418,42 @@ let chatMatchId = null, chatOtro = null;
       <span id="profile-btn-emoji">👤</span>
       <img id="profile-btn-img" src="" alt="">
     </button>
-    <div class="header-logo">CÓRDOBA<span>NOCTURNA</span></div>
+    <div style="flex:1;text-align:center;">
+      <div class="header-logo">CÓRDOBA<span>NOCTURNA</span></div>
+      <div id="sesion-nombre-header" style="font-size:11px;color:var(--muted);margin-top:2px;display:none;"></div>
+    </div>
     <button class="matches-btn" id="matches-header-btn" onclick="showScreen('matches-screen')">
       ❤️ <span id="match-count">0</span>
       <span class="badge" id="msg-badge">0</span>
     </button>
   </div>
+
+  <!-- BANNER PUBLICIDAD SWIPE -->
+  <div style="width:100%;max-width:420px;padding:8px 20px 0;">
+    <div class="ad-banner" style="margin:0;">
+      <div class="ad-img">🥃</div>
+      <div class="ad-info">
+        <div class="ad-name">Fernet Branca — Sponsor oficial</div>
+        <div class="ad-promo">La noche empieza con Branca 🌙</div>
+      </div>
+      <span class="ad-tag">HOY</span>
+    </div>
+  </div>
+
   <div class="card-area" id="card-area"></div>
   <div class="action-buttons" id="action-buttons">
-    <button class="action-btn nope-btn" onclick="doSwipe('left')">✕</button>
-    <button class="action-btn like-btn" onclick="doSwipe('right')">❤️</button>
-    <button class="action-btn super-btn" onclick="superLike()">⚡</button>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <button class="action-btn nope-btn" onclick="doSwipe('left')">✕</button>
+      <span style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;">NEXT</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <button class="action-btn like-btn" onclick="doSwipe('right')">❤️</button>
+      <span style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;">MATCH</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <button class="action-btn super-btn" onclick="superLike()">⚡</button>
+      <span style="font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;">SUPER</span>
+    </div>
   </div>
 </div>
 
@@ -546,6 +572,8 @@ window.onload = function() {
   if (token && usuario) {
     syncProfileBtn();
     connectSocket();
+    const negocio = localStorage.getItem('cn_negocio');
+    if (negocio) mostrarNombreSesion(negocio);
     if (sesionId) showScreen('swipe');
     else showScreen('qr-screen');
   }
@@ -680,6 +708,11 @@ async function entrarConQR() {
     const data = await api('/sesiones/entrar', { method:'POST', body:JSON.stringify({codigo_qr: codigo}) });
     sesionId = data.sesion_id;
     localStorage.setItem('cn_sesion', sesionId);
+    // Guardar nombre del negocio si viene
+    if (data.negocio_nombre) {
+      localStorage.setItem('cn_negocio', data.negocio_nombre);
+      mostrarNombreSesion(data.negocio_nombre);
+    }
     perfiles = []; perfilIdx = 0;
     await cargarPerfiles();
     showScreen('swipe');
@@ -689,6 +722,11 @@ async function entrarConQR() {
 }
 
 // ─── PERFILES ─────────────────────────────────────────────────────────
+function mostrarNombreSesion(nombre) {
+  const el = document.getElementById('sesion-nombre-header');
+  if (el && nombre) { el.textContent = '📍 ' + nombre; el.style.display = 'block'; }
+}
+
 async function cargarPerfiles() {
   if (!sesionId) return;
   try {
