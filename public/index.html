@@ -29,6 +29,35 @@ body {
 }
 .screen { display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:center; padding:24px; pointer-events:none; }
 .screen.active { pointer-events:all; }
+
+/* AGE VERIFICATION */
+#age-verify { background:var(--bg);z-index:500; }
+.age-box { width:100%;max-width:380px;text-align:center;animation:fadeUp .6s ease forwards; }
+.age-logo { font-family:'Bebas Neue',cursive;font-size:48px;letter-spacing:2px;margin-bottom:4px; }
+.age-logo span { color:var(--pink); }
+.age-icon { font-size:64px;margin-bottom:16px;animation:float 3s ease-in-out infinite; }
+.age-title { font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:1px;margin-bottom:8px; }
+.age-sub { color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:28px; }
+.age-checks { display:flex;flex-direction:column;gap:12px;margin-bottom:28px;text-align:left; }
+.age-check { display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px; }
+.age-check input[type=checkbox] { width:20px;height:20px;accent-color:var(--pink);flex-shrink:0;margin-top:1px;cursor:pointer; }
+.age-check label { font-size:14px;color:rgba(255,255,255,.8);cursor:pointer;line-height:1.5; }
+.age-check label a { color:var(--pink);text-decoration:none; }
+.age-check label a:hover { text-decoration:underline; }
+.btn-age { background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:#fff;padding:16px;border-radius:50px;font-size:17px;font-weight:600;cursor:pointer;width:100%;transition:all .2s;opacity:.4;pointer-events:none; }
+.btn-age.enabled { opacity:1;pointer-events:all;box-shadow:0 0 35px rgba(255,45,120,.4); }
+.btn-age.enabled:hover { transform:scale(1.02); }
+
+/* POLITICAS */
+#politicas-screen { justify-content:flex-start;padding:0;overflow-y:auto; }
+.politicas-inner { width:100%;max-width:680px;padding:32px 24px 60px; }
+.politicas-inner h1 { font-family:'Bebas Neue',cursive;font-size:36px;letter-spacing:1px;margin-bottom:4px; }
+.politicas-inner .fecha { color:var(--muted);font-size:13px;margin-bottom:32px; }
+.politicas-inner h2 { font-size:18px;font-weight:600;margin:28px 0 10px;color:var(--pink); }
+.politicas-inner p { color:rgba(255,255,255,.75);font-size:14px;line-height:1.8;margin-bottom:12px; }
+.politicas-inner ul { color:rgba(255,255,255,.75);font-size:14px;line-height:1.8;padding-left:20px;margin-bottom:12px; }
+.politicas-inner ul li { margin-bottom:6px; }
+.back-politicas { display:flex;align-items:center;gap:8px;color:var(--pink);cursor:pointer;font-size:14px;font-weight:600;margin-bottom:24px;background:none;border:none;padding:0; }
 .screen.active { display:flex; }
 
 /* ANIMATIONS */
@@ -274,6 +303,96 @@ let isDragging = false, startX = 0, dragX = 0;
 let socket = null;
 let chatMatchId = null, chatOtro = null;
 </script>
+
+<!-- VERIFICACIÓN DE EDAD -->
+<div class="screen" id="age-verify">
+  <div class="age-box">
+    <div class="age-logo">CÓRDOBA<span>NOCTURNA</span></div>
+    <div class="age-icon">🌙</div>
+    <div class="age-title">ANTES DE ENTRAR</div>
+    <p class="age-sub">Esta app está diseñada para mayores de 18 años.<br>Por favor confirmá tu edad y aceptá nuestras políticas.</p>
+    <div class="age-checks">
+      <div class="age-check">
+        <input type="checkbox" id="check-edad" onchange="checkAge()">
+        <label for="check-edad">Confirmo que tengo <strong>18 años o más</strong> y que soy mayor de edad en mi país de residencia.</label>
+      </div>
+      <div class="age-check">
+        <input type="checkbox" id="check-politicas" onchange="checkAge()">
+        <label for="check-politicas">He leído y acepto los <a onclick="abrirPoliticas()" href="#">Términos y Condiciones</a> y la <a onclick="abrirPoliticas()" href="#">Política de Privacidad</a> de Córdoba Nocturna.</label>
+      </div>
+    </div>
+    <button class="btn-age" id="btn-entrar" onclick="aceptarYEntrar()">
+      ENTRAR A LA APP →
+    </button>
+  </div>
+</div>
+
+<!-- POLÍTICAS DE PRIVACIDAD -->
+<div class="screen" id="politicas-screen">
+  <div class="politicas-inner">
+    <button class="back-politicas" onclick="volverDePoloiticas()">← Volver</button>
+    <h1>TÉRMINOS Y POLÍTICAS</h1>
+    <p class="fecha">Última actualización: Marzo 2026</p>
+
+    <h2>1. Sobre la aplicación</h2>
+    <p>Córdoba Nocturna es una plataforma de conexión social diseñada para personas mayores de 18 años que se encuentran en el mismo establecimiento (disco, bar, restaurante u otro local adherido). La aplicación permite a los usuarios descubrir y conectar con otras personas presentes en el mismo lugar durante una sesión activa.</p>
+
+    <h2>2. Edad mínima requerida</h2>
+    <p>El acceso a Córdoba Nocturna está <strong>estrictamente limitado a personas mayores de 18 años</strong>. Al registrarte, confirmás que tenés 18 años o más. Nos reservamos el derecho de suspender cualquier cuenta que no cumpla con este requisito.</p>
+
+    <h2>3. Datos que recopilamos</h2>
+    <ul>
+      <li><strong>Nombre:</strong> Para identificarte dentro de la plataforma.</li>
+      <li><strong>Email y contraseña:</strong> Para autenticarte de forma segura.</li>
+      <li><strong>Foto de perfil:</strong> Para que otros usuarios puedan reconocerte.</li>
+      <li><strong>Edad y vibe:</strong> Para mostrar tu perfil a otros usuarios.</li>
+      <li><strong>Teléfono (opcional):</strong> Solo si participás en promos y lo proporcionás voluntariamente.</li>
+      <li><strong>Presencia en locales:</strong> Registramos a qué sesiones asististe para el funcionamiento de la app.</li>
+    </ul>
+
+    <h2>4. Cómo usamos tus datos</h2>
+    <ul>
+      <li>Para mostrarte perfiles de otras personas en el mismo local.</li>
+      <li>Para gestionar tus matches y mensajes.</li>
+      <li>Para enviarte notificaciones relacionadas con la app.</li>
+      <li>Los negocios adheridos pueden acceder a datos estadísticos anonimizados de sus sesiones.</li>
+    </ul>
+
+    <h2>5. Compartir datos con terceros</h2>
+    <p>No vendemos ni compartimos tus datos personales identificables con terceros. Los locales adheridos solo tienen acceso a estadísticas generales (cantidad de usuarios, matches) sin información personal individual.</p>
+
+    <h2>6. Mensajes y matches</h2>
+    <p>Los mensajes entre usuarios expiran automáticamente a los 8 días. Los matches se generan de forma mutua y pueden ser eliminados por cualquiera de las partes en cualquier momento.</p>
+
+    <h2>7. Conducta del usuario</h2>
+    <p>Al usar Córdoba Nocturna te comprometés a:</p>
+    <ul>
+      <li>No acosar, intimidar ni enviar contenido inapropiado a otros usuarios.</li>
+      <li>Usar tu nombre e imagen reales.</li>
+      <li>No usar la plataforma con fines comerciales no autorizados.</li>
+      <li>Respetar la privacidad de otros usuarios.</li>
+    </ul>
+    <p>El incumplimiento puede resultar en la suspensión permanente de tu cuenta.</p>
+
+    <h2>8. Eliminación de cuenta</h2>
+    <p>Podés solicitar la eliminación de tu cuenta y todos tus datos enviando un email a <strong>privacidad@cordobanocturna.com</strong>. Los datos serán eliminados dentro de los 30 días hábiles.</p>
+
+    <h2>9. Seguridad</h2>
+    <p>Utilizamos encriptación para proteger tus datos. Las contraseñas se almacenan con hash seguro y nunca en texto plano. Sin embargo, ningún sistema es 100% seguro y no podemos garantizar la seguridad absoluta de la información.</p>
+
+    <h2>10. Cambios en las políticas</h2>
+    <p>Nos reservamos el derecho de actualizar estas políticas. Te notificaremos de cambios significativos mediante la app. El uso continuado de la plataforma implica la aceptación de las políticas vigentes.</p>
+
+    <h2>11. Contacto</h2>
+    <p>Para consultas sobre privacidad o tus datos: <strong>privacidad@cordobanocturna.com</strong></p>
+
+    <div style="margin-top:32px;padding:20px;background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);border-radius:14px;">
+      <p style="color:var(--pink);font-size:13px;text-align:center;margin:0">Al usar Córdoba Nocturna confirmás que leíste y aceptás estos términos y que tenés 18 años o más. 🌙</p>
+    </div>
+
+    <button class="btn-primary" style="margin-top:24px" onclick="volverDePoloiticas()">← VOLVER Y ACEPTAR</button>
+  </div>
+</div>
 
 <!-- SPLASH -->
 <div class="screen active" id="splash" style="justify-content:space-between;padding:32px 24px 24px;">
@@ -561,6 +680,32 @@ function showScreen(id) {
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────
+// ─── VERIFICACIÓN DE EDAD ─────────────────────────────────────────────
+function checkAge() {
+  const edad     = document.getElementById('check-edad')?.checked;
+  const politicas= document.getElementById('check-politicas')?.checked;
+  const btn      = document.getElementById('btn-entrar');
+  if (btn) btn.classList.toggle('enabled', edad && politicas);
+}
+
+function aceptarYEntrar() {
+  localStorage.setItem('cn_edad_verificada', '1');
+  showScreen('splash');
+}
+
+function abrirPoliticas() {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(s => s.classList.remove('active'));
+  document.getElementById('politicas-screen').classList.add('active');
+}
+
+let pantallaAntesDePoliticas = 'age-verify';
+function volverDePoloiticas() {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(s => s.classList.remove('active'));
+  document.getElementById(pantallaAntesDePoliticas).classList.add('active');
+}
+
 window.onload = function() {
   // Build vibes
   ['reg-vibes','pv-chips'].forEach(id => {
@@ -571,6 +716,14 @@ window.onload = function() {
 
   // Cargar sponsors desde la API
   cargarSponsorsApp();
+
+  // Verificar edad — si no aceptó, mostrar pantalla de verificación
+  const edadVerificada = localStorage.getItem('cn_edad_verificada');
+  if (!edadVerificada) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('age-verify').classList.add('active');
+    return;
+  }
 
   // Si ya está logueado, ir directo
   if (token && usuario) {
