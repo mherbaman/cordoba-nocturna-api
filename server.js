@@ -8,7 +8,7 @@ const cors = require('cors');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
-const { initDatabase, agregarTablaMensajes } = require('./database');
+const { initDatabase, agregarTablaMensajes, agregarTablaSponsors } = require('./database');
 const { iniciarLimpieza } = require('./limpieza');
 
 const app = express();
@@ -50,10 +50,16 @@ app.use('/sesiones',    require('./routes/sesiones'));
 app.use('/matches',     require('./routes/matches'));
 app.use('/mensajes',    require('./routes/mensajes'));
 app.use('/superadmin',  require('./routes/superadmin'));
+app.use('/sponsors',    require('./routes/sponsors'));
 
 // ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ── Panel admin ──────────────────────────────────────────────────────
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // ── Arrancar ─────────────────────────────────────────────────────────
@@ -61,6 +67,7 @@ async function arrancar() {
   try {
     await initDatabase();
     await agregarTablaMensajes();
+    await agregarTablaSponsors();
     iniciarLimpieza();
     server.listen(PORT, () => {
       console.log(`
