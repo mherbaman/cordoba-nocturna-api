@@ -442,13 +442,17 @@ function abrirModalSponsor(s={}) {
         <input class="input-field" id="sp-instagram" value="${s.instagram||''}" placeholder="micuenta">
       </div>
       <div class="full">
-        <label class="field-label">Pantalla donde aparece</label>
-        <select class="input-field" id="sp-pantalla" style="color:#fff;background:#1a0030;">
-          <option value="todas" style="color:#fff;background:#1a0030;" ${(s.pantalla||'todas')==='todas'?'selected':''}>Todas las pantallas</option>
-          <option value="splash" style="color:#fff;background:#1a0030;" ${s.pantalla==='splash'?'selected':''}>Solo inicio (splash)</option>
-          <option value="qr" style="color:#fff;background:#1a0030;" ${s.pantalla==='qr'?'selected':''}>Solo pantalla QR</option>
-          <option value="swipe" style="color:#fff;background:#1a0030;" ${s.pantalla==='swipe'?'selected':''}>Solo pantalla de swipe</option>
-        </select>
+        <label class="field-label">Pantallas donde aparece</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+          ${['splash','qr','swipe','matches'].map(p => {
+            const labels = {splash:'🌙 Inicio',qr:'📱 QR',swipe:'❤️ Swipe',matches:'🔥 Matches'};
+            const pantallas = (s.pantalla||'todas') === 'todas' ? ['splash','qr','swipe','matches'] : (s.pantalla||'').split(',');
+            const checked = pantallas.includes(p) ? 'checked' : '';
+            return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+              <input type="checkbox" id="sp-p-${p}" ${checked} style="accent-color:var(--pink)"> ${labels[p]}
+            </label>`;
+          }).join('')}
+        </div>
       </div>
       <div>
         <label class="field-label">Orden (menor = primero)</label>
@@ -456,7 +460,11 @@ function abrirModalSponsor(s={}) {
       </div>
       <div class="full">
         <label class="field-label">URL de imagen (opcional)</label>
-        <input class="input-field" id="sp-imagen" value="${s.imagen_url||''}" placeholder="https://miservidor.com/foto.jpg">
+        <input class="input-field" id="sp-imagen" value="${s.imagen_url||''}" placeholder="https://res.cloudinary.com/...">
+      </div>
+      <div class="full">
+        <label class="field-label">Foto de la promo (se muestra al hacer click)</label>
+        <input class="input-field" id="sp-imagen-promo" value="${s.imagen_promo||''}" placeholder="https://res.cloudinary.com/...">
       </div>
     </div>
     <div class="modal-actions">
@@ -478,12 +486,14 @@ async function guardarSponsor(id) {
     promo:      document.getElementById('sp-promo').value.trim(),
     emoji:      document.getElementById('sp-emoji').value.trim(),
     tag:        document.getElementById('sp-tag').value.trim(),
-    whatsapp:   document.getElementById('sp-whatsapp').value.trim(),
-    instagram:  document.getElementById('sp-instagram').value.trim(),
-    imagen_url: document.getElementById('sp-imagen').value.trim(),
-    pantalla:   document.getElementById('sp-pantalla').value,
-    orden:      parseInt(document.getElementById('sp-orden').value)||0
+    whatsapp:     document.getElementById('sp-whatsapp').value.trim(),
+    instagram:    document.getElementById('sp-instagram').value.trim(),
+    imagen_url:   document.getElementById('sp-imagen').value.trim(),
+    imagen_promo: document.getElementById('sp-imagen-promo').value.trim(),
+    orden:        parseInt(document.getElementById('sp-orden').value)||0
   };
+  const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`sp-p-${p}`)?.checked);
+  body.pantalla = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
   if (!body.nombre || !body.promo) { alert('Nombre y promo son requeridos'); return; }
   try {
     if (id) await apiAdmin(`/sponsors/${id}`, { method:'PUT', body:JSON.stringify(body) });
