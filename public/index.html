@@ -292,26 +292,11 @@ let chatMatchId = null, chatOtro = null;
     </div>
   </div>
 
-  <!-- PUBLICIDAD SPLASH -->
-  <div style="width:100%;max-width:400px;position:relative;z-index:1;margin-top:16px;">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-align:center;">Sponsors de la noche</div>
-    <div class="ad-banner" onclick="abrirPromo('biela')">
-      <div class="ad-img">🍺</div>
-      <div class="ad-info">
-        <div class="ad-name">Cervecería La Biela</div>
-        <div class="ad-promo">2x1 en jarras hasta las 12am 🍻</div>
-      </div>
-      <span class="ad-tag">PROMO</span>
+    <!-- PUBLICIDAD SPLASH -->
+    <div style="width:100%;max-width:400px;position:relative;z-index:1;margin-top:16px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-align:center;">Sponsors de la noche</div>
+      <div id="ads-splash"></div>
     </div>
-    <div class="ad-banner" onclick="abrirPromo('pizza')">
-      <div class="ad-img">🍕</div>
-      <div class="ad-info">
-        <div class="ad-name">Pizza Club Córdoba</div>
-        <div class="ad-promo">20% OFF mostrando la app 📱</div>
-      </div>
-      <span class="ad-tag">-20%</span>
-    </div>
-  </div>
 </div>
 
 <!-- AUTH (Registro / Login) -->
@@ -370,14 +355,7 @@ let chatMatchId = null, chatOtro = null;
 <div class="screen" id="qr-screen" style="justify-content:flex-start;padding:32px 24px 24px;overflow-y:auto;">
   <div class="qr-inner">
     <!-- PUBLICIDAD QR -->
-    <div class="ad-banner" style="margin-bottom:20px;" onclick="abrirPromo('elite')">
-      <div class="ad-img">🎶</div>
-      <div class="ad-info">
-        <div class="ad-name">Disco Élite — VIP esta noche</div>
-        <div class="ad-promo">Entrada libre hasta las 11pm con la app</div>
-      </div>
-      <span class="ad-tag">VIP</span>
-    </div>
+    <div id="ads-qr" style="margin-bottom:20px;"></div>
 
     <div style="font-size:56px;margin-bottom:16px;">📱</div>
     <h2>ESCANEÁ EL QR</h2>
@@ -441,14 +419,7 @@ let chatMatchId = null, chatOtro = null;
 
   <!-- BANNER PUBLICIDAD SWIPE -->
   <div style="width:100%;max-width:420px;padding:8px 20px 0;">
-    <div class="ad-banner" style="margin:0;" onclick="abrirPromo('fernet')">
-      <div class="ad-img">🥃</div>
-      <div class="ad-info">
-        <div class="ad-name">Fernet Branca — Sponsor oficial</div>
-        <div class="ad-promo">La noche empieza con Branca 🌙</div>
-      </div>
-      <span class="ad-tag">HOY</span>
-    </div>
+    <div id="ads-swipe"></div>
   </div>
 
   <div class="card-area" id="card-area"></div>
@@ -594,6 +565,9 @@ window.onload = function() {
     if (!el) return;
     el.innerHTML = VIBES.map(v => `<button class="${id==='pv-chips'?'pv-chip':'vibe-chip'}" onclick="selectVibe(this,'${id}')">${v}</button>`).join('');
   });
+
+  // Cargar sponsors desde la API
+  cargarSponsorsApp();
 
   // Si ya está logueado, ir directo
   if (token && usuario) {
@@ -1174,6 +1148,59 @@ async function onModalPhoto(e) {
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+// ─── SPONSORS ────────────────────────────────────────────────────────
+let sponsorsCache = [];
+
+async function cargarSponsorsApp() {
+  try {
+    sponsorsCache = await fetch(`${API}/sponsors`).then(r=>r.json());
+    renderizarAds('splash');
+    renderizarAds('qr');
+    renderizarAds('swipe');
+  } catch(e) {}
+}
+
+function renderizarAds(pantalla) {
+  const el = document.getElementById(`ads-${pantalla}`);
+  if (!el) return;
+  const filtrados = sponsorsCache.filter(s => s.activo && (s.pantalla === pantalla || s.pantalla === 'todas'));
+  if (!filtrados.length) { el.innerHTML = ''; return; }
+  el.innerHTML = filtrados.slice(0,2).map(s => `
+    <div class="ad-banner" onclick="abrirPromoSponsor('${s.id}')">
+      <div class="ad-img">${s.imagen_url ? `<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : s.emoji}</div>
+      <div class="ad-info">
+        <div class="ad-name">${s.nombre}</div>
+        <div class="ad-promo">${s.promo}</div>
+      </div>
+      <span class="ad-tag">${s.tag}</span>
+    </div>`).join('');
+}
+
+function abrirPromoSponsor(id) {
+  const s = sponsorsCache.find(x => x.id === id);
+  if (!s) return;
+  const wrap = document.getElementById('promo-img-wrap');
+  if (s.imagen_url) {
+    wrap.innerHTML = `<img src="${s.imagen_url}" style="width:100%;border-radius:20px;display:block;">`;
+  } else {
+    wrap.innerHTML = `<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg">
+      <rect width="380" height="220" fill="#0f0019"/>
+      <text x="190" y="70" font-family="Georgia,serif" font-size="60" text-anchor="middle">${s.emoji}</text>
+      <text x="190" y="115" font-family="Georgia,serif" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text>
+      <rect x="60" y="128" width="260" height="2" fill="rgba(255,45,120,.4)" rx="1"/>
+      <text x="190" y="158" font-family="Georgia,serif" font-size="16" fill="#ff2d78" text-anchor="middle">${s.promo}</text>
+      <text x="190" y="195" font-family="Georgia,serif" font-size="12" fill="rgba(255,255,255,.4)" text-anchor="middle">Córdoba Nocturna</text>
+    </svg>`;
+  }
+  const wa = document.getElementById('promo-whatsapp');
+  const ig = document.getElementById('promo-instagram');
+  wa.dataset.url = s.whatsapp ? `https://wa.me/${s.whatsapp}` : '#';
+  ig.dataset.url = s.instagram ? `https://instagram.com/${s.instagram}` : '#';
+  wa.style.display = s.whatsapp ? 'flex' : 'none';
+  ig.style.display = s.instagram ? 'flex' : 'none';
+  document.getElementById('promo-modal').classList.add('show');
 }
 
 // ─── PROMOS ──────────────────────────────────────────────────────────
