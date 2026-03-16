@@ -121,7 +121,6 @@ async function initDatabase() {
     `);
 
     // ── mensajes ──────────────────────────────────────────────────────
-    // Solo texto y emojis — se borran a los 8 días automáticamente
     await client.query(`
       CREATE TABLE IF NOT EXISTS mensajes (
         id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -131,6 +130,24 @@ async function initDatabase() {
         leido       BOOLEAN DEFAULT false,
         creado_en   TIMESTAMP DEFAULT NOW(),
         expira_en   TIMESTAMP NOT NULL
+      )
+    `);
+
+    // ── sponsors ──────────────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sponsors (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        nombre      VARCHAR(100) NOT NULL,
+        promo       VARCHAR(200) NOT NULL,
+        emoji       VARCHAR(10) DEFAULT '🎯',
+        tag         VARCHAR(20) DEFAULT 'PROMO',
+        whatsapp    VARCHAR(50),
+        instagram   VARCHAR(100),
+        imagen_url  TEXT,
+        activo      BOOLEAN DEFAULT true,
+        orden       INTEGER DEFAULT 0,
+        pantalla    VARCHAR(20) DEFAULT 'todas',
+        creado_en   TIMESTAMP DEFAULT NOW()
       )
     `);
 
@@ -146,7 +163,6 @@ async function initDatabase() {
   }
 }
 
-// Para agregar la tabla mensajes en instalaciones existentes
 async function agregarTablaMensajes() {
   try {
     await pool.query(`
@@ -166,4 +182,28 @@ async function agregarTablaMensajes() {
   }
 }
 
-module.exports = { pool, initDatabase, agregarTablaMensajes };
+async function agregarTablaSponsors() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS sponsors (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        nombre      VARCHAR(100) NOT NULL,
+        promo       VARCHAR(200) NOT NULL,
+        emoji       VARCHAR(10) DEFAULT '🎯',
+        tag         VARCHAR(20) DEFAULT 'PROMO',
+        whatsapp    VARCHAR(50),
+        instagram   VARCHAR(100),
+        imagen_url  TEXT,
+        activo      BOOLEAN DEFAULT true,
+        orden       INTEGER DEFAULT 0,
+        pantalla    VARCHAR(20) DEFAULT 'todas',
+        creado_en   TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Tabla sponsors lista');
+  } catch (err) {
+    console.error('Error creando tabla sponsors:', err);
+  }
+}
+
+module.exports = { pool, initDatabase, agregarTablaMensajes, agregarTablaSponsors };
