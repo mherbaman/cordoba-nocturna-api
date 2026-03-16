@@ -1,6 +1,5 @@
 // ================================================
 //   CÓRDOBA NOCTURNA — Rutas del Super Admin
-//   Solo vos podés acceder a estas rutas
 // ================================================
 
 const express = require('express');
@@ -29,34 +28,27 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
-    res.json({ token, nombre: admin.nombre });
+    res.json({ token, admin: { id: admin.id, nombre: admin.nombre, email: admin.email } });
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
   }
 });
 
 // ── GET /superadmin/dashboard ────────────────────────────────────────
-// Vista general de toda la plataforma
 router.get('/dashboard', authSuperAdmin, async (req, res) => {
   try {
     const [negocios, usuarios, matches, sesionesActivas] = await Promise.all([
-      pool.query('SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE activo) as activos FROM negocios'),
+      pool.query('SELECT COUNT(*) as total FROM negocios WHERE activo = true'),
       pool.query('SELECT COUNT(*) as total FROM usuarios'),
       pool.query('SELECT COUNT(*) as total FROM matches'),
-      pool.query(`
-        SELECT sn.*, n.nombre as negocio_nombre, n.tipo
-        FROM sesiones_noche sn
-        JOIN negocios n ON n.id = sn.negocio_id
-        WHERE sn.activa = true
-        ORDER BY sn.abierta_en DESC
-      `)
+      pool.query('SELECT COUNT(*) as total FROM sesiones_noche WHERE activa = true')
     ]);
 
     res.json({
-      negocios: negocios.rows[0],
-      usuarios: usuarios.rows[0],
-      matches: matches.rows[0],
-      sesiones_activas_ahora: sesionesActivas.rows
+      negocios:        parseInt(negocios.rows[0].total),
+      usuarios:        parseInt(usuarios.rows[0].total),
+      matches:         parseInt(matches.rows[0].total),
+      sesiones_activas: parseInt(sesionesActivas.rows[0].total)
     });
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
@@ -64,20 +56,20 @@ router.get('/dashboard', authSuperAdmin, async (req, res) => {
 });
 
 // ── GET /superadmin/negocios ─────────────────────────────────────────
-// Lista de todos los clientes
 router.get('/negocios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         n.*,
-        COUNT(DISTINCT u_sesiones.usuario_id) as total_usuarios_historico,
-        COUNT(DISTINCT sn.id) as total_sesiones,
-        COUNT(DISTINCT m.id) as total_matches
+        sn.id as sesion_id,
+        sn.nombre as sesion_nombre,
+        sn.codigo_qr,
+        sn.activa as sesion_activa,
+        sn.total_usuarios,
+        sn.total_matches,
+        sn.abierta_en
       FROM negocios n
-      LEFT JOIN sesiones_noche sn ON sn.negocio_id = n.id
-      LEFT JOIN presencias u_sesiones ON u_sesiones.negocio_id = n.id
-      LEFT JOIN matches m ON m.negocio_id = n.id
-      GROUP BY n.id
+      LEFT JOIN sesiones_noche sn ON sn.negocio_id = n.id AND sn.activa = true
       ORDER BY n.creado_en DESC
     `);
     res.json(result.rows);
@@ -86,63 +78,98 @@ router.get('/negocios', authSuperAdmin, async (req, res) => {
   }
 });
 
-// ── GET /superadmin/usuarios ─────────────────────────────────────────
-// Lista de todos los usuarios registrados
-router.get('/usuarios', authSuperAdmin, async (req, res) => {
-  const { pagina = 1, por_pagina = 50, buscar } = req.query;
-  const offset = (pagina - 1) * por_pagina;
-
+// ── GET /superadmin/sesiones ─────────────────────────────────────────
+// Todas las sesiones con historial
+router.get('/sesiones', authSuperAdmin, async (req, res) => {
   try {
-    let query = `
+    const result = await pool.query(`
+      SELECT 
+        sn.*,
+        n.nombre as negocio_nombre,
+        n.tipo as negocio_tipo
+      FROM sesiones_noche sn
+      JOIN negocios n ON n.id = sn.negocio_id
+      ORDER BY sn.abierta_en DESC
+      LIMIT 100
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /superadmin/negocios ────────────────────────────────────────
+router.post('/negocios', authSuperAdmin, async (req, res) => {
+  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel } = req.body;
+  if (!nombre || !slug) return res.status(400).json({ error: 'Nombre y slug son requeridos' });
+  try {
+    const result = await pool.query(`
+      INSERT INTO negocios (nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [nombre, tipo||'disco', slug, plan||'basico', dueno_nombre||'', dueno_email||'', dueno_tel||'']);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'El slug ya existe' });
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /superadmin/negocios/:id ─────────────────────────────────────
+router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
+  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo } = req.body;
+  try {
+    const result = await pool.query(`
+      UPDATE negocios SET
+        nombre = COALESCE($1, nombre),
+        tipo = COALESCE($2, tipo),
+        slug = COALESCE($3, slug),
+        plan = COALESCE($4, plan),
+        dueno_nombre = COALESCE($5, dueno_nombre),
+        dueno_email = COALESCE($6, dueno_email),
+        dueno_tel = COALESCE($7, dueno_tel),
+        activo = COALESCE($8, activo)
+      WHERE id = $9
+      RETURNING *
+    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, req.params.id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /superadmin/usuarios ─────────────────────────────────────────
+router.get('/usuarios', authSuperAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
       SELECT id, nombre, email, foto_url, vibe, edad, creado_en, ultimo_login, activo
       FROM usuarios
-    `;
-    const params = [];
-
-    if (buscar) {
-      params.push(`%${buscar}%`);
-      query += ` WHERE nombre ILIKE $1 OR email ILIKE $1`;
-    }
-
-    query += ` ORDER BY creado_en DESC LIMIT ${por_pagina} OFFSET ${offset}`;
-
-    const result = await pool.query(query, params);
-    const total = await pool.query('SELECT COUNT(*) FROM usuarios');
-
-    res.json({
-      usuarios: result.rows,
-      total: parseInt(total.rows[0].count),
-      pagina: parseInt(pagina)
-    });
+      ORDER BY creado_en DESC
+      LIMIT 100
+    `);
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
   }
 });
 
 // ── POST /superadmin/crear-superadmin ────────────────────────────────
-// Solo se usa UNA VEZ para crear tu usuario inicial
-// Después de usarlo, desactivalo o borralo del código
 router.post('/crear-superadmin', async (req, res) => {
   const { nombre, email, password, clave_maestra } = req.body;
-
-  // Clave maestra para proteger este endpoint
   if (clave_maestra !== process.env.CLAVE_MAESTRA) {
     return res.status(403).json({ error: 'Clave maestra incorrecta' });
   }
-
   try {
     const existe = await pool.query('SELECT id FROM admins WHERE es_superadmin = true');
     if (existe.rows.length > 0) {
       return res.status(400).json({ error: 'Ya existe un superadmin' });
     }
-
     const password_hash = await bcrypt.hash(password, 10);
     const result = await pool.query(`
       INSERT INTO admins (nombre, email, password_hash, es_superadmin, negocio_id)
       VALUES ($1, $2, $3, true, NULL)
       RETURNING id, nombre, email
     `, [nombre, email, password_hash]);
-
     res.status(201).json({ ok: true, admin: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
