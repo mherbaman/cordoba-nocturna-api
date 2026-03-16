@@ -134,20 +134,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
 </head>
 <body>
 
-<script>
-const API = 'https://api.shops.com.ar';
-let adminToken = localStorage.getItem('admin_token') || null;
-let adminUser  = JSON.parse(localStorage.getItem('admin_user') || 'null');
 
-async function apiAdmin(path, opts={}) {
-  const headers = { 'Content-Type': 'application/json' };
-  if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
-  const r = await fetch(API + path, { ...opts, headers });
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.error || 'Error');
-  return data;
-}
-</script>
 
 <!-- LOGIN -->
 <div id="login-screen">
@@ -286,6 +273,19 @@ async function apiAdmin(path, opts={}) {
 </div>
 
 <script>
+const API = 'https://api.shops.com.ar';
+let adminToken = localStorage.getItem('admin_token') || null;
+let adminUser  = JSON.parse(localStorage.getItem('admin_user') || 'null');
+
+async function apiAdmin(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
+  const r = await fetch(API + path, { ...opts, headers });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+
 // ─── AUTH ─────────────────────────────────────────────────────────────
 async function doAdminLogin() {
   const email    = document.getElementById('login-email').value.trim();
