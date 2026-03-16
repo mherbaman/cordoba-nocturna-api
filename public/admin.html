@@ -1,0 +1,693 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Córdoba Nocturna — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --pink: #ff2d78;
+  --purple: #7c3aed;
+  --bg: #07000f;
+  --sidebar: #0d0018;
+  --card: #110020;
+  --border: rgba(255,45,120,.15);
+  --text: #fff;
+  --muted: rgba(255,255,255,.45);
+}
+body { background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh; }
+
+/* LOGIN */
+#login-screen { display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px; }
+.login-box { background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px;width:100%;max-width:400px; }
+.login-logo { font-family:'Bebas Neue',cursive;font-size:42px;letter-spacing:2px;margin-bottom:4px; }
+.login-logo span { color:var(--pink); }
+.login-sub { color:var(--muted);font-size:13px;margin-bottom:32px; }
+.field-label { color:rgba(255,255,255,.5);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;display:block; }
+.input-field { background:rgba(255,255,255,.04);border:1.5px solid rgba(255,45,120,.2);color:#fff;padding:13px 16px;border-radius:12px;font-size:15px;width:100%;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .3s;margin-bottom:18px; }
+.input-field:focus { border-color:var(--pink); }
+.input-field::placeholder { color:rgba(255,255,255,.2); }
+.btn-primary { background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:#fff;padding:14px;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:opacity .2s; }
+.btn-primary:hover { opacity:.9; }
+.btn-primary:disabled { opacity:.4;cursor:not-allowed; }
+.error-msg { background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.3);color:#ff6b9d;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none; }
+
+/* LAYOUT */
+#app { display:none;min-height:100vh; }
+.layout { display:flex;min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar { width:240px;background:var(--sidebar);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto; }
+.sidebar-logo { font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:1px;padding:0 8px;margin-bottom:32px; }
+.sidebar-logo span { color:var(--pink); }
+.nav-section { font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);padding:0 8px;margin-bottom:8px; }
+.nav-item { display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:rgba(255,255,255,.65);transition:all .2s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left; }
+.nav-item:hover { background:rgba(255,45,120,.08);color:#fff; }
+.nav-item.active { background:rgba(255,45,120,.15);color:#fff;border:1px solid rgba(255,45,120,.2); }
+.nav-item .icon { font-size:18px;width:24px;text-align:center; }
+.sidebar-footer { margin-top:auto;padding-top:16px;border-top:1px solid var(--border); }
+.logout-nav { color:rgba(255,45,120,.7);font-size:13px;cursor:pointer;padding:8px 12px;border-radius:8px;transition:background .2s;border:none;background:none;width:100%;text-align:left; }
+.logout-nav:hover { background:rgba(255,45,120,.08); }
+
+/* MAIN */
+.main { margin-left:240px;flex:1;padding:32px;min-height:100vh; }
+.page { display:none; }
+.page.active { display:block; }
+.page-title { font-family:'Bebas Neue',cursive;font-size:36px;letter-spacing:1px;margin-bottom:4px; }
+.page-sub { color:var(--muted);font-size:13px;margin-bottom:28px; }
+
+/* STATS */
+.stats-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px; }
+.stat-card { background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px; }
+.stat-num { font-family:'Bebas Neue',cursive;font-size:42px;color:var(--pink);line-height:1; }
+.stat-lbl { color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-top:4px; }
+.stat-icon { font-size:28px;margin-bottom:8px; }
+
+/* CARDS */
+.section-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+.section-title { font-size:18px;font-weight:600; }
+.btn-add { background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:#fff;padding:9px 20px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .2s; }
+.btn-add:hover { opacity:.9; }
+.btn-sm { padding:6px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:opacity .2s; }
+.btn-edit { background:rgba(255,255,255,.08);color:#fff; }
+.btn-delete { background:rgba(255,45,120,.15);color:var(--pink); }
+.btn-toggle { background:rgba(34,197,94,.15);color:#22c55e; }
+.btn-toggle.off { background:rgba(255,255,255,.06);color:var(--muted); }
+
+/* TABLE */
+.table-wrap { background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden; }
+table { width:100%;border-collapse:collapse; }
+th { background:rgba(255,45,120,.08);padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:600; }
+td { padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.04);font-size:14px;vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,.02); }
+.badge { display:inline-block;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600; }
+.badge-green { background:rgba(34,197,94,.15);color:#22c55e; }
+.badge-red { background:rgba(255,45,120,.15);color:var(--pink); }
+.badge-yellow { background:rgba(251,191,36,.15);color:#fbbf24; }
+.td-actions { display:flex;gap:6px;align-items:center; }
+
+/* MODAL */
+#modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px); }
+#modal-overlay.show { display:flex; }
+.modal-box { background:#0f0019;border:1px solid rgba(255,45,120,.25);border-radius:20px;padding:28px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto; }
+.modal-title { font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:1px;margin-bottom:20px; }
+.modal-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.modal-grid .full { grid-column:1/-1; }
+.modal-actions { display:flex;gap:10px;margin-top:20px; }
+.btn-cancel { background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;flex:1; }
+
+/* SPONSOR PREVIEW */
+.sponsor-preview { background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:16px; }
+.sp-emoji { width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,rgba(255,45,120,.3),rgba(124,58,237,.3));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0; }
+.sp-info { flex:1; }
+.sp-nombre { font-weight:600;font-size:14px; }
+.sp-promo { color:var(--pink);font-size:12px;margin-top:2px; }
+.sp-tag-badge { background:rgba(255,45,120,.2);color:var(--pink);font-size:10px;font-weight:700;padding:3px 10px;border-radius:50px; }
+
+/* LOADER */
+.loader { width:28px;height:28px;border:3px solid rgba(255,45,120,.2);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite;margin:40px auto;display:block; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.empty-state-table { text-align:center;padding:40px;color:var(--muted);font-size:14px; }
+.empty-state-table .icon { font-size:36px;margin-bottom:12px; }
+
+/* SESION CARD */
+.sesion-card { background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;display:flex;align-items:center;gap:16px; }
+.sesion-info { flex:1; }
+.sesion-nombre { font-size:16px;font-weight:600;margin-bottom:4px; }
+.sesion-meta { color:var(--muted);font-size:12px;display:flex;gap:12px;flex-wrap:wrap; }
+.sesion-qr { font-family:monospace;font-size:20px;font-weight:700;color:var(--pink);background:rgba(255,45,120,.1);padding:8px 16px;border-radius:10px;letter-spacing:3px; }
+.sesion-actions { display:flex;gap:8px;flex-direction:column; }
+
+/* NEGOCIO CARD */
+.negocio-row td:first-child { font-weight:600; }
+
+@media (max-width:768px) {
+  .sidebar { display:none; }
+  .main { margin-left:0; }
+  .modal-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<script>
+const API = 'https://api.shops.com.ar';
+let adminToken = localStorage.getItem('admin_token') || null;
+let adminUser  = JSON.parse(localStorage.getItem('admin_user') || 'null');
+
+async function apiAdmin(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (adminToken) headers['Authorization'] = `Bearer ${adminToken}`;
+  const r = await fetch(API + path, { ...opts, headers });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+</script>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">CÓRDOBA<span>NOCTURNA</span></div>
+    <p class="login-sub">Panel de administración</p>
+    <div class="error-msg" id="login-error"></div>
+    <label class="field-label">Email</label>
+    <input class="input-field" id="login-email" type="email" placeholder="admin@email.com">
+    <label class="field-label">Contraseña</label>
+    <input class="input-field" id="login-password" type="password" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="btn-primary" onclick="doAdminLogin()">ENTRAR AL PANEL →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">CÓRDOBA<span>NOCTURNA</span></div>
+      <div class="nav-section">Principal</div>
+      <button class="nav-item active" onclick="navTo('dashboard',this)"><span class="icon">📊</span> Dashboard</button>
+      <button class="nav-item" onclick="navTo('sponsors',this)"><span class="icon">🎯</span> Sponsors</button>
+      <button class="nav-item" onclick="navTo('sesiones',this)"><span class="icon">🌙</span> Sesiones</button>
+      <div class="nav-section" style="margin-top:16px">Gestión</div>
+      <button class="nav-item" onclick="navTo('negocios',this)"><span class="icon">🏢</span> Negocios</button>
+      <button class="nav-item" onclick="navTo('usuarios',this)"><span class="icon">👥</span> Usuarios</button>
+      <div class="sidebar-footer">
+        <button class="logout-nav" onclick="doAdminLogout()">🚪 Cerrar sesión</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">DASHBOARD</div>
+        <div class="page-sub">Resumen general de la plataforma</div>
+        <div class="stats-grid" id="stats-grid">
+          <div class="loader"></div>
+        </div>
+        <div class="section-header">
+          <div class="section-title">Actividad reciente</div>
+        </div>
+        <div class="table-wrap" id="dashboard-recent">
+          <div class="loader"></div>
+        </div>
+      </div>
+
+      <!-- SPONSORS -->
+      <div class="page" id="page-sponsors">
+        <div class="page-title">SPONSORS</div>
+        <div class="page-sub">Gestioná los banners publicitarios de la app</div>
+        <div class="section-header">
+          <div class="section-title">Sponsors activos</div>
+          <button class="btn-add" onclick="abrirModalSponsor()">+ Nuevo sponsor</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Sponsor</th>
+                <th>Promo</th>
+                <th>Pantalla</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="sponsors-tbody">
+              <tr><td colspan="5"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SESIONES -->
+      <div class="page" id="page-sesiones">
+        <div class="page-title">SESIONES</div>
+        <div class="page-sub">Abrí y cerrá las noches de cada local</div>
+        <div class="section-header">
+          <div class="section-title">Sesiones activas</div>
+          <button class="btn-add" onclick="abrirModalSesion()">+ Nueva sesión</button>
+        </div>
+        <div id="sesiones-list"><div class="loader"></div></div>
+      </div>
+
+      <!-- NEGOCIOS -->
+      <div class="page" id="page-negocios">
+        <div class="page-title">NEGOCIOS</div>
+        <div class="page-sub">Locales registrados en la plataforma</div>
+        <div class="section-header">
+          <div class="section-title">Todos los negocios</div>
+          <button class="btn-add" onclick="abrirModalNegocio()">+ Nuevo negocio</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Nombre</th><th>Tipo</th><th>Plan</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="negocios-tbody">
+              <tr><td colspan="5"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="page" id="page-usuarios">
+        <div class="page-title">USUARIOS</div>
+        <div class="page-sub">Todos los perfiles registrados</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Nombre</th><th>Email</th><th>Vibe</th><th>Edad</th><th>Registrado</th></tr>
+            </thead>
+            <tbody id="usuarios-tbody">
+              <tr><td colspan="5"><div class="loader"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Modal</div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ─── AUTH ─────────────────────────────────────────────────────────────
+async function doAdminLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  try {
+    const data = await apiAdmin('/superadmin/login', { method:'POST', body:JSON.stringify({email,password}) });
+    adminToken = data.token; adminUser = data.admin;
+    localStorage.setItem('admin_token', adminToken);
+    localStorage.setItem('admin_user', JSON.stringify(adminUser));
+    mostrarApp();
+  } catch(err) {
+    errEl.textContent = err.message; errEl.style.display = 'block';
+  }
+}
+
+function doAdminLogout() {
+  adminToken = null; adminUser = null;
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function mostrarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  cargarDashboard();
+}
+
+window.onload = () => {
+  if (adminToken && adminUser) mostrarApp();
+};
+
+// ─── NAVEGACIÓN ───────────────────────────────────────────────────────
+function navTo(page, btn) {
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (page === 'dashboard') cargarDashboard();
+  if (page === 'sponsors')  cargarSponsors();
+  if (page === 'sesiones')  cargarSesiones();
+  if (page === 'negocios')  cargarNegocios();
+  if (page === 'usuarios')  cargarUsuarios();
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────
+async function cargarDashboard() {
+  try {
+    const data = await apiAdmin('/superadmin/dashboard');
+    const grid = document.getElementById('stats-grid');
+    grid.innerHTML = `
+      <div class="stat-card"><div class="stat-icon">🏢</div><div class="stat-num">${data.negocios||0}</div><div class="stat-lbl">Negocios</div></div>
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-num">${data.usuarios||0}</div><div class="stat-lbl">Usuarios</div></div>
+      <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-num">${data.matches||0}</div><div class="stat-lbl">Matches</div></div>
+      <div class="stat-card"><div class="stat-icon">🌙</div><div class="stat-num">${data.sesiones_activas||0}</div><div class="stat-lbl">Sesiones activas</div></div>
+    `;
+    const recent = document.getElementById('dashboard-recent');
+    recent.innerHTML = `
+      <table>
+        <thead><tr><th>Negocio</th><th>Usuarios hoy</th><th>Matches hoy</th><th>Estado</th></tr></thead>
+        <tbody>
+          ${(data.negocios_detalle||[]).map(n => `
+            <tr>
+              <td><strong>${n.nombre}</strong></td>
+              <td>${n.usuarios_hoy||0}</td>
+              <td>${n.matches_hoy||0}</td>
+              <td><span class="badge ${n.sesion_activa?'badge-green':'badge-red'}">${n.sesion_activa?'Abierto':'Cerrado'}</span></td>
+            </tr>
+          `).join('') || '<tr><td colspan="4"><div class="empty-state-table"><div class="icon">🏢</div>No hay negocios aún</div></td></tr>'}
+        </tbody>
+      </table>`;
+  } catch(err) {
+    document.getElementById('stats-grid').innerHTML = `<p style="color:var(--muted)">Error cargando dashboard</p>`;
+  }
+}
+
+// ─── SPONSORS ─────────────────────────────────────────────────────────
+async function cargarSponsors() {
+  const tbody = document.getElementById('sponsors-tbody');
+  try {
+    const sponsors = await apiAdmin('/sponsors');
+    if (!sponsors.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state-table"><div class="icon">🎯</div>No hay sponsors aún.<br>Agregá el primero!</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = sponsors.map(s => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,45,120,.15);display:flex;align-items:center;justify-content:center;font-size:20px">${s.emoji}</div>
+            <div>
+              <div style="font-weight:600">${s.nombre}</div>
+              <div style="font-size:11px;color:var(--muted)">${s.tag}</div>
+            </div>
+          </div>
+        </td>
+        <td style="color:var(--muted);font-size:13px">${s.promo}</td>
+        <td><span class="badge badge-yellow">${s.pantalla}</span></td>
+        <td><span class="badge ${s.activo?'badge-green':'badge-red'}">${s.activo?'Activo':'Inactivo'}</span></td>
+        <td>
+          <div class="td-actions">
+            <button class="btn-sm btn-edit" onclick="editarSponsor(${JSON.stringify(s).replace(/"/g,'&quot;')})">✏️ Editar</button>
+            <button class="btn-sm btn-toggle ${s.activo?'':'off'}" onclick="toggleSponsor('${s.id}',${!s.activo})">${s.activo?'⏸ Pausar':'▶ Activar'}</button>
+            <button class="btn-sm btn-delete" onclick="borrarSponsor('${s.id}','${s.nombre}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Error cargando sponsors</td></tr>`;
+  }
+}
+
+function abrirModalSponsor(s={}) {
+  document.getElementById('modal-title').textContent = s.id ? 'Editar sponsor' : 'Nuevo sponsor';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="sponsor-preview" id="sp-preview">
+      <div class="sp-emoji" id="sp-emoji-prev">${s.emoji||'🎯'}</div>
+      <div class="sp-info">
+        <div class="sp-nombre" id="sp-nombre-prev">${s.nombre||'Nombre del sponsor'}</div>
+        <div class="sp-promo" id="sp-promo-prev">${s.promo||'Descripción de la promo'}</div>
+      </div>
+      <span class="sp-tag-badge" id="sp-tag-prev">${s.tag||'PROMO'}</span>
+    </div>
+    <div class="modal-grid">
+      <div class="full">
+        <label class="field-label">Nombre del sponsor</label>
+        <input class="input-field" id="sp-nombre" value="${s.nombre||''}" placeholder="Ej: Cervecería La Biela" 
+          oninput="document.getElementById('sp-nombre-prev').textContent=this.value||'Nombre del sponsor'">
+      </div>
+      <div class="full">
+        <label class="field-label">Texto de la promo</label>
+        <input class="input-field" id="sp-promo" value="${s.promo||''}" placeholder="Ej: 2x1 en jarras hasta las 12am"
+          oninput="document.getElementById('sp-promo-prev').textContent=this.value||'Descripción de la promo'">
+      </div>
+      <div>
+        <label class="field-label">Emoji</label>
+        <input class="input-field" id="sp-emoji" value="${s.emoji||'🎯'}" placeholder="🎯"
+          oninput="document.getElementById('sp-emoji-prev').textContent=this.value||'🎯'">
+      </div>
+      <div>
+        <label class="field-label">Etiqueta (tag)</label>
+        <input class="input-field" id="sp-tag" value="${s.tag||'PROMO'}" placeholder="PROMO"
+          oninput="document.getElementById('sp-tag-prev').textContent=this.value||'PROMO'">
+      </div>
+      <div>
+        <label class="field-label">WhatsApp (solo número)</label>
+        <input class="input-field" id="sp-whatsapp" value="${s.whatsapp||''}" placeholder="5493514000001">
+      </div>
+      <div>
+        <label class="field-label">Instagram (usuario)</label>
+        <input class="input-field" id="sp-instagram" value="${s.instagram||''}" placeholder="micuenta">
+      </div>
+      <div class="full">
+        <label class="field-label">Pantalla donde aparece</label>
+        <select class="input-field" id="sp-pantalla">
+          <option value="todas" ${(s.pantalla||'todas')==='todas'?'selected':''}>Todas las pantallas</option>
+          <option value="splash" ${s.pantalla==='splash'?'selected':''}>Solo inicio (splash)</option>
+          <option value="qr" ${s.pantalla==='qr'?'selected':''}>Solo pantalla QR</option>
+          <option value="swipe" ${s.pantalla==='swipe'?'selected':''}>Solo pantalla de swipe</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Orden (menor = primero)</label>
+        <input class="input-field" id="sp-orden" type="number" value="${s.orden||0}" placeholder="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarSponsor('${s.id||''}')">
+        ${s.id ? 'GUARDAR CAMBIOS' : 'CREAR SPONSOR'}
+      </button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function editarSponsor(s) {
+  abrirModalSponsor(s);
+}
+
+async function guardarSponsor(id) {
+  const body = {
+    nombre:    document.getElementById('sp-nombre').value.trim(),
+    promo:     document.getElementById('sp-promo').value.trim(),
+    emoji:     document.getElementById('sp-emoji').value.trim(),
+    tag:       document.getElementById('sp-tag').value.trim(),
+    whatsapp:  document.getElementById('sp-whatsapp').value.trim(),
+    instagram: document.getElementById('sp-instagram').value.trim(),
+    pantalla:  document.getElementById('sp-pantalla').value,
+    orden:     parseInt(document.getElementById('sp-orden').value)||0
+  };
+  if (!body.nombre || !body.promo) { alert('Nombre y promo son requeridos'); return; }
+  try {
+    if (id) await apiAdmin(`/sponsors/${id}`, { method:'PUT', body:JSON.stringify(body) });
+    else    await apiAdmin('/sponsors', { method:'POST', body:JSON.stringify(body) });
+    cerrarModal();
+    cargarSponsors();
+  } catch(err) { alert(err.message); }
+}
+
+async function toggleSponsor(id, activo) {
+  try {
+    await apiAdmin(`/sponsors/${id}`, { method:'PUT', body:JSON.stringify({activo}) });
+    cargarSponsors();
+  } catch(err) { alert(err.message); }
+}
+
+async function borrarSponsor(id, nombre) {
+  if (!confirm(`¿Borrar el sponsor "${nombre}"?`)) return;
+  try {
+    await apiAdmin(`/sponsors/${id}`, { method:'DELETE' });
+    cargarSponsors();
+  } catch(err) { alert(err.message); }
+}
+
+// ─── SESIONES ─────────────────────────────────────────────────────────
+async function cargarSesiones() {
+  const list = document.getElementById('sesiones-list');
+  try {
+    const data = await apiAdmin('/superadmin/dashboard');
+    const negocios = await apiAdmin('/superadmin/negocios');
+    if (!negocios.length) {
+      list.innerHTML = `<div class="empty-state-table"><div class="icon">🌙</div>No hay negocios registrados</div>`;
+      return;
+    }
+    list.innerHTML = negocios.map(n => `
+      <div class="sesion-card">
+        <div class="sesion-info">
+          <div class="sesion-nombre">${n.nombre}</div>
+          <div class="sesion-meta">
+            <span>📍 ${n.tipo}</span>
+            ${n.sesion_activa ? `<span style="color:#22c55e">🟢 Sesión abierta</span>` : `<span style="color:var(--muted)">⚫ Sin sesión</span>`}
+            ${n.codigo_qr ? `<span>QR: <strong style="color:var(--pink)">${n.codigo_qr}</strong></span>` : ''}
+          </div>
+        </div>
+        ${n.codigo_qr ? `<div class="sesion-qr">${n.codigo_qr}</div>` : ''}
+        <div class="sesion-actions">
+          ${n.sesion_activa
+            ? `<button class="btn-sm btn-delete" onclick="cerrarSesion('${n.sesion_id}','${n.nombre}')">🔒 Cerrar noche</button>`
+            : `<button class="btn-sm btn-add" style="background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff" onclick="abrirSesion('${n.id}','${n.nombre}')">🌙 Abrir noche</button>`
+          }
+        </div>
+      </div>`).join('');
+  } catch(err) {
+    list.innerHTML = `<p style="color:var(--muted)">Error cargando sesiones</p>`;
+  }
+}
+
+async function abrirSesion(negocioId, nombre) {
+  const nombreSesion = prompt(`Nombre para la sesión de ${nombre}:`, `Noche del ${new Date().toLocaleDateString('es-AR')}`);
+  if (!nombreSesion) return;
+  try {
+    const data = await apiAdmin('/sesiones', { method:'POST', body:JSON.stringify({negocio_id:negocioId, nombre:nombreSesion}) });
+    alert(`✅ Sesión abierta!\n\nCódigo QR: ${data.codigo_qr}\n\nCompartilo con los clientes.`);
+    cargarSesiones();
+  } catch(err) { alert(err.message); }
+}
+
+async function cerrarSesion(sesionId, nombre) {
+  if (!confirm(`¿Cerrar la sesión de ${nombre}? Se desconectarán todos los usuarios.`)) return;
+  try {
+    await apiAdmin(`/sesiones/${sesionId}`, { method:'DELETE' });
+    cargarSesiones();
+  } catch(err) { alert(err.message); }
+}
+
+function abrirModalSesion() {
+  navTo('sesiones', document.querySelector('.nav-item:nth-child(4)'));
+}
+
+// ─── NEGOCIOS ─────────────────────────────────────────────────────────
+async function cargarNegocios() {
+  const tbody = document.getElementById('negocios-tbody');
+  try {
+    const negocios = await apiAdmin('/superadmin/negocios');
+    if (!negocios.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state-table"><div class="icon">🏢</div>No hay negocios aún</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = negocios.map(n => `
+      <tr class="negocio-row">
+        <td>${n.nombre}</td>
+        <td><span class="badge badge-yellow">${n.tipo}</span></td>
+        <td><span class="badge badge-green">${n.plan}</span></td>
+        <td><span class="badge ${n.activo?'badge-green':'badge-red'}">${n.activo?'Activo':'Inactivo'}</span></td>
+        <td><div class="td-actions">
+          <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
+        </div></td>
+      </tr>`).join('');
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
+  }
+}
+
+function abrirModalNegocio(n={}) {
+  document.getElementById('modal-title').textContent = n.id ? 'Editar negocio' : 'Nuevo negocio';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-grid">
+      <div class="full">
+        <label class="field-label">Nombre del local</label>
+        <input class="input-field" id="neg-nombre" value="${n.nombre||''}" placeholder="Ej: Disco La Noche">
+      </div>
+      <div>
+        <label class="field-label">Tipo</label>
+        <select class="input-field" id="neg-tipo">
+          <option value="disco" ${n.tipo==='disco'?'selected':''}>Disco</option>
+          <option value="bar" ${n.tipo==='bar'?'selected':''}>Bar</option>
+          <option value="restaurante" ${n.tipo==='restaurante'?'selected':''}>Restaurante</option>
+          <option value="pub" ${n.tipo==='pub'?'selected':''}>Pub</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Plan</label>
+        <select class="input-field" id="neg-plan">
+          <option value="basico" ${(n.plan||'basico')==='basico'?'selected':''}>Básico</option>
+          <option value="pro" ${n.plan==='pro'?'selected':''}>Pro</option>
+          <option value="premium" ${n.plan==='premium'?'selected':''}>Premium</option>
+        </select>
+      </div>
+      <div class="full">
+        <label class="field-label">Slug (URL amigable)</label>
+        <input class="input-field" id="neg-slug" value="${n.slug||''}" placeholder="disco-la-noche">
+      </div>
+      <div>
+        <label class="field-label">Nombre del dueño</label>
+        <input class="input-field" id="neg-dueno" value="${n.dueno_nombre||''}" placeholder="Juan García">
+      </div>
+      <div>
+        <label class="field-label">Email del dueño</label>
+        <input class="input-field" id="neg-email" value="${n.dueno_email||''}" placeholder="juan@email.com">
+      </div>
+      <div class="full">
+        <label class="field-label">Teléfono</label>
+        <input class="input-field" id="neg-tel" value="${n.dueno_tel||''}" placeholder="351 000 0000">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarNegocio('${n.id||''}')">
+        ${n.id ? 'GUARDAR CAMBIOS' : 'CREAR NEGOCIO'}
+      </button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function editarNegocio(n) { abrirModalNegocio(n); }
+
+async function guardarNegocio(id) {
+  const body = {
+    nombre:      document.getElementById('neg-nombre').value.trim(),
+    tipo:        document.getElementById('neg-tipo').value,
+    plan:        document.getElementById('neg-plan').value,
+    slug:        document.getElementById('neg-slug').value.trim(),
+    dueno_nombre:document.getElementById('neg-dueno').value.trim(),
+    dueno_email: document.getElementById('neg-email').value.trim(),
+    dueno_tel:   document.getElementById('neg-tel').value.trim()
+  };
+  if (!body.nombre || !body.slug) { alert('Nombre y slug son requeridos'); return; }
+  try {
+    if (id) await apiAdmin(`/superadmin/negocios/${id}`, { method:'PUT', body:JSON.stringify(body) });
+    else    await apiAdmin('/superadmin/negocios', { method:'POST', body:JSON.stringify(body) });
+    cerrarModal();
+    cargarNegocios();
+  } catch(err) { alert(err.message); }
+}
+
+// ─── USUARIOS ─────────────────────────────────────────────────────────
+async function cargarUsuarios() {
+  const tbody = document.getElementById('usuarios-tbody');
+  try {
+    const usuarios = await apiAdmin('/superadmin/usuarios');
+    if (!usuarios.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state-table"><div class="icon">👥</div>No hay usuarios aún</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = usuarios.map(u => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${u.foto_url ? `<img src="${u.foto_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-size:14px">😊</div>`}
+            <strong>${u.nombre}</strong>
+          </div>
+        </td>
+        <td style="color:var(--muted);font-size:13px">${u.email||'—'}</td>
+        <td style="font-size:13px">${u.vibe||'—'}</td>
+        <td>${u.edad||'—'}</td>
+        <td style="color:var(--muted);font-size:12px">${new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
+      </tr>`).join('');
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
+  }
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────
+function cerrarModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal();
+});
+</script>
+</body>
+</html>
