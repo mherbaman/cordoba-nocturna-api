@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -204,6 +203,10 @@ tr:hover td { background:rgba(255,255,255,.02); }
             <div class="full">
               <label class="field-label">Descripción</label>
               <input class="input-field" id="pp-descripcion" placeholder="Ej: Mandá tu código y retirá en la barra">
+              <label class="field-label">URL imagen de la promo (opcional)</label>
+              <input class="input-field" id="pp-imagen-url" type="url" placeholder="https://tuhosting.com/promo.jpg">
+              <label class="field-label">URL de la promoción (opcional)</label>
+              <input class="input-field" id="pp-url-promo" type="url" placeholder="https://tusite.com/promo">
             </div>
             <div>
               <label class="field-label">Emoji</label>
@@ -214,11 +217,44 @@ tr:hover td { background:rgba(255,255,255,.02); }
               <input class="input-field" id="pp-tag" placeholder="GRATIS" value="GRATIS">
             </div>
             <div class="full">
+              <label class="field-label">✅ Mensaje de confirmación (aparece antes de enviar WhatsApp)</label>
+              <input class="input-field" id="pp-confirmacion" placeholder="Al participar acepto recibir información de esta promoción" value="Al participar acepto recibir información de esta promoción">
+            </div>
+            <div class="full">
               <label class="field-label">📱 Número de WhatsApp (recibe los mensajes)</label>
               <input class="input-field" id="pp-whatsapp" placeholder="543512291554" value="543512291554">
               <div style="color:var(--muted);font-size:11px;margin-top:4px;">Sin el + ni espacios. Ej: 543512291554</div>
             </div>
             <div class="full">
+              <label class="field-label">🖼️ URL de imagen de la promo</label>
+              <input class="input-field" id="pp-imagen-url" placeholder="https://tuhosting.com/promo.jpg">
+            </div>
+            <div class="full">
+              <label class="field-label">🔗 URL específica de la promo (opcional)</label>
+              <input class="input-field" id="pp-url-promo" placeholder="https://tulink.com/promo">
+              <div style="color:var(--muted);font-size:11px;margin-top:4px;">Si lo completás, el botón de la promo abre esta URL además del WhatsApp.</div>
+            </div>
+            <div class="full">
+              <label class="field-label">Apps Connect donde aparece</label>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                ${['cordoba','fiesta','sunset','festival','gym','todas'].map(a => {
+                  const labels = {cordoba:'🎧 CordobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
+                  return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                    <input type="checkbox" id="pp-a-${a}" ${a==='todas'?'checked':''} style="accent-color:var(--pink)"> ${labels[a]}
+                  </label>`;
+                }).join('')}
+              </div>
+            </div>
+            <div class="full">
+              <label class="field-label">¿En qué Connect aparece?</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="sp-connects-wrap">
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="cordoba" style="accent-color:var(--pink)"> 🎧 CordobaConnect</label>
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="fiesta" style="accent-color:var(--pink)"> 💍 FiestaConnect</label>
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="sunset" style="accent-color:var(--pink)"> 🌅 SunsetConnect</label>
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="festival" style="accent-color:var(--pink)"> 🎪 FestivalConnect</label>
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="gym" style="accent-color:var(--pink)"> 💪 GymConnect</label>
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.15);border-radius:50px;cursor:pointer;font-size:12px;background:rgba(255,45,120,.05)"><input type="checkbox" name="sp-connect" value="todos" style="accent-color:var(--pink)" onchange="toggleTodosConnect(this)"> ✅ Todas</label>
+              </div>
               <label class="field-label">Pantallas donde aparece</label>
               <div style="display:flex;flex-wrap:wrap;gap:8px;">
                 ${['splash','qr','swipe','matches'].map(p => {
@@ -513,7 +549,8 @@ async function cargarDashboard() {
               <td><strong>${n.nombre}</strong></td>
               <td>${n.usuarios_hoy||0}</td>
               <td>${n.matches_hoy||0}</td>
-              <td><span class="badge ${n.sesion_activa?'badge-green':'badge-red'}">${n.sesion_activa?'Abierto':'Cerrado'}</span></td>
+              <td><span class="badge ${n.sesion_activa?'badge-green':'badge-red'}">${n.sesion_activa?'Abierto':'Cerrado'}</span>
+                <span class="badge" style="${{mes_gratis:'background:rgba(201,168,76,.15);color:#c9a84c',pago:'background:rgba(34,197,94,.15);color:#22c55e',vencido:'background:rgba(251,191,36,.15);color:#fbbf24',suspendido:'background:rgba(220,38,38,.15);color:#ef4444'}[n.estado_pago||'mes_gratis']}">${{mes_gratis:'🎁 Gratis',pago:'✅ Pagó',vencido:'⚠️ Vencido',suspendido:'🚫 Suspendido'}[n.estado_pago||'mes_gratis']}</span></td>
             </tr>
           `).join('') || '<tr><td colspan="4"><div class="empty-state-table"><div class="icon">🏢</div>No hay negocios aún</div></td></tr>'}
         </tbody>
@@ -559,6 +596,11 @@ async function cargarSponsors() {
   }
 }
 
+function toggleTodosConnect(cb) {
+  document.querySelectorAll('input[name="sp-connect"]').forEach(c => {
+    if(c.value !== 'todos') c.checked = cb.checked;
+  });
+}
 function abrirModalSponsor(s={}) {
   document.getElementById('modal-title').textContent = s.id ? 'Editar sponsor' : 'Nuevo sponsor';
   document.getElementById('modal-body').innerHTML = `
@@ -598,6 +640,19 @@ function abrirModalSponsor(s={}) {
       <div>
         <label class="field-label">Instagram (usuario)</label>
         <input class="input-field" id="sp-instagram" value="${s.instagram||''}" placeholder="micuenta">
+      </div>
+      <div class="full">
+        <label class="field-label">Apps Connect donde aparece</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          ${['cordoba','fiesta','sunset','festival','gym','todas'].map(a => {
+            const appLabels = {cordoba:'🎧 CordobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
+            const apps = (s.app||'todas') === 'todas' ? ['todas'] : (s.app||'').split(',');
+            const checked = (apps.includes(a) || apps.includes('todas') && a==='todas') ? 'checked' : '';
+            return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+              <input type="checkbox" id="sp-a-${a}" ${checked} style="accent-color:var(--pink)"> ${appLabels[a]}
+            </label>`;
+          }).join('')}
+        </div>
       </div>
       <div class="full">
         <label class="field-label">Pantallas donde aparece</label>
@@ -650,6 +705,8 @@ async function guardarSponsor(id) {
     imagen_promo: document.getElementById('sp-imagen-promo').value.trim(),
     orden:        parseInt(document.getElementById('sp-orden').value)||0
   };
+  const apps = ['cordoba','fiesta','sunset','festival','gym','todas'].filter(a => document.getElementById(`sp-a-${a}`)?.checked);
+  body.app = apps.includes('todas') || apps.length === 0 ? 'todas' : apps.join(',');
   const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`sp-p-${p}`)?.checked);
   body.pantalla = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
   if (!body.nombre || !body.promo) { alert('Nombre y promo son requeridos'); return; }
@@ -691,9 +748,12 @@ async function cargarSesiones() {
     }
 
     list.innerHTML = negocios.map(n => {
-      const sesionesNegocio = Array.isArray(sesiones) ? sesiones.filter(s => s.negocio_id === n.id) : [];
+      const sesionesNegocio = Array.isArray(sesiones) ? 
+      sesiones.filter(s => s.negocio_id === n.id)
+              .sort((a,b) => (b.activa?1:0) - (a.activa?1:0) || new Date(b.abierta_en) - new Date(a.abierta_en))
+      : [];
       const activa = sesionesNegocio.find(s => s.activa);
-      const historial = sesionesNegocio.filter(s => !s.activa).slice(0, 4);
+      const historial = sesionesNegocio.filter(s => !s.activa).slice(0, 10);
 
       return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
@@ -778,6 +838,13 @@ async function cargarPromoPrincipal() {
       document.getElementById('pp-emoji').value = pp.emoji || '🎉';
       document.getElementById('pp-tag').value = 'GRATIS';
       document.getElementById('pp-whatsapp').value = pp.whatsapp || '543512291554';
+    document.getElementById('pp-imagen-url').value = pp.imagen_url || '';
+    document.getElementById('pp-url-promo').value = pp.url_promo || '';
+    const apps_loaded = (pp.app||'todas') === 'todas' ? ['todas'] : pp.app.split(',');
+    ['cordoba','fiesta','sunset','festival','gym','todas'].forEach(a => {
+      const el = document.getElementById(`pp-a-${a}`);
+      if(el) el.checked = apps_loaded.includes(a) || (a==='todas' && pp.app==='todas');
+    });
       const pantallas = pp.pantalla === 'todas' ? ['splash','qr','swipe','matches'] : pp.pantalla.split(',');
       ['splash','qr','swipe','matches'].forEach(p => {
         const el = document.getElementById(`pp-p-${p}`);
@@ -805,19 +872,22 @@ function actualizarPreviewPromo() {
 }
 
 async function guardarPromoPersonal() {
-  const titulo   = document.getElementById('pp-titulo').value.trim();
-  const desc     = document.getElementById('pp-descripcion').value.trim();
-  const emoji    = document.getElementById('pp-emoji').value.trim();
-  const whatsapp = document.getElementById('pp-whatsapp').value.trim();
+  const titulo        = document.getElementById('pp-titulo').value.trim();
+  const desc          = document.getElementById('pp-descripcion').value.trim();
+  const emoji         = document.getElementById('pp-emoji').value.trim();
+  const whatsapp      = document.getElementById('pp-whatsapp').value.trim();
+  const confirmacion  = document.getElementById('pp-confirmacion')?.value.trim()||'Al participar acepto recibir información de esta promoción';
   if (!titulo || !desc) { alert('Completá el título y la descripción'); return; }
+  const apps_pp = ['cordoba','fiesta','sunset','festival','gym','todas'].filter(a => document.getElementById(`pp-a-${a}`)?.checked);
+  const app_pp = apps_pp.includes('todas') || apps_pp.length === 0 ? 'todas' : apps_pp.join(',');
   const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`pp-p-${p}`)?.checked);
   const pantalla  = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
-
+  const imagen_url  = document.getElementById('pp-imagen-url')?.value.trim()||'';
+  const url_promo   = document.getElementById('pp-url-promo')?.value.trim()||'';
   try {
-    // Buscar si ya existe
     const sponsors = await apiAdmin('/sponsors');
     const pp = sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
-    const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, orden:-1 };
+    const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, app:app_pp, orden:-1, imagen_url, imagen_promo:url_promo, confirmacion };
     if (pp) await apiAdmin(`/sponsors/${pp.id}`, { method:'PUT', body:JSON.stringify(body) });
     else    await apiAdmin('/sponsors', { method:'POST', body:JSON.stringify({...body, activo:true}) });
     alert('✅ Promo Principal guardada!');
@@ -890,8 +960,14 @@ async function cargarNegocios() {
         <td>${n.nombre}</td>
         <td><span class="badge badge-yellow">${n.tipo}</span></td>
         <td><span class="badge badge-green">${n.plan}</span></td>
-        <td><span class="badge ${n.activo?'badge-green':'badge-red'}">${n.activo?'Activo':'Inactivo'}</span></td>
+        <td><span class="badge ${n.activo?'badge-green':'badge-red'}">${n.activo?'Activo':'Inactivo'}</span>
+          ${n.estado_pago==='trial'?'<span class="badge badge-yellow">🎁 Trial</span>':n.estado_pago==='vencido'?'<span class="badge badge-red">❌ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge" style="background:rgba(156,163,175,.15);color:#9ca3af">⏸️ Suspendido</span>':'<span class="badge badge-green">✅ Pago</span>'}
+          ${n.vencimiento_plan?`<span class="badge badge-yellow" style="font-size:10px">Vence: ${new Date(n.vencimiento_plan+'T00:00:00').toLocaleDateString('es-AR')}</span>`:''}</td>
         <td><div class="td-actions">
+          <div style="margin-bottom:6px">
+            ${n.estado_pago==='vencido'?'<span class="badge badge-red">⚠️ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge badge-red">🚫 Suspendido</span>':n.estado_pago==='activo'?'<span class="badge badge-green">✅ Activo</span>':'<span class="badge badge-yellow">🎁 Prueba</span>'}
+            ${n.vencimiento_plan?`<span style="color:var(--muted);font-size:11px">Vence: ${new Date(n.vencimiento_plan).toLocaleDateString('es-AR')}</span>`:''}
+          </div>
           <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
           <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}')">🔑 Acceso</button>
         </div></td>
@@ -969,6 +1045,21 @@ function abrirModalNegocio(n={}) {
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <div class="modal-grid" style="margin-top:8px;">
+        <div>
+          <label class="field-label">📅 Vencimiento del plan</label>
+          <input class="input-field" id="neg-vencimiento" type="date" value="${n.fecha_vencimiento||''}" style="color-scheme:dark;margin:0">
+        </div>
+        <div>
+          <label class="field-label">💳 Estado de pago</label>
+          <select class="input-field" id="neg-pago" style="color:#fff;background:#1a0030;margin:0">
+            <option value="mes_gratis" style="background:#1a0030" ${(n.estado_pago||'mes_gratis')==='mes_gratis'?'selected':''}>🎁 Mes gratis</option>
+            <option value="pago" style="background:#1a0030" ${n.estado_pago==='pago'?'selected':''}>✅ Pagó</option>
+            <option value="vencido" style="background:#1a0030" ${n.estado_pago==='vencido'?'selected':''}>⚠️ Vencido</option>
+            <option value="suspendido" style="background:#1a0030" ${n.estado_pago==='suspendido'?'selected':''}>🚫 Suspendido</option>
+          </select>
+        </div>
+      </div>
       <button class="btn-primary" onclick="guardarNegocio('${n.id||''}')">
         ${n.id ? 'GUARDAR CAMBIOS' : 'CREAR NEGOCIO'}
       </button>
@@ -1023,15 +1114,40 @@ async function crearAdminNegocio(negocioId) {
   } catch(err) { alert(err.message); }
 }
 
+async function actualizarVencimiento(id, fecha) {
+  try {
+    await apiAdmin(`/superadmin/negocios/${id}`, {method:'PUT', body:JSON.stringify({fecha_vencimiento:fecha})});
+    mostrarToast('Vencimiento actualizado ✓');
+  } catch(err) { alert(err.message); }
+}
+
+async function togglePago(id, pagoActual) {
+  try {
+    await apiAdmin(`/superadmin/negocios/${id}`, {method:'PUT', body:JSON.stringify({pago_activo:!pagoActual})});
+    await cargarNegocios();
+    mostrarToast(!pagoActual ? '✓ Marcado como pagado' : 'Marcado como pendiente');
+  } catch(err) { alert(err.message); }
+}
+
+function mostrarToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;z-index:999;animation:fadeUp .3s ease forwards';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2500);
+}
+
 async function guardarNegocio(id) {
   const body = {
     nombre:      document.getElementById('neg-nombre').value.trim(),
     tipo:        document.getElementById('neg-tipo').value,
     plan:        document.getElementById('neg-plan').value,
     slug:        document.getElementById('neg-slug').value.trim(),
-    dueno_nombre:document.getElementById('neg-dueno').value.trim(),
-    dueno_email: document.getElementById('neg-email').value.trim(),
-    dueno_tel:   document.getElementById('neg-tel').value.trim()
+    dueno_nombre:      document.getElementById('neg-dueno').value.trim(),
+    dueno_email:       document.getElementById('neg-email').value.trim(),
+    dueno_tel:         document.getElementById('neg-tel').value.trim(),
+    fecha_vencimiento: document.getElementById('neg-vencimiento').value||null,
+    estado_pago:       document.getElementById('neg-pago').value
   };
   if (!body.nombre || !body.slug) { alert('Nombre y slug son requeridos'); return; }
   try {
