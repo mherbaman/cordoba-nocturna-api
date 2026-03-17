@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -250,7 +249,7 @@ async function apiAdmin(path, opts={}) {
     <!-- HISTORIAL -->
     <div class="page" id="page-historial">
       <div class="section-hdr">
-        <div class="section-title">Últimas sesiones</div>
+        <div class="section-title">Últimas 10 sesiones</div>
       </div>
       <div id="historial-list"><div class="loader"></div></div>
     </div>
@@ -520,7 +519,7 @@ async function cargarHistorial() {
       list.innerHTML = `<div class="empty-state"><div class="icon">📅</div>No hay sesiones aún</div>`;
       return;
     }
-    list.innerHTML = sesiones.slice(0,20).map(s => `
+    list.innerHTML = sesiones.slice(0,10).map(s => `
       <div class="historial-item">
         <div class="hi-info">
           <div class="hi-nombre">${s.nombre}</div>
