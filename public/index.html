@@ -894,15 +894,31 @@ function mostrarNombreSesion(nombre) {
 }
 
 const CATEGORIAS = {
-  disco:       { emoji:'🎧', titulo:'¡LA PISTA TE ESPERA!',     sub:'Todavía no hay nadie en la pista.<br>¡Sé el primero en llegar!',    slogan:'esta noche alguien te está esperando en la pista 🎧' },
-  bar:         { emoji:'🍺', titulo:'¡EL BAR ESTÁ SOLO!',       sub:'Todavía no hay nadie en el bar.<br>¡Llegaste temprano!',             slogan:'las mejores historias empiezan en un bar 🍺' },
-  pub:         { emoji:'🎸', titulo:'¡EL PUB ESTÁ TRANQUILO!',  sub:'Todavía no llegó nadie.<br>¡La noche recién empieza!',              slogan:'la música une, vos conectás 🎸' },
-  restaurante: { emoji:'🍽️', titulo:'¡LA MESA TE ESPERA!',     sub:'Todavía no hay comensales.<br>¡Reservá tu lugar!',                  slogan:'compartir una mesa es el primer paso 🍽️' },
-  gimnasio:    { emoji:'💪', titulo:'¡A ENTRENAR!',              sub:'Todavía no hay nadie en el gym.<br>¡Arrancá primero!',              slogan:'el gym cambia el cuerpo, las personas cambian tu vida 💪' },
-  sunset:      { emoji:'🌅', titulo:'¡QUÉ ATARDECER!',          sub:'Todavía no hay nadie por acá.<br>¡Compartí este momento!',          slogan:'algunos atardeceres se disfrutan mejor acompañados 🌅' },
-  baile:       { emoji:'💃', titulo:'¡A BAILAR!',                sub:'Todavía no hay nadie en la pista.<br>¡Calentá los pasos!',          slogan:'el ritmo te mueve, la conexión te transforma 💃' },
-  festival:    { emoji:'🎪', titulo:'¡QUÉ FESTIVAL!',           sub:'Todavía no hay nadie registrado.<br>¡Explorá el lugar!',            slogan:'entre miles de personas, encontrá a tu gente 🎪' },
-  default:     { emoji:'🌙', titulo:'¡NADIE POR AQUÍ AÚN!',     sub:'Todavía no hay nadie en la sala.<br>¡Sé el primero!',               slogan:'momentos que no se olvidan, personas que cambian todo ✨' }
+  // ── Córdoba Nocturna ─────────────────────────────────────────────
+  disco:       { emoji:'🎧', titulo:'¡LA PISTA TE ESPERA!',       sub:'Todavía no hay nadie en la pista.<br>¡Sé el primero en llegar!',    slogan:'esta noche alguien te está esperando en la pista 🎧' },
+  bar:         { emoji:'🍺', titulo:'¡EL BAR ESTÁ SOLO!',         sub:'Todavía no hay nadie en el bar.<br>¡Llegaste temprano!',             slogan:'las mejores historias empiezan en un bar 🍺' },
+  pub:         { emoji:'🎸', titulo:'¡EL PUB ESTÁ TRANQUILO!',    sub:'Todavía no llegó nadie.<br>¡La noche recién empieza!',              slogan:'la música une, vos conectás 🎸' },
+  restaurante: { emoji:'🍽️', titulo:'¡LA MESA TE ESPERA!',       sub:'Todavía no hay comensales.<br>¡Reservá tu lugar!',                  slogan:'compartir una mesa es el primer paso 🍽️' },
+  baile:       { emoji:'💃', titulo:'¡A BAILAR!',                  sub:'Todavía no hay nadie en la pista.<br>¡Calentá los pasos!',          slogan:'el ritmo te mueve, la conexión te transforma 💃' },
+  // ── FiestaConnect ────────────────────────────────────────────────
+  casamiento:  { emoji:'💍', titulo:'¡LA NOCHE ES TUYA!',          sub:'Todavía no hay invitados registrados.<br>¡Sé el primero!',          slogan:'esta noche los mejores recuerdos se hacen con las mejores personas 💍' },
+  cumple18:    { emoji:'🎂', titulo:'¡A CELEBRAR!',                 sub:'Todavía no llegó nadie.<br>¡La fiesta está por arrancar!',          slogan:'los 18 se festejan en grande y con la gente correcta 🎂' },
+  corporativo: { emoji:'🤝', titulo:'¡BIENVENIDOS AL EVENTO!',     sub:'Todavía no hay participantes.<br>¡Conecten antes de empezar!',       slogan:'las mejores alianzas se forman fuera de la sala de reuniones 🤝' },
+  privado:     { emoji:'🎉', titulo:'¡LA FIESTA ARRANCA!',         sub:'Todavía no hay nadie.<br>¡Llegaste primero!',                       slogan:'cada fiesta tiene su gente especial — encontrá la tuya 🎉' },
+  // ── Sunset Connect ───────────────────────────────────────────────
+  sunset:      { emoji:'🌅', titulo:'¡QUÉ ATARDECER!',            sub:'Todavía no hay nadie por acá.<br>¡Compartí este momento!',           slogan:'algunos atardeceres se disfrutan mejor acompañados 🌅' },
+  playa:       { emoji:'🏖️', titulo:'¡EL PARAÍSO TE ESPERA!',    sub:'Todavía no hay nadie registrado.<br>¡Sé el primero en llegar!',      slogan:'el sol, el agua y la persona correcta — todo en un lugar 🏖️' },
+  terraza:     { emoji:'🌇', titulo:'¡QUÉ VISTA!',                 sub:'Todavía no hay nadie en la terraza.<br>¡Llegaste temprano!',         slogan:'desde las alturas todo se ve mejor, especialmente la gente 🌇' },
+  // ── Gym Connect ──────────────────────────────────────────────────
+  gimnasio:    { emoji:'💪', titulo:'¡A ENTRENAR!',                sub:'Todavía no hay nadie en el gym.<br>¡Arrancá primero!',               slogan:'el gym cambia el cuerpo, las personas cambian tu vida 💪' },
+  crossfit:    { emoji:'🏋️', titulo:'¡A DARLO TODO!',             sub:'Todavía no hay nadie en el box.<br>¡Calentá los músculos!',          slogan:'los que entrenan juntos, conectan para siempre 🏋️' },
+  yoga:        { emoji:'🧘', titulo:'¡MOMENTO DE CONEXIÓN!',       sub:'Todavía no hay nadie.<br>¡Llegaste primero!',                       slogan:'la paz interior empieza con las conexiones correctas 🧘' },
+  // ── Festival Connect ─────────────────────────────────────────────
+  festival:    { emoji:'🎪', titulo:'¡QUÉ FESTIVAL!',             sub:'Todavía no hay nadie registrado.<br>¡Explorá el lugar!',             slogan:'entre miles de personas, encontrá a tu gente 🎪' },
+  feria:       { emoji:'🎡', titulo:'¡BIENVENIDO A LA FERIA!',     sub:'Todavía no hay nadie registrado.<br>¡Explorá!',                     slogan:'en cada stand hay una historia esperando ser contada 🎡' },
+  recital:     { emoji:'🎸', titulo:'¡QUÉ SHOW!',                  sub:'Todavía no hay nadie registrado.<br>¡La música está por empezar!',   slogan:'la música que te mueve es la misma que los mueve a ellos 🎸' },
+  // ── Default ──────────────────────────────────────────────────────
+  default:     { emoji:'🌙', titulo:'¡NADIE POR AQUÍ AÚN!',       sub:'Todavía no hay nadie en la sala.<br>¡Sé el primero!',                slogan:'momentos que no se olvidan, personas que cambian todo ✨' }
 };
 
 async function cargarPerfiles() {
