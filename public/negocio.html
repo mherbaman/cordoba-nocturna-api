@@ -422,8 +422,7 @@ async function cargarStatsGenerales() {
 async function cargarSesionActiva() {
   const container = document.getElementById('sesion-container');
   try {
-    const negocios = await apiAdmin('/superadmin/negocios');
-    const negocio  = negocios.find(n => n.id === negocioData.id);
+    const negocio = await apiAdmin('/superadmin/mi-negocio');
 
     if (negocio?.sesion_activa) {
       container.innerHTML = `
@@ -516,13 +515,12 @@ async function cargarHistorial() {
   const list = document.getElementById('historial-list');
   list.innerHTML = '<div class="loader"></div>';
   try {
-    const sesiones = await apiAdmin('/superadmin/sesiones');
-    const mias = sesiones.filter(s => s.negocio_id === negocioData.id);
-    if (!mias.length) {
+    const sesiones = await apiAdmin(`/superadmin/sesiones-negocio/${negocioData.id}`);
+    if (!sesiones.length) {
       list.innerHTML = `<div class="empty-state"><div class="icon">📅</div>No hay sesiones aún</div>`;
       return;
     }
-    list.innerHTML = mias.slice(0,20).map(s => `
+    list.innerHTML = sesiones.slice(0,20).map(s => `
       <div class="historial-item">
         <div class="hi-info">
           <div class="hi-nombre">${s.nombre}</div>
@@ -536,7 +534,7 @@ async function cargarHistorial() {
         <span class="badge ${s.activa?'badge-green':'badge-muted'}">${s.activa?'Activa':'Cerrada'}</span>
       </div>`).join('');
   } catch(err) {
-    list.innerHTML = `<div class="empty-state">Error cargando historial</div>`;
+    list.innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
   }
 }
 
@@ -595,18 +593,17 @@ async function cargarStats() {
   try {
     const [statsRes, sesiones] = await Promise.all([
       apiAdmin(`/superadmin/negocio-stats/${negocioData.id}`),
-      apiAdmin('/superadmin/sesiones')
+      apiAdmin(`/superadmin/sesiones-negocio/${negocioData.id}`)
     ]);
-    const mias = sesiones.filter(s => s.negocio_id === negocioData.id);
-    const promUsuarios = mias.length ? Math.round(mias.reduce((a,s)=>a+(s.total_usuarios||0),0)/mias.length) : 0;
-    const promMatches  = mias.length ? Math.round(mias.reduce((a,s)=>a+(s.total_matches||0),0)/mias.length)  : 0;
+    const promUsuarios = sesiones.length ? Math.round(sesiones.reduce((a,s)=>a+(s.total_usuarios||0),0)/sesiones.length) : 0;
+    const promMatches  = sesiones.length ? Math.round(sesiones.reduce((a,s)=>a+(s.total_matches||0),0)/sesiones.length)  : 0;
     detalle.innerHTML = `
       <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-num">${statsRes.total_usuarios||0}</div><div class="stat-lbl">Total clientes únicos</div></div>
       <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-num">${statsRes.total_matches||0}</div><div class="stat-lbl">Total matches</div></div>
       <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-num">${promUsuarios}</div><div class="stat-lbl">Promedio por noche</div></div>
       <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-num">${promMatches}</div><div class="stat-lbl">Matches por noche</div></div>
     `;
-    const top = [...mias].sort((a,b)=>(b.total_usuarios||0)-(a.total_usuarios||0)).slice(0,10);
+    const top = [...sesiones].sort((a,b)=>(b.total_usuarios||0)-(a.total_usuarios||0)).slice(0,10);
     if (!top.length) {
       tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="icon">📊</div>No hay datos aún</div></td></tr>`;
       return;
@@ -619,7 +616,7 @@ async function cargarStats() {
         <td><span class="badge" style="background:rgba(255,45,120,.15);color:var(--pink)">${s.total_matches||0}</span></td>
       </tr>`).join('');
   } catch(err) {
-    detalle.innerHTML = `<p style="color:var(--muted)">Error</p>`;
+    detalle.innerHTML = `<p style="color:var(--muted)">Error: ${err.message}</p>`;
   }
 }
 </script>
