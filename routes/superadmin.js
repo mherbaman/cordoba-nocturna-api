@@ -17,7 +17,7 @@ router.post('/login', async (req, res) => {
       'SELECT * FROM admins WHERE email = $1 AND es_superadmin = true AND activo = true',
       [email]
     );
-    if (result.rows.length === 0) return res.status(401).json({ error: 'Acceso denegado' });
+    if (!result.rows.length) return res.status(401).json({ error: 'Acceso denegado' });
     const admin = result.rows[0];
     const ok = await bcrypt.compare(password, admin.password_hash);
     if (!ok) return res.status(401).json({ error: 'Acceso denegado' });
@@ -27,6 +27,35 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
     res.json({ token, admin: { id: admin.id, nombre: admin.nombre, email: admin.email } });
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /superadmin/login-negocio ───────────────────────────────────
+router.post('/login-negocio', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const result = await pool.query(`
+      SELECT a.*, n.id as neg_id, n.nombre as neg_nombre, n.tipo as neg_tipo
+      FROM admins a
+      JOIN negocios n ON n.id = a.negocio_id
+      WHERE a.email = $1 AND a.activo = true AND a.es_superadmin = false
+    `, [email]);
+    if (!result.rows.length) return res.status(401).json({ error: 'Acceso denegado' });
+    const admin = result.rows[0];
+    const ok = await bcrypt.compare(password, admin.password_hash);
+    if (!ok) return res.status(401).json({ error: 'Contraseña incorrecta' });
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, negocio_id: admin.negocio_id },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    res.json({
+      token,
+      admin:   { id: admin.id, nombre: admin.nombre, email: admin.email },
+      negocio: { id: admin.neg_id, nombre: admin.neg_nombre, tipo: admin.neg_tipo }
+    });
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
   }
@@ -56,7 +85,7 @@ router.get('/dashboard', authSuperAdmin, async (req, res) => {
 router.get('/negocios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT 
+      SELECT
         n.*,
         sn.id as sesion_id,
         sn.nombre as sesion_nombre,
@@ -131,6 +160,52 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
   }
 });
 
+// ── POST /superadmin/admin-negocio ───────────────────────────────────
+router.post('/admin-negocio', authSuperAdmin, async (req, res) => {
+  const { negocio_id, nombre, email, password } = req.body;
+  if (!negocio_id || !nombre || !email || !password) {
+    return res.status(400).json({ error: 'Faltan datos' });
+  }
+  try {
+    const password_hash = await bcrypt.hash(password, 10);
+    await pool.query(`
+      INSERT INTO admins (negocio_id, nombre, email, password_hash, es_superadmin)
+      VALUES ($1, $2, $3, $4, false)
+      ON CONFLICT (email) DO UPDATE SET
+        nombre = $2,
+        password_hash = $4,
+        negocio_id = $1,
+        activo = true
+    `, [negocio_id, nombre, email, password_hash]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /superadmin/negocio-stats/:id ────────────────────────────────
+router.get('/negocio-stats/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [usuarios, matches, sesiones, telefono] = await Promise.all([
+      pool.query('SELECT COUNT(DISTINCT usuario_id) as total FROM presencias WHERE negocio_id = $1', [id]),
+      pool.query('SELECT COUNT(*) as total FROM matches WHERE negocio_id = $1', [id]),
+      pool.query('SELECT COUNT(*) as total FROM sesiones_noche WHERE negocio_id = $1', [id]),
+      pool.query(`SELECT COUNT(*) as total FROM usuarios u
+        JOIN presencias p ON p.usuario_id = u.id
+        WHERE p.negocio_id = $1 AND u.telefono IS NOT NULL AND u.telefono != ''`, [id])
+    ]);
+    res.json({
+      total_usuarios: parseInt(usuarios.rows[0].total),
+      total_matches:  parseInt(matches.rows[0].total),
+      total_sesiones: parseInt(sesiones.rows[0].total),
+      con_telefono:   parseInt(telefono.rows[0].total)
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // ── GET /superadmin/usuarios ─────────────────────────────────────────
 router.get('/usuarios', authSuperAdmin, async (req, res) => {
   try {
@@ -157,9 +232,8 @@ router.get('/reportes', authSuperAdmin, async (req, res) => {
       params.push(negocio_id);
       whereNegocio = `AND p.negocio_id = $${params.length}`;
     }
-
     const usuarios = await pool.query(`
-      SELECT 
+      SELECT
         u.id, u.nombre, u.email, u.telefono, u.foto_url, u.vibe, u.edad,
         n.nombre as negocio_nombre,
         COUNT(p.id) as visitas,
@@ -172,23 +246,20 @@ router.get('/reportes', authSuperAdmin, async (req, res) => {
       GROUP BY u.id, u.nombre, u.email, u.telefono, u.foto_url, u.vibe, u.edad, n.nombre
       ORDER BY MAX(p.entro_en) DESC
     `, params);
-
     const sesiones = await pool.query(`
       SELECT COUNT(*) as total FROM sesiones_noche
       WHERE abierta_en BETWEEN $1 AND $2::date + interval '1 day'
       ${negocio_id ? `AND negocio_id = $3` : ''}
     `, negocio_id ? [desde, hasta, negocio_id] : [desde, hasta]);
-
     const matches = await pool.query(`
       SELECT COUNT(*) as total FROM matches
       WHERE creado_en BETWEEN $1 AND $2::date + interval '1 day'
       ${negocio_id ? `AND negocio_id = $3` : ''}
     `, negocio_id ? [desde, hasta, negocio_id] : [desde, hasta]);
-
     res.json({
-      usuarios:        usuarios.rows,
-      total_sesiones:  parseInt(sesiones.rows[0].total),
-      total_matches:   parseInt(matches.rows[0].total)
+      usuarios:       usuarios.rows,
+      total_sesiones: parseInt(sesiones.rows[0].total),
+      total_matches:  parseInt(matches.rows[0].total)
     });
   } catch (err) {
     console.error('Error en reportes:', err);
@@ -197,7 +268,6 @@ router.get('/reportes', authSuperAdmin, async (req, res) => {
 });
 
 // ── DELETE /superadmin/sesiones/negocio/:id/inactivas ────────────────
-// ⚠️ DEBE IR ANTES de /sesiones/:id
 router.delete('/sesiones/negocio/:id/inactivas', authSuperAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM sesiones_noche WHERE negocio_id = $1 AND activa = false', [req.params.id]);
@@ -223,7 +293,7 @@ router.post('/registrar-telefono', authSuperAdmin, async (req, res) => {
   if (!codigo_usuario || !telefono) return res.status(400).json({ error: 'Faltan datos' });
   try {
     const result = await pool.query(`
-      UPDATE usuarios SET telefono = $1 
+      UPDATE usuarios SET telefono = $1
       WHERE id::text LIKE $2 || '%'
       RETURNING nombre, email
     `, [telefono, codigo_usuario]);
