@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Términos y Políticas — Córdoba Nocturna</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --pink:#ff2d78; --purple:#7c3aed; --bg:#07000f; --text:#fff; --muted:rgba(255,255,255,.5); }
+body { background:var(--bg); font-family:'DM Sans',sans-serif; color:var(--text); min-height:100vh; }
+
+header { background:rgba(7,0,15,.95); border-bottom:1px solid rgba(255,45,120,.15); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; backdrop-filter:blur(10px); }
+.logo { font-family:'Bebas Neue',cursive; font-size:28px; letter-spacing:2px; text-decoration:none; color:#fff; }
+.logo span { color:var(--pink); }
+.btn-volver { background:linear-gradient(135deg,var(--pink),var(--purple)); border:none; color:#fff; padding:10px 20px; border-radius:50px; font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; }
+
+.container { max-width:720px; margin:0 auto; padding:48px 24px 80px; }
+
+.hero { text-align:center; margin-bottom:48px; }
+.hero h1 { font-family:'Bebas Neue',cursive; font-size:48px; letter-spacing:2px; margin-bottom:8px; }
+.hero p { color:var(--muted); font-size:15px; }
+.hero .fecha { display:inline-block; background:rgba(255,45,120,.1); border:1px solid rgba(255,45,120,.2); color:var(--pink); font-size:12px; padding:4px 14px; border-radius:50px; margin-top:12px; }
+
+.toc { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:24px; margin-bottom:40px; }
+.toc-title { font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:14px; }
+.toc a { display:block; color:rgba(255,255,255,.65); text-decoration:none; font-size:14px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.04); transition:color .2s; }
+.toc a:last-child { border-bottom:none; }
+.toc a:hover { color:var(--pink); }
+.toc a span { color:var(--pink); margin-right:8px; font-weight:700; }
+
+section { margin-bottom:40px; scroll-margin-top:80px; }
+section h2 { font-family:'Bebas Neue',cursive; font-size:26px; letter-spacing:1px; color:var(--pink); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+section h2 .num { background:rgba(255,45,120,.15); border:1px solid rgba(255,45,120,.3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+p { color:rgba(255,255,255,.75); font-size:15px; line-height:1.8; margin-bottom:14px; }
+ul { color:rgba(255,255,255,.75); font-size:15px; line-height:1.8; padding-left:0; margin-bottom:14px; list-style:none; }
+ul li { padding:6px 0 6px 24px; position:relative; border-bottom:1px solid rgba(255,255,255,.04); }
+ul li:last-child { border-bottom:none; }
+ul li::before { content:'→'; position:absolute; left:0; color:var(--pink); font-weight:700; }
+strong { color:#fff; }
+
+.highlight { background:rgba(255,45,120,.08); border:1px solid rgba(255,45,120,.2); border-radius:12px; padding:16px 20px; margin-bottom:14px; }
+.highlight p { margin:0; color:rgba(255,255,255,.85); }
+
+.contact-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:24px; text-align:center; margin-top:48px; }
+.contact-box h3 { font-family:'Bebas Neue',cursive; font-size:24px; letter-spacing:1px; margin-bottom:8px; }
+.contact-box p { color:var(--muted); margin-bottom:16px; }
+.contact-box a { color:var(--pink); text-decoration:none; font-weight:600; }
+.contact-box a:hover { text-decoration:underline; }
+
+.footer-note { text-align:center; margin-top:40px; padding-top:24px; border-top:1px solid rgba(255,255,255,.06); color:var(--muted); font-size:13px; }
+.footer-note a { color:var(--pink); text-decoration:none; }
+
+@media (max-width:600px) {
+  .hero h1 { font-size:36px; }
+  .container { padding:32px 16px 60px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="https://api.shops.com.ar" class="logo">CÓRDOBA<span>NOCTURNA</span></a>
+  <a href="https://api.shops.com.ar" class="btn-volver">← Volver a la app</a>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <div style="font-size:48px;margin-bottom:16px;">📋</div>
+    <h1>TÉRMINOS Y POLÍTICAS</h1>
+    <p>Política de Privacidad y Condiciones de Uso</p>
+    <span class="fecha">Última actualización: Marzo 2026</span>
+  </div>
+
+  <!-- ÍNDICE -->
+  <div class="toc">
+    <div class="toc-title">Contenido</div>
+    <a href="#sobre-la-app"><span>01</span> Sobre la aplicación</a>
+    <a href="#edad-minima"><span>02</span> Edad mínima requerida</a>
+    <a href="#datos"><span>03</span> Datos que recopilamos</a>
+    <a href="#uso-datos"><span>04</span> Cómo usamos tus datos</a>
+    <a href="#terceros"><span>05</span> Compartir datos con terceros</a>
+    <a href="#mensajes"><span>06</span> Mensajes y matches</a>
+    <a href="#conducta"><span>07</span> Conducta del usuario</a>
+    <a href="#eliminacion"><span>08</span> Eliminación de cuenta</a>
+    <a href="#seguridad"><span>09</span> Seguridad</a>
+    <a href="#promos"><span>10</span> Promociones y teléfono</a>
+    <a href="#cambios"><span>11</span> Cambios en las políticas</a>
+    <a href="#contacto"><span>12</span> Contacto</a>
+  </div>
+
+  <section id="sobre-la-app">
+    <h2><span class="num">1</span> Sobre la aplicación</h2>
+    <p>Córdoba Nocturna es una plataforma de conexión social diseñada para personas mayores de 18 años que se encuentran en el mismo establecimiento (disco, bar, restaurante u otro local adherido).</p>
+    <p>La aplicación permite a los usuarios descubrir y conectar con otras personas presentes en el mismo lugar durante una sesión activa, mediante un sistema de likes y matches mutuos.</p>
+    <div class="highlight"><p>🌙 Córdoba Nocturna no es una app de citas. Es una plataforma de conexión social para personas que comparten el mismo espacio físico en un momento determinado.</p></div>
+  </section>
+
+  <section id="edad-minima">
+    <h2><span class="num">2</span> Edad mínima requerida</h2>
+    <p>El acceso a Córdoba Nocturna y FiestaConnect está <strong>estrictamente limitado a personas mayores de 18 años</strong>.</p>
+    <p>Al registrarte, confirmás que tenés 18 años o más y que sos mayor de edad en tu país de residencia. Nos reservamos el derecho de suspender cualquier cuenta que no cumpla con este requisito sin previo aviso.</p>
+    <p><strong>FiestaConnect no opera eventos con menores de 18 años.</strong> Todos los eventos de la plataforma son exclusivamente para adultos mayores de 18 años, sin excepción. Los organizadores son responsables de verificar la mayoría de edad de sus invitados.</p>
+    <div class="highlight"><p>⚠️ Si tenés conocimiento de que un menor está usando la plataforma, por favor notificanos de inmediato a <strong>privacidad@cordobanocturna.com</strong>. Tomaremos acción inmediata.</p></div>
+  </section>
+
+  <section id="datos">
+    <h2><span class="num">3</span> Datos que recopilamos</h2>
+    <p>Para el funcionamiento de la plataforma recopilamos la siguiente información:</p>
+    <ul>
+      <li><strong>Nombre:</strong> Para identificarte dentro de la plataforma y mostrarte a otros usuarios.</li>
+      <li><strong>Email y contraseña:</strong> Para autenticarte de forma segura. Las contraseñas se almacenan con hash criptográfico.</li>
+      <li><strong>Foto de perfil:</strong> Para que otros usuarios puedan reconocerte. Es opcional pero recomendada.</li>
+      <li><strong>Edad:</strong> Para verificar que sos mayor de 18 años y para mostrarla en tu perfil.</li>
+      <li><strong>Vibe:</strong> Tu estado de ánimo o intención para la noche. Podés cambiarlo en cualquier momento.</li>
+      <li><strong>Teléfono (opcional):</strong> Solo si participás en promociones y lo proporcionás voluntariamente vía WhatsApp.</li>
+      <li><strong>Presencia en locales:</strong> Registramos a qué sesiones asististe para el funcionamiento de la app y para generar estadísticas para los locales.</li>
+    </ul>
+  </section>
+
+  <section id="uso-datos">
+    <h2><span class="num">4</span> Cómo usamos tus datos</h2>
+    <ul>
+      <li>Para mostrarte perfiles de otras personas presentes en el mismo local.</li>
+      <li>Para gestionar tus matches, likes y mensajes dentro de la plataforma.</li>
+      <li>Para mejorar la experiencia de uso y desarrollar nuevas funcionalidades.</li>
+      <li>Para enviarte notificaciones relacionadas con la app cuando corresponda.</li>
+      <li>Para generar estadísticas agregadas y anonimizadas para los locales adheridos.</li>
+    </ul>
+    <p>No utilizamos tus datos para publicidad de terceros ni los vendemos bajo ningún concepto.</p>
+  </section>
+
+  <section id="terceros">
+    <h2><span class="num">5</span> Compartir datos con terceros</h2>
+    <p><strong>No vendemos ni compartimos tus datos personales identificables con terceros.</strong></p>
+    <p>Los locales adheridos a la plataforma tienen acceso únicamente a estadísticas generales anonimizadas de sus sesiones, como cantidad de usuarios y matches. No tienen acceso a datos personales individuales como nombre, email, foto o teléfono.</p>
+    <p>Podemos compartir datos con proveedores de servicios técnicos (hosting, bases de datos) que nos ayudan a operar la plataforma, siempre bajo acuerdos de confidencialidad.</p>
+  </section>
+
+  <section id="mensajes">
+    <h2><span class="num">6</span> Mensajes y matches</h2>
+    <ul>
+      <li>Los mensajes entre usuarios <strong>expiran automáticamente a los 8 días</strong> de enviados.</li>
+      <li>Los matches se generan de forma mutua — solo cuando ambas personas se dieron like.</li>
+      <li>Cualquiera de las partes puede eliminar un match en cualquier momento, lo que borra también el historial de mensajes.</li>
+      <li>No almacenamos el contenido de los mensajes más allá del período de 8 días.</li>
+    </ul>
+  </section>
+
+  <section id="conducta">
+    <h2><span class="num">7</span> Conducta del usuario</h2>
+    <p>Al usar Córdoba Nocturna te comprometés a:</p>
+    <ul>
+      <li>No acosar, intimidar, amenazar ni enviar contenido inapropiado, ofensivo o ilegal a otros usuarios.</li>
+      <li>Usar tu nombre e imagen reales en tu perfil.</li>
+      <li>No suplantar la identidad de otras personas.</li>
+      <li>No usar la plataforma con fines comerciales no autorizados.</li>
+      <li>Respetar la privacidad y los límites de otros usuarios.</li>
+      <li>No compartir contenido de carácter sexual explícito o violento.</li>
+    </ul>
+    <div class="highlight"><p>⚠️ El incumplimiento de estas normas puede resultar en la suspensión permanente de tu cuenta sin previo aviso y sin derecho a reembolso de ningún tipo.</p></div>
+  </section>
+
+  <section id="eliminacion">
+    <h2><span class="num">8</span> Eliminación de cuenta</h2>
+    <p>Podés solicitar la eliminación de tu cuenta y todos tus datos personales en cualquier momento enviando un email a <strong>privacidad@cordobanocturna.com</strong>.</p>
+    <p>Los datos serán eliminados de nuestros sistemas dentro de los <strong>30 días hábiles</strong> siguientes a la solicitud. Algunos datos pueden conservarse por obligaciones legales o para prevenir fraudes durante un período adicional.</p>
+  </section>
+
+  <section id="seguridad">
+    <h2><span class="num">9</span> Seguridad</h2>
+    <p>Tomamos medidas razonables para proteger tus datos:</p>
+    <ul>
+      <li>Las contraseñas se almacenan con hash criptográfico bcrypt y nunca en texto plano.</li>
+      <li>Las comunicaciones entre la app y el servidor utilizan HTTPS/TLS.</li>
+      <li>El acceso a la base de datos está restringido y protegido.</li>
+    </ul>
+    <p>Sin embargo, ningún sistema de seguridad es 100% infalible. No podemos garantizar la seguridad absoluta de la información transmitida por internet.</p>
+  </section>
+
+  <section id="promos">
+    <h2><span class="num">10</span> Promociones y teléfono</h2>
+    <p>Córdoba Nocturna puede ofrecer promociones especiales en los locales adheridos. Para participar en estas promociones, los usuarios pueden optar voluntariamente por proporcionar su número de teléfono enviando un mensaje de WhatsApp.</p>
+    <ul>
+      <li>La participación en promociones es <strong>completamente voluntaria</strong>.</li>
+      <li>El número de teléfono proporcionado se asocia a tu perfil para el historial de locales visitados.</li>
+      <li>No enviamos spam ni mensajes no solicitados.</li>
+      <li>Podés solicitar la eliminación de tu teléfono de nuestra base enviando un email.</li>
+    </ul>
+  </section>
+
+  <section id="cambios">
+    <h2><span class="num">11</span> Cambios en las políticas</h2>
+    <p>Nos reservamos el derecho de actualizar estos términos y políticas en cualquier momento. Te notificaremos de cambios significativos mediante un aviso en la app.</p>
+    <p>El uso continuado de la plataforma tras la publicación de cambios implica la aceptación de las políticas vigentes.</p>
+  </section>
+
+  <section id="contacto">
+    <h2><span class="num">12</span> Contacto</h2>
+    <p>Para consultas sobre privacidad, eliminación de datos o cualquier asunto relacionado con estas políticas:</p>
+  </section>
+
+  <div class="contact-box">
+    <h3>¿PREGUNTAS?</h3>
+    <p>Estamos para ayudarte con cualquier consulta sobre privacidad o tus datos.</p>
+    <a href="mailto:privacidad@cordobanocturna.com">privacidad@cordobanocturna.com</a>
+  </div>
+
+  <div class="footer-note">
+    <p>© 2026 Córdoba Nocturna · <a href="https://api.shops.com.ar">Volver a la app</a></p>
+    <p style="margin-top:8px;">Al usar Córdoba Nocturna confirmás que leíste y aceptás estos términos y que tenés 18 años o más. 🌙</p>
+  </div>
+
+</div>
+
+</body>
+</html>
