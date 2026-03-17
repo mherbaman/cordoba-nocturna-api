@@ -911,14 +911,34 @@ function abrirModalNegocio(n={}) {
       <div>
         <label class="field-label">Tipo</label>
         <select class="input-field" id="neg-tipo" style="color:#fff;background:#1a0030;">
+          <optgroup label="── Córdoba Nocturna ──" style="color:rgba(255,255,255,.4);background:#1a0030">
           <option value="disco" style="background:#1a0030" ${n.tipo==='disco'?'selected':''}>🎧 Discoteca</option>
           <option value="bar" style="background:#1a0030" ${n.tipo==='bar'?'selected':''}>🍺 Bar</option>
           <option value="pub" style="background:#1a0030" ${n.tipo==='pub'?'selected':''}>🎸 Pub</option>
           <option value="restaurante" style="background:#1a0030" ${n.tipo==='restaurante'?'selected':''}>🍽️ Restaurante</option>
-          <option value="gimnasio" style="background:#1a0030" ${n.tipo==='gimnasio'?'selected':''}>💪 Gimnasio</option>
-          <option value="sunset" style="background:#1a0030" ${n.tipo==='sunset'?'selected':''}>🌅 Sunset / Rooftop</option>
           <option value="baile" style="background:#1a0030" ${n.tipo==='baile'?'selected':''}>💃 Baile / Milonga</option>
-          <option value="festival" style="background:#1a0030" ${n.tipo==='festival'?'selected':''}>🎪 Festival / Evento</option>
+          </optgroup>
+          <optgroup label="── FiestaConnect ──" style="color:rgba(255,255,255,.4);background:#1a0030">
+          <option value="casamiento" style="background:#1a0030" ${n.tipo==='casamiento'?'selected':''}>💍 Casamiento</option>
+          <option value="cumple18" style="background:#1a0030" ${n.tipo==='cumple18'?'selected':''}>🎂 Cumpleaños de 18</option>
+          <option value="corporativo" style="background:#1a0030" ${n.tipo==='corporativo'?'selected':''}>🤝 Evento corporativo</option>
+          <option value="privado" style="background:#1a0030" ${n.tipo==='privado'?'selected':''}>🎉 Fiesta privada</option>
+          </optgroup>
+          <optgroup label="── Sunset Connect ──" style="color:rgba(255,255,255,.4);background:#1a0030">
+          <option value="sunset" style="background:#1a0030" ${n.tipo==='sunset'?'selected':''}>🌅 Sunset / Rooftop</option>
+          <option value="playa" style="background:#1a0030" ${n.tipo==='playa'?'selected':''}>🏖️ Playa / Piscina</option>
+          <option value="terraza" style="background:#1a0030" ${n.tipo==='terraza'?'selected':''}>🌇 Terraza / Azotea</option>
+          </optgroup>
+          <optgroup label="── Gym Connect ──" style="color:rgba(255,255,255,.4);background:#1a0030">
+          <option value="gimnasio" style="background:#1a0030" ${n.tipo==='gimnasio'?'selected':''}>💪 Gimnasio / Box</option>
+          <option value="crossfit" style="background:#1a0030" ${n.tipo==='crossfit'?'selected':''}>🏋️ CrossFit / Funcional</option>
+          <option value="yoga" style="background:#1a0030" ${n.tipo==='yoga'?'selected':''}>🧘 Yoga / Pilates</option>
+          </optgroup>
+          <optgroup label="── Festival Connect ──" style="color:rgba(255,255,255,.4);background:#1a0030">
+          <option value="festival" style="background:#1a0030" ${n.tipo==='festival'?'selected':''}>🎪 Festival / Evento masivo</option>
+          <option value="feria" style="background:#1a0030" ${n.tipo==='feria'?'selected':''}>🎡 Feria / Exposición</option>
+          <option value="recital" style="background:#1a0030" ${n.tipo==='recital'?'selected':''}>🎸 Recital / Show</option>
+          </optgroup>
         </select>
       </div>
       <div>
