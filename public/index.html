@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -287,6 +286,46 @@ body {
   Cambiá la URL si cambiás de dominio
   ============================================================ -->
 <script>
+
+// ═══════════════════════════════════════════════════════
+//   CORDOBALUX — Auth compartido entre todas las apps
+//   Un solo registro, una sola cuenta para todas las apps
+// ═══════════════════════════════════════════════════════
+const CL_TOKEN_KEY = 'cl_token';
+const CL_USUARIO_KEY = 'cl_usuario';
+
+function clGetToken(){ return localStorage.getItem(CL_TOKEN_KEY); }
+function clGetUsuario(){ return JSON.parse(localStorage.getItem(CL_USUARIO_KEY)||'null'); }
+function clSetToken(t){ localStorage.setItem(CL_TOKEN_KEY, t); }
+function clSetUsuario(u){ localStorage.setItem(CL_USUARIO_KEY, JSON.stringify(u)); }
+function clClearAuth(){
+  [CL_TOKEN_KEY, CL_USUARIO_KEY,
+   'clx_token','clx_usuario','clx_sesion','clx_negocio','clx_tipo',
+   'cc_token','cc_usuario','cc_sesion','cc_negocio','cc_tipo',
+   'fc_token','fc_usuario','fc_sesion','fc_negocio','fc_tipo',
+   'sc_token','sc_usuario','sc_sesion','sc_negocio','sc_tipo',
+   'fc2_token','fc2_usuario','fc2_sesion','fc2_negocio','fc2_tipo'
+  ].forEach(k => localStorage.removeItem(k));
+}
+
+function clYaRegistrado(){
+  // Migrar tokens viejos al nuevo sistema unificado
+  const oldKeys = ['clx_token','cc_token','fc_token','sc_token','fc2_token'];
+  const oldUserKeys = ['clx_usuario','cc_usuario','fc_usuario','sc_usuario','fc2_usuario'];
+  for(let i=0; i<oldKeys.length; i++){
+    const t = localStorage.getItem(oldKeys[i]);
+    const u = localStorage.getItem(oldUserKeys[i]);
+    if(t && u){
+      clSetToken(t);
+      clSetUsuario(JSON.parse(u));
+      localStorage.removeItem(oldKeys[i]);
+      localStorage.removeItem(oldUserKeys[i]);
+      return true;
+    }
+  }
+  return !!clGetToken();
+}
+
 const API = 'https://api.shops.com.ar';
 const VIBES = [
   "Bailar sin parar 🔥","Charla profunda 🌙","Shots y caos 🥃",
@@ -295,9 +334,10 @@ const VIBES = [
 ];
 
 // Estado global
-let token = localStorage.getItem('cn_token') || null;
-let usuario = JSON.parse(localStorage.getItem('cn_usuario') || 'null');
-let sesionId = localStorage.getItem('cn_sesion') || null;
+let token = clGetToken();
+let usuario = clGetUsuario();
+if(clYaRegistrado()&&!token){ token=clGetToken(); usuario=clGetUsuario(); }
+let sesionId = localStorage.getItem('clx_sesion') || null;
 let perfiles = [], perfilIdx = 0, matchesList = [];
 let isDragging = false, startX = 0, dragX = 0;
 let socket = null;
@@ -307,7 +347,7 @@ let chatMatchId = null, chatOtro = null;
 <!-- VERIFICACIÓN DE EDAD -->
 <div class="screen" id="age-verify">
   <div class="age-box">
-    <div class="age-logo">CÓRDOBA<span>CONNECT</span></div>
+    <div class="age-logo">CÓRDOBA<span>NOCTURNA</span></div>
     <div class="age-icon">🌙</div>
     <div class="age-title">ANTES DE ENTRAR</div>
     <p class="age-sub">Esta app está diseñada para mayores de 18 años.<br>Por favor confirmá tu edad y aceptá nuestras políticas.</p>
@@ -403,7 +443,7 @@ let chatMatchId = null, chatOtro = null;
   </div>
   <div class="splash-content" style="position:relative;z-index:1;width:100%;max-width:400px;">
     <div class="splash-icon">🌙</div>
-    <div class="logo">CÓRDOBA<span>CONNECT</span></div>
+    <div class="logo">CÓRDOBA<span>NOCTURNA</span></div>
     <p class="tagline" id="main-tagline">momentos que no se olvidan, personas que cambian todo ✨</p>
     <div class="splash-btns">
       <button class="btn-primary" onclick="showAuth('register')">CREAR PERFIL →</button>
@@ -527,7 +567,7 @@ let chatMatchId = null, chatOtro = null;
       <img id="profile-btn-img" src="" alt="">
     </button>
     <div style="flex:1;text-align:center;">
-      <div class="header-logo">CÓRDOBA<span>CONNECT</span></div>
+      <div class="header-logo">CÓRDOBA<span>NOCTURNA</span></div>
       <div id="sesion-nombre-header" style="font-size:11px;color:var(--muted);margin-top:2px;display:none;"></div>
     </div>
     <button class="matches-btn" id="matches-header-btn" onclick="showScreen('matches-screen')">
@@ -689,7 +729,7 @@ function checkAge() {
 }
 
 function aceptarYEntrar() {
-  localStorage.setItem('cc_edad_verificada', '1');
+  localStorage.setItem('cn_edad_verificada', '1');
   showScreen('splash');
 }
 
@@ -718,7 +758,7 @@ window.onload = function() {
   cargarSponsorsApp();
 
   // Verificar edad — si no aceptó, mostrar pantalla de verificación
-  const edadVerificada = localStorage.getItem('cc_edad_verificada');
+  const edadVerificada = localStorage.getItem('cn_edad_verificada');
   if (!edadVerificada) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('age-verify').classList.add('active');
@@ -726,11 +766,14 @@ window.onload = function() {
   }
 
   // Si ya está logueado, ir directo
+  // Badge CordobaLux
+  const yaM = document.getElementById('cl-ya-miembro');
+  if(yaM && clYaRegistrado()) yaM.style.display='block';
   if (token && usuario) {
     syncProfileBtn();
     connectSocket();
-    const negocio = localStorage.getItem('cn_negocio');
-    const tipo = localStorage.getItem('cn_tipo') || 'default';
+    const negocio = localStorage.getItem('clx_negocio');
+    const tipo = localStorage.getItem('clx_tipo') || 'default';
     const cat = CATEGORIAS[tipo] || CATEGORIAS.default;
     const tagline = document.getElementById('main-tagline');
     if (tagline) tagline.textContent = cat.slogan;
@@ -787,42 +830,38 @@ function guardarVibe(vibe) {
   api('/auth/perfil', { method:'PUT', body:JSON.stringify({ vibe }) })
     .then(data => {
       usuario = { ...usuario, vibe };
-      localStorage.setItem('cn_usuario', JSON.stringify(usuario));
+      localStorage.setItem('clx_usuario', JSON.stringify(usuario));
       document.getElementById('modal-vibe').textContent = vibe;
     })
     .catch(err => console.error('Error guardando vibe:', err));
 }
 
-async function doRegister() {
-  const nombre   = document.getElementById('reg-nombre').value.trim();
-  const email    = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const edad     = parseInt(document.getElementById('reg-edad').value);
-  const errEl    = document.getElementById('reg-error');
 
-  errEl.style.display = 'none';
-  if (!nombre || !email || !password || !regVibe) {
-    errEl.textContent = 'Completá todos los campos y elegí tu vibe'; errEl.style.display='block'; return;
-  }
-  if (password.length < 6) {
-    errEl.textContent = 'La contraseña debe tener al menos 6 caracteres'; errEl.style.display='block'; return;
-  }
-
+async function doRegister(){
+  var n=document.getElementById('reg-nombre').value.trim();
+  var em=document.getElementById('reg-email').value.trim();
+  var pw=document.getElementById('reg-password').value;
+  var ed=parseInt(document.getElementById('reg-edad').value)||18;
+  var errEl=document.getElementById('reg-error');
+  var vb=document.querySelector('#reg-vibes .selected');
+  var vibe=vb?vb.textContent:(typeof regVibe!=='undefined'?regVibe:'');
+  errEl.style.display='none';
+  if(!n||!em||!pw||!vibe){errEl.textContent='Completa todos los campos y elige tu vibe';errEl.style.display='block';return;}
+  if(pw.length<6){errEl.textContent='Minimo 6 caracteres en la contrasena';errEl.style.display='block';return;}
   showLoader('Creando tu perfil...');
-  try {
-    const data = await api('/auth/registro', {
-      method: 'POST',
-      body: JSON.stringify({ nombre, email, password, edad, vibe: regVibe, foto_url: regPhoto || null })
-    });
-    token = data.token; usuario = data.usuario;
-    localStorage.setItem('cn_token', token);
-    localStorage.setItem('cn_usuario', JSON.stringify(usuario));
-    syncProfileBtn();
-    connectSocket();
-    showScreen('qr-screen');
-  } catch(err) {
-    errEl.textContent = err.message; errEl.style.display='block';
-  } finally { hideLoader(); }
+  try{
+    var d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe:vibe,foto_url:(typeof regPhoto!=='undefined'?regPhoto:null)})});
+    token=d.token;usuario=d.usuario;
+    localStorage.setItem(APPKEY+'_token',token);
+    localStorage.setItem(APPKEY+'_usuario',JSON.stringify(usuario));
+    syncProfileBtn();connectSocket();showScreen('qr-screen');
+  }catch(e){
+    var m=e.message||'Error';
+    if(m.toLowerCase().indexOf('ya exist')>=0||m.toLowerCase().indexOf('duplicate')>=0||m.indexOf('23505')>=0){
+      errEl.textContent='Ya tenes cuenta en CordobaLux. Usa "Ya tengo cuenta" para ingresar.';
+    }else{errEl.textContent=m;}
+    errEl.style.display='block';
+  }finally{hideLoader();}
 }
 
 async function doLogin() {
@@ -835,8 +874,8 @@ async function doLogin() {
   try {
     const data = await api('/auth/login', { method:'POST', body:JSON.stringify({email,password}) });
     token = data.token; usuario = data.usuario;
-    localStorage.setItem('cn_token', token);
-    localStorage.setItem('cn_usuario', JSON.stringify(usuario));
+    localStorage.setItem('clx_token', token);
+    localStorage.setItem('clx_usuario', JSON.stringify(usuario));
     syncProfileBtn();
     connectSocket();
     if (sesionId) showScreen('swipe');
@@ -848,9 +887,9 @@ async function doLogin() {
 
 function doLogout() {
   token = null; usuario = null; sesionId = null;
-  localStorage.removeItem('cn_token');
-  localStorage.removeItem('cn_usuario');
-  localStorage.removeItem('cn_sesion');
+  localStorage.removeItem('clx_token');
+  localStorage.removeItem('clx_usuario');
+  localStorage.removeItem('clx_sesion');
   if (socket) socket.disconnect();
   document.getElementById('profile-modal').classList.remove('show');
   showScreen('splash');
@@ -868,13 +907,13 @@ async function entrarConQR() {
   try {
     const data = await api('/sesiones/entrar', { method:'POST', body:JSON.stringify({codigo_qr: codigo}) });
     sesionId = data.sesion_id;
-    localStorage.setItem('cn_sesion', sesionId);
+    localStorage.setItem('clx_sesion', sesionId);
     if (data.negocio_nombre) {
-      localStorage.setItem('cn_negocio', data.negocio_nombre);
+      localStorage.setItem('clx_negocio', data.negocio_nombre);
       mostrarNombreSesion(data.negocio_nombre);
     }
     if (data.negocio_tipo) {
-      localStorage.setItem('cn_tipo', data.negocio_tipo);
+      localStorage.setItem('clx_tipo', data.negocio_tipo);
       const cat = CATEGORIAS[data.negocio_tipo] || CATEGORIAS.default;
       const tagline = document.getElementById('main-tagline');
       if (tagline) tagline.textContent = cat.slogan;
@@ -965,7 +1004,7 @@ function renderCard() {
       return;
     }
     if (perfiles.length === 0) {
-      const tipo = localStorage.getItem('cn_tipo') || 'default';
+      const tipo = localStorage.getItem('clx_tipo') || 'default';
       const cat = CATEGORIAS[tipo] || CATEGORIAS.default;
       area.innerHTML = `<div class="empty-state">
         <div class="big-emoji">${cat.emoji}</div>
@@ -1262,7 +1301,7 @@ async function openProfile() {
   try {
     const perfil = await api('/auth/perfil');
     usuario = { ...usuario, ...perfil };
-    localStorage.setItem('cn_usuario', JSON.stringify(usuario));
+    localStorage.setItem('clx_usuario', JSON.stringify(usuario));
   } catch(e) {}
 
   document.getElementById('modal-name').textContent = usuario.nombre || '—';
@@ -1285,7 +1324,7 @@ async function closeProfile() {
     try {
       await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ vibe: selectedVibe }) });
       usuario = { ...usuario, vibe: selectedVibe };
-      localStorage.setItem('cn_usuario', JSON.stringify(usuario));
+      localStorage.setItem('clx_usuario', JSON.stringify(usuario));
     } catch(err) { console.error('Error guardando vibe:', err); }
   }
   document.getElementById('profile-modal').classList.remove('show');
@@ -1313,7 +1352,7 @@ async function onModalPhoto(e) {
       try {
         const data = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({foto_url:foto}) });
         usuario = {...usuario, foto_url: foto};
-        localStorage.setItem('cn_usuario', JSON.stringify(usuario));
+        localStorage.setItem('clx_usuario', JSON.stringify(usuario));
         syncProfileBtn();
       } catch(err) { alert('Error guardando foto'); }
     };
@@ -1332,26 +1371,6 @@ async function cargarSponsorsApp() {
     renderizarAds('qr');
     renderizarAds('swipe');
   } catch(e) {}
-}
-
-function renderizarAds(pantalla) {
-  const el = document.getElementById(`ads-${pantalla}`);
-  if (!el) return;
-  const filtrados = sponsorsCache.filter(s => {
-    if (!s.activo) return false;
-    if (s.pantalla === 'todas') return true;
-    return s.pantalla.split(',').includes(pantalla);
-  });
-  if (!filtrados.length) { el.innerHTML = ''; return; }
-  el.innerHTML = filtrados.slice(0,2).map(s => `
-    <div class="ad-banner" onclick="abrirPromoSponsor('${s.id}')">
-      <div class="ad-img">${s.imagen_url ? `<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">` : s.emoji}</div>
-      <div class="ad-info">
-        <div class="ad-name">${s.nombre}</div>
-        <div class="ad-promo">${s.promo}</div>
-      </div>
-      <span class="ad-tag">${s.tag}</span>
-    </div>`).join('');
 }
 
 function abrirPromoSponsor(id) {
@@ -1373,10 +1392,19 @@ function abrirPromoSponsor(id) {
   }
   const wa = document.getElementById('promo-whatsapp');
   const ig = document.getElementById('promo-instagram');
-  wa.dataset.url = s.whatsapp ? `https://wa.me/${s.whatsapp}` : '#';
+  const userId = usuario ? 'USR-'+usuario.id.substring(0,8) : '';
+  const msgPromo = encodeURIComponent(`Hola! Quiero participar en la promo: *${s.nombre}*\n${s.promo}\nMi código: *${userId}*\nAcepto recibir información de esta promoción.`);
+  wa.dataset.url = s.whatsapp ? `https://wa.me/${s.whatsapp}?text=${msgPromo}` : '#';
   ig.dataset.url = s.instagram ? `https://instagram.com/${s.instagram}` : '#';
   wa.style.display = s.whatsapp ? 'flex' : 'none';
   ig.style.display = s.instagram ? 'flex' : 'none';
+  // Botón WA con confirmación
+  wa.onclick = function() {
+    if(!wa.dataset.url||wa.dataset.url==='#') return;
+    if(confirm('Al participar confirmás que aceptás recibir información de esta promoción. ¿Continuás?')) {
+      window.open(wa.dataset.url);
+    }
+  };
   document.getElementById('promo-modal').classList.add('show');
 }
 
@@ -1462,6 +1490,41 @@ function abrirPromo(id) {
   document.getElementById('promo-modal').classList.add('show');
 }
 
+
+function confirmarPromo(btn){
+  const msg=btn.closest('.promo-inner')||btn.closest('#promo-modal');
+  const sponsor=sponsorsCache.find(s=>s.tag==='PROMO-PRINCIPAL')||sponsorsCache[0];
+  const confirmMsg=sponsor?.confirmacion||'Al participar acepto recibir información de esta promoción';
+  if(confirm(confirmMsg+'\n\n¿Confirmar?')){
+    window.open(btn.dataset.url,'_blank');
+  }
+}
+
+function renderizarAds(pantalla){
+  var el=document.getElementById('ads-'+pantalla);
+  if(!el)return;
+  var appNombre='cordoba';
+  var ok=sponsorsCache.filter(function(s){
+    if(!s.activo)return false;
+    var aOk=!s.app||s.app==='todas'||s.app.indexOf(appNombre)>=0;
+    if(!aOk)return false;
+    if(!s.pantalla||s.pantalla==='todas')return true;
+    return s.pantalla.indexOf(pantalla)>=0;
+  });
+  if(!ok.length){el.innerHTML='';return}
+  el.innerHTML=ok.slice(0,1).map(function(s){
+    var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'*');
+    return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer">'
+      +'<div class="ad-img">'+img+'</div>'
+      +'<div class="ad-info"><div class="ad-name">'+s.nombre+'</div>'
+      +'<div class="ad-promo">'+s.promo+'</div></div>'
+      +'<span class="ad-tag">'+s.tag+'</span></div>';
+  }).join('');
+  el.querySelectorAll('[data-sid]').forEach(function(d){
+    d.onclick=function(){abrirPromoSponsor(this.getAttribute('data-sid'));};
+  });
+}
+
 function cerrarPromo() {
   document.getElementById('promo-modal').classList.remove('show');
 }
@@ -1482,6 +1545,16 @@ async function borrarMatch(matchId, nombre) {
     alert('Error al borrar: ' + err.message);
   }
 }
+
+function participarPromoWA(pp) {
+  if(!pp||!pp.whatsapp) return;
+  if(!confirm('¿Querés participar en esta promo?\n\nAl continuar aceptás recibir información sobre esta promoción por WhatsApp.')) return;
+  const uid = usuario ? 'USR-' + usuario.id.substring(0,8) : 'SIN-ID';
+  const desc = pp.promo || pp.descripcion || pp.nombre || 'esta promo especial';
+  const msg = encodeURIComponent('Hola! Quiero participar en: "' + (pp.nombre||'Promo') + '"\n\n📋 ' + desc + '\n\nMi código CordobaLux: ' + uid);
+  window.open('https://wa.me/' + pp.whatsapp + '?text=' + msg, '_blank');
+}
+
 </script>
 </body>
 </html>
