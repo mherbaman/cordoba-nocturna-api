@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -243,6 +242,46 @@ select.input-field option{background:#120a00}
 </head>
 <body>
 <script>
+
+// ═══════════════════════════════════════════════════════
+//   CORDOBALUX — Auth compartido entre todas las apps
+//   Un solo registro, una sola cuenta para todas las apps
+// ═══════════════════════════════════════════════════════
+const CL_TOKEN_KEY = 'cl_token';
+const CL_USUARIO_KEY = 'cl_usuario';
+
+function clGetToken(){ return localStorage.getItem(CL_TOKEN_KEY); }
+function clGetUsuario(){ return JSON.parse(localStorage.getItem(CL_USUARIO_KEY)||'null'); }
+function clSetToken(t){ localStorage.setItem(CL_TOKEN_KEY, t); }
+function clSetUsuario(u){ localStorage.setItem(CL_USUARIO_KEY, JSON.stringify(u)); }
+function clClearAuth(){
+  [CL_TOKEN_KEY, CL_USUARIO_KEY,
+   'cn_token','cn_usuario','cn_sesion','cn_negocio','cn_tipo',
+   'cc_token','cc_usuario','cc_sesion','cc_negocio','cc_tipo',
+   'fc_token','fc_usuario','fc_sesion','fc_negocio','fc_tipo',
+   'clx_token','clx_usuario','clx_sesion','clx_negocio','clx_tipo',
+   'fc2_token','fc2_usuario','fc2_sesion','fc2_negocio','fc2_tipo'
+  ].forEach(k => localStorage.removeItem(k));
+}
+
+function clYaRegistrado(){
+  // Migrar tokens viejos al nuevo sistema unificado
+  const oldKeys = ['cn_token','cc_token','fc_token','clx_token','fc2_token'];
+  const oldUserKeys = ['cn_usuario','cc_usuario','fc_usuario','clx_usuario','fc2_usuario'];
+  for(let i=0; i<oldKeys.length; i++){
+    const t = localStorage.getItem(oldKeys[i]);
+    const u = localStorage.getItem(oldUserKeys[i]);
+    if(t && u){
+      clSetToken(t);
+      clSetUsuario(JSON.parse(u));
+      localStorage.removeItem(oldKeys[i]);
+      localStorage.removeItem(oldUserKeys[i]);
+      return true;
+    }
+  }
+  return !!clGetToken();
+}
+
 const API='https://api.shops.com.ar';
 const VIBES=['Ver el atardecer 🌅','Tomar algo rico 🥂','Conocer gente nueva ✨','Buena conversación 💬','Fotos y recuerdos 📸','Disfrutar la vista 🌆','Relajarme 😌','Sorprender a alguien 💛'];
 const CATEGORIAS={
@@ -252,9 +291,11 @@ const CATEGORIAS={
   piscina:{emoji:'🏊',titulo:'¡A DISFRUTAR!',sub:'Todavía no hay nadie registrado.<br>¡Llegaste primero!',slogan:'el verano es mejor cuando lo compartís con alguien especial 🏊'},
   default:{emoji:'🌅',titulo:'¡BIENVENIDO!',sub:'Todavía no hay nadie.<br>¡Sé el primero en llegar!',slogan:'los mejores momentos al aire libre se viven acompañados ✨'}
 };
-let token=localStorage.getItem('sc_token')||null;
-let usuario=JSON.parse(localStorage.getItem('sc_usuario')||'null');
-let sesionId=localStorage.getItem('sc_sesion')||null;
+let token=clGetToken();
+let usuario=clGetUsuario();
+// Si ya estaba registrado en otra app, lo reconocemos
+if(clYaRegistrado()&&!token){ token=clGetToken(); usuario=clGetUsuario(); }
+let sesionId=localStorage.getItem('clx_sesion')||null;
 let perfiles=[],perfilIdx=0,matchesList=[];
 let isDragging=false,startX=0,dragX=0;
 let socket=null,chatMatchId=null,chatOtro=null;
@@ -282,6 +323,9 @@ let sponsorsCache=[];
     <div class="splash-logo">Sunset<em>Connect</em></div>
     <p class="splash-tagline" id="splash-tagline">conectá con quienes comparten este momento dorado</p>
     <div class="splash-btns">
+      <div id="cl-ya-miembro" style="display:none;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#c9a84c;padding:10px 16px;border-radius:12px;font-size:13px;text-align:center;margin-bottom:4px;width:100%;max-width:340px">
+        🌅 ¡Ya sos parte de <strong>CordobaLux</strong>!<br><span style="font-size:11px;opacity:.7">Ingresá con tu cuenta existente</span>
+      </div>
       <button class="btn-primary" onclick="showAuth('register')">CREAR PERFIL →</button>
       <button class="btn-secondary" onclick="showAuth('login')">Ya tengo cuenta</button>
     </div>
@@ -316,6 +360,9 @@ let sponsorsCache=[];
     <label class="field-label">Tu vibe esta tarde</label>
     <div class="vibes" id="reg-vibes"></div>
     <button class="btn-primary" onclick="doRegister()">CREAR PERFIL →</button>
+    <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:12px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.6);text-align:center">
+      ¿Ya usás otra app de CordobaLux? Iniciá sesión con las mismas credenciales 🌙
+    </div>
     <div class="auth-switch">¿Ya tenés cuenta? <a onclick="showAuth('login')">Iniciá sesión</a></div>
   </div>
   <div class="auth-inner" id="login-form" style="display:none">
@@ -454,7 +501,7 @@ let sponsorsCache=[];
   <div class="promo-inner">
     <div class="promo-img-wrap" id="promo-img-wrap"></div>
     <div class="promo-btns">
-      <button class="btn-whatsapp" id="promo-whatsapp" onclick="window.open(this.dataset.url)">💬 WhatsApp</button>
+      <button class="btn-whatsapp" id="promo-whatsapp" onclick="confirmarPromoWA(this)">💬 Participar por WhatsApp</button>
       <button class="btn-instagram" id="promo-instagram" onclick="window.open(this.dataset.url)">📸 Instagram</button>
       <button class="btn-cerrar-promo" onclick="cerrarPromo()">← Volver</button>
     </div>
@@ -469,29 +516,96 @@ async function api(path,opts={}){const h={'Content-Type':'application/json'};if(
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='swipe'){renderCard();pingActividad();cargarMatchCount()}if(id==='matches-screen'){loadMatches();renderizarAds('matches')}}
 function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function checkAge(){const e=document.getElementById('check-edad')?.checked,p=document.getElementById('check-pol')?.checked,b=document.getElementById('btn-age');if(b)b.classList.toggle('enabled',e&&p)}
-function aceptarEdad(){localStorage.setItem('sc_edad_ok','1');showScreen('splash')}
+function aceptarEdad(){localStorage.setItem('clx_edad_ok','1');showScreen('splash')}
 // Vibes
 ['reg-vibes','pv-chips'].forEach(id=>{setTimeout(()=>{const el=document.getElementById(id);if(!el)return;el.innerHTML=VIBES.map(v=>`<button class="${id==='pv-chips'?'pv-chip':'vibe-chip'}" onclick="selectVibe(this,'${id}')">${v}</button>`).join('')},100)});
 // Sponsors
 async function cargarSponsorsApp(){try{sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());['splash','qr','swipe','matches'].forEach(p=>renderizarAds(p))}catch(e){}}
-function renderizarAds(p){const el=document.getElementById(`ads-${p}`);if(!el)return;const f=sponsorsCache.filter(s=>{if(!s.activo)return false;return s.pantalla==='todas'||s.pantalla.split(',').includes(p)});if(!f.length){el.innerHTML='';return}el.innerHTML=f.slice(0,1).map(s=>`<div class="ad-banner" onclick="abrirPromoSponsor('${s.id}')"><div class="ad-img">${s.imagen_url?`<img src="${s.imagen_url}">`:(s.emoji||'🌅')}</div><div class="ad-info"><div class="ad-name">${s.nombre}</div><div class="ad-promo">${s.promo}</div></div><span class="ad-tag">${s.tag}</span></div>`).join('')}
-function abrirPromoSponsor(id){const s=sponsorsCache.find(x=>x.id===id);if(!s)return;const w=document.getElementById('promo-img-wrap');if(s.imagen_promo||s.imagen_url){w.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`}else{w.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#120a00"/><text x="190" y="70" font-family="serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="1" fill="rgba(201,168,76,.4)" rx="1"/><text x="190" y="158" font-family="serif" font-size="16" fill="#c9a84c" text-anchor="middle">${s.promo}</text></svg>`}const wa=document.getElementById('promo-whatsapp'),ig=document.getElementById('promo-instagram');wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}`:'#';ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';wa.style.display=s.whatsapp?'flex':'none';ig.style.display=s.instagram?'flex':'none';document.getElementById('promo-modal').classList.add('show')}
+function abrirPromoSponsor(id){const s=sponsorsCache.find(x=>x.id===id);if(!s)return;const w=document.getElementById('promo-img-wrap');if(s.imagen_promo||s.imagen_url){w.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`}else{w.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#120a00"/><text x="190" y="70" font-family="serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="1" fill="rgba(201,168,76,.4)" rx="1"/><text x="190" y="158" font-family="serif" font-size="16" fill="#c9a84c" text-anchor="middle">${s.promo}</text></svg>`}const wa=document.getElementById('promo-whatsapp'),ig=document.getElementById('promo-instagram');const userId = usuario ? 'USR-'+usuario.id.substring(0,8) : '';
+      const msgPromo = encodeURIComponent(`Hola! Quiero participar en la promo: *${s.nombre}*\n${s.promo}\nMi código: *${userId}*\nAcepto recibir información de esta promoción.`);
+      wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}?text=${msgPromo}`:'#';ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';wa.style.display=s.whatsapp?'flex':'none';ig.style.display=s.instagram?'flex':'none';document.getElementById('promo-modal').classList.add('show')}
+
+function confirmarPromo(btn){
+  const msg=btn.closest('.promo-inner')||btn.closest('#promo-modal');
+  const sponsor=sponsorsCache.find(s=>s.tag==='PROMO-PRINCIPAL')||sponsorsCache[0];
+  const confirmMsg=sponsor?.confirmacion||'Al participar acepto recibir información de esta promoción';
+  if(confirm(confirmMsg+'\n\n¿Confirmar?')){
+    window.open(btn.dataset.url,'_blank');
+  }
+}
+
+function renderizarAds(pantalla){
+  var el=document.getElementById('ads-'+pantalla);
+  if(!el)return;
+  var appNombre="sunset";
+  var ok=sponsorsCache.filter(function(s){
+    if(!s.activo)return false;
+    var aOk=!s.app||s.app==='todas'||s.app.indexOf(appNombre)>=0;
+    if(!aOk)return false;
+    if(!s.pantalla||s.pantalla==='todas')return true;
+    return s.pantalla.indexOf(pantalla)>=0;
+  });
+  if(!ok.length){el.innerHTML='';return}
+  el.innerHTML=ok.slice(0,1).map(function(s){
+    var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'*');
+    return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer">'
+      +'<div class="ad-img">'+img+'</div>'
+      +'<div class="ad-info"><div class="ad-name">'+s.nombre+'</div>'
+      +'<div class="ad-promo">'+s.promo+'</div></div>'
+      +'<span class="ad-tag">'+s.tag+'</span></div>';
+  }).join('');
+  el.querySelectorAll('[data-sid]').forEach(function(d){
+    d.onclick=function(){abrirPromoSponsor(this.getAttribute('data-sid'));};
+  });
+}
+
 function cerrarPromo(){document.getElementById('promo-modal').classList.remove('show')}
 // Auth
 function showAuth(m){showScreen('auth');document.getElementById('register-form').style.display=m==='register'?'block':'none';document.getElementById('login-form').style.display=m==='login'?'block':'none'}
 function selectVibe(el,cid){document.querySelectorAll(`#${cid} button`).forEach(c=>c.classList.remove('selected','sel'));el.classList.add(cid==='pv-chips'?'sel':'selected')}
 let regPhoto='',regVibe='';
 function onRegPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);regPhoto=canvas.toDataURL('image/jpeg',.75);const p=document.getElementById('reg-preview');p.src=regPhoto;p.style.display='block';document.getElementById('reg-placeholder').style.display='none'};img.src=ev.target.result};reader.readAsDataURL(file)}
-async function doRegister(){const nombre=document.getElementById('reg-nombre').value.trim(),email=document.getElementById('reg-email').value.trim(),password=document.getElementById('reg-password').value,edad=parseInt(document.getElementById('reg-edad').value),errEl=document.getElementById('reg-error');errEl.style.display='none';const vibe=document.querySelector('#reg-vibes .selected')?.textContent;if(!nombre||!email||!password||!vibe){errEl.textContent='Completá todos los campos y elegí tu vibe';errEl.style.display='block';return}if(password.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres';errEl.style.display='block';return}showLoader('Creando tu perfil...');try{const data=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre,email,password,edad,vibe,foto_url:regPhoto||null})});token=data.token;usuario=data.usuario;localStorage.setItem('sc_token',token);localStorage.setItem('sc_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();showScreen('qr-screen')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
-async function doLogin(){const email=document.getElementById('login-email').value.trim(),password=document.getElementById('login-password').value,errEl=document.getElementById('login-error');errEl.style.display='none';showLoader('Iniciando sesión...');try{const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});token=data.token;usuario=data.usuario;localStorage.setItem('sc_token',token);localStorage.setItem('sc_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();if(sesionId)showScreen('swipe');else showScreen('qr-screen')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
-function doLogout(){token=null;usuario=null;sesionId=null;['sc_token','sc_usuario','sc_sesion','sc_negocio','sc_tipo'].forEach(k=>localStorage.removeItem(k));if(socket)socket.disconnect();document.getElementById('profile-modal').classList.remove('show');showScreen('splash')}
+
+async function doRegister(){
+  var n=document.getElementById('reg-nombre').value.trim();
+  var em=document.getElementById('reg-email').value.trim();
+  var pw=document.getElementById('reg-password').value;
+  var ed=parseInt(document.getElementById('reg-edad').value)||18;
+  var errEl=document.getElementById('reg-error');
+  var vb=document.querySelector('#reg-vibes .selected');
+  var vibe=vb?vb.textContent:(typeof regVibe!=='undefined'?regVibe:'');
+  errEl.style.display='none';
+  if(!n||!em||!pw||!vibe){errEl.textContent='Completa todos los campos y elige tu vibe';errEl.style.display='block';return;}
+  if(pw.length<6){errEl.textContent='Minimo 6 caracteres en la contrasena';errEl.style.display='block';return;}
+  showLoader('Creando tu perfil...');
+  try{
+    var d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe:vibe,foto_url:(typeof regPhoto!=='undefined'?regPhoto:null)})});
+    token=d.token;usuario=d.usuario;
+    localStorage.setItem(APPKEY+'_token',token);
+    localStorage.setItem(APPKEY+'_usuario',JSON.stringify(usuario));
+    syncProfileBtn();connectSocket();showScreen('qr-screen');
+  }catch(e){
+    var m=e.message||'Error';
+    if(m.toLowerCase().indexOf('ya exist')>=0||m.toLowerCase().indexOf('duplicate')>=0||m.indexOf('23505')>=0){
+      errEl.textContent='Ya tenes cuenta en CordobaLux. Usa "Ya tengo cuenta" para ingresar.';
+    }else{errEl.textContent=m;}
+    errEl.style.display='block';
+  }finally{hideLoader();}
+}
+
+async function doLogin(){const email=document.getElementById('login-email').value.trim(),password=document.getElementById('login-password').value,errEl=document.getElementById('login-error');errEl.style.display='none';showLoader('Iniciando sesión...');try{const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});token=data.token;usuario=data.usuario;localStorage.setItem('clx_token',token);localStorage.setItem('clx_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();if(sesionId)showScreen('swipe');else showScreen('qr-screen')}catch(err){if(err.message.toLowerCase().includes('ya existe')||err.message.toLowerCase().includes('email')||err.message.toLowerCase().includes('registrado')){
+      errEl.innerHTML='Ya tenés cuenta en <strong>CordobaLux</strong>. <a onclick="showAuth(\'login\')" style="color:var(--gold,#c9a84c);cursor:pointer;text-decoration:underline;font-weight:600">Iniciá sesión →</a>';
+    }else{errEl.textContent=err.message;}errEl.style.display='block'}finally{hideLoader()}}
+function doLogout(){token=null;usuario=null;sesionId=null;clClearAuth();localStorage.removeItem('clx_sesion');localStorage.removeItem('clx_negocio');localStorage.removeItem('clx_tipo');if(socket)socket.disconnect();document.getElementById('profile-modal').classList.remove('show');showScreen('splash')}
 // QR
-async function entrarConQR(){const codigo=document.getElementById('qr-codigo').value.trim().toUpperCase(),errEl=document.getElementById('qr-error');errEl.style.display='none';if(!codigo||codigo.length<4){errEl.textContent='Ingresá el código del evento';errEl.style.display='block';return}showLoader('Entrando al evento...');try{const data=await api('/sesiones/entrar',{method:'POST',body:JSON.stringify({codigo_qr:codigo})});sesionId=data.sesion_id;localStorage.setItem('sc_sesion',sesionId);if(data.negocio_nombre){localStorage.setItem('sc_negocio',data.negocio_nombre);const sh=document.getElementById('sesion-nombre-header');if(sh){sh.textContent='📍 '+data.negocio_nombre;sh.style.display='block'}}if(data.negocio_tipo){localStorage.setItem('sc_tipo',data.negocio_tipo);const cat=CATEGORIAS[data.negocio_tipo]||CATEGORIAS.default;const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan}perfiles=[];perfilIdx=0;await cargarPerfiles();showScreen('swipe')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
+async function entrarConQR(){const codigo=document.getElementById('qr-codigo').value.trim().toUpperCase(),errEl=document.getElementById('qr-error');errEl.style.display='none';if(!codigo||codigo.length<4){errEl.textContent='Ingresá el código del evento';errEl.style.display='block';return}showLoader('Entrando al evento...');try{const data=await api('/sesiones/entrar',{method:'POST',body:JSON.stringify({codigo_qr:codigo})});sesionId=data.sesion_id;localStorage.setItem('clx_sesion',sesionId);if(data.negocio_nombre){localStorage.setItem('clx_negocio',data.negocio_nombre);const sh=document.getElementById('sesion-nombre-header');if(sh){sh.textContent='📍 '+data.negocio_nombre;sh.style.display='block'}}if(data.negocio_tipo){localStorage.setItem('clx_tipo',data.negocio_tipo);const cat=CATEGORIAS[data.negocio_tipo]||CATEGORIAS.default;const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan}perfiles=[];perfilIdx=0;await cargarPerfiles();showScreen('swipe')}catch(err){if(err.message.toLowerCase().includes('ya existe')||err.message.toLowerCase().includes('email')||err.message.toLowerCase().includes('registrado')){
+      errEl.innerHTML='Ya tenés cuenta en <strong>CordobaLux</strong>. <a onclick="showAuth(\'login\')" style="color:var(--gold,#c9a84c);cursor:pointer;text-decoration:underline;font-weight:600">Iniciá sesión →</a>';
+    }else{errEl.textContent=err.message;}errEl.style.display='block'}finally{hideLoader()}}
 // Perfiles + Swipe (reutiliza lógica de cordoba-connect)
 async function cargarPerfiles(){if(!sesionId)return;try{perfiles=await api(`/sesiones/${sesionId}/perfiles`);perfilIdx=0}catch(e){perfiles=[]}}
 async function pingActividad(){if(!sesionId||!token)return;try{await api('/sesiones/actividad',{method:'POST',body:JSON.stringify({sesion_id:sesionId})})}catch(e){}setTimeout(pingActividad,5*60*1000)}
 async function cargarMatchCount(){try{const m=await api('/matches/mis-matches');matchesList=m;const n=m.length;document.getElementById('match-count').textContent=n;if(n>0)document.getElementById('matches-header-btn').classList.add('has-matches');checkBadge()}catch(e){}}
-function renderCard(){const area=document.getElementById('card-area'),btns=document.getElementById('action-buttons');if(perfilIdx>=perfiles.length){btns.style.display='none';if(!sesionId){area.innerHTML=`<div class="empty-state"><div class="big-emoji">📱</div><h2>Ingresá el código</h2><p>Necesitás el código del evento para ver perfiles.</p><button class="btn-primary" onclick="showScreen('qr-screen')">INGRESAR →</button></div>`;return}setTimeout(async()=>{const tipo=localStorage.getItem('sc_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;try{perfiles=await api(`/sesiones/${sesionId}/perfiles?todos=true`);perfilIdx=0}catch(e){perfiles=[]}renderCard();btns.style.display='flex'},600);const tipo=localStorage.getItem('sc_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;area.innerHTML=`<div class="empty-state"><div class="big-emoji">${cat.emoji}</div><h2>${cat.titulo}</h2><p>${cat.sub}</p></div>`;return}btns.style.display='flex';const p=perfiles[perfilIdx];area.innerHTML=`<div class="card-stack"><div class="card" id="main-card"><div class="card-bg"></div><div class="stamp like" id="st-like">SÍ</div><div class="stamp nope" id="st-nope">NO</div>${p.foto_url?`<img class="card-photo" src="${p.foto_url}" alt="${p.nombre}">`:`<div class="card-photo-placeholder">😊</div>`}<div class="card-body"><div class="card-name">${p.nombre}${p.edad?`, <span style="color:var(--gold)">${p.edad}</span>`:''}</div><div class="card-vibe">${p.vibe||''}</div><div class="card-online"><div class="online-dot"></div><span class="online-text">Aquí ahora mismo ✨</span></div></div></div></div>`;setupDrag()}
+function renderCard(){const area=document.getElementById('card-area'),btns=document.getElementById('action-buttons');if(perfilIdx>=perfiles.length){btns.style.display='none';if(!sesionId){area.innerHTML=`<div class="empty-state"><div class="big-emoji">📱</div><h2>Ingresá el código</h2><p>Necesitás el código del evento para ver perfiles.</p><button class="btn-primary" onclick="showScreen('qr-screen')">INGRESAR →</button></div>`;return}setTimeout(async()=>{const tipo=localStorage.getItem('clx_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;try{perfiles=await api(`/sesiones/${sesionId}/perfiles?todos=true`);perfilIdx=0}catch(e){perfiles=[]}renderCard();btns.style.display='flex'},600);const tipo=localStorage.getItem('clx_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;area.innerHTML=`<div class="empty-state"><div class="big-emoji">${cat.emoji}</div><h2>${cat.titulo}</h2><p>${cat.sub}</p></div>`;return}btns.style.display='flex';const p=perfiles[perfilIdx];area.innerHTML=`<div class="card-stack"><div class="card" id="main-card"><div class="card-bg"></div><div class="stamp like" id="st-like">SÍ</div><div class="stamp nope" id="st-nope">NO</div>${p.foto_url?`<img class="card-photo" src="${p.foto_url}" alt="${p.nombre}">`:`<div class="card-photo-placeholder">😊</div>`}<div class="card-body"><div class="card-name">${p.nombre}${p.edad?`, <span style="color:var(--gold)">${p.edad}</span>`:''}</div><div class="card-vibe">${p.vibe||''}</div><div class="card-online"><div class="online-dot"></div><span class="online-text">Aquí ahora mismo ✨</span></div></div></div></div>`;setupDrag()}
 function setupDrag(){const c=document.getElementById('main-card');if(!c)return;c.addEventListener('mousedown',dStart);c.addEventListener('touchstart',dStart,{passive:true});document.addEventListener('mousemove',dMove);document.addEventListener('touchmove',dMove,{passive:false});document.addEventListener('mouseup',dEnd);document.addEventListener('touchend',dEnd)}
 function dStart(e){isDragging=true;startX=(e.touches?e.touches[0].clientX:e.clientX);dragX=0}
 function dMove(e){if(!isDragging)return;if(e.cancelable)e.preventDefault();const x=(e.touches?e.touches[0].clientX:e.clientX)-startX;dragX=x;const c=document.getElementById('main-card');if(!c)return;c.style.cssText+=`;transform:translateX(${x}px) rotate(${x/14}deg);transition:none`;const sl=document.getElementById('st-like');if(sl)sl.style.opacity=x>20?Math.min(1,Math.abs(x)/90):0;const sn=document.getElementById('st-nope');if(sn)sn.style.opacity=x<-20?Math.min(1,Math.abs(x)/90):0}
@@ -512,15 +626,45 @@ async function checkBadge(){try{const data=await api('/mensajes/no-leidos/total'
 function syncProfileBtn(){const img=document.getElementById('profile-btn-img'),emoji=document.getElementById('profile-btn-emoji');if(usuario?.foto_url){img.src=usuario.foto_url;img.style.display='block';emoji.style.display='none'}else{img.style.display='none';emoji.style.display='block'}}
 async function openProfile(){if(!usuario)return;document.getElementById('modal-name').textContent=usuario.nombre||'—';document.getElementById('modal-vibe').textContent=usuario.vibe||'—';const bigImg=document.getElementById('modal-big-img'),bigEmoji=document.getElementById('modal-big-emoji');if(usuario.foto_url){bigImg.src=usuario.foto_url;bigImg.style.display='block';bigEmoji.style.display='none'}else{bigImg.style.display='none';bigEmoji.style.display='block'}document.getElementById('s-visto').textContent=perfilIdx;document.getElementById('s-likes').textContent=matchesList.length;document.getElementById('s-matches').textContent=matchesList.length;document.querySelectorAll('#pv-chips .pv-chip').forEach(c=>c.classList.toggle('sel',c.textContent===usuario.vibe));document.getElementById('profile-modal').classList.add('show')}
 function closeProfile(){document.getElementById('profile-modal').classList.remove('show')}
-async function onModalPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=async()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const foto=canvas.toDataURL('image/jpeg',.75);document.getElementById('modal-big-img').src=foto;document.getElementById('modal-big-img').style.display='block';document.getElementById('modal-big-emoji').style.display='none';try{await api('/auth/perfil',{method:'PUT',body:JSON.stringify({foto_url:foto})});usuario={...usuario,foto_url:foto};localStorage.setItem('sc_usuario',JSON.stringify(usuario));syncProfileBtn()}catch(err){}};img.src=ev.target.result};reader.readAsDataURL(file)}
+async function onModalPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=async()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const foto=canvas.toDataURL('image/jpeg',.75);document.getElementById('modal-big-img').src=foto;document.getElementById('modal-big-img').style.display='block';document.getElementById('modal-big-emoji').style.display='none';try{await api('/auth/perfil',{method:'PUT',body:JSON.stringify({foto_url:foto})});usuario={...usuario,foto_url:foto};localStorage.setItem('clx_usuario',JSON.stringify(usuario));syncProfileBtn()}catch(err){}};img.src=ev.target.result};reader.readAsDataURL(file)}
 const style=document.createElement('style');
 style.textContent=`@keyframes swipeR{to{transform:translateX(160%) rotate(28deg);opacity:0}}@keyframes swipeL{to{transform:translateX(-160%) rotate(-28deg);opacity:0}}`;
 document.head.appendChild(style);
 window.onload=()=>{
   cargarSponsorsApp();
-  if(!localStorage.getItem('sc_edad_ok')){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('age-verify').classList.add('active');return}
-  if(token&&usuario){syncProfileBtn();connectSocket();const tipo=localStorage.getItem('sc_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan;const sh=document.getElementById('sesion-nombre-header');const neg=localStorage.getItem('sc_negocio');if(sh&&neg){sh.textContent='📍 '+neg;sh.style.display='block'}if(sesionId)showScreen('swipe');else showScreen('qr-screen')}
+  // ─── CHECK CUENTA EXISTENTE CORDOBALUX ─────────────────────
+  const _existingToken = localStorage.getItem('clx_token');
+  const _existingUser  = JSON.parse(localStorage.getItem('clx_usuario')||'null');
+  if (_existingToken && _existingUser && !localStorage.getItem('clx_edad_ok')) {
+    localStorage.setItem('clx_edad_ok','1');
+  }
+  if (_existingToken && _existingUser) {
+    const _banner = document.createElement('div');
+    _banner.id = 'clx-banner';
+    _banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0a0600;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;font-weight:600;font-family:DM Sans,sans-serif;box-shadow:0 2px 20px rgba(201,168,76,.4)';
+    _banner.innerHTML = `<span>👋 ¡Hola ${_existingUser.nombre}! Ya tenés cuenta en <strong>CordobaLux</strong></span><button onclick="document.getElementById('clx-banner').remove()" style="background:rgba(0,0,0,.15);border:none;color:#0a0600;padding:5px 12px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer">OK ✓</button>`;
+    document.body.appendChild(_banner);
+    setTimeout(()=>{ const b=document.getElementById('clx-banner'); if(b)b.remove(); }, 4000);
+  }
+
+  // Si ya está registrado en CordobaLux, mostrar mensaje bienvenida
+  if(clYaRegistrado() && !token){ token=clGetToken(); usuario=clGetUsuario(); }
+  if(!localStorage.getItem('clx_edad_ok')){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('age-verify').classList.add('active');return}
+  // Mostrar badge si ya tiene cuenta en CordobaLux
+  const yaM = document.getElementById('cl-ya-miembro');
+  if(yaM && clYaRegistrado()) yaM.style.display='block';
+  if(token&&usuario){syncProfileBtn();connectSocket();const tipo=localStorage.getItem('clx_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan;const sh=document.getElementById('sesion-nombre-header');const neg=localStorage.getItem('clx_negocio');if(sh&&neg){sh.textContent='📍 '+neg;sh.style.display='block'}if(sesionId)showScreen('swipe');else showScreen('qr-screen')}
 };
+
+function participarPromoWA(pp) {
+  if(!pp||!pp.whatsapp) return;
+  if(!confirm('¿Querés participar en esta promo?\n\nAl continuar aceptás recibir información sobre esta promoción por WhatsApp.')) return;
+  const uid = usuario ? 'USR-' + usuario.id.substring(0,8) : 'SIN-ID';
+  const desc = pp.promo || pp.descripcion || pp.nombre || 'esta promo especial';
+  const msg = encodeURIComponent('Hola! Quiero participar en: "' + (pp.nombre||'Promo') + '"\n\n📋 ' + desc + '\n\nMi código CordobaLux: ' + uid);
+  window.open('https://wa.me/' + pp.whatsapp + '?text=' + msg, '_blank');
+}
+
 </script>
 </body>
 </html>
