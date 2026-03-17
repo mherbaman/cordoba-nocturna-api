@@ -268,11 +268,20 @@ const VIBES = [
   "Disfrutar el momento 🎉","Quiero sorpresas 🎲"
 ];
 const CATEGORIAS = {
-  casamiento:   {emoji:'💍',titulo:'¡LA NOCHE ES TUYA!',        sub:'Todavía no hay invitados registrados.<br>¡Sé el primero!',             slogan:'esta noche los mejores recuerdos se hacen con las mejores personas 💍'},
-  cumple18:     {emoji:'🎂',titulo:'¡A CELEBRAR!',               sub:'Todavía no llegó nadie.<br>¡La fiesta está por arrancar!',             slogan:'los 18 se festejan en grande y con la gente correcta 🎂'},
-  corporativo:  {emoji:'🤝',titulo:'¡BIENVENIDOS AL EVENTO!',   sub:'Todavía no hay participantes.<br>¡Conecten antes de empezar!',         slogan:'las mejores alianzas se forman fuera de la sala de reuniones 🤝'},
-  privado:      {emoji:'🎉',titulo:'¡LA FIESTA ESTÁ POR ARRANCAR!',sub:'Todavía no hay nadie.<br>¡Llegaste temprano!',                      slogan:'cada fiesta tiene su gente especial — encontrá la tuya 🎉'},
-  default:      {emoji:'🥂',titulo:'¡BIENVENIDO!',               sub:'Todavía no hay nadie registrado.<br>¡Sé el primero en llegar!',        slogan:'los mejores momentos se comparten con las personas correctas 🥂'}
+  casamiento:  {emoji:'💍',titulo:'¡LA NOCHE ES TUYA!',          sub:'Todavía no hay invitados registrados.<br>¡Sé el primero!',          slogan:'esta noche los mejores recuerdos se hacen con las mejores personas 💍'},
+  cumple18:    {emoji:'🎂',titulo:'¡A CELEBRAR!',                 sub:'Todavía no llegó nadie.<br>¡La fiesta está por arrancar!',          slogan:'los 18 se festejan en grande y con la gente correcta 🎂'},
+  corporativo: {emoji:'🤝',titulo:'¡BIENVENIDOS AL EVENTO!',     sub:'Todavía no hay participantes.<br>¡Conecten antes de empezar!',       slogan:'las mejores alianzas se forman fuera de la sala de reuniones 🤝'},
+  privado:     {emoji:'🎉',titulo:'¡LA FIESTA ARRANCA!',         sub:'Todavía no hay nadie.<br>¡Llegaste primero!',                       slogan:'cada fiesta tiene su gente especial — encontrá la tuya 🎉'},
+  sunset:      {emoji:'🌅',titulo:'¡QUÉ ATARDECER!',            sub:'Todavía no hay nadie por acá.<br>¡Compartí este momento!',           slogan:'algunos atardeceres se disfrutan mejor acompañados 🌅'},
+  playa:       {emoji:'🏖️',titulo:'¡EL PARAÍSO TE ESPERA!',    sub:'Todavía no hay nadie registrado.<br>¡Llegaste primero!',             slogan:'el sol, el agua y la persona correcta — todo en un lugar 🏖️'},
+  terraza:     {emoji:'🌇',titulo:'¡QUÉ VISTA!',                 sub:'Todavía no hay nadie en la terraza.<br>¡Llegaste temprano!',         slogan:'desde las alturas todo se ve mejor, especialmente la gente 🌇'},
+  gimnasio:    {emoji:'💪',titulo:'¡A ENTRENAR!',                sub:'Todavía no hay nadie en el gym.<br>¡Arrancá primero!',               slogan:'el gym cambia el cuerpo, las personas cambian tu vida 💪'},
+  crossfit:    {emoji:'🏋️',titulo:'¡A DARLO TODO!',             sub:'Todavía no hay nadie en el box.<br>¡Calentá los músculos!',          slogan:'los que entrenan juntos, conectan para siempre 🏋️'},
+  yoga:        {emoji:'🧘',titulo:'¡MOMENTO DE CONEXIÓN!',       sub:'Todavía no hay nadie.<br>¡Llegaste primero!',                       slogan:'la paz interior empieza con las conexiones correctas 🧘'},
+  festival:    {emoji:'🎪',titulo:'¡QUÉ FESTIVAL!',             sub:'Todavía no hay nadie registrado.<br>¡Explorá el lugar!',             slogan:'entre miles de personas, encontrá a tu gente 🎪'},
+  feria:       {emoji:'🎡',titulo:'¡BIENVENIDO A LA FERIA!',     sub:'Todavía no hay nadie registrado.<br>¡Explorá!',                     slogan:'en cada stand hay una historia esperando ser contada 🎡'},
+  recital:     {emoji:'🎸',titulo:'¡QUÉ SHOW!',                  sub:'Todavía no hay nadie registrado.<br>¡La música está por empezar!',   slogan:'la música que te mueve es la misma que los mueve a ellos 🎸'},
+  default:     {emoji:'🥂',titulo:'¡BIENVENIDO!',               sub:'Todavía no hay nadie registrado.<br>¡Sé el primero en llegar!',      slogan:'los mejores momentos se comparten con las personas correctas 🥂'}
 };
 let token = localStorage.getItem('fc_token')||null;
 let usuario = JSON.parse(localStorage.getItem('fc_usuario')||'null');
