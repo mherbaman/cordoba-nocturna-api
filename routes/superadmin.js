@@ -327,4 +327,44 @@ router.post('/crear-superadmin', async (req, res) => {
   }
 });
 
+// ── GET /superadmin/mi-negocio ────────────────────────────────────────
+router.get('/mi-negocio', async (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token requerido' });
+  try {
+    const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
+    if (!decoded.negocio_id) return res.status(403).json({ error: 'Acceso denegado' });
+    const result = await pool.query(`
+      SELECT n.*, sn.id as sesion_id, sn.nombre as sesion_nombre,
+        sn.codigo_qr, sn.activa as sesion_activa,
+        sn.total_usuarios, sn.total_matches, sn.abierta_en
+      FROM negocios n
+      LEFT JOIN sesiones_noche sn ON sn.negocio_id = n.id AND sn.activa = true
+      WHERE n.id = $1
+    `, [decoded.negocio_id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(401).json({ error: 'Token inválido' });
+  }
+});
+
+// ── GET /superadmin/sesiones-negocio/:id ─────────────────────────────
+router.get('/sesiones-negocio/:id', async (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token requerido' });
+  try {
+    const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
+    if (decoded.negocio_id !== req.params.id && !decoded.es_superadmin) {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+    const result = await pool.query(`
+      SELECT * FROM sesiones_noche WHERE negocio_id = $1
+      ORDER BY abierta_en DESC LIMIT 50
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(401).json({ error: 'Token inválido' });
+  }
+});
+
 module.exports = router;
