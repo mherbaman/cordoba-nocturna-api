@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FestivalConnect — CordobaLux</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#c9a84c;--gold2:#e8c97a;--orange:#a855f7;--amber:#f59e0b;
+  --dark:#0a0600;--card:#120a00;--card2:#180e00;
+  --text:#fff;--muted:rgba(255,255,255,.5);--border:rgba(201,168,76,.2);
+}
+body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes heartBeat{0%,100%{transform:scale(1)}30%{transform:scale(1.25)}}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sunrays{0%,100%{transform:rotate(0deg) scale(1);opacity:.3}50%{transform:rotate(180deg) scale(1.1);opacity:.6}}
+@keyframes sunsetGlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.screen.active{display:flex}
+
+.loader{width:28px;height:28px;border:2px solid rgba(201,168,76,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+.loading-overlay{position:fixed;inset:0;background:rgba(10,6,0,.95);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.loading-overlay p{color:var(--muted);font-size:13px;font-style:italic}
+
+.btn-primary{background:linear-gradient(135deg,var(--amber),var(--gold),var(--gold2));border:none;color:var(--dark);padding:16px 40px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 0 30px rgba(201,168,76,.3);transition:all .2s;width:100%;max-width:340px}
+.btn-primary:hover{transform:scale(1.03);box-shadow:0 0 50px rgba(201,168,76,.5)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-secondary{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{background:rgba(255,255,255,.1)}
+.error-msg{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold);padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
+.field-label{color:rgba(255,255,255,.45);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;display:block}
+.input-field{background:rgba(255,255,255,.04);border:1.5px solid rgba(201,168,76,.2);color:#fff;padding:13px 16px;border-radius:12px;font-size:15px;width:100%;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .3s;margin-bottom:16px}
+.input-field:focus{border-color:var(--gold);box-shadow:0 0 16px rgba(201,168,76,.15)}
+.input-field::placeholder{color:rgba(255,255,255,.2)}
+select.input-field option{background:#120a00}
+
+/* SPLASH */
+#splash{justify-content:space-between;padding:48px 24px 36px;position:relative;overflow:hidden}
+.splash-bg{position:absolute;inset:0;pointer-events:none}
+.sunset-orb{position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,.15),rgba(245,158,11,.1),transparent 70%);top:50%;left:50%;transform:translate(-50%,-60%);animation:pulse 4s ease-in-out infinite}
+.sunset-rays{position:absolute;width:400px;height:400px;top:50%;left:50%;transform:translate(-50%,-60%);animation:sunrays 8s linear infinite}
+.sunset-rays::before{content:'';position:absolute;inset:0;background:repeating-conic-gradient(rgba(201,168,76,.03) 0deg,transparent 10deg,transparent 20deg);border-radius:50%}
+.splash-content{text-align:center;position:relative;z-index:1;width:100%;max-width:400px}
+.splash-icon{font-size:64px;animation:float 3s ease-in-out infinite;margin-bottom:16px}
+.splash-logo{font-family:'Cormorant Garamond',serif;font-size:clamp(40px,9vw,58px);font-weight:700;line-height:1;letter-spacing:-1px}
+.splash-logo em{color:var(--gold);font-style:italic}
+.splash-tagline{color:var(--muted);font-size:14px;margin:8px 0 36px;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:16px}
+.splash-btns{display:flex;flex-direction:column;gap:10px;align-items:center;width:100%;max-width:340px}
+.splash-brand{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,.35);text-align:center;margin-top:8px}
+
+/* AGE VERIFY */
+#age-verify{text-align:center}
+.age-box{width:100%;max-width:380px}
+.age-logo{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;margin-bottom:4px}
+.age-logo em{color:var(--gold);font-style:italic}
+.age-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin:16px 0 8px}
+.age-sub{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:20px}
+.age-check{display:flex;align-items:flex-start;gap:10px;background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.15);border-radius:12px;padding:12px;margin-bottom:10px;text-align:left}
+.age-check input{width:18px;height:18px;accent-color:var(--gold);flex-shrink:0;margin-top:2px;cursor:pointer}
+.age-check label{font-size:13px;color:rgba(255,255,255,.75);cursor:pointer;line-height:1.5}
+.age-check label a{color:var(--gold);text-decoration:none}
+.btn-age{background:linear-gradient(135deg,var(--amber),var(--gold));border:none;color:var(--dark);padding:15px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;width:100%;opacity:.35;pointer-events:none;transition:all .2s}
+.btn-age.enabled{opacity:1;pointer-events:all;box-shadow:0 0 30px rgba(201,168,76,.4)}
+
+/* AUTH */
+#auth{justify-content:flex-start;padding-top:40px}
+.auth-inner{width:100%;max-width:400px}
+.auth-inner h2{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:700;margin-bottom:4px}
+.auth-inner h2 em{color:var(--gold);font-style:italic}
+.auth-inner .sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.vibes{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+.vibe-chip{padding:8px 14px;border-radius:50px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;transition:all .2s}
+.vibe-chip:hover,.vibe-chip.selected{background:rgba(201,168,76,.15);border-color:var(--gold);color:#fff}
+.auth-switch{text-align:center;margin-top:14px;color:var(--muted);font-size:13px}
+.auth-switch a{color:var(--gold);cursor:pointer;font-weight:600}
+.photo-upload-zone{width:100%;border:2px dashed rgba(201,168,76,.3);border-radius:16px;padding:16px;text-align:center;cursor:pointer;margin-bottom:18px;transition:all .3s;position:relative;overflow:hidden}
+.photo-upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,.04)}
+.photo-upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.puz-preview{width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:none;border:2px solid var(--gold)}
+.puz-hint{color:var(--muted);font-size:12px}
+
+/* QR */
+#qr-screen{justify-content:flex-start;padding:40px 24px 24px;overflow-y:auto}
+.qr-inner{width:100%;max-width:360px;text-align:center}
+.qr-inner h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;margin-bottom:8px}
+.qr-inner h2 em{color:var(--gold);font-style:italic}
+.qr-inner p{color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.6}
+.qr-input-wrap .input-field{text-transform:uppercase;letter-spacing:4px;font-size:20px;text-align:center;margin:0 0 14px}
+.eventos-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:20px 0 10px;text-align:left}
+.evento-card{display:flex;align-items:center;gap:10px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.evento-card:hover{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3)}
+.evento-img{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(249,115,22,.15));flex-shrink:0}
+.evento-info .evento-nombre{font-size:13px;font-weight:600}
+.evento-info .evento-fecha{color:var(--muted);font-size:11px;margin-top:2px}
+.evento-codigo{background:linear-gradient(135deg,var(--amber),var(--gold));color:var(--dark);font-size:10px;font-weight:700;padding:3px 9px;border-radius:50px;flex-shrink:0}
+
+/* SWIPE */
+#swipe{justify-content:flex-start;padding:0}
+.swipe-header{width:100%;max-width:420px;padding:16px 18px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.header-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;flex:1;text-align:center}
+.header-logo em{color:var(--gold);font-style:italic}
+.header-sub{font-size:10px;color:var(--muted);text-align:center;margin-top:1px;font-style:italic;display:none}
+.profile-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(201,168,76,.4);cursor:pointer;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;background:linear-gradient(135deg,var(--amber),var(--gold));transition:transform .2s}
+.profile-btn:hover{transform:scale(1.08)}
+.profile-btn img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:none}
+.matches-btn{background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);color:#fff;padding:7px 14px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;flex-shrink:0;position:relative}
+.matches-btn.has-matches{background:rgba(201,168,76,.15);border-color:var(--gold)}
+.badge{background:var(--orange);color:#fff;font-size:10px;font-weight:700;width:16px;height:16px;border-radius:50%;display:none;align-items:center;justify-content:center;position:absolute;top:-4px;right:-4px}
+
+.ad-banner{width:100%;border:1px solid rgba(201,168,76,.15);background:rgba(201,168,76,.04);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s}
+.ad-banner:hover{background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.3)}
+.ad-img{width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg,rgba(201,168,76,.3),rgba(249,115,22,.2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.ad-img img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.ad-info{flex:1;min-width:0}
+.ad-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-promo{color:var(--gold);font-size:11px;margin-top:1px}
+.ad-tag{background:rgba(201,168,76,.15);color:var(--gold);font-size:9px;font-weight:700;padding:2px 7px;border-radius:50px;flex-shrink:0}
+
+.card-area{flex:1;display:flex;align-items:center;justify-content:center;width:100%;padding:14px 18px;overflow-y:auto;min-height:0}
+.card-stack{width:100%;max-width:360px;position:relative}
+.card{position:relative;z-index:1;border-radius:24px;overflow:hidden;cursor:grab;user-select:none;touch-action:none;min-height:360px;border:1px solid rgba(201,168,76,.25);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.card:active{cursor:grabbing}
+.card-bg{position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(249,115,22,.06));z-index:0}
+.card-photo{width:100%;height:200px;object-fit:cover;display:block;position:relative;z-index:1}
+.card-photo-placeholder{width:100%;height:200px;display:flex;align-items:center;justify-content:center;font-size:72px;position:relative;z-index:1;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(249,115,22,.1))}
+.card-body{padding:16px 18px 18px;position:relative;z-index:1}
+.stamp{position:absolute;top:14px;padding:5px 12px;border-radius:8px;font-size:15px;font-weight:800;opacity:0;pointer-events:none;border-width:2.5px;border-style:solid;z-index:10;font-family:'Cormorant Garamond',serif;letter-spacing:1px}
+.stamp.like{left:12px;color:#22c55e;border-color:#22c55e;transform:rotate(-12deg)}
+.stamp.nope{right:12px;color:var(--orange);border-color:var(--orange);transform:rotate(12deg)}
+.card-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;letter-spacing:.3px}
+.card-vibe{color:var(--muted);margin-top:3px;font-size:13px;font-style:italic}
+.card-online{margin-top:10px;padding:8px 12px;border-radius:10px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+.online-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);box-shadow:0 0 5px var(--gold);flex-shrink:0;animation:pulse 2s ease infinite}
+.online-text{color:var(--muted);font-size:11px;font-style:italic}
+
+.action-buttons{padding:0 18px 32px;display:flex;gap:16px;justify-content:center;align-items:flex-end;width:100%}
+.action-wrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+.action-btn{border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:transform .2s}
+.action-btn:hover{transform:scale(1.1)}
+.nope-btn{width:56px;height:56px;background:#dc2626;box-shadow:0 0 20px rgba(220,38,38,.5);color:#fff}
+.like-btn{width:68px;height:68px;background:linear-gradient(135deg,var(--amber),var(--gold),var(--gold2));box-shadow:0 0 28px rgba(201,168,76,.5);font-size:24px;animation:heartBeat 2.5s ease infinite;color:var(--dark)}
+.super-btn{width:56px;height:56px;background:#16a34a;box-shadow:0 0 20px rgba(22,163,74,.5);color:#fff}
+.action-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35)}
+
+.empty-state{text-align:center;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.empty-state .big-emoji{font-size:56px}
+.empty-state h2{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700}
+.empty-state p{color:var(--muted);font-size:14px;line-height:1.6;font-style:italic}
+
+/* MATCHES */
+#matches-screen{justify-content:flex-start;padding:0}
+.matches-header{width:100%;max-width:420px;padding:20px 18px 0;display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.back-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
+.matches-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700}
+.matches-title em{font-style:italic;color:var(--gold)}
+.matches-list{width:100%;max-width:420px;padding:0 18px 40px;overflow-y:auto;flex:1}
+.match-card{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.15);border-radius:16px;padding:12px;display:flex;align-items:center;gap:11px;margin-bottom:10px;animation:fadeUp .3s ease forwards;opacity:0}
+.match-av{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid var(--gold)}
+.match-av-emoji{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--gold));display:inline-flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.match-info{flex:1;min-width:0}
+.match-nm{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600}
+.match-vb{color:var(--muted);font-size:11px;margin-top:2px;font-style:italic}
+.chat-btn{background:linear-gradient(135deg,var(--amber),var(--gold));border:none;color:var(--dark);padding:7px 12px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.no-matches{text-align:center;color:var(--muted);padding-top:48px;font-style:italic;font-family:'Cormorant Garamond',serif}
+
+/* MATCH OVERLAY */
+#match-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(12px)}
+#match-overlay.show{display:flex}
+.match-inner{text-align:center;animation:fadeUp .4s cubic-bezier(.175,.885,.32,1.275) forwards;padding:28px;max-width:320px;width:100%}
+.match-emoji-big{font-size:64px;margin-bottom:10px;animation:float 2s ease-in-out infinite}
+.match-title-txt{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;font-style:italic;background:linear-gradient(135deg,var(--amber),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;line-height:1}
+.match-av-circle{width:84px;height:84px;border-radius:50%;margin:10px auto;overflow:hidden;border:2px solid var(--gold);box-shadow:0 0 24px rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;font-size:40px}
+.match-av-circle img{width:100%;height:100%;object-fit:cover}
+.match-nm2{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;margin-bottom:4px}
+.match-sb{color:var(--muted);font-size:13px;margin-bottom:22px;font-style:italic}
+.match-actions{display:flex;gap:10px;justify-content:center}
+
+/* CHAT */
+#chat-screen{justify-content:flex-start;padding:0}
+.chat-header{width:100%;max-width:480px;padding:16px 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.05)}
+.chat-av{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(201,168,76,.3)}
+.chat-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;flex:1}
+.chat-expiry{color:var(--muted);font-size:10px;font-style:italic}
+.chat-messages{flex:1;width:100%;max-width:480px;padding:14px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:9px}
+.msg{max-width:78%;animation:msgIn .2s ease forwards}
+.msg.mine{align-self:flex-end}
+.msg.theirs{align-self:flex-start}
+.msg-bubble{padding:9px 13px;border-radius:16px;font-size:14px;line-height:1.5}
+.msg.mine .msg-bubble{background:linear-gradient(135deg,var(--amber),var(--gold));color:var(--dark);border-radius:16px 16px 4px 16px;font-weight:500}
+.msg.theirs .msg-bubble{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);border-radius:16px 16px 16px 4px}
+.msg-time{font-size:10px;color:var(--muted);margin-top:3px;text-align:right;font-style:italic}
+.msg.theirs .msg-time{text-align:left}
+.chat-input-bar{width:100%;max-width:480px;padding:10px 14px;display:flex;gap:8px;align-items:center;border-top:1px solid rgba(255,255,255,.05)}
+.chat-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.2);color:#fff;padding:10px 14px;border-radius:50px;font-size:14px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+.chat-input:focus{border-color:var(--gold)}
+.chat-input::placeholder{color:rgba(255,255,255,.2)}
+.send-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--gold));border:none;color:var(--dark);font-size:16px;cursor:pointer;flex-shrink:0;transition:transform .2s}
+.send-btn:hover{transform:scale(1.08)}
+.no-msgs{text-align:center;color:var(--muted);font-size:13px;margin:auto;padding:32px 16px;font-style:italic}
+
+/* PROFILE MODAL */
+#profile-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:250;align-items:flex-end;justify-content:center;backdrop-filter:blur(10px)}
+#profile-modal.show{display:flex}
+.profile-sheet{background:#120a00;border:1px solid rgba(201,168,76,.2);border-radius:24px 24px 0 0;padding:18px 18px 40px;width:100%;max-width:480px;animation:slideUp .3s ease forwards;max-height:90vh;overflow-y:auto}
+.profile-handle{width:36px;height:3px;border-radius:2px;background:rgba(255,255,255,.1);margin:0 auto 16px}
+.photo-ring{width:76px;height:76px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 16px rgba(201,168,76,.3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--amber),var(--gold));cursor:pointer;position:relative}
+.photo-ring img{width:100%;height:100%;object-fit:cover;display:none}
+.photo-ring input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.sbox{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:10px 6px;text-align:center}
+.snum{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--gold)}
+.slbl{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+.sect-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:7px}
+.pv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.pv-chip{padding:7px 13px;border-radius:50px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);color:rgba(255,255,255,.55);font-size:12px;cursor:pointer;transition:all .2s}
+.pv-chip:hover,.pv-chip.sel{background:rgba(201,168,76,.15);border-color:var(--gold);color:#fff}
+.logout-btn{width:100%;background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);color:rgba(249,115,22,.8);padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px}
+.profile-close-btn{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:#fff;padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* PROMO MODAL */
+#promo-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(12px)}
+#promo-modal.show{display:flex}
+.promo-inner{width:90%;max-width:380px;animation:fadeUp .4s ease forwards}
+.promo-img-wrap{width:100%;border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.promo-img-wrap img,.promo-img-wrap svg{width:100%;display:block;border-radius:18px}
+.promo-btns{display:flex;flex-direction:column;gap:8px}
+.btn-whatsapp{background:#25d366;border:none;color:#fff;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn-instagram{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border:none;color:#fff;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.btn-cerrar-promo{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#fff;padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;width:100%}
+</style>
+</head>
+<body>
+<script>
+const API='https://api.shops.com.ar';
+const VIBES=['Disfrutar la música 🎵','Conocer gente nueva ✨','Buena onda y baile 💃','Fotos y recuerdos 📸','Busco algo especial 💛','Explorar el festival 🎪','Que me sorprendan 🎲','Vivir el momento 🔥'];
+const CATEGORIAS={
+  festival:{emoji:'🎪',titulo:'¡QUÉ FESTIVAL!',sub:'Todavía no hay nadie registrado.<br>¡Explorá el lugar!',slogan:'entre miles de personas, encontrá a tu gente 🎪'},
+  recital:{emoji:'🎸',titulo:'¡QUÉ SHOW!',sub:'Todavía no hay nadie registrado.<br>¡La música está por empezar!',slogan:'la música que te mueve es la misma que los mueve a ellos 🎸'},
+  feria:{emoji:'🎡',titulo:'¡BIENVENIDO A LA FERIA!',sub:'Todavía no hay nadie.<br>¡Explorá y conectá!',slogan:'en cada stand hay una historia esperando ser contada 🎡'},
+  deportivo:{emoji:'🏟️',titulo:'¡A DISFRUTAR EL EVENTO!',sub:'Todavía no hay nadie registrado.<br>¡Llegaste temprano!',slogan:'compartir la pasión es la mejor forma de conectar 🏟️'},
+  default:{emoji:'🎪',titulo:'¡BIENVENIDO!',sub:'Todavía no hay nadie.<br>¡Sé el primero en llegar!',slogan:'entre miles de personas, encontrá a tu gente 🎪'}
+};
+let token=localStorage.getItem('fc2_token')||null;
+let usuario=JSON.parse(localStorage.getItem('fc2_usuario')||'null');
+let sesionId=localStorage.getItem('fc2_sesion')||null;
+let perfiles=[],perfilIdx=0,matchesList=[];
+let isDragging=false,startX=0,dragX=0;
+let socket=null,chatMatchId=null,chatOtro=null;
+let sponsorsCache=[];
+</script>
+
+<!-- AGE VERIFY -->
+<div class="screen" id="age-verify">
+  <div class="age-box">
+    <div class="age-logo">Festival<em>Connect</em></div>
+    <div style="font-size:48px;margin:12px 0">🌅</div>
+    <div class="age-title">Antes de entrar</div>
+    <p class="age-sub">FestivalConnect es exclusivamente para mayores de 18 años.</p>
+    <div class="age-check"><input type="checkbox" id="check-edad" onchange="checkAge()"><label for="check-edad">Confirmo que tengo <strong>18 años o más</strong>.</label></div>
+    <div class="age-check"><input type="checkbox" id="check-pol" onchange="checkAge()"><label for="check-pol">Acepto los <a href="https://api.shops.com.ar/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label></div>
+    <button class="btn-age" id="btn-age" onclick="aceptarEdad()">ENTRAR 🌅</button>
+  </div>
+</div>
+
+<!-- SPLASH -->
+<div class="screen" id="splash">
+  <div class="splash-bg"><div class="sunset-orb"></div><div class="sunset-rays"></div></div>
+  <div class="splash-content">
+    <div class="splash-icon">🌅</div>
+    <div class="splash-logo">Festival<em>Connect</em></div>
+    <p class="splash-tagline" id="splash-tagline">conectá con quienes comparten esta experiencia única</p>
+    <div class="splash-btns">
+      <button class="btn-primary" onclick="showAuth('register')">CREAR PERFIL →</button>
+      <button class="btn-secondary" onclick="showAuth('login')">Ya tengo cuenta</button>
+    </div>
+  </div>
+  <div style="width:100%;max-width:400px;position:relative;z-index:1">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;text-align:center;font-style:italic">Esta noche auspicia</div>
+    <div id="ads-splash"></div>
+  </div>
+  <div class="splash-brand">un producto de CordobaLux</div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="auth">
+  <div class="auth-inner" id="register-form">
+    <h2>Tu perfil <em>esta tarde</em></h2>
+    <p class="sub">Rápido, para este evento único.</p>
+    <div class="error-msg" id="reg-error"></div>
+    <label class="field-label">Tu foto</label>
+    <div class="photo-upload-zone">
+      <input type="file" accept="image/*" capture="user" id="reg-photo-input" onchange="onRegPhoto(event)">
+      <img id="reg-preview" class="puz-preview">
+      <div id="reg-placeholder"><div style="font-size:26px;margin-bottom:6px">📸</div><div class="puz-hint">Tocá para agregar foto</div></div>
+    </div>
+    <label class="field-label">¿Cómo te llamás?</label>
+    <input class="input-field" id="reg-nombre" type="text" placeholder="Tu nombre..." maxlength="30">
+    <label class="field-label">Email</label>
+    <input class="input-field" id="reg-email" type="email" placeholder="tu@email.com">
+    <label class="field-label">Contraseña</label>
+    <input class="input-field" id="reg-password" type="password" placeholder="Mínimo 6 caracteres">
+    <label class="field-label">Edad</label>
+    <input class="input-field" id="reg-edad" type="number" placeholder="Tu edad" min="18" max="99">
+    <label class="field-label">Tu vibe esta noche</label>
+    <div class="vibes" id="reg-vibes"></div>
+    <button class="btn-primary" onclick="doRegister()">CREAR PERFIL →</button>
+    <div class="auth-switch">¿Ya tenés cuenta? <a onclick="showAuth('login')">Iniciá sesión</a></div>
+  </div>
+  <div class="auth-inner" id="login-form" style="display:none">
+    <h2><em>Bienvenido</em> de vuelta</h2>
+    <p class="sub">Iniciá sesión con tu cuenta.</p>
+    <div class="error-msg" id="login-error"></div>
+    <label class="field-label">Email</label>
+    <input class="input-field" id="login-email" type="email" placeholder="tu@email.com">
+    <label class="field-label">Contraseña</label>
+    <input class="input-field" id="login-password" type="password" placeholder="Tu contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-primary" onclick="doLogin()">ENTRAR →</button>
+    <div class="auth-switch">¿No tenés cuenta? <a onclick="showAuth('register')">Registrate</a></div>
+  </div>
+</div>
+
+<!-- QR -->
+<div class="screen" id="qr-screen" style="justify-content:flex-start;padding:40px 24px 24px;overflow-y:auto">
+  <div class="qr-inner">
+    <div id="ads-qr" style="margin-bottom:18px"></div>
+    <div style="font-size:48px;margin-bottom:14px">📱</div>
+    <h2>Ingresá el <em>código</em></h2>
+    <p>El local o evento te va a dar el código para entrar al atardecer de esta noche.</p>
+    <div class="error-msg" id="qr-error"></div>
+    <div class="qr-input-wrap">
+      <input class="input-field" id="qr-codigo" type="text" placeholder="SUNSET1" maxlength="8" oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <button class="btn-primary" onclick="entrarConQR()">ENTRAR AL FESTIVAL →</button>
+    <div style="margin-top:12px"><button class="btn-secondary" onclick="showScreen('swipe')" style="width:100%;max-width:340px">Saltear</button></div>
+    <div class="eventos-title">🎪 Festivales activos ahora</div>
+    <div class="evento-card" onclick="document.getElementById('qr-codigo').value='COSQ01'">
+      <div class="evento-img">🌇</div>
+      <div class="evento-info"><div class="evento-nombre">Cosquín Rock 2026</div><div class="evento-fecha">Hoy · Todo el día</div></div>
+      <span class="evento-codigo">COSQ01</span>
+    </div>
+    <div class="evento-card" onclick="document.getElementById('qr-codigo').value='FROCK1'">
+      <div class="evento-img">🏖️</div>
+      <div class="evento-info"><div class="evento-nombre">Festival del Rock Cba</div><div class="evento-fecha">Hoy · Noche</div></div>
+      <span class="evento-codigo">FROCK1</span>
+    </div>
+  </div>
+</div>
+
+<!-- SWIPE -->
+<div class="screen" id="swipe" style="padding:0">
+  <div class="swipe-header">
+    <button class="profile-btn" id="profile-header-btn" onclick="openProfile()">
+      <span id="profile-btn-emoji">😎</span>
+      <img id="profile-btn-img" src="" alt="">
+    </button>
+    <div style="flex:1;text-align:center">
+      <div class="header-logo">Festival<em>Connect</em></div>
+      <div class="header-sub" id="sesion-nombre-header"></div>
+    </div>
+    <button class="matches-btn" id="matches-header-btn" onclick="showScreen('matches-screen')">
+      🌅 <span id="match-count">0</span>
+      <span class="badge" id="msg-badge">0</span>
+    </button>
+  </div>
+  <div style="width:100%;max-width:420px;padding:8px 18px 0"><div id="ads-swipe"></div></div>
+  <div class="card-area" id="card-area"></div>
+  <div class="action-buttons" id="action-buttons">
+    <div class="action-wrap"><button class="action-btn nope-btn" onclick="doSwipe('left')">✕</button><span class="action-lbl">NEXT</span></div>
+    <div class="action-wrap"><button class="action-btn like-btn" onclick="doSwipe('right')">🌅</button><span class="action-lbl">MATCH</span></div>
+    <div class="action-wrap"><button class="action-btn super-btn" onclick="superLike()">⚡</button><span class="action-lbl">SUPER</span></div>
+  </div>
+</div>
+
+<!-- MATCHES -->
+<div class="screen" id="matches-screen" style="padding:0;justify-content:flex-start">
+  <div class="matches-header">
+    <button class="back-btn" onclick="showScreen('swipe')">←</button>
+    <div class="matches-title">Tus <em>conexiones</em> 🎪</div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:0 18px 8px"><div id="ads-matches"></div></div>
+  <div class="matches-list" id="matches-list"></div>
+</div>
+
+<!-- MATCH OVERLAY -->
+<div id="match-overlay">
+  <div class="match-inner">
+    <div class="match-emoji-big">🌅</div>
+    <div class="match-title-txt">¡Conexión!</div>
+    <div class="match-av-circle" id="match-av-circle"></div>
+    <div class="match-nm2" id="match-nm2"></div>
+    <div class="match-sb" id="match-sb"></div>
+    <div class="match-actions">
+      <button class="btn-secondary" onclick="closeMatchOverlay()">Seguir viendo</button>
+      <button class="btn-primary" style="padding:11px 22px;max-width:180px;font-size:14px" id="match-chat-btn">Chatear 💬</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="screen" id="chat-screen" style="padding:0">
+  <div class="chat-header">
+    <button class="back-btn" onclick="showScreen('matches-screen')" style="font-size:20px">←</button>
+    <div class="chat-av" id="chat-av"></div>
+    <div style="flex:1"><div class="chat-name" id="chat-name"></div><div class="chat-expiry">Los mensajes duran 8 días</div></div>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-bar">
+    <input class="chat-input" id="chat-input" type="text" placeholder="Escribí algo..." maxlength="500" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal">
+  <div class="profile-sheet">
+    <div class="profile-handle"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div class="photo-ring" id="modal-photo-ring">
+        <img id="modal-big-img" src="" alt="">
+        <span id="modal-big-emoji">😎</span>
+        <input type="file" accept="image/*" capture="user" id="modal-photo-input" onchange="onModalPhoto(event)">
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:18px;font-family:'Cormorant Garamond',serif" id="modal-name">—</div>
+        <div style="color:var(--muted);font-size:12px;font-style:italic;margin-top:3px" id="modal-vibe">—</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="sbox"><div class="snum" id="s-visto">0</div><div class="slbl">Vistos</div></div>
+      <div class="sbox"><div class="snum" id="s-likes">0</div><div class="slbl">Conexiones</div></div>
+      <div class="sbox"><div class="snum" id="s-matches">0</div><div class="slbl">Matches</div></div>
+    </div>
+    <div class="sect-title">Tu vibe — tocá para cambiar</div>
+    <div class="pv-chips" id="pv-chips"></div>
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+    <button class="profile-close-btn" onclick="closeProfile()">Listo ✓</button>
+  </div>
+</div>
+
+<!-- PROMO MODAL -->
+<div id="promo-modal">
+  <div class="promo-inner">
+    <div class="promo-img-wrap" id="promo-img-wrap"></div>
+    <div class="promo-btns">
+      <button class="btn-whatsapp" id="promo-whatsapp" onclick="window.open(this.dataset.url)">💬 WhatsApp</button>
+      <button class="btn-instagram" id="promo-instagram" onclick="window.open(this.dataset.url)">📸 Instagram</button>
+      <button class="btn-cerrar-promo" onclick="cerrarPromo()">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const APPKEY='fc2';
+function showLoader(m='Un momento...'){let o=document.getElementById('loader-overlay');if(!o){o=document.createElement('div');o.id='loader-overlay';o.className='loading-overlay';o.innerHTML=`<div class="loader"></div><p>${m}</p>`;document.body.appendChild(o)}o.style.display='flex'}
+function hideLoader(){const o=document.getElementById('loader-overlay');if(o)o.style.display='none'}
+async function api(path,opts={}){const h={'Content-Type':'application/json'};if(token)h['Authorization']=`Bearer ${token}`;const r=await fetch(API+path,{...opts,headers:h});const d=await r.json();if(!r.ok)throw new Error(d.error||'Error');return d}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='swipe'){renderCard();pingActividad();cargarMatchCount()}if(id==='matches-screen'){loadMatches();renderizarAds('matches')}}
+function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function checkAge(){const e=document.getElementById('check-edad')?.checked,p=document.getElementById('check-pol')?.checked,b=document.getElementById('btn-age');if(b)b.classList.toggle('enabled',e&&p)}
+function aceptarEdad(){localStorage.setItem('fc2_edad_ok','1');showScreen('splash')}
+// Vibes
+['reg-vibes','pv-chips'].forEach(id=>{setTimeout(()=>{const el=document.getElementById(id);if(!el)return;el.innerHTML=VIBES.map(v=>`<button class="${id==='pv-chips'?'pv-chip':'vibe-chip'}" onclick="selectVibe(this,'${id}')">${v}</button>`).join('')},100)});
+// Sponsors
+async function cargarSponsorsApp(){try{sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());['splash','qr','swipe','matches'].forEach(p=>renderizarAds(p))}catch(e){}}
+function renderizarAds(p){const el=document.getElementById(`ads-${p}`);if(!el)return;const f=sponsorsCache.filter(s=>{if(!s.activo)return false;return s.pantalla==='todas'||s.pantalla.split(',').includes(p)});if(!f.length){el.innerHTML='';return}el.innerHTML=f.slice(0,1).map(s=>`<div class="ad-banner" onclick="abrirPromoSponsor('${s.id}')"><div class="ad-img">${s.imagen_url?`<img src="${s.imagen_url}">`:(s.emoji||'🌅')}</div><div class="ad-info"><div class="ad-name">${s.nombre}</div><div class="ad-promo">${s.promo}</div></div><span class="ad-tag">${s.tag}</span></div>`).join('')}
+function abrirPromoSponsor(id){const s=sponsorsCache.find(x=>x.id===id);if(!s)return;const w=document.getElementById('promo-img-wrap');if(s.imagen_promo||s.imagen_url){w.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`}else{w.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#120a00"/><text x="190" y="70" font-family="serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="1" fill="rgba(201,168,76,.4)" rx="1"/><text x="190" y="158" font-family="serif" font-size="16" fill="#c9a84c" text-anchor="middle">${s.promo}</text></svg>`}const wa=document.getElementById('promo-whatsapp'),ig=document.getElementById('promo-instagram');wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}`:'#';ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';wa.style.display=s.whatsapp?'flex':'none';ig.style.display=s.instagram?'flex':'none';document.getElementById('promo-modal').classList.add('show')}
+function cerrarPromo(){document.getElementById('promo-modal').classList.remove('show')}
+// Auth
+function showAuth(m){showScreen('auth');document.getElementById('register-form').style.display=m==='register'?'block':'none';document.getElementById('login-form').style.display=m==='login'?'block':'none'}
+function selectVibe(el,cid){document.querySelectorAll(`#${cid} button`).forEach(c=>c.classList.remove('selected','sel'));el.classList.add(cid==='pv-chips'?'sel':'selected')}
+let regPhoto='',regVibe='';
+function onRegPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);regPhoto=canvas.toDataURL('image/jpeg',.75);const p=document.getElementById('reg-preview');p.src=regPhoto;p.style.display='block';document.getElementById('reg-placeholder').style.display='none'};img.src=ev.target.result};reader.readAsDataURL(file)}
+async function doRegister(){const nombre=document.getElementById('reg-nombre').value.trim(),email=document.getElementById('reg-email').value.trim(),password=document.getElementById('reg-password').value,edad=parseInt(document.getElementById('reg-edad').value),errEl=document.getElementById('reg-error');errEl.style.display='none';const vibe=document.querySelector('#reg-vibes .selected')?.textContent;if(!nombre||!email||!password||!vibe){errEl.textContent='Completá todos los campos y elegí tu vibe';errEl.style.display='block';return}if(password.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres';errEl.style.display='block';return}showLoader('Creando tu perfil...');try{const data=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre,email,password,edad,vibe,foto_url:regPhoto||null})});token=data.token;usuario=data.usuario;localStorage.setItem('fc2_token',token);localStorage.setItem('fc2_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();showScreen('qr-screen')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
+async function doLogin(){const email=document.getElementById('login-email').value.trim(),password=document.getElementById('login-password').value,errEl=document.getElementById('login-error');errEl.style.display='none';showLoader('Iniciando sesión...');try{const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});token=data.token;usuario=data.usuario;localStorage.setItem('fc2_token',token);localStorage.setItem('fc2_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();if(sesionId)showScreen('swipe');else showScreen('qr-screen')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
+function doLogout(){token=null;usuario=null;sesionId=null;['fc2_token','fc2_usuario','fc2_sesion','fc2_negocio','fc2_tipo'].forEach(k=>localStorage.removeItem(k));if(socket)socket.disconnect();document.getElementById('profile-modal').classList.remove('show');showScreen('splash')}
+// QR
+async function entrarConQR(){const codigo=document.getElementById('qr-codigo').value.trim().toUpperCase(),errEl=document.getElementById('qr-error');errEl.style.display='none';if(!codigo||codigo.length<4){errEl.textContent='Ingresá el código del evento';errEl.style.display='block';return}showLoader('Entrando al evento...');try{const data=await api('/sesiones/entrar',{method:'POST',body:JSON.stringify({codigo_qr:codigo})});sesionId=data.sesion_id;localStorage.setItem('fc2_sesion',sesionId);if(data.negocio_nombre){localStorage.setItem('fc2_negocio',data.negocio_nombre);const sh=document.getElementById('sesion-nombre-header');if(sh){sh.textContent='📍 '+data.negocio_nombre;sh.style.display='block'}}if(data.negocio_tipo){localStorage.setItem('fc2_tipo',data.negocio_tipo);const cat=CATEGORIAS[data.negocio_tipo]||CATEGORIAS.default;const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan}perfiles=[];perfilIdx=0;await cargarPerfiles();showScreen('swipe')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
+// Perfiles + Swipe (reutiliza lógica de cordoba-connect)
+async function cargarPerfiles(){if(!sesionId)return;try{perfiles=await api(`/sesiones/${sesionId}/perfiles`);perfilIdx=0}catch(e){perfiles=[]}}
+async function pingActividad(){if(!sesionId||!token)return;try{await api('/sesiones/actividad',{method:'POST',body:JSON.stringify({sesion_id:sesionId})})}catch(e){}setTimeout(pingActividad,5*60*1000)}
+async function cargarMatchCount(){try{const m=await api('/matches/mis-matches');matchesList=m;const n=m.length;document.getElementById('match-count').textContent=n;if(n>0)document.getElementById('matches-header-btn').classList.add('has-matches');checkBadge()}catch(e){}}
+function renderCard(){const area=document.getElementById('card-area'),btns=document.getElementById('action-buttons');if(perfilIdx>=perfiles.length){btns.style.display='none';if(!sesionId){area.innerHTML=`<div class="empty-state"><div class="big-emoji">📱</div><h2>Ingresá el código</h2><p>Necesitás el código del evento para ver perfiles.</p><button class="btn-primary" onclick="showScreen('qr-screen')">INGRESAR →</button></div>`;return}setTimeout(async()=>{const tipo=localStorage.getItem('fc2_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;try{perfiles=await api(`/sesiones/${sesionId}/perfiles?todos=true`);perfilIdx=0}catch(e){perfiles=[]}renderCard();btns.style.display='flex'},600);const tipo=localStorage.getItem('fc2_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;area.innerHTML=`<div class="empty-state"><div class="big-emoji">${cat.emoji}</div><h2>${cat.titulo}</h2><p>${cat.sub}</p></div>`;return}btns.style.display='flex';const p=perfiles[perfilIdx];area.innerHTML=`<div class="card-stack"><div class="card" id="main-card"><div class="card-bg"></div><div class="stamp like" id="st-like">SÍ</div><div class="stamp nope" id="st-nope">NO</div>${p.foto_url?`<img class="card-photo" src="${p.foto_url}" alt="${p.nombre}">`:`<div class="card-photo-placeholder">😊</div>`}<div class="card-body"><div class="card-name">${p.nombre}${p.edad?`, <span style="color:var(--gold)">${p.edad}</span>`:''}</div><div class="card-vibe">${p.vibe||''}</div><div class="card-online"><div class="online-dot"></div><span class="online-text">En este festival ahora mismo 🎪</span></div></div></div></div>`;setupDrag()}
+function setupDrag(){const c=document.getElementById('main-card');if(!c)return;c.addEventListener('mousedown',dStart);c.addEventListener('touchstart',dStart,{passive:true});document.addEventListener('mousemove',dMove);document.addEventListener('touchmove',dMove,{passive:false});document.addEventListener('mouseup',dEnd);document.addEventListener('touchend',dEnd)}
+function dStart(e){isDragging=true;startX=(e.touches?e.touches[0].clientX:e.clientX);dragX=0}
+function dMove(e){if(!isDragging)return;if(e.cancelable)e.preventDefault();const x=(e.touches?e.touches[0].clientX:e.clientX)-startX;dragX=x;const c=document.getElementById('main-card');if(!c)return;c.style.cssText+=`;transform:translateX(${x}px) rotate(${x/14}deg);transition:none`;const sl=document.getElementById('st-like');if(sl)sl.style.opacity=x>20?Math.min(1,Math.abs(x)/90):0;const sn=document.getElementById('st-nope');if(sn)sn.style.opacity=x<-20?Math.min(1,Math.abs(x)/90):0}
+function dEnd(){if(!isDragging)return;isDragging=false;if(dragX>90)doSwipe('right');else if(dragX<-90)doSwipe('left');else{const c=document.getElementById('main-card');if(c){c.style.transition='transform .3s ease';c.style.transform='none'}['st-like','st-nope'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.opacity=0})}}
+function doSwipe(dir){const c=document.getElementById('main-card');if(!c)return;document.removeEventListener('mousemove',dMove);document.removeEventListener('touchmove',dMove);document.removeEventListener('mouseup',dEnd);document.removeEventListener('touchend',dEnd);c.style.animation=dir==='right'?'swipeR .4s ease forwards':'swipeL .4s ease forwards';if(dir==='right')darLike(perfiles[perfilIdx],false);setTimeout(()=>{perfilIdx++;renderCard()},420)}
+function superLike(){const c=document.getElementById('main-card');if(!c)return;c.style.transition='transform .3s ease,opacity .3s ease';c.style.transform='translateY(-150%) scale(1.1)';c.style.opacity='0';darLike(perfiles[perfilIdx],true);setTimeout(()=>{perfilIdx++;renderCard()},420)}
+async function darLike(p,esSuper){if(!sesionId||!p)return;try{const data=await api('/matches/like',{method:'POST',body:JSON.stringify({a_usuario_id:p.id,sesion_id:sesionId,es_super:esSuper})});if(data.es_match)showMatchOverlay(data.match_con,data.match_id)}catch(err){}}
+function showMatchOverlay(p,matchId){matchesList.push(p);updateMatchCount();const av=document.getElementById('match-av-circle');if(p.foto_url){av.innerHTML=`<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover">`;av.style.background='none'}else{av.innerHTML='😊';av.style.background='linear-gradient(135deg,var(--amber),var(--gold))'}document.getElementById('match-nm2').textContent=`${p.nombre} también quiere conectar`;document.getElementById('match-sb').textContent='¡Tienen 8 días para conversar!';document.getElementById('match-chat-btn').onclick=()=>{closeMatchOverlay();openChat(matchId,p)};document.getElementById('match-overlay').classList.add('show')}
+function closeMatchOverlay(){document.getElementById('match-overlay').classList.remove('show')}
+function updateMatchCount(){const n=matchesList.length;document.getElementById('match-count').textContent=n;if(n>0)document.getElementById('matches-header-btn').classList.add('has-matches')}
+async function loadMatches(){const list=document.getElementById('matches-list');list.innerHTML=`<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>`;try{const matches=await api('/matches/mis-matches');if(!matches.length){list.innerHTML=`<div class="no-matches"><div style="font-size:40px;margin-bottom:12px">🌅</div><p>Todavía no hay conexiones.<br>¡Seguí viendo perfiles!</p></div>`;return}list.innerHTML=matches.map((m,i)=>`<div class="match-card" style="animation-delay:${i*.07}s;opacity:0" id="mc-${m.id}">${m.otro_foto?`<img class="match-av" src="${m.otro_foto}">`:`<div class="match-av-emoji">😊</div>`}<div class="match-info" onclick="openChat('${m.id}',{id:'${m.otro_id}',nombre:'${m.otro_nombre}',foto_url:'${m.otro_foto||''}',vibe:'${m.otro_vibe||''}'})" style="cursor:pointer;flex:1;min-width:0"><div class="match-nm">${m.otro_nombre}</div><div class="match-vb">${m.otro_vibe||''} · ${m.negocio_nombre}</div></div><div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0"><button class="chat-btn" onclick="openChat('${m.id}',{id:'${m.otro_id}',nombre:'${m.otro_nombre}',foto_url:'${m.otro_foto||''}',vibe:'${m.otro_vibe||''}'})">CHAT 💬</button><button onclick="borrarMatch('${m.id}','${m.otro_nombre}')" style="background:none;border:1px solid rgba(249,115,22,.3);color:rgba(249,115,22,.7);padding:4px 9px;border-radius:50px;font-size:10px;cursor:pointer">✕ borrar</button></div></div>`).join('');setTimeout(()=>{document.querySelectorAll('.match-card').forEach(c=>{c.style.opacity='1';c.style.transition='opacity .3s ease'})},50)}catch(err){list.innerHTML=`<div class="no-matches"><p>Error cargando</p></div>`}}
+async function borrarMatch(matchId,nombre){if(!confirm(`¿Borrar la conexión con ${nombre}?`))return;try{await api(`/matches/${matchId}`,{method:'DELETE'});const c=document.getElementById(`mc-${matchId}`);if(c)c.remove()}catch(err){alert(err.message)}}
+async function openChat(matchId,otro){chatMatchId=matchId;chatOtro=typeof otro==='string'?JSON.parse(otro):otro;const avEl=document.getElementById('chat-av');if(chatOtro.foto_url)avEl.innerHTML=`<img src="${chatOtro.foto_url}" style="width:38px;height:38px;border-radius:50%;object-fit:cover">`;else avEl.textContent='😊';document.getElementById('chat-name').textContent=chatOtro.nombre;showScreen('chat-screen');await loadMsgs()}
+async function loadMsgs(){const container=document.getElementById('chat-messages');container.innerHTML=`<div style="display:flex;justify-content:center;padding:20px"><div class="loader"></div></div>`;try{const msgs=await api(`/mensajes/${chatMatchId}`);if(!msgs.length){container.innerHTML=`<div class="no-msgs">Enviá el primer mensaje ✨</div>`;return}container.innerHTML=msgs.map(m=>{const esMio=m.de_usuario===usuario.id,hora=new Date(m.creado_en).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});return`<div class="msg ${esMio?'mine':'theirs'}"><div class="msg-bubble">${escapeHtml(m.texto)}</div><div class="msg-time">${hora}</div></div>`}).join('');container.scrollTop=container.scrollHeight}catch(err){container.innerHTML=`<div class="no-msgs">Error cargando mensajes</div>`}}
+async function sendMsg(){const input=document.getElementById('chat-input');const texto=input.value.trim();if(!texto||!chatMatchId)return;input.value='';try{await api(`/mensajes/${chatMatchId}`,{method:'POST',body:JSON.stringify({texto})});await loadMsgs()}catch(err){alert(err.message)}}
+function connectSocket(){if(!token||!usuario)return;socket=io(API,{auth:{token}});socket.on('connect',()=>{socket.emit('unirse',usuario.id)});socket.on('mensaje_nuevo',(data)=>{if(chatMatchId===data.match_id){const container=document.getElementById('chat-messages');const hora=new Date(data.mensaje.creado_en).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});const div=document.createElement('div');div.className='msg theirs';div.innerHTML=`<div class="msg-bubble">${escapeHtml(data.mensaje.texto)}</div><div class="msg-time">${hora}</div>`;const noMsg=container.querySelector('.no-msgs');if(noMsg)noMsg.remove();container.appendChild(div);container.scrollTop=container.scrollHeight}checkBadge()})}
+async function checkBadge(){try{const data=await api('/mensajes/no-leidos/total');const badge=document.getElementById('msg-badge');if(data.no_leidos>0){badge.textContent=data.no_leidos;badge.style.display='flex'}else{badge.style.display='none'}}catch(e){}}
+function syncProfileBtn(){const img=document.getElementById('profile-btn-img'),emoji=document.getElementById('profile-btn-emoji');if(usuario?.foto_url){img.src=usuario.foto_url;img.style.display='block';emoji.style.display='none'}else{img.style.display='none';emoji.style.display='block'}}
+async function openProfile(){if(!usuario)return;document.getElementById('modal-name').textContent=usuario.nombre||'—';document.getElementById('modal-vibe').textContent=usuario.vibe||'—';const bigImg=document.getElementById('modal-big-img'),bigEmoji=document.getElementById('modal-big-emoji');if(usuario.foto_url){bigImg.src=usuario.foto_url;bigImg.style.display='block';bigEmoji.style.display='none'}else{bigImg.style.display='none';bigEmoji.style.display='block'}document.getElementById('s-visto').textContent=perfilIdx;document.getElementById('s-likes').textContent=matchesList.length;document.getElementById('s-matches').textContent=matchesList.length;document.querySelectorAll('#pv-chips .pv-chip').forEach(c=>c.classList.toggle('sel',c.textContent===usuario.vibe));document.getElementById('profile-modal').classList.add('show')}
+function closeProfile(){document.getElementById('profile-modal').classList.remove('show')}
+async function onModalPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=async()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const foto=canvas.toDataURL('image/jpeg',.75);document.getElementById('modal-big-img').src=foto;document.getElementById('modal-big-img').style.display='block';document.getElementById('modal-big-emoji').style.display='none';try{await api('/auth/perfil',{method:'PUT',body:JSON.stringify({foto_url:foto})});usuario={...usuario,foto_url:foto};localStorage.setItem('fc2_usuario',JSON.stringify(usuario));syncProfileBtn()}catch(err){}};img.src=ev.target.result};reader.readAsDataURL(file)}
+const style=document.createElement('style');
+style.textContent=`@keyframes swipeR{to{transform:translateX(160%) rotate(28deg);opacity:0}}@keyframes swipeL{to{transform:translateX(-160%) rotate(-28deg);opacity:0}}`;
+document.head.appendChild(style);
+window.onload=()=>{
+  cargarSponsorsApp();
+  if(!localStorage.getItem('fc2_edad_ok')){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('age-verify').classList.add('active');return}
+  if(token&&usuario){syncProfileBtn();connectSocket();const tipo=localStorage.getItem('fc2_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;const tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan;const sh=document.getElementById('sesion-nombre-header');const neg=localStorage.getItem('fc2_negocio');if(sh&&neg){sh.textContent='📍 '+neg;sh.style.display='block'}if(sesionId)showScreen('swipe');else showScreen('qr-screen')}
+};
+</script>
+</body>
+</html>
