@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -261,6 +260,46 @@ body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--text);m
 <body>
 
 <script>
+
+// ═══════════════════════════════════════════════════════
+//   CORDOBALUX — Auth compartido entre todas las apps
+//   Un solo registro, una sola cuenta para todas las apps
+// ═══════════════════════════════════════════════════════
+const CL_TOKEN_KEY = 'cl_token';
+const CL_USUARIO_KEY = 'cl_usuario';
+
+function clGetToken(){ return localStorage.getItem(CL_TOKEN_KEY); }
+function clGetUsuario(){ return JSON.parse(localStorage.getItem(CL_USUARIO_KEY)||'null'); }
+function clSetToken(t){ localStorage.setItem(CL_TOKEN_KEY, t); }
+function clSetUsuario(u){ localStorage.setItem(CL_USUARIO_KEY, JSON.stringify(u)); }
+function clClearAuth(){
+  [CL_TOKEN_KEY, CL_USUARIO_KEY,
+   'cn_token','cn_usuario','cn_sesion','cn_negocio','cn_tipo',
+   'cc_token','cc_usuario','cc_sesion','cc_negocio','cc_tipo',
+   'clx_token','clx_usuario','clx_sesion','clx_negocio','clx_tipo',
+   'sc_token','sc_usuario','sc_sesion','sc_negocio','sc_tipo',
+   'fc2_token','fc2_usuario','fc2_sesion','fc2_negocio','fc2_tipo'
+  ].forEach(k => localStorage.removeItem(k));
+}
+
+function clYaRegistrado(){
+  // Migrar tokens viejos al nuevo sistema unificado
+  const oldKeys = ['cn_token','cc_token','clx_token','sc_token','fc2_token'];
+  const oldUserKeys = ['cn_usuario','cc_usuario','clx_usuario','sc_usuario','fc2_usuario'];
+  for(let i=0; i<oldKeys.length; i++){
+    const t = localStorage.getItem(oldKeys[i]);
+    const u = localStorage.getItem(oldUserKeys[i]);
+    if(t && u){
+      clSetToken(t);
+      clSetUsuario(JSON.parse(u));
+      localStorage.removeItem(oldKeys[i]);
+      localStorage.removeItem(oldUserKeys[i]);
+      return true;
+    }
+  }
+  return !!clGetToken();
+}
+
 const API = 'https://api.shops.com.ar';
 const VIBES = [
   "Conocer gente 🥂","Bailar toda la noche 💃","Charla y risas 🌙",
@@ -283,9 +322,9 @@ const CATEGORIAS = {
   recital:     {emoji:'🎸',titulo:'¡QUÉ SHOW!',                  sub:'Todavía no hay nadie registrado.<br>¡La música está por empezar!',   slogan:'la música que te mueve es la misma que los mueve a ellos 🎸'},
   default:     {emoji:'🥂',titulo:'¡BIENVENIDO!',               sub:'Todavía no hay nadie registrado.<br>¡Sé el primero en llegar!',      slogan:'los mejores momentos se comparten con las personas correctas 🥂'}
 };
-let token = localStorage.getItem('fc_token')||null;
-let usuario = JSON.parse(localStorage.getItem('fc_usuario')||'null');
-let sesionId = localStorage.getItem('fc_sesion')||null;
+let token = localStorage.getItem('clx_token')||null;
+let usuario = JSON.parse(localStorage.getItem('clx_usuario')||'null');
+let sesionId = localStorage.getItem('clx_sesion')||null;
 let perfiles=[],perfilIdx=0,matchesList=[];
 let isDragging=false,startX=0,dragX=0;
 let socket=null,chatMatchId=null,chatOtro=null;
@@ -326,6 +365,9 @@ let regPhoto='',regVibe='';
     <div class="logo">Fiesta<span>Connect</span></div>
     <p class="tagline">conectá con quienes hacen especial esta noche</p>
     <div class="splash-btns">
+      <div id="cl-ya-miembro" style="display:none;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:#c9a84c;padding:10px 16px;border-radius:12px;font-size:13px;text-align:center;margin-bottom:4px;width:100%;max-width:340px">
+        💍 ¡Ya sos parte de <strong>CordobaLux</strong>!<br><span style="font-size:11px;opacity:.7">Ingresá con tu cuenta existente</span>
+      </div>
       <button class="btn-primary" onclick="showAuth('register')">CREAR PERFIL →</button>
       <button class="btn-secondary" onclick="showAuth('login')">Ya tengo cuenta</button>
     </div>
@@ -359,6 +401,9 @@ let regPhoto='',regVibe='';
     <label class="field-label">Tu vibe esta noche</label>
     <div class="vibes" id="reg-vibes"></div>
     <button class="btn-primary" onclick="doRegister()">CREAR PERFIL →</button>
+    <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:12px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.6);text-align:center">
+      ¿Ya usás otra app de CordobaLux? Iniciá sesión con las mismas credenciales 🌙
+    </div>
     <div class="auth-switch">¿Ya tenés cuenta? <a onclick="showAuth('login')">Iniciá sesión</a></div>
   </div>
   <div class="auth-inner" id="login-form" style="display:none">
@@ -503,7 +548,7 @@ let regPhoto='',regVibe='';
   <div class="promo-inner">
     <div class="promo-img-wrap" id="promo-img-wrap"></div>
     <div class="promo-btns">
-      <button class="btn-whatsapp" id="promo-whatsapp" onclick="window.open(this.dataset.url)">💬 Contactar por WhatsApp</button>
+      <button class="btn-whatsapp" id="promo-whatsapp" onclick="confirmarPromoWA(this)">💬 Participar por WhatsApp</button>
       <button class="btn-instagram" id="promo-instagram" onclick="window.open(this.dataset.url)">📸 Ver en Instagram</button>
       <button class="btn-cerrar-promo" onclick="cerrarPromo()">← Volver a la app</button>
     </div>
@@ -522,7 +567,7 @@ function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').repla
 
 // ─── AGE VERIFY ───────────────────────────────────────────────────────
 function checkAge(){const e=document.getElementById('check-edad')?.checked,p=document.getElementById('check-politicas')?.checked,btn=document.getElementById('btn-age-entrar');if(btn)btn.classList.toggle('enabled',e&&p)}
-function aceptarEdad(){localStorage.setItem('fc_edad_ok','1');showScreen('splash')}
+function aceptarEdad(){localStorage.setItem('clx_edad_ok','1');showScreen('splash')}
 
 // ─── SPARKLES ─────────────────────────────────────────────────────────
 (function(){const c=document.getElementById('sparkles-container');if(!c)return;for(let i=0;i<12;i++){const s=document.createElement('div');s.className='sparkle';s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*2}s`;c.appendChild(s)}})();
@@ -531,10 +576,15 @@ function aceptarEdad(){localStorage.setItem('fc_edad_ok','1');showScreen('splash
 window.onload=function(){
   ['reg-vibes','pv-chips'].forEach(id=>{const el=document.getElementById(id);if(!el)return;el.innerHTML=VIBES.map(v=>`<button class="${id==='pv-chips'?'pv-chip':'vibe-chip'}" onclick="selectVibe(this,'${id}')">${v}</button>`).join('')});
   cargarSponsorsApp();
-  if(!localStorage.getItem('fc_edad_ok')){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('age-verify').classList.add('active');return}
+  // Si ya está registrado en CordobaLux, mostrar mensaje bienvenida
+  if(clYaRegistrado() && !token){ token=clGetToken(); usuario=clGetUsuario(); }
+  if(!localStorage.getItem('clx_edad_ok')){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('age-verify').classList.add('active');return}
+  // Mostrar badge si ya tiene cuenta en CordobaLux
+  const yaM = document.getElementById('cl-ya-miembro');
+  if(yaM && clYaRegistrado()) yaM.style.display='block';
   if(token&&usuario){
     syncProfileBtn();connectSocket();
-    const negocio=localStorage.getItem('fc_negocio'),tipo=localStorage.getItem('fc_tipo')||'default';
+    const negocio=localStorage.getItem('clx_negocio'),tipo=localStorage.getItem('clx_tipo')||'default';
     const cat=CATEGORIAS[tipo]||CATEGORIAS.default;
     const tl=document.querySelector('.tagline');if(tl)tl.textContent=cat.slogan;
     const sh=document.getElementById('sesion-nombre-header');if(sh&&negocio){sh.textContent='📍 '+negocio;sh.style.display='block'}
@@ -547,16 +597,46 @@ function showAuth(mode){showScreen('auth');document.getElementById('register-for
 
 function onRegPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);regPhoto=canvas.toDataURL('image/jpeg',.75);const prev=document.getElementById('reg-preview');prev.src=regPhoto;prev.style.display='block';document.getElementById('reg-placeholder').style.display='none'};img.src=ev.target.result};reader.readAsDataURL(file)}
 
-function selectVibe(el,containerId){document.querySelectorAll(`#${containerId} button`).forEach(c=>c.classList.remove('selected','sel'));el.classList.add(containerId==='pv-chips'?'sel':'selected');if(containerId==='reg-vibes')regVibe=el.textContent;if(containerId==='pv-chips'){const vibe=el.textContent;api('/auth/perfil',{method:'PUT',body:JSON.stringify({vibe})}).then(data=>{usuario={...usuario,vibe};localStorage.setItem('fc_usuario',JSON.stringify(usuario));const mv=document.getElementById('modal-vibe');if(mv)mv.textContent=vibe}).catch(console.error)}}
+function selectVibe(el,containerId){document.querySelectorAll(`#${containerId} button`).forEach(c=>c.classList.remove('selected','sel'));el.classList.add(containerId==='pv-chips'?'sel':'selected');if(containerId==='reg-vibes')regVibe=el.textContent;if(containerId==='pv-chips'){const vibe=el.textContent;api('/auth/perfil',{method:'PUT',body:JSON.stringify({vibe})}).then(data=>{usuario={...usuario,vibe};localStorage.setItem('clx_usuario',JSON.stringify(usuario));const mv=document.getElementById('modal-vibe');if(mv)mv.textContent=vibe}).catch(console.error)}}
 
-async function doRegister(){const nombre=document.getElementById('reg-nombre').value.trim(),email=document.getElementById('reg-email').value.trim(),password=document.getElementById('reg-password').value,edad=parseInt(document.getElementById('reg-edad').value),errEl=document.getElementById('reg-error');errEl.style.display='none';if(!nombre||!email||!password||!regVibe){errEl.textContent='Completá todos los campos y elegí tu vibe';errEl.style.display='block';return}if(password.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres';errEl.style.display='block';return}showLoader('Creando tu perfil...');try{const data=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre,email,password,edad,vibe:regVibe,foto_url:regPhoto||null})});token=data.token;usuario=data.usuario;localStorage.setItem('fc_token',token);localStorage.setItem('fc_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();showScreen('qr-screen')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
 
-async function doLogin(){const email=document.getElementById('login-email').value.trim(),password=document.getElementById('login-password').value,errEl=document.getElementById('login-error');errEl.style.display='none';showLoader('Iniciando sesión...');try{const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});token=data.token;usuario=data.usuario;localStorage.setItem('fc_token',token);localStorage.setItem('fc_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();if(sesionId)showScreen('swipe');else showScreen('qr-screen')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
+async function doRegister(){
+  var n=document.getElementById('reg-nombre').value.trim();
+  var em=document.getElementById('reg-email').value.trim();
+  var pw=document.getElementById('reg-password').value;
+  var ed=parseInt(document.getElementById('reg-edad').value)||18;
+  var errEl=document.getElementById('reg-error');
+  var vb=document.querySelector('#reg-vibes .selected');
+  var vibe=vb?vb.textContent:(typeof regVibe!=='undefined'?regVibe:'');
+  errEl.style.display='none';
+  if(!n||!em||!pw||!vibe){errEl.textContent='Completa todos los campos y elige tu vibe';errEl.style.display='block';return;}
+  if(pw.length<6){errEl.textContent='Minimo 6 caracteres en la contrasena';errEl.style.display='block';return;}
+  showLoader('Creando tu perfil...');
+  try{
+    var d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe:vibe,foto_url:(typeof regPhoto!=='undefined'?regPhoto:null)})});
+    token=d.token;usuario=d.usuario;
+    localStorage.setItem(APPKEY+'_token',token);
+    localStorage.setItem(APPKEY+'_usuario',JSON.stringify(usuario));
+    syncProfileBtn();connectSocket();showScreen('qr-screen');
+  }catch(e){
+    var m=e.message||'Error';
+    if(m.toLowerCase().indexOf('ya exist')>=0||m.toLowerCase().indexOf('duplicate')>=0||m.indexOf('23505')>=0){
+      errEl.textContent='Ya tenes cuenta en CordobaLux. Usa "Ya tengo cuenta" para ingresar.';
+    }else{errEl.textContent=m;}
+    errEl.style.display='block';
+  }finally{hideLoader();}
+}
 
-function doLogout(){token=null;usuario=null;sesionId=null;localStorage.removeItem('fc_token');localStorage.removeItem('fc_usuario');localStorage.removeItem('fc_sesion');localStorage.removeItem('fc_negocio');localStorage.removeItem('fc_tipo');if(socket)socket.disconnect();document.getElementById('profile-modal').classList.remove('show');showScreen('splash')}
+async function doLogin(){const email=document.getElementById('login-email').value.trim(),password=document.getElementById('login-password').value,errEl=document.getElementById('login-error');errEl.style.display='none';showLoader('Iniciando sesión...');try{const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});token=data.token;usuario=data.usuario;localStorage.setItem('clx_token',token);localStorage.setItem('clx_usuario',JSON.stringify(usuario));syncProfileBtn();connectSocket();if(sesionId)showScreen('swipe');else showScreen('qr-screen')}catch(err){if(err.message.toLowerCase().includes('ya existe')||err.message.toLowerCase().includes('email')||err.message.toLowerCase().includes('registrado')){
+      errEl.innerHTML='Ya tenés cuenta en <strong>CordobaLux</strong>. <a onclick="showAuth(\'login\')" style="color:var(--gold,#c9a84c);cursor:pointer;text-decoration:underline;font-weight:600">Iniciá sesión →</a>';
+    }else{errEl.textContent=err.message;}errEl.style.display='block'}finally{hideLoader()}}
+
+function doLogout(){token=null;usuario=null;sesionId=null;localStorage.removeItem('clx_token');localStorage.removeItem('clx_usuario');localStorage.removeItem('clx_sesion');localStorage.removeItem('clx_negocio');localStorage.removeItem('clx_tipo');if(socket)socket.disconnect();document.getElementById('profile-modal').classList.remove('show');showScreen('splash')}
 
 // ─── QR ───────────────────────────────────────────────────────────────
-async function entrarConQR(){const codigo=document.getElementById('qr-codigo').value.trim().toUpperCase(),errEl=document.getElementById('qr-error');errEl.style.display='none';if(!codigo||codigo.length<4){errEl.textContent='Ingresá el código del evento';errEl.style.display='block';return}showLoader('Entrando al evento...');try{const data=await api('/sesiones/entrar',{method:'POST',body:JSON.stringify({codigo_qr:codigo})});sesionId=data.sesion_id;localStorage.setItem('fc_sesion',sesionId);if(data.negocio_nombre){localStorage.setItem('fc_negocio',data.negocio_nombre);const sh=document.getElementById('sesion-nombre-header');if(sh){sh.textContent='📍 '+data.negocio_nombre;sh.style.display='block'}}if(data.negocio_tipo){localStorage.setItem('fc_tipo',data.negocio_tipo);const cat=CATEGORIAS[data.negocio_tipo]||CATEGORIAS.default;const tl=document.querySelector('.tagline');if(tl)tl.textContent=cat.slogan}perfiles=[];perfilIdx=0;await cargarPerfiles();showScreen('swipe')}catch(err){errEl.textContent=err.message;errEl.style.display='block'}finally{hideLoader()}}
+async function entrarConQR(){const codigo=document.getElementById('qr-codigo').value.trim().toUpperCase(),errEl=document.getElementById('qr-error');errEl.style.display='none';if(!codigo||codigo.length<4){errEl.textContent='Ingresá el código del evento';errEl.style.display='block';return}showLoader('Entrando al evento...');try{const data=await api('/sesiones/entrar',{method:'POST',body:JSON.stringify({codigo_qr:codigo})});sesionId=data.sesion_id;localStorage.setItem('clx_sesion',sesionId);if(data.negocio_nombre){localStorage.setItem('clx_negocio',data.negocio_nombre);const sh=document.getElementById('sesion-nombre-header');if(sh){sh.textContent='📍 '+data.negocio_nombre;sh.style.display='block'}}if(data.negocio_tipo){localStorage.setItem('clx_tipo',data.negocio_tipo);const cat=CATEGORIAS[data.negocio_tipo]||CATEGORIAS.default;const tl=document.querySelector('.tagline');if(tl)tl.textContent=cat.slogan}perfiles=[];perfilIdx=0;await cargarPerfiles();showScreen('swipe')}catch(err){if(err.message.toLowerCase().includes('ya existe')||err.message.toLowerCase().includes('email')||err.message.toLowerCase().includes('registrado')){
+      errEl.innerHTML='Ya tenés cuenta en <strong>CordobaLux</strong>. <a onclick="showAuth(\'login\')" style="color:var(--gold,#c9a84c);cursor:pointer;text-decoration:underline;font-weight:600">Iniciá sesión →</a>';
+    }else{errEl.textContent=err.message;}errEl.style.display='block'}finally{hideLoader()}}
 
 // ─── PERFILES ─────────────────────────────────────────────────────────
 async function cargarPerfiles(){if(!sesionId)return;try{perfiles=await api(`/sesiones/${sesionId}/perfiles`);perfilIdx=0}catch(err){perfiles=[]}}
@@ -569,8 +649,8 @@ function renderCard(){
   if(perfilIdx>=perfiles.length){
     btns.style.display='none';
     if(!sesionId){area.innerHTML=`<div class="empty-state"><div class="big-emoji">📱</div><h2>Ingresá el código</h2><p>Necesitás el código del evento para ver perfiles.</p><button class="btn-primary" onclick="showScreen('qr-screen')">INGRESAR CÓDIGO →</button></div>`;return}
-    setTimeout(async()=>{const tipo=localStorage.getItem('fc_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;try{perfiles=await api(`/sesiones/${sesionId}/perfiles?todos=true`);perfilIdx=0}catch(e){perfiles=[]}renderCard();btns.style.display='flex'},600);
-    const tipo=localStorage.getItem('fc_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;
+    setTimeout(async()=>{const tipo=localStorage.getItem('clx_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;try{perfiles=await api(`/sesiones/${sesionId}/perfiles?todos=true`);perfilIdx=0}catch(e){perfiles=[]}renderCard();btns.style.display='flex'},600);
+    const tipo=localStorage.getItem('clx_tipo')||'default';const cat=CATEGORIAS[tipo]||CATEGORIAS.default;
     area.innerHTML=`<div class="empty-state"><div class="big-emoji">${cat.emoji}</div><h2>${cat.titulo}</h2><p>${cat.sub}</p><div style="color:var(--muted);font-size:11px;margin-top:4px;font-style:italic">Recargando...</div></div>`;
     return;
   }
@@ -633,21 +713,67 @@ async function checkBadge(){try{const data=await api('/mensajes/no-leidos/total'
 
 function syncProfileBtn(){const img=document.getElementById('profile-btn-img'),emoji=document.getElementById('profile-btn-emoji');if(usuario&&usuario.foto_url){img.src=usuario.foto_url;img.style.display='block';emoji.style.display='none'}else{img.style.display='none';emoji.style.display='block'}}
 
-async function openProfile(){if(!usuario)return;try{const perfil=await api('/auth/perfil');usuario={...usuario,...perfil};localStorage.setItem('fc_usuario',JSON.stringify(usuario))}catch(e){}document.getElementById('modal-name').textContent=usuario.nombre||'—';document.getElementById('modal-vibe').textContent=usuario.vibe||'—';const bigImg=document.getElementById('modal-big-img'),bigEmoji=document.getElementById('modal-big-emoji');if(usuario.foto_url){bigImg.src=usuario.foto_url;bigImg.style.display='block';bigEmoji.style.display='none'}else{bigImg.style.display='none';bigEmoji.style.display='block'}document.getElementById('s-visto').textContent=perfilIdx;document.getElementById('s-likes').textContent=matchesList.length;document.getElementById('s-matches').textContent=matchesList.length;document.querySelectorAll('#pv-chips .pv-chip').forEach(c=>c.classList.toggle('sel',c.textContent===usuario.vibe));document.getElementById('profile-modal').classList.add('show')}
+async function openProfile(){if(!usuario)return;try{const perfil=await api('/auth/perfil');usuario={...usuario,...perfil};localStorage.setItem('clx_usuario',JSON.stringify(usuario))}catch(e){}document.getElementById('modal-name').textContent=usuario.nombre||'—';document.getElementById('modal-vibe').textContent=usuario.vibe||'—';const bigImg=document.getElementById('modal-big-img'),bigEmoji=document.getElementById('modal-big-emoji');if(usuario.foto_url){bigImg.src=usuario.foto_url;bigImg.style.display='block';bigEmoji.style.display='none'}else{bigImg.style.display='none';bigEmoji.style.display='block'}document.getElementById('s-visto').textContent=perfilIdx;document.getElementById('s-likes').textContent=matchesList.length;document.getElementById('s-matches').textContent=matchesList.length;document.querySelectorAll('#pv-chips .pv-chip').forEach(c=>c.classList.toggle('sel',c.textContent===usuario.vibe));document.getElementById('profile-modal').classList.add('show')}
 function closeProfile(){document.getElementById('profile-modal').classList.remove('show')}
 
-async function onModalPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=async()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const foto=canvas.toDataURL('image/jpeg',.75);document.getElementById('modal-big-img').src=foto;document.getElementById('modal-big-img').style.display='block';document.getElementById('modal-big-emoji').style.display='none';try{await api('/auth/perfil',{method:'PUT',body:JSON.stringify({foto_url:foto})});usuario={...usuario,foto_url:foto};localStorage.setItem('fc_usuario',JSON.stringify(usuario));syncProfileBtn()}catch(err){alert('Error guardando foto')}};img.src=ev.target.result};reader.readAsDataURL(file)}
+async function onModalPhoto(e){const file=e.target.files[0];if(!file)return;const img=new Image(),reader=new FileReader();reader.onload=ev=>{img.onload=async()=>{const canvas=document.createElement('canvas');const max=600;let w=img.width,h=img.height;if(w>h){if(w>max){h=h*max/w;w=max}}else{if(h>max){w=w*max/h;h=max}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);const foto=canvas.toDataURL('image/jpeg',.75);document.getElementById('modal-big-img').src=foto;document.getElementById('modal-big-img').style.display='block';document.getElementById('modal-big-emoji').style.display='none';try{await api('/auth/perfil',{method:'PUT',body:JSON.stringify({foto_url:foto})});usuario={...usuario,foto_url:foto};localStorage.setItem('clx_usuario',JSON.stringify(usuario));syncProfileBtn()}catch(err){alert('Error guardando foto')}};img.src=ev.target.result};reader.readAsDataURL(file)}
 
 // ─── SPONSORS ─────────────────────────────────────────────────────────
 async function cargarSponsorsApp(){try{sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());['splash','qr','swipe','matches'].forEach(p=>renderizarAds(p))}catch(e){}}
-function renderizarAds(pantalla){const el=document.getElementById(`ads-${pantalla}`);if(!el)return;const filtrados=sponsorsCache.filter(s=>{if(!s.activo)return false;if(s.pantalla==='todas')return true;return s.pantalla.split(',').includes(pantalla)});if(!filtrados.length){el.innerHTML='';return}el.innerHTML=filtrados.slice(0,1).map(s=>`<div class="ad-banner" onclick="abrirPromoSponsor('${s.id}')"><div class="ad-img">${s.imagen_url?`<img src="${s.imagen_url}">`:(s.emoji||'🎯')}</div><div class="ad-info"><div class="ad-name">${s.nombre}</div><div class="ad-promo">${s.promo}</div></div><span class="ad-tag">${s.tag}</span></div>`).join('')}
-function abrirPromoSponsor(id){const s=sponsorsCache.find(x=>x.id===id);if(!s)return;const wrap=document.getElementById('promo-img-wrap');if(s.imagen_promo||s.imagen_url){wrap.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`}else{wrap.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#100e08"/><text x="190" y="70" font-family="serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="1" fill="rgba(201,168,76,.4)" rx="1"/><text x="190" y="158" font-family="serif" font-size="16" fill="#c9a84c" text-anchor="middle">${s.promo}</text><text x="190" y="195" font-family="serif" font-size="12" fill="rgba(255,255,255,.3)" text-anchor="middle">FiestaConnect</text></svg>`}const wa=document.getElementById('promo-whatsapp'),ig=document.getElementById('promo-instagram');wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}`:'#';ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';wa.style.display=s.whatsapp?'flex':'none';ig.style.display=s.instagram?'flex':'none';document.getElementById('promo-modal').classList.add('show')}
+function abrirPromoSponsor(id){const s=sponsorsCache.find(x=>x.id===id);if(!s)return;const wrap=document.getElementById('promo-img-wrap');if(s.imagen_promo||s.imagen_url){wrap.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`}else{wrap.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#100e08"/><text x="190" y="70" font-family="serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="1" fill="rgba(201,168,76,.4)" rx="1"/><text x="190" y="158" font-family="serif" font-size="16" fill="#c9a84c" text-anchor="middle">${s.promo}</text><text x="190" y="195" font-family="serif" font-size="12" fill="rgba(255,255,255,.3)" text-anchor="middle">FiestaConnect</text></svg>`}const wa=document.getElementById('promo-whatsapp'),ig=document.getElementById('promo-instagram');const userId = usuario ? 'USR-'+usuario.id.substring(0,8) : '';
+      const msgPromo = encodeURIComponent(`Hola! Quiero participar en la promo: *${s.nombre}*\n${s.promo}\nMi código: *${userId}*\nAcepto recibir información de esta promoción.`);
+      wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}?text=${msgPromo}`:'#';ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';wa.style.display=s.whatsapp?'flex':'none';ig.style.display=s.instagram?'flex':'none';document.getElementById('promo-modal').classList.add('show')}
+
+function confirmarPromo(btn){
+  const msg=btn.closest('.promo-inner')||btn.closest('#promo-modal');
+  const sponsor=sponsorsCache.find(s=>s.tag==='PROMO-PRINCIPAL')||sponsorsCache[0];
+  const confirmMsg=sponsor?.confirmacion||'Al participar acepto recibir información de esta promoción';
+  if(confirm(confirmMsg+'\n\n¿Confirmar?')){
+    window.open(btn.dataset.url,'_blank');
+  }
+}
+
+function renderizarAds(pantalla){
+  var el=document.getElementById('ads-'+pantalla);
+  if(!el)return;
+  var appNombre="fiesta";
+  var ok=sponsorsCache.filter(function(s){
+    if(!s.activo)return false;
+    var aOk=!s.app||s.app==='todas'||s.app.indexOf(appNombre)>=0;
+    if(!aOk)return false;
+    if(!s.pantalla||s.pantalla==='todas')return true;
+    return s.pantalla.indexOf(pantalla)>=0;
+  });
+  if(!ok.length){el.innerHTML='';return}
+  el.innerHTML=ok.slice(0,1).map(function(s){
+    var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'*');
+    return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer">'
+      +'<div class="ad-img">'+img+'</div>'
+      +'<div class="ad-info"><div class="ad-name">'+s.nombre+'</div>'
+      +'<div class="ad-promo">'+s.promo+'</div></div>'
+      +'<span class="ad-tag">'+s.tag+'</span></div>';
+  }).join('');
+  el.querySelectorAll('[data-sid]').forEach(function(d){
+    d.onclick=function(){abrirPromoSponsor(this.getAttribute('data-sid'));};
+  });
+}
+
 function cerrarPromo(){document.getElementById('promo-modal').classList.remove('show')}
 
 // CSS for swipe animations
 const style=document.createElement('style');
 style.textContent=`@keyframes swipeR{to{transform:translateX(160%) rotate(28deg);opacity:0}}@keyframes swipeL{to{transform:translateX(-160%) rotate(-28deg);opacity:0}}`;
 document.head.appendChild(style);
+
+function participarPromoWA(pp) {
+  if(!pp||!pp.whatsapp) return;
+  if(!confirm('¿Querés participar en esta promo?\n\nAl continuar aceptás recibir información sobre esta promoción por WhatsApp.')) return;
+  const uid = usuario ? 'USR-' + usuario.id.substring(0,8) : 'SIN-ID';
+  const desc = pp.promo || pp.descripcion || pp.nombre || 'esta promo especial';
+  const msg = encodeURIComponent('Hola! Quiero participar en: "' + (pp.nombre||'Promo') + '"\n\n📋 ' + desc + '\n\nMi código CordobaLux: ' + uid);
+  window.open('https://wa.me/' + pp.whatsapp + '?text=' + msg, '_blank');
+}
+
 </script>
 </body>
 </html>
