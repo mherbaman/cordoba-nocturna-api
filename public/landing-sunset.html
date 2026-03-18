@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,7 +19,7 @@ body::after{content:'';position:fixed;inset:0;background-image:url("data:image/s
 @keyframes sunsetMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .fade-up{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
 .fade-up.visible{opacity:1;transform:translateY(0)}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(10,6,0,.75);border-bottom:1px solid var(--border);transition:all .3s}
+nav{position:fixed;top:44px;left:0;right:0;z-index:100;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(10,6,0,.75);border-bottom:1px solid var(--border);transition:all .3s}
 .nav-logo{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;text-decoration:none;color:#fff}
 .nav-logo em{color:var(--gold);font-style:italic}
 .nav-links{display:flex;gap:24px;align-items:center}
@@ -28,7 +27,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 32px;display:fl
 .nav-links a:hover{color:#fff}
 .nav-cta{background:linear-gradient(135deg,var(--amber),var(--gold));color:var(--dark);padding:10px 22px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;transition:all .2s}
 .nav-cta:hover{transform:scale(1.04);box-shadow:0 0 24px rgba(201,168,76,.4)}
-#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 24px 80px;text-align:center;position:relative;overflow:hidden}
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:130px 24px 80px;text-align:center;position:relative;overflow:hidden}
 .hero-sunset{position:absolute;inset:0;background:radial-gradient(ellipse 100% 60% at 50% 80%,rgba(249,115,22,.12) 0%,rgba(245,158,11,.08) 30%,rgba(201,168,76,.04) 60%,transparent 100%);pointer-events:none}
 .hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(56px,11vw,110px);font-weight:700;line-height:.95;letter-spacing:-1px;margin-bottom:8px;animation:fadeUp .8s .1s ease forwards;opacity:0}
 .hero-h1 em{font-style:italic;background:linear-gradient(135deg,var(--orange),var(--amber),var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 4s linear infinite}
@@ -125,9 +124,23 @@ footer{background:var(--card);border-top:1px solid var(--border);padding:44px 24
 .footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .footer-bottom p{color:rgba(255,255,255,.18);font-size:12px}
 @media(max-width:768px){.nav-links{display:none}.stats-inner{grid-template-columns:repeat(2,1fr)}.footer-top{grid-template-columns:1fr}.pb-features{grid-template-columns:1fr}}
+
+/* BACK TO CORDOBALUX */
+.back-to-lux{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(5,3,10,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(201,168,76,.15);padding:10px 24px;display:flex;align-items:center;justify-content:space-between}
+.back-btn-lux{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--gold);font-size:13px;font-weight:600;letter-spacing:.5px;transition:opacity .2s}
+.back-btn-lux:hover{opacity:.8}
+.back-lux-logo{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.6)}
+.back-lux-logo em{color:var(--gold);font-style:italic}
 </style>
 </head>
 <body>
+
+<!-- BACK TO CORDOBALUX -->
+<div class="back-to-lux">
+  <a href="https://api.shops.com.ar/cordobalux.html" class="back-btn-lux">← Volver a <strong>CordobaLux</strong></a>
+  <div class="back-lux-logo">Cordoba<em>Lux</em></div>
+</div>
+
 <nav id="nav">
   <a href="#" class="nav-logo">Sunset<em>Connect</em></a>
   <div class="nav-links">
@@ -293,7 +306,7 @@ footer{background:var(--card);border-top:1px solid var(--border);padding:44px 24
   <div class="footer-inner">
     <div class="footer-top">
       <div><div class="fl-brand">Sunset<em>Connect</em></div><p class="fl-desc">Conexiones reales en los momentos más bellos del día. Un producto de CordobaLux.</p></div>
-      <div><div class="fc-title">CordobaLux</div><a href="https://api.shops.com.ar/cordobalux.html" class="fc-link">Ver todas las apps</a><a href="https://api.shops.com.ar/index.html" class="fc-link">CordobaConnect</a><a href="https://api.shops.com.ar/fiesta-connect.html" class="fc-link">FiestaConnect</a><a href="https://api.shops.com.ar/gym-connect.html" class="fc-link">GymConnect</a></div>
+      <div><div class="fc-title">CordobaLux</div><a href="https://api.shops.com.ar/cordobalux.html" class="fc-link">Ver todas las apps</a><a href="https://api.shops.com.ar/landing-cordobaconnect.html" class="fc-link">CordobaConnect</a><a href="https://api.shops.com.ar/landing-fiesta.html" class="fc-link">FiestaConnect</a><a href="https://api.shops.com.ar/landing-gymconnect.html" class="fc-link">GymConnect</a></div>
       <div><div class="fc-title">Contacto</div><a href="https://wa.me/543512291554" class="fc-link">WhatsApp</a><a href="mailto:hola@cordobalux.com" class="fc-link">hola@cordobalux.com</a><a href="https://api.shops.com.ar/politicas.html" class="fc-link">Privacidad</a></div>
     </div>
     <div class="footer-bottom"><p>© 2026 CordobaLux · SunsetConnect · Córdoba, Argentina</p><p>🌅 Luxury Social Connections</p></div>
