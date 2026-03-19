@@ -415,7 +415,7 @@ let chatMatchId = null, chatOtro = null;
     <p>El incumplimiento puede resultar en la suspensión permanente de tu cuenta.</p>
 
     <h2>8. Eliminación de cuenta</h2>
-    <p>Podés solicitar la eliminación de tu cuenta y todos tus datos enviando un email a <strong>privacidad@cordobanocturna.com</strong>. Los datos serán eliminados dentro de los 30 días hábiles.</p>
+    <p>Podés solicitar la eliminación de tu cuenta y todos tus datos enviando un email a <strong>privacidad@córdobanocturna.com</strong>. Los datos serán eliminados dentro de los 30 días hábiles.</p>
 
     <h2>9. Seguridad</h2>
     <p>Utilizamos encriptación para proteger tus datos. Las contraseñas se almacenan con hash seguro y nunca en texto plano. Sin embargo, ningún sistema es 100% seguro y no podemos garantizar la seguridad absoluta de la información.</p>
@@ -424,7 +424,7 @@ let chatMatchId = null, chatOtro = null;
     <p>Nos reservamos el derecho de actualizar estas políticas. Te notificaremos de cambios significativos mediante la app. El uso continuado de la plataforma implica la aceptación de las políticas vigentes.</p>
 
     <h2>11. Contacto</h2>
-    <p>Para consultas sobre privacidad o tus datos: <strong>privacidad@cordobanocturna.com</strong></p>
+    <p>Para consultas sobre privacidad o tus datos: <strong>privacidad@córdobanocturna.com</strong></p>
 
     <div style="margin-top:32px;padding:20px;background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);border-radius:14px;">
       <p style="color:var(--pink);font-size:13px;text-align:center;margin:0">Al usar Córdoba Nocturna confirmás que leíste y aceptás estos términos y que tenés 18 años o más. 🌙</p>
@@ -530,30 +530,9 @@ let chatMatchId = null, chatOtro = null;
 
     <!-- EVENTOS ACTIVOS -->
     <div class="eventos-section">
-      <div class="eventos-title">🎉 Eventos activos esta noche</div>
-      <div class="evento-card" onclick="document.getElementById('qr-codigo').value='A3F7B2E1'">
-        <div class="evento-img">🎧</div>
-        <div class="evento-info">
-          <div class="evento-nombre">Disco La Noche</div>
-          <div class="evento-fecha">Hoy — Abierto hasta las 5am</div>
-        </div>
-        <span class="evento-codigo">A3F7B2E1</span>
-      </div>
-      <div class="evento-card" onclick="document.getElementById('qr-codigo').value='B7C2D4E9'">
-        <div class="evento-img">🍹</div>
-        <div class="evento-info">
-          <div class="evento-nombre">Bar El Descontrol</div>
-          <div class="evento-fecha">Hoy — Happy hour hasta las 11pm</div>
-        </div>
-        <span class="evento-codigo">B7C2D4E9</span>
-      </div>
-      <div class="evento-card" onclick="document.getElementById('qr-codigo').value='C5E8F1A2'">
-        <div class="evento-img">🎸</div>
-        <div class="evento-info">
-          <div class="evento-nombre">Rock Café Córdoba</div>
-          <div class="evento-fecha">Hoy — Banda en vivo desde las 10pm</div>
-        </div>
-        <span class="evento-codigo">C5E8F1A2</span>
+      <div class="eventos-title">🎯 Eventos activos ahora</div>
+      <div id="eventos-activos-list">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:12px;font-style:italic">Cargando eventos...</div>
       </div>
     </div>
   </div>
@@ -688,6 +667,8 @@ let chatMatchId = null, chatOtro = null;
 </div>
 
 <script>
+const APPKEY='cc';
+
 // ─── UTILS ────────────────────────────────────────────────────────────
 function showLoader(msg='Cargando...') {
   let ol = document.getElementById('loader-overlay');
@@ -766,7 +747,7 @@ window.onload = function() {
   }
 
   // Si ya está logueado, ir directo
-  // Badge CordobaLux
+  // Badge CórdobaLux
   const yaM = document.getElementById('cl-ya-miembro');
   if(yaM && clYaRegistrado()) yaM.style.display='block';
   if (token && usuario) {
@@ -816,15 +797,27 @@ function onRegPhoto(e) {
 }
 
 let regVibe = '';
-function selectVibe(el, containerId) {
-  document.querySelectorAll(`#${containerId} button`).forEach(c => c.classList.remove('selected','sel'));
-  el.classList.add(containerId==='pv-chips' ? 'sel' : 'selected');
-  if (containerId === 'reg-vibes') regVibe = el.textContent;
-  if (containerId === 'pv-chips') {
-    selectedVibe = el.textContent;
-    guardarVibe(selectedVibe);
+
+var VIBE_KEY = APPKEY + '_vibes';
+var selectedVibes = JSON.parse(localStorage.getItem(VIBE_KEY) || '[]');
+
+function selectVibe(el, cid) {
+  if (cid === 'pv-chips') {
+    var isSelected = el.classList.contains('sel');
+    if (!isSelected && selectedVibes.length >= 3) { alert('Podés elegir hasta 3 vibes'); return; }
+    el.classList.toggle('sel');
+    var vibe = el.textContent;
+    if (el.classList.contains('sel')) { if (selectedVibes.indexOf(vibe) < 0) selectedVibes.push(vibe); }
+    else { selectedVibes = selectedVibes.filter(function(v){return v !== vibe}); }
+    localStorage.setItem(VIBE_KEY, JSON.stringify(selectedVibes));
+    if (selectedVibes.length > 0) api('/auth/perfil',{method:'PUT',body:JSON.stringify({vibe:selectedVibes.join(', ')})}).catch(function(){});
+  } else {
+    document.querySelectorAll('#' + cid + ' button').forEach(function(x){x.classList.remove('selected')});
+    el.classList.add('selected');
+    regVibe = el.textContent;
   }
 }
+
 
 function guardarVibe(vibe) {
   api('/auth/perfil', { method:'PUT', body:JSON.stringify({ vibe }) })
@@ -858,7 +851,7 @@ async function doRegister(){
   }catch(e){
     var m=e.message||'Error';
     if(m.toLowerCase().indexOf('ya exist')>=0||m.toLowerCase().indexOf('duplicate')>=0||m.indexOf('23505')>=0){
-      errEl.textContent='Ya tenes cuenta en CordobaLux. Usa "Ya tengo cuenta" para ingresar.';
+      errEl.textContent='Ya tenes cuenta en CórdobaLux. Usa "Ya tengo cuenta" para ingresar.';
     }else{errEl.textContent=m;}
     errEl.style.display='block';
   }finally{hideLoader();}
@@ -1500,19 +1493,23 @@ function confirmarPromo(btn){
   }
 }
 
+
+
 function renderizarAds(pantalla){
   var el=document.getElementById('ads-'+pantalla);
   if(!el)return;
-  var appNombre='cordoba';
-  var ok=sponsorsCache.filter(function(s){
+  var appNombre="cordoba";
+  var filtrados=sponsorsCache.filter(function(s){
     if(!s.activo)return false;
-    var aOk=!s.app||s.app==='todas'||s.app.indexOf(appNombre)>=0;
-    if(!aOk)return false;
-    if(!s.pantalla||s.pantalla==='todas')return true;
-    return s.pantalla.indexOf(pantalla)>=0;
+    var sApp=(s.app||'todas').toLowerCase();
+    var appOk=sApp==='todas'||sApp.split(',').map(function(x){return x.trim()}).indexOf(appNombre)>=0;
+    if(!appOk)return false;
+    var sPan=(s.pantalla||'todas').toLowerCase();
+    if(sPan==='todas')return true;
+    return sPan.split(',').map(function(x){return x.trim()}).indexOf(pantalla)>=0;
   });
-  if(!ok.length){el.innerHTML='';return}
-  el.innerHTML=ok.slice(0,1).map(function(s){
+  if(!filtrados.length){el.innerHTML='';return}
+  el.innerHTML=filtrados.slice(0,1).map(function(s){
     var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'*');
     return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer">'
       +'<div class="ad-img">'+img+'</div>'
@@ -1521,10 +1518,9 @@ function renderizarAds(pantalla){
       +'<span class="ad-tag">'+s.tag+'</span></div>';
   }).join('');
   el.querySelectorAll('[data-sid]').forEach(function(d){
-    d.onclick=function(){abrirPromoSponsor(this.getAttribute('data-sid'));};
+    d.onclick=function(){abrirPromoSponsor(d.getAttribute('data-sid'));};
   });
 }
-
 function cerrarPromo() {
   document.getElementById('promo-modal').classList.remove('show');
 }
@@ -1551,7 +1547,7 @@ function participarPromoWA(pp) {
   if(!confirm('¿Querés participar en esta promo?\n\nAl continuar aceptás recibir información sobre esta promoción por WhatsApp.')) return;
   const uid = usuario ? 'USR-' + usuario.id.substring(0,8) : 'SIN-ID';
   const desc = pp.promo || pp.descripcion || pp.nombre || 'esta promo especial';
-  const msg = encodeURIComponent('Hola! Quiero participar en: "' + (pp.nombre||'Promo') + '"\n\n📋 ' + desc + '\n\nMi código CordobaLux: ' + uid);
+  const msg = encodeURIComponent('Hola! Quiero participar en: "' + (pp.nombre||'Promo') + '"\n\n📋 ' + desc + '\n\nMi código CórdobaLux: ' + uid);
   window.open('https://wa.me/' + pp.whatsapp + '?text=' + msg, '_blank');
 }
 
