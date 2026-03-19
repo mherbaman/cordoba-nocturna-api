@@ -138,7 +138,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <div class="login-logo">CÓRDOBA<span>LUX</span></div>
+    <div class="login-logo">CÓRDOBA<span style="color:var(--pink)">LUX</span></div>
     <p class="login-sub">Panel de administración</p>
     <div class="error-msg" id="login-error"></div>
     <label class="field-label">Email</label>
@@ -155,7 +155,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
   <div class="layout">
     <!-- SIDEBAR -->
     <div class="sidebar">
-      <div class="sidebar-logo">CÓRDOBA<span>LUX</span></div>
+      <div class="sidebar-logo">CÓRDOBA<span style="color:var(--pink)">LUX</span></div>
       <div class="nav-section">Principal</div>
       <button class="nav-item active" onclick="navTo('dashboard',this)"><span class="icon">📊</span> Dashboard</button>
       <button class="nav-item" onclick="navTo('sponsors',this)"><span class="icon">🎯</span> Sponsors</button>
@@ -213,8 +213,8 @@ tr:hover td { background:rgba(255,255,255,.02); }
               <input class="input-field" id="pp-emoji" placeholder="🎉" value="🎉">
             </div>
             <div>
-              <label class="field-label">Etiqueta</label>
-              <input class="input-field" id="pp-tag" placeholder="GRATIS" value="GRATIS">
+              <label class="field-label">Texto del badge (visible en la app)</label>
+              <input class="input-field" id="pp-tag" placeholder="Ej: PROMO, DESCUENTO, GRATIS" value="">
             </div>
             <div class="full">
               <label class="field-label">✅ Mensaje de confirmación (aparece antes de enviar WhatsApp)</label>
@@ -237,8 +237,8 @@ tr:hover td { background:rgba(255,255,255,.02); }
             <div class="full">
               <label class="field-label">Apps Connect donde aparece</label>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                ${['cordoba','fiesta','sunset','festival','gym','todas'].map(a => {
-                  const labels = {cordoba:'🎧 CordobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
+                ${['córdoba','fiesta','sunset','festival','gym','shopping','todas'].map(a => {
+                  const labels = {córdoba:'🎧 CórdobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
                   return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
                     <input type="checkbox" id="pp-a-${a}" ${a==='todas'?'checked':''} style="accent-color:var(--pink)"> ${labels[a]}
                   </label>`;
@@ -248,7 +248,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
             <div class="full">
               <label class="field-label">¿En qué Connect aparece?</label>
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="sp-connects-wrap">
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="cordoba" style="accent-color:var(--pink)"> 🎧 CordobaConnect</label>
+                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="córdoba" style="accent-color:var(--pink)"> 🎧 CórdobaConnect</label>
                 <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="fiesta" style="accent-color:var(--pink)"> 💍 FiestaConnect</label>
                 <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="sunset" style="accent-color:var(--pink)"> 🌅 SunsetConnect</label>
                 <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="festival" style="accent-color:var(--pink)"> 🎪 FestivalConnect</label>
@@ -323,6 +323,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
               <tr>
                 <th>Sponsor</th>
                 <th>Promo</th>
+                <th>Connect</th>
                 <th>Pantalla</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -581,6 +582,7 @@ async function cargarSponsors() {
           </div>
         </td>
         <td style="color:var(--muted);font-size:13px">${s.promo}</td>
+        <td><span class="badge badge-yellow" style="background:rgba(124,58,237,.15);color:#a78bfa">${s.app||'todas'}</span></td>
         <td><span class="badge badge-yellow">${s.pantalla}</span></td>
         <td><span class="badge ${s.activo?'badge-green':'badge-red'}">${s.activo?'Activo':'Inactivo'}</span></td>
         <td>
@@ -644,10 +646,10 @@ function abrirModalSponsor(s={}) {
       <div class="full">
         <label class="field-label">Apps Connect donde aparece</label>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          ${['cordoba','fiesta','sunset','festival','gym','todas'].map(a => {
-            const appLabels = {cordoba:'🎧 CordobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
+          ${['córdoba','fiesta','sunset','festival','gym','shopping','todas'].map(a => {
+            const appLabels = {córdoba:'🎧 CórdobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
             const apps = (s.app||'todas') === 'todas' ? ['todas'] : (s.app||'').split(',');
-            const checked = (apps.includes(a) || apps.includes('todas') && a==='todas') ? 'checked' : '';
+            const checked = apps.includes(a) ? 'checked' : '';
             return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
               <input type="checkbox" id="sp-a-${a}" ${checked} style="accent-color:var(--pink)"> ${appLabels[a]}
             </label>`;
@@ -705,7 +707,7 @@ async function guardarSponsor(id) {
     imagen_promo: document.getElementById('sp-imagen-promo').value.trim(),
     orden:        parseInt(document.getElementById('sp-orden').value)||0
   };
-  const apps = ['cordoba','fiesta','sunset','festival','gym','todas'].filter(a => document.getElementById(`sp-a-${a}`)?.checked);
+  const apps = ['córdoba','fiesta','sunset','festival','gym','shopping','todas'].filter(a => document.getElementById(`sp-a-${a}`)?.checked);
   body.app = apps.includes('todas') || apps.length === 0 ? 'todas' : apps.join(',');
   const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`sp-p-${p}`)?.checked);
   body.pantalla = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
@@ -831,7 +833,7 @@ async function cerrarSesion(sesionId, nombre) {
 async function cargarPromoPrincipal() {
   try {
     const sponsors = await apiAdmin('/sponsors');
-    const pp = sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
+    const pp = sponsors.find(s => s.confirmacion !== undefined && s.orden === -1) || sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
     if (pp) {
       document.getElementById('pp-titulo').value = pp.nombre || '';
       document.getElementById('pp-descripcion').value = pp.promo || '';
@@ -841,7 +843,7 @@ async function cargarPromoPrincipal() {
     document.getElementById('pp-imagen-url').value = pp.imagen_url || '';
     document.getElementById('pp-url-promo').value = pp.url_promo || '';
     const apps_loaded = (pp.app||'todas') === 'todas' ? ['todas'] : pp.app.split(',');
-    ['cordoba','fiesta','sunset','festival','gym','todas'].forEach(a => {
+    ['córdoba','fiesta','sunset','festival','gym','todas'].forEach(a => {
       const el = document.getElementById(`pp-a-${a}`);
       if(el) el.checked = apps_loaded.includes(a) || (a==='todas' && pp.app==='todas');
     });
@@ -878,7 +880,7 @@ async function guardarPromoPersonal() {
   const whatsapp      = document.getElementById('pp-whatsapp').value.trim();
   const confirmacion  = document.getElementById('pp-confirmacion')?.value.trim()||'Al participar acepto recibir información de esta promoción';
   if (!titulo || !desc) { alert('Completá el título y la descripción'); return; }
-  const apps_pp = ['cordoba','fiesta','sunset','festival','gym','todas'].filter(a => document.getElementById(`pp-a-${a}`)?.checked);
+  const apps_pp = ['córdoba','fiesta','sunset','festival','gym','todas'].filter(a => document.getElementById(`pp-a-${a}`)?.checked);
   const app_pp = apps_pp.includes('todas') || apps_pp.length === 0 ? 'todas' : apps_pp.join(',');
   const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`pp-p-${p}`)?.checked);
   const pantalla  = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
@@ -886,7 +888,7 @@ async function guardarPromoPersonal() {
   const url_promo   = document.getElementById('pp-url-promo')?.value.trim()||'';
   try {
     const sponsors = await apiAdmin('/sponsors');
-    const pp = sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
+    const pp = sponsors.find(s => s.confirmacion !== undefined && s.orden === -1) || sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
     const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, app:app_pp, orden:-1, imagen_url, imagen_promo:url_promo, confirmacion };
     if (pp) await apiAdmin(`/sponsors/${pp.id}`, { method:'PUT', body:JSON.stringify(body) });
     else    await apiAdmin('/sponsors', { method:'POST', body:JSON.stringify({...body, activo:true}) });
