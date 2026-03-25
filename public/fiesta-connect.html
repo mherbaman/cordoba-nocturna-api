@@ -12,7 +12,7 @@
   --gold:#c9a84c;--gold2:#e8c97a;--rose:#e8728a;--cream:#faf7f0;
   --dark:#0d0a06;--card:#16120a;--card2:#1e1810;
   --text:#fff;--muted:rgba(255,255,255,.5);--border:rgba(201,168,76,.2);
-  --API:'https://api.shops.com.ar';
+  --API:'https://api.cordobalux.com';
 }
 body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 
@@ -300,7 +300,7 @@ function clYaRegistrado(){
   return !!clGetToken();
 }
 
-const API = 'https://api.shops.com.ar';
+const API = 'https://api.cordobalux.com';
 const VIBES = [
   "Conocer gente 🥂","Bailar toda la noche 💃","Charla y risas 🌙",
   "Busco algo especial 💫","Solo buena onda ✨","Fotos y recuerdos 📸",
@@ -328,7 +328,7 @@ const VIBES = [
       </div>
       <div class="age-check">
         <input type="checkbox" id="check-politicas" onchange="checkAge()">
-        <label for="check-politicas">Acepto los <a href="https://api.shops.com.ar/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label>
+        <label for="check-politicas">Acepto los <a href="https://api.cordobalux.com/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label>
       </div>
     </div>
     <button class="btn-age" id="btn-age-entrar" onclick="aceptarEdad()">ENTRAR 🥂</button>

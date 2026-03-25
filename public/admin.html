@@ -466,7 +466,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
 </div>
 
 <script>
-const API = 'https://api.shops.com.ar';
+const API = 'https://api.cordobalux.com';
 let adminToken = localStorage.getItem('admin_token') || null;
 let adminUser  = JSON.parse(localStorage.getItem('admin_user') || 'null');
 
@@ -1091,7 +1091,7 @@ async function gestionarAdminNegocio(negocioId, negocioNombre) {
     </div>
     <div style="background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.7)">
       📱 El dueño va a entrar en:<br>
-      <strong style="color:#a78bfa">https://api.shops.com.ar/negocio.html</strong>
+      <strong style="color:#a78bfa">https://api.cordobalux.com/negocio.html</strong>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
@@ -1112,7 +1112,7 @@ async function crearAdminNegocio(negocioId) {
       body: JSON.stringify({ negocio_id: negocioId, nombre, email, password })
     });
     cerrarModal();
-    alert(`✅ Acceso creado!\n\nEl dueño puede entrar en:\nhttps://api.shops.com.ar/negocio.html\n\nEmail: ${email}`);
+    alert(`✅ Acceso creado!\n\nEl dueño puede entrar en:\nhttps://api.cordobalux.com/negocio.html\n\nEmail: ${email}`);
   } catch(err) { alert(err.message); }
 }
 

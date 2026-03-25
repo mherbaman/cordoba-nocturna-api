@@ -154,7 +154,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 <body>
 
 <script>
-const API = 'https://api.shops.com.ar';
+const API = 'https://api.cordobalux.com';
 let adminToken = localStorage.getItem('neg_token') || null;
 let adminData  = JSON.parse(localStorage.getItem('neg_admin') || 'null');
 let negocioData = null;
@@ -360,7 +360,7 @@ function mostrarApp() {
   const appNombre = APP_NAMES[appFile] || 'Córdoba Nocturna';
   document.getElementById('top-app-badge').textContent = '📱 ' + appNombre;
   document.getElementById('app-info-nombre').textContent = appNombre;
-  const appUrl = `https://api.shops.com.ar/${appFile}`;
+  const appUrl = `https://api.cordobalux.com/${appFile}`;
   const urlEl = document.getElementById('app-info-url');
   urlEl.textContent = appUrl;
   urlEl.href = appUrl;
@@ -504,7 +504,7 @@ function copiarQR(codigo) {
 
 function compartirQR(codigo, negocio) {
   const appFile  = APP_MAP[negocioData.tipo] || 'index.html';
-  const appUrl   = `https://api.shops.com.ar/${appFile}`;
+  const appUrl   = `https://api.cordobalux.com/${appFile}`;
   const msg = encodeURIComponent(`🌙 Esta noche en ${negocio} usamos FiestaConnect!\n\nEntrá acá: ${appUrl}\nY usá el código: *${codigo}*\n\n¡Te esperamos! 🥂`);
   window.open(`https://wa.me/?text=${msg}`, '_blank');
 }

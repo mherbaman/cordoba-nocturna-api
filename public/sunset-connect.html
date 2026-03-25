@@ -282,7 +282,7 @@ function clYaRegistrado(){
   return !!clGetToken();
 }
 
-const API='https://api.shops.com.ar';
+const API='https://api.cordobalux.com';
 const VIBES=['Ver el atardecer 🌅','Tomar algo rico 🥂','Conocer gente nueva ✨','Buena conversación 💬','Fotos y recuerdos 📸','Disfrutar la vista 🌆','Relajarme 😌','Sorprender a alguien 💛'];
 
 
@@ -303,7 +303,7 @@ if(clYaRegistrado()&&!token){ token=clGetToken(); usuario=clGetUsuario(); }
     <div class="age-title">Antes de entrar</div>
     <p class="age-sub">SunsetConnect es exclusivamente para mayores de 18 años.</p>
     <div class="age-check"><input type="checkbox" id="check-edad" onchange="checkAge()"><label for="check-edad">Confirmo que tengo <strong>18 años o más</strong>.</label></div>
-    <div class="age-check"><input type="checkbox" id="check-pol" onchange="checkAge()"><label for="check-pol">Acepto los <a href="https://api.shops.com.ar/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label></div>
+    <div class="age-check"><input type="checkbox" id="check-pol" onchange="checkAge()"><label for="check-pol">Acepto los <a href="https://api.cordobalux.com/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label></div>
     <button class="btn-age" id="btn-age" onclick="aceptarEdad()">ENTRAR 🌅</button>
   </div>
 </div>
