@@ -1343,7 +1343,7 @@ function renderizarAds(pantalla){
     return sPan.split(',').map(function(x){return x.trim()}).indexOf(pantalla)>=0;
   });
   if(!filtrados.length){el.innerHTML='';return}
-  el.innerHTML=filtrados.slice(0,1).map(function(s){
+  el.innerHTML=filtrados.map(function(s){
     var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'*');
     return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer">'
       +'<div class="ad-img">'+img+'</div>'
