@@ -8,6 +8,24 @@ const router = express.Router();
 const { pool } = require('../database');
 const { authAdmin, authSuperAdmin } = require('../middleware/auth');
 
+// ── GET /negocios/sesiones-activas ───────────────────────────────────
+router.get('/sesiones-activas', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT n.nombre, n.tipo, n.slug, n.logo_url,
+             s.id as sesion_id, s.nombre as sesion_nombre,
+             s.total_usuarios, s.abierta_en
+      FROM sesiones_noche s
+      JOIN negocios n ON n.id = s.negocio_id
+      WHERE s.activa = true AND n.activo = true
+      ORDER BY s.total_usuarios DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // ── GET /negocios/:slug ──────────────────────────────────────────────
 // Info pública de un negocio (para mostrar en la app del usuario)
 router.get('/:slug', async (req, res) => {
@@ -96,23 +114,5 @@ router.put('/:id', authSuperAdmin, async (req, res) => {
 });
 
 
-
-// ── GET /negocios/sesiones-activas ───────────────────────────────────
-router.get('/sesiones-activas', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT n.nombre, n.tipo, n.slug, n.logo_url,
-             s.id as sesion_id, s.nombre as sesion_nombre,
-             s.total_usuarios, s.abierta_en
-      FROM sesiones_noche s
-      JOIN negocios n ON n.id = s.negocio_id
-      WHERE s.activa = true AND n.activo = true
-      ORDER BY s.total_usuarios DESC
-    `);
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Error interno' });
-  }
-});
 
 module.exports = router;
