@@ -1332,7 +1332,7 @@ function confirmarPromo(btn){
 function renderizarAds(pantalla){
   var el=document.getElementById('ads-'+pantalla);
   if(!el)return;
-  var appNombre="sc";
+  var appNombre='todas';
   var filtrados=sponsorsCache.filter(function(s){
     if(!s.activo)return false;
     var sApp=(s.app||'todas').toLowerCase();
@@ -1383,6 +1383,33 @@ function participarPromoWA(pp) {
   const desc = pp.promo || pp.descripcion || pp.nombre || 'esta promo especial';
   const msg = encodeURIComponent('Hola! Quiero participar en: "' + (pp.nombre||'Promo') + '"\n\n📋 ' + desc + '\n\nMi código CórdobaLux: ' + uid);
   window.open('https://wa.me/' + pp.whatsapp + '?text=' + msg, '_blank');
+}
+
+
+async function cargarEventosActivos() {
+  var el = document.getElementById('eventos-activos-list');
+  if (!el) return;
+  try {
+    var sesiones = await fetch(API + '/negocios/sesiones-activas').then(function(r){ return r.json(); });
+    if (!sesiones.length) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px;font-style:italic">No hay eventos activos ahora</div>';
+      return;
+    }
+    el.innerHTML = sesiones.map(function(s) {
+      var emoji = s.tipo === 'disco' ? '🎧' : s.tipo === 'bar' ? '🍺' : s.tipo === 'casamiento' ? '💍' : s.tipo === 'shopping' ? '🛍️' : s.tipo === 'sunset' ? '🌅' : s.tipo === 'gimnasio' ? '💪' : '🎯';
+      var usuarios = s.total_usuarios || 0;
+      return '<div class="evento-card" onclick="document.getElementById(\'qr-codigo\').value=\'\';document.getElementById(\'qr-codigo\').focus()">'
+        + '<div class="evento-img">' + emoji + '</div>'
+        + '<div class="evento-info">'
+        + '<div class="evento-nombre">' + s.nombre + '</div>'
+        + '<div class="evento-fecha">' + s.sesion_nombre + ' · ' + usuarios + ' personas</div>'
+        + '</div>'
+        + '<span class="evento-codigo">' + (s.sesion_id ? s.sesion_id.substring(0,6).toUpperCase() : '') + '</span>'
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No se pudieron cargar los eventos</div>';
+  }
 }
 
 </script>

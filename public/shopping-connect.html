@@ -346,14 +346,8 @@ let regPhoto='',regVibe='';
     </div>
     <button class="btn-primary" onclick="entrarConQR()">ENTRAR AL SHOPPING →</button>
     <div style="margin-top:12px"><button class="btn-secondary" onclick="showScreen('swipe')" style="width:100%;max-width:340px">Saltear</button></div>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:20px 0 10px;text-align:left">🛍️ Shoppings activos ahora</div>
-    <div class="evento-card" onclick="document.getElementById('qr-codigo').value='NUEV001'">
-      <div class="evento-img">🏬</div>
-      <div class="evento-info"><div class="evento-nombre">Nuevo Centro</div><div class="evento-fecha">Hoy · Abierto</div></div>
-      <span class="evento-codigo">NUEV001</span>
-    </div>
-    <div class="evento-card" onclick="document.getElementById('qr-codigo').value='PATIO01'">
-      <div class="evento-img">🛍️</div>
+    <div class="eventos-title">🎯 Eventos activos ahora</div><div id="eventos-activos-list"><div style="color:var(--muted);font-size:13px;text-align:center;padding:12px;font-style:italic">Cargando...</div></div>
+    
       <div class="evento-info"><div class="evento-nombre">Patio Olmos</div><div class="evento-fecha">Hoy · Abierto</div></div>
       <span class="evento-codigo">PATIO01</span>
     </div>
@@ -494,7 +488,7 @@ async function cargarSponsorsApp(){
 function renderizarAds(pantalla){
   var el=document.getElementById('ads-'+pantalla);
   if(!el)return;
-  var appNombre='shopping';
+  var appNombre='todas';
   var ok=sponsorsCache.filter(function(s){
     if(!s.activo)return false;
     var aOk=!s.app||s.app==='todas'||s.app.indexOf(appNombre)>=0;
@@ -515,7 +509,7 @@ function renderizarAdsSwipe(){
   var top=document.getElementById('ads-swipe-top');
   var bottom=document.getElementById('ads-swipe-bottom');
   if(!top||!bottom)return;
-  var appNombre='shopping';
+  var appNombre='todas';
   var ok=sponsorsCache.filter(function(s){
     if(!s.activo)return false;
     var aOk=!s.app||s.app==='todas'||s.app.indexOf(appNombre)>=0;
@@ -687,6 +681,33 @@ window.onload=function(){
   if(!localStorage.getItem('shp_edad_ok')){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});document.getElementById('age-verify').classList.add('active');return}
   if(token&&usuario){syncProfileBtn();connectSocket();var tipo=localStorage.getItem('shp_tipo')||'default';var cat=CATEGORIAS[tipo]||CATEGORIAS.default;var tl=document.getElementById('splash-tagline');if(tl)tl.textContent=cat.slogan;var sh=document.getElementById('sesion-nombre-header');var neg=localStorage.getItem('shp_negocio');if(sh&&neg){sh.textContent='📍 '+neg;sh.style.display='block'}if(sesionId)showScreen('swipe');else showScreen('qr-screen')}
 };
+
+async function cargarEventosActivos() {
+  var el = document.getElementById('eventos-activos-list');
+  if (!el) return;
+  try {
+    var sesiones = await fetch(API + '/negocios/sesiones-activas').then(function(r){ return r.json(); });
+    if (!sesiones.length) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px;font-style:italic">No hay eventos activos ahora</div>';
+      return;
+    }
+    el.innerHTML = sesiones.map(function(s) {
+      var emoji = s.tipo === 'disco' ? '🎧' : s.tipo === 'bar' ? '🍺' : s.tipo === 'casamiento' ? '💍' : s.tipo === 'shopping' ? '🛍️' : s.tipo === 'sunset' ? '🌅' : s.tipo === 'gimnasio' ? '💪' : '🎯';
+      var usuarios = s.total_usuarios || 0;
+      return '<div class="evento-card" onclick="document.getElementById(\'qr-codigo\').value=\'\';document.getElementById(\'qr-codigo\').focus()">'
+        + '<div class="evento-img">' + emoji + '</div>'
+        + '<div class="evento-info">'
+        + '<div class="evento-nombre">' + s.nombre + '</div>'
+        + '<div class="evento-fecha">' + s.sesion_nombre + ' · ' + usuarios + ' personas</div>'
+        + '</div>'
+        + '<span class="evento-codigo">' + (s.sesion_id ? s.sesion_id.substring(0,6).toUpperCase() : '') + '</span>'
+        + '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No se pudieron cargar los eventos</div>';
+  }
+}
+
 </script>
 </body>
 </html>
