@@ -497,7 +497,7 @@ function renderizarAds(pantalla){
     return s.pantalla.indexOf(pantalla)>=0;
   });
   if(!ok.length){el.innerHTML='';return}
-  el.innerHTML=ok.slice(0,1).map(function(s){
+  el.innerHTML=ok.map(function(s){
     var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'🛍️');
     return '<div class="ad-tile" data-sid="'+s.id+'"><div class="ad-tile-img">'+img+'</div><div class="ad-tile-info"><div class="ad-tile-name">'+s.nombre+'</div><div class="ad-tile-promo">'+s.promo+'</div></div><span class="ad-tile-tag">'+s.tag+'</span></div>';
   }).join('');

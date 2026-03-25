@@ -575,7 +575,7 @@ function showScreen(id) {
 function checkAge() {
   const edad     = document.getElementById('check-edad')?.checked;
   const politicas= document.getElementById('check-politicas')?.checked;
-  const btn      = document.getElementById('btn-entrar');
+  const btn      = document.getElementById('btn-age-entrar');
   if (btn) btn.classList.toggle('enabled', edad && politicas);
 }
 
