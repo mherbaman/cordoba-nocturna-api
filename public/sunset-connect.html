@@ -304,7 +304,7 @@ if(clYaRegistrado()&&!token){ token=clGetToken(); usuario=clGetUsuario(); }
     <p class="age-sub">SunsetConnect es exclusivamente para mayores de 18 años.</p>
     <div class="age-check"><input type="checkbox" id="check-edad" onchange="checkAge()"><label for="check-edad">Confirmo que tengo <strong>18 años o más</strong>.</label></div>
     <div class="age-check"><input type="checkbox" id="check-pol" onchange="checkAge()"><label for="check-pol">Acepto los <a href="https://api.cordobalux.com/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label></div>
-    <button class="btn-age" id="btn-age" onclick="aceptarEdad()">ENTRAR 🌅</button>
+    <button class="btn-age" id="btn-age" onclick="aceptarYEntrar()">ENTRAR 🌅</button>
   </div>
 </div>
 
@@ -541,7 +541,7 @@ function showScreen(id) {
 // ─── VERIFICACIÓN DE EDAD ─────────────────────────────────────────────
 function checkAge() {
   const edad     = document.getElementById('check-edad')?.checked;
-  const politicas= document.getElementById('check-politicas')?.checked;
+  const politicas= document.getElementById('check-pol')?.checked;
   const btn      = document.getElementById('btn-age');
   if (btn) btn.classList.toggle('enabled', edad && politicas);
 }
