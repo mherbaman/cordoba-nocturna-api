@@ -8,7 +8,7 @@ const cors = require('cors');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
-const { initDatabase, agregarTablaMensajes, agregarTablaSponsors } = require('./database');
+const { initDatabase, agregarTablaMensajes, agregarTablaSponsors, agregarTablasPadel } = require('./database');
 const { iniciarLimpieza } = require('./limpieza');
 
 const app = express();
@@ -51,6 +51,7 @@ app.use('/matches',     require('./routes/matches'));
 app.use('/mensajes',    require('./routes/mensajes'));
 app.use('/superadmin',  require('./routes/superadmin'));
 app.use('/sponsors',    require('./routes/sponsors'));
+app.use('/padel',     require('./routes/padel'));
 
 // ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -68,6 +69,7 @@ async function arrancar() {
     await initDatabase();
     await agregarTablaMensajes();
     await agregarTablaSponsors();
+    await agregarTablasPadel();
     iniciarLimpieza();
     server.listen(PORT, () => {
       console.log(`
