@@ -414,14 +414,14 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div class="error-msg" id="padel-error"></div>
     <label class="field-label">Tu categoría</label>
     <div class="nivel-grid" id="nivel-grid">
-      <button class="nivel-btn" onclick="selectNivel(this,'8va')">8va categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'7ma')">7ma categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'6ta')">6ta categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'5ta')">5ta categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'4ta')">4ta categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'3ra')">3ra categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'2da')">2da categoría</button>
-      <button class="nivel-btn" onclick="selectNivel(this,'1ra')">1ra categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'octava')">8va categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'septima')">7ma categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'sexta')">6ta categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'quinta')">5ta categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'cuarta')">4ta categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'tercera')">3ra categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'segunda')">2da categoría</button>
+      <button class="nivel-btn" onclick="selectNivel(this,'primera')">1ra categoría</button>
     </div>
     <label class="field-label">Tu zona</label>
     <select class="input-field" id="padel-zona" style="color:#fff;background:#030d06">
@@ -491,14 +491,14 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap">
       <select id="ranking-nivel-filter" class="input-field" style="flex:1;margin:0;font-size:13px;background:#030d06;color:#fff" onchange="cargarRanking()">
         <option value="">Todos los niveles</option>
-        <option value="8va">8va categoría</option>
-        <option value="7ma">7ma categoría</option>
-        <option value="6ta">6ta categoría</option>
-        <option value="5ta">5ta categoría</option>
-        <option value="4ta">4ta categoría</option>
-        <option value="3ra">3ra categoría</option>
-        <option value="2da">2da categoría</option>
-        <option value="1ra">1ra categoría</option>
+        <option value="octava">8va categoría</option>
+        <option value="septima">7ma categoría</option>
+        <option value="sexta">6ta categoría</option>
+        <option value="quinta">5ta categoría</option>
+        <option value="cuarta">4ta categoría</option>
+        <option value="tercera">3ra categoría</option>
+        <option value="segunda">2da categoría</option>
+        <option value="primera">1ra categoría</option>
       </select>
     </div>
     <div id="ranking-list"></div>
@@ -1178,11 +1178,18 @@ async function verificarPerfilPadel() {
 
 async function cargarZonasPadel() {
   try {
-    const canchas = await api('/padel/canchas');
-    const zonas = [...new Set(canchas.map(c => c.zona_cancha).filter(Boolean))];
+    const negocios = await fetch(API+'/negocios/sesiones-activas').then(r=>r.json()).catch(()=>[]);
+    // Zonas fijas de Córdoba como fallback
+    const ZONAS_FIJAS = [
+      'Centro','Nueva Córdoba','Güemes','Alberdi','General Paz','Cerro de las Rosas',
+      'Villa Allende','Arguello','Urca','Jardín','Maipú','Villa Belgrano',
+      'La Calera','Unquillo','Mendiolaza','Salsipuedes','Otra zona'
+    ];
     const sel = document.getElementById('padel-zona');
     if (!sel) return;
-    zonas.forEach(z => {
+    // Limpiar opciones existentes excepto la primera
+    while(sel.options.length > 1) sel.remove(1);
+    ZONAS_FIJAS.forEach(z => {
       const opt = document.createElement('option');
       opt.value = z; opt.textContent = z;
       sel.appendChild(opt);
