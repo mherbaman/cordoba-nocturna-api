@@ -1047,7 +1047,7 @@ function abrirModalNegocio(n={}) {
       </div>
       <div class="full" id="zona-field" style="display:none">
         <label class="field-label">Zona / Barrio</label>
-        <select class="input-field" id="neg-zona" style="color:#fff;background:#1a0030;">
+        <select class="input-field" id="neg-zona" style="color:#fff;background:#1a0030;" onchange="toggleZonaCustom(this.value)">
           <option value="" style="background:#1a0030">Seleccioná la zona...</option>
           <option value="Centro" style="background:#1a0030" ${n.zona==='Centro'?'selected':''}>Centro</option>
           <option value="Nueva Córdoba" style="background:#1a0030" ${n.zona==='Nueva Córdoba'?'selected':''}>Nueva Córdoba</option>
@@ -1078,7 +1078,9 @@ function abrirModalNegocio(n={}) {
           <option value="Unquillo" style="background:#1a0030" ${n.zona==='Unquillo'?'selected':''}>Unquillo</option>
           <option value="Mendiolaza" style="background:#1a0030" ${n.zona==='Mendiolaza'?'selected':''}>Mendiolaza</option>
           <option value="Salsipuedes" style="background:#1a0030" ${n.zona==='Salsipuedes'?'selected':''}>Salsipuedes</option>
+          <option value="otra" style="background:#1a0030">📍 Otra zona...</option>
         </select>
+        <input class="input-field" id="neg-zona-custom" placeholder="Escribí la zona..." style="display:none;margin-top:8px">
       </div>
       <div>
         <label class="field-label">Nombre del dueño</label>
@@ -1193,6 +1195,11 @@ function toggleZona(tipo) {
   if (el) el.style.display = tiposPadel.includes(tipo) ? 'block' : 'none';
 }
 
+function toggleZonaCustom(val) {
+  const custom = document.getElementById('neg-zona-custom');
+  if (custom) custom.style.display = val === 'otra' ? 'block' : 'none';
+}
+
 async function guardarNegocio(id) {
   const body = {
     nombre:      document.getElementById('neg-nombre').value.trim(),
@@ -1204,7 +1211,11 @@ async function guardarNegocio(id) {
     dueno_tel:         document.getElementById('neg-tel').value.trim(),
     fecha_vencimiento: document.getElementById('neg-vencimiento').value||null,
     estado_pago:       document.getElementById('neg-pago').value,
-    zona:              document.getElementById('neg-zona')?.value||null
+    zona:              (()=>{
+      const sel = document.getElementById('neg-zona')?.value;
+      if(sel === 'otra') return document.getElementById('neg-zona-custom')?.value.trim()||null;
+      return sel||null;
+    })()
   };
   if (!body.nombre || !body.slug) { alert('Nombre y slug son requeridos'); return; }
   try {
