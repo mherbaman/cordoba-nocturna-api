@@ -805,7 +805,9 @@ async function responderReserva(id, estado) {
   } catch(err) { alert(err.message); }
 }
 
-// ─── CANCHAS PADEL ───────────────────────────────────────────────────
+// ─── STATS ─────────────────────────────────────────────────────────────
+async function cargarStats() {
+  const detalle = document.getElementById('stats-detalle');
   const tbody   = document.getElementById('stats-tbody');
   try {
     const [statsRes, sesiones] = await Promise.all([
