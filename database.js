@@ -207,4 +207,87 @@ async function agregarTablaSponsors() {
   }
 }
 
-module.exports = { pool, initDatabase, agregarTablaMensajes, agregarTablaSponsors };
+// ── PÁDEL CONNECT ─────────────────────────────────────────────────────
+async function agregarTablasPadel() {
+  try {
+    // Perfil extendido del jugador de pádel
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS jugadores_padel (
+        id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        usuario_id        UUID UNIQUE NOT NULL,
+        nombre            VARCHAR(100) NOT NULL,
+        nivel             VARCHAR(20) NOT NULL
+                            CHECK (nivel IN ('octava','septima','sexta','quinta','cuarta','tercera','segunda','primera')),
+        zona              VARCHAR(100) NOT NULL,
+        foto_url          TEXT,
+        descripcion       TEXT,
+        ranking_puntos    INTEGER DEFAULT 1000,
+        partidos_jugados  INTEGER DEFAULT 0,
+        victorias         INTEGER DEFAULT 0,
+        promedio_resenas  DECIMAL(3,2) DEFAULT 0,
+        total_resenas     INTEGER DEFAULT 0,
+        activo            BOOLEAN DEFAULT true,
+        creado_en         TIMESTAMP DEFAULT NOW(),
+        actualizado_en    TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Tabla jugadores_padel lista');
+
+    // Reseñas entre jugadores (una por par, upsert)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS resenas_padel (
+        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        de_jugador_id  UUID NOT NULL REFERENCES jugadores_padel(id) ON DELETE CASCADE,
+        a_jugador_id   UUID NOT NULL REFERENCES jugadores_padel(id) ON DELETE CASCADE,
+        puntuacion     INTEGER NOT NULL CHECK (puntuacion BETWEEN 1 AND 5),
+        comentario     TEXT,
+        creado_en      TIMESTAMP DEFAULT NOW(),
+        UNIQUE(de_jugador_id, a_jugador_id)
+      )
+    `);
+    console.log('✅ Tabla resenas_padel lista');
+
+    // Horarios disponibles cargados por el club
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS disponibilidad_padel (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        negocio_id       UUID NOT NULL REFERENCES negocios(id) ON DELETE CASCADE,
+        dia_semana       INTEGER NOT NULL CHECK (dia_semana BETWEEN 0 AND 6),
+        hora_inicio      TIME NOT NULL,
+        hora_fin         TIME NOT NULL,
+        precio_por_hora  INTEGER NOT NULL,
+        cantidad_canchas INTEGER DEFAULT 1,
+        zona             VARCHAR(100),
+        activo           BOOLEAN DEFAULT true,
+        creado_en        TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Tabla disponibilidad_padel lista');
+
+    // Reservas de canchas
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS reservas_padel (
+        id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        jugador_id           UUID NOT NULL REFERENCES jugadores_padel(id) ON DELETE CASCADE,
+        negocio_id           UUID NOT NULL REFERENCES negocios(id) ON DELETE CASCADE,
+        disponibilidad_id    UUID NOT NULL REFERENCES disponibilidad_padel(id) ON DELETE CASCADE,
+        fecha                DATE NOT NULL,
+        estado               VARCHAR(20) DEFAULT 'pendiente'
+                               CHECK (estado IN ('pendiente','confirmado','rechazado')),
+        precio_total         INTEGER NOT NULL,
+        comision_plataforma  INTEGER NOT NULL,
+        notas                TEXT,
+        telefono_contacto    VARCHAR(50),
+        motivo_rechazo       TEXT,
+        respondido_en        TIMESTAMP,
+        creado_en            TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('✅ Tabla reservas_padel lista');
+
+  } catch (err) {
+    console.error('❌ Error creando tablas de pádel:', err);
+  }
+}
+
+module.exports = { pool, initDatabase, agregarTablaMensajes, agregarTablaSponsors, agregarTablasPadel };
