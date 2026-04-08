@@ -718,12 +718,12 @@ function cerrarModalDisp() { document.getElementById('modal-disponibilidad').sty
 
 async function guardarTurno(id) {
   const body = {
-    dia_semana:  parseInt(document.getElementById('disp-dia').value),
-    hora_inicio: document.getElementById('disp-inicio').value,
-    hora_fin:    document.getElementById('disp-fin').value,
-    precio:      parseFloat(document.getElementById('disp-precio').value)||0,
-    precio_app:  parseFloat(document.getElementById('disp-precio-app').value)||0,
-    max_turnos:  parseInt(document.getElementById('disp-max').value)||1
+    negocio_id:      negocioData.id,
+    dia_semana:      parseInt(document.getElementById('disp-dia').value),
+    hora_inicio:     document.getElementById('disp-inicio').value,
+    hora_fin:        document.getElementById('disp-fin').value,
+    precio_por_hora: parseFloat(document.getElementById('disp-precio').value)||0,
+    cantidad_canchas:parseInt(document.getElementById('disp-max').value)||1
   };
   if (!body.hora_inicio || !body.hora_fin) { alert('Ingresá hora de inicio y fin'); return; }
   try {
