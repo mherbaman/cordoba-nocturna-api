@@ -12,6 +12,24 @@ const { authAdmin } = require('../middleware/auth');
 //   JUGADORES
 // ════════════════════════════════════════════════
 
+// ── GET /padel/jugadores/mi-perfil ──────────────────────────────────────
+// Verificar si el usuario logueado tiene perfil de jugador
+router.get('/jugadores/mi-perfil', async (req, res) => {
+  const { usuario_id } = req.query;
+  if (!usuario_id) return res.status(400).json({ error: 'usuario_id requerido' });
+  try {
+    const result = await pool.query(
+      'SELECT * FROM jugadores_padel WHERE usuario_id = $1',
+      [usuario_id]
+    );
+    if (result.rows.length === 0) return res.json({ tiene_perfil: false });
+    res.json({ tiene_perfil: true, perfil: result.rows[0] });
+  } catch (err) {
+    console.error('GET /padel/jugadores/mi-perfil:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // ── GET /padel/jugadores ─────────────────────────────────────────────
 // Matchmaking: lista jugadores filtrando por nivel, zona, disponibilidad
 router.get('/jugadores', async (req, res) => {
