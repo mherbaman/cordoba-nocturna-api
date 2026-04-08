@@ -354,6 +354,11 @@ async function apiAdmin(path, opts={}) {
 
 <script>
 // ─── AUTH ─────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btn-login");
+  if (btn) btn.addEventListener("click", doLogin);
+});
+
 async function doLogin() {
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
