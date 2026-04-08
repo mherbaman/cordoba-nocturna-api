@@ -167,6 +167,7 @@ const APP_MAP = {
   corporativo:'fiesta-connect.html', privado:'fiesta-connect.html',
   sunset:'index.html', playa:'index.html', terraza:'index.html',
   gimnasio:'index.html', crossfit:'index.html', yoga:'index.html',
+  padel:'padel-connect.html', cancha:'padel-connect.html',
   festival:'index.html', feria:'index.html', recital:'index.html'
 };
 const APP_NAMES = {
@@ -219,10 +220,10 @@ async function apiAdmin(path, opts={}) {
     <button class="tab" onclick="navTo('historial',this)">📅 Historial</button>
     <button class="tab" onclick="navTo('clientes',this)">👥 Clientes</button>
     <button class="tab" onclick="navTo('stats',this)">📊 Estadísticas</button>
-    <button class="tab" onclick="navTo('canchas',this)">🎾 Mis Canchas</button>
-    <button class="tab" onclick="navTo('reservas',this)">📋 Reservas</button>
-    <button class="tab" onclick="navTo('canchas',this)">🎾 Mis Canchas</button>
-    <button class="tab" onclick="navTo('reservas',this)">📋 Reservas</button>
+    <button class="tab" id="tab-canchas" onclick="navTo('canchas',this)" style="display:none">🎾 Mis Canchas</button>
+    <button class="tab" id="tab-reservas" onclick="navTo('reservas',this)" style="display:none">📋 Reservas</button>
+    <button class="tab" id="tab-canchas" onclick="navTo('canchas',this)" style="display:none">🎾 Mis Canchas</button>
+    <button class="tab" id="tab-reservas" onclick="navTo('reservas',this)" style="display:none">📋 Reservas</button>
   </div>
 
   <div class="main">
@@ -338,8 +339,6 @@ async function apiAdmin(path, opts={}) {
     <div id="modal-disp-body"></div>
   </div>
 </div>
-
-  </div>
 <div id="modal-overlay">
   <div class="modal-box">
     <div class="modal-title">🌙 Abrir la noche</div>
@@ -409,10 +408,15 @@ function mostrarApp() {
     casamiento:'💍',cumple18:'🎂',corporativo:'🤝',privado:'🎉',
     sunset:'🌅',playa:'🏖️',terraza:'🌇',
     gimnasio:'💪',crossfit:'🏋️',yoga:'🧘',
-    festival:'🎪',feria:'🎡',recital:'🎸'
+    festival:'🎪',feria:'🎡',recital:'🎸',
+    padel:'🎾',cancha:'🎾'
   };
   document.getElementById('app-info-icon').textContent = iconMap[negocioData.tipo] || '📱';
 
+  // Mostrar tabs padel solo para clubs de padel
+  const esPadel = ['padel','cancha'].includes(negocioData.tipo);
+  document.getElementById('tab-canchas').style.display = esPadel ? 'block' : 'none';
+  document.getElementById('tab-reservas').style.display = esPadel ? 'block' : 'none';
   cargarInicio();
 }
 
