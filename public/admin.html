@@ -1117,6 +1117,17 @@ function abrirModalNegocio(n={}) {
       </button>
     </div>`;
   document.getElementById('modal-overlay').classList.add('show');
+  // Mostrar zona si es tipo padel y preseleccionar valor guardado
+  const tipoActual = n.tipo || '';
+  toggleZona(tipoActual);
+  if (n.zona) {
+    const sel = document.getElementById('neg-zona');
+    if (sel) {
+      const opt = Array.from(sel.options).find(o => o.value === n.zona);
+      if (opt) { sel.value = n.zona; }
+      else { sel.value = 'otra'; const custom = document.getElementById('neg-zona-custom'); if (custom) { custom.value = n.zona; custom.style.display = 'block'; } }
+    }
+  }
 }
 
 function editarNegocio(n) { abrirModalNegocio(n); }
