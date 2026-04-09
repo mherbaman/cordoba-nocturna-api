@@ -75,10 +75,6 @@ router.get('/jugadores', async (req, res) => {
     res.status(500).json({ error: 'Error interno' });
   }
 });
-    console.error('GET /padel/jugadores:', err);
-    res.status(500).json({ error: 'Error interno' });
-  }
-});
 
 // ── POST /padel/jugadores ────────────────────────────────────────────
 // Crear o actualizar perfil de jugador
