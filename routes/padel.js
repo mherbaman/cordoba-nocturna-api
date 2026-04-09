@@ -1,6 +1,7 @@
 // ================================================
 //   CÓRDOBA NOCTURNA — Rutas de Pádel Connect
 //   Matchmaking, reservas, ranking, reseñas
+//   Sincronizado con BD real - Fase 1
 // ================================================
 
 const express = require('express');
@@ -12,19 +13,31 @@ const { authAdmin } = require('../middleware/auth');
 //   JUGADORES
 // ════════════════════════════════════════════════
 
-// ── GET /padel/jugadores ─────────────────────────────────────────────
-// Matchmaking: lista jugadores filtrando por nivel, zona, disponibilidad
+// GET /padel/jugadores/mi-perfil
+router.get('/jugadores/mi-perfil', async (req, res) => {
+  const { usuario_id } = req.query;
+  if (!usuario_id) return res.status(400).json({ error: 'usuario_id requerido' });
+  try {
+    const result = await pool.query(
+      'SELECT * FROM jugadores_padel WHERE usuario_id = $1',
+      [usuario_id]
+    );
+    if (result.rows.length === 0) return res.json({ tiene_perfil: false });
+    res.json({ tiene_perfil: true, perfil: result.rows[0] });
+  } catch (err) {
+    console.error('GET /padel/jugadores/mi-perfil:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// GET /padel/jugadores — matchmaking
 router.get('/jugadores', async (req, res) => {
   const { nivel, zona, excluir_id } = req.query;
+  const NIVELES = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
   try {
     let conditions = ['j.activo = true'];
     let params = [];
     let idx = 1;
-
-    if (nivel) {
-      conditions.push(`j.nivel = $${idx++}`);
-      params.push(nivel);
-    }
     if (zona) {
       conditions.push(`j.zona ILIKE $${idx++}`);
       params.push(`%${zona}%`);
@@ -33,65 +46,58 @@ router.get('/jugadores', async (req, res) => {
       conditions.push(`j.usuario_id != $${idx++}`);
       params.push(excluir_id);
     }
-
-    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-
+    const where = 'WHERE ' + conditions.join(' AND ');
     const result = await pool.query(`
       SELECT
-        j.id,
-        j.usuario_id,
-        j.nombre,
-        j.nivel,
-        j.zona,
-        j.foto_url,
-        j.descripcion,
-        j.ranking_puntos,
-        j.partidos_jugados,
-        j.victorias,
+        j.id, j.usuario_id, j.nombre, j.nivel, j.zona,
+        j.foto_url, j.descripcion, j.ranking_puntos,
+        j.partidos_jugados, j.victorias,
         ROUND(j.promedio_resenas::numeric, 1) AS promedio_resenas,
-        j.total_resenas
+        j.total_resenas, u.edad, u.vibe
       FROM jugadores_padel j
+      LEFT JOIN usuarios u ON u.id = j.usuario_id
       ${where}
       ORDER BY j.ranking_puntos DESC
     `, params);
-
-    res.json(result.rows);
+    let jugadores = result.rows;
+    if (nivel && NIVELES.includes(nivel)) {
+      const idxNivel = NIVELES.indexOf(nivel);
+      jugadores = jugadores.sort((a, b) => {
+        const da = Math.abs(NIVELES.indexOf(a.nivel) - idxNivel);
+        const db = Math.abs(NIVELES.indexOf(b.nivel) - idxNivel);
+        return da - db;
+      });
+    }
+    res.json(jugadores);
   } catch (err) {
     console.error('GET /padel/jugadores:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });
 
-// ── POST /padel/jugadores ────────────────────────────────────────────
-// Crear o actualizar perfil de jugador
+// POST /padel/jugadores — crear/actualizar perfil
 router.post('/jugadores', async (req, res) => {
-  const {
-    usuario_id, nombre, nivel, zona, foto_url, descripcion
-  } = req.body;
-
+  const { usuario_id, nombre, nivel, zona, foto_url, descripcion } = req.body;
   if (!usuario_id || !nombre || !nivel || !zona) {
     return res.status(400).json({ error: 'usuario_id, nombre, nivel y zona son requeridos' });
   }
-
-  const nivelesValidos = ['octava', 'septima', 'sexta', 'quinta', 'cuarta', 'tercera', 'segunda', 'primera'];
+  const nivelesValidos = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
   if (!nivelesValidos.includes(nivel)) {
     return res.status(400).json({ error: `Nivel inválido. Opciones: ${nivelesValidos.join(', ')}` });
   }
-
   try {
     const result = await pool.query(`
       INSERT INTO jugadores_padel (usuario_id, nombre, nivel, zona, foto_url, descripcion)
       VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (usuario_id) DO UPDATE SET
-        nombre      = EXCLUDED.nombre,
-        nivel       = EXCLUDED.nivel,
-        zona        = EXCLUDED.zona,
-        foto_url    = COALESCE(EXCLUDED.foto_url, jugadores_padel.foto_url),
-        descripcion = COALESCE(EXCLUDED.descripcion, jugadores_padel.descripcion),
+        nombre         = EXCLUDED.nombre,
+        nivel          = EXCLUDED.nivel,
+        zona           = EXCLUDED.zona,
+        foto_url       = COALESCE(EXCLUDED.foto_url, jugadores_padel.foto_url),
+        descripcion    = COALESCE(EXCLUDED.descripcion, jugadores_padel.descripcion),
         actualizado_en = NOW()
       RETURNING *
     `, [usuario_id, nombre, nivel, zona, foto_url, descripcion]);
-
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('POST /padel/jugadores:', err);
@@ -103,47 +109,33 @@ router.post('/jugadores', async (req, res) => {
 //   RESEÑAS
 // ════════════════════════════════════════════════
 
-// ── POST /padel/resenas ──────────────────────────────────────────────
-// Dejar reseña a un jugador tras un partido
+// POST /padel/resenas
 router.post('/resenas', async (req, res) => {
   const { de_jugador_id, a_jugador_id, puntuacion, comentario } = req.body;
-
-  if (!de_jugador_id || !a_jugador_id || !puntuacion) {
+  if (!de_jugador_id || !a_jugador_id || !puntuacion)
     return res.status(400).json({ error: 'de_jugador_id, a_jugador_id y puntuacion son requeridos' });
-  }
-  if (puntuacion < 1 || puntuacion > 5) {
+  if (puntuacion < 1 || puntuacion > 5)
     return res.status(400).json({ error: 'La puntuación debe estar entre 1 y 5' });
-  }
-  if (de_jugador_id === a_jugador_id) {
+  if (de_jugador_id === a_jugador_id)
     return res.status(400).json({ error: 'No podés reseñarte a vos mismo' });
-  }
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    // Insertar reseña
     const resena = await client.query(`
       INSERT INTO resenas_padel (de_jugador_id, a_jugador_id, puntuacion, comentario)
       VALUES ($1, $2, $3, $4)
       ON CONFLICT (de_jugador_id, a_jugador_id) DO UPDATE SET
-        puntuacion  = EXCLUDED.puntuacion,
-        comentario  = EXCLUDED.comentario,
-        creado_en   = NOW()
+        puntuacion = EXCLUDED.puntuacion,
+        comentario = EXCLUDED.comentario,
+        creado_en  = NOW()
       RETURNING *
     `, [de_jugador_id, a_jugador_id, puntuacion, comentario]);
 
-    // Recalcular promedio del jugador reseñado
     await client.query(`
       UPDATE jugadores_padel SET
-        promedio_resenas = (
-          SELECT ROUND(AVG(puntuacion)::numeric, 2)
-          FROM resenas_padel
-          WHERE a_jugador_id = $1
-        ),
-        total_resenas = (
-          SELECT COUNT(*) FROM resenas_padel WHERE a_jugador_id = $1
-        )
+        promedio_resenas = (SELECT ROUND(AVG(puntuacion)::numeric, 2) FROM resenas_padel WHERE a_jugador_id = $1),
+        total_resenas    = (SELECT COUNT(*) FROM resenas_padel WHERE a_jugador_id = $1)
       WHERE id = $1
     `, [a_jugador_id]);
 
@@ -158,25 +150,18 @@ router.post('/resenas', async (req, res) => {
   }
 });
 
-// ── GET /padel/resenas/:id ───────────────────────────────────────────
-// Ver reseñas recibidas por un jugador
+// GET /padel/resenas/:id
 router.get('/resenas/:id', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
-        r.id,
-        r.puntuacion,
-        r.comentario,
-        r.creado_en,
-        j.nombre AS de_nombre,
-        j.nivel  AS de_nivel,
-        j.foto_url AS de_foto
+        r.id, r.puntuacion, r.comentario, r.creado_en,
+        j.nombre AS de_nombre, j.nivel AS de_nivel, j.foto_url AS de_foto
       FROM resenas_padel r
       JOIN jugadores_padel j ON j.id = r.de_jugador_id
       WHERE r.a_jugador_id = $1
       ORDER BY r.creado_en DESC
     `, [req.params.id]);
-
     res.json(result.rows);
   } catch (err) {
     console.error('GET /padel/resenas/:id:', err);
@@ -188,37 +173,28 @@ router.get('/resenas/:id', async (req, res) => {
 //   CANCHAS Y DISPONIBILIDAD
 // ════════════════════════════════════════════════
 
-// ── GET /padel/canchas ───────────────────────────────────────────────
-// Clubs con disponibilidad activa (para el jugador que busca cancha)
+// GET /padel/canchas
 router.get('/canchas', async (req, res) => {
   const { zona } = req.query;
   try {
     let query = `
       SELECT DISTINCT
-        n.id,
-        n.nombre,
-        n.slug,
-        n.logo_url,
-        n.descripcion,
-        d.precio_por_hora,
+        n.id, n.nombre, n.slug, n.logo_url, n.descripcion,
+        n.whatsapp, n.dueno_tel,
+        MIN(d.precio_por_hora) AS precio_desde,
         d.zona AS zona_cancha,
-        COUNT(d.id) AS turnos_disponibles
+        COUNT(d.id) AS turnos_configurados
       FROM negocios n
       JOIN disponibilidad_padel d ON d.negocio_id = n.id
-      WHERE n.activo = true
-        AND n.tipo = 'padel'
-        AND d.activo = true
+      WHERE n.activo = true AND n.tipo = 'padel' AND d.activo = true
     `;
     const params = [];
-
     if (zona) {
       query += ` AND d.zona ILIKE $1`;
       params.push(`%${zona}%`);
     }
-
-    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, d.precio_por_hora, d.zona
+    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, n.whatsapp, n.dueno_tel, d.zona
                ORDER BY n.nombre ASC`;
-
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
@@ -227,17 +203,14 @@ router.get('/canchas', async (req, res) => {
   }
 });
 
-// ── GET /padel/disponibilidad/:id ────────────────────────────────────
-// Horarios configurados por un club
+// GET /padel/disponibilidad/:id
 router.get('/disponibilidad/:id', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT *
-      FROM disponibilidad_padel
+      SELECT * FROM disponibilidad_padel
       WHERE negocio_id = $1 AND activo = true
       ORDER BY dia_semana ASC, hora_inicio ASC
     `, [req.params.id]);
-
     res.json(result.rows);
   } catch (err) {
     console.error('GET /padel/disponibilidad/:id:', err);
@@ -245,26 +218,18 @@ router.get('/disponibilidad/:id', async (req, res) => {
   }
 });
 
-// ── POST /padel/disponibilidad ───────────────────────────────────────
-// El club carga un horario disponible
+// POST /padel/disponibilidad
 router.post('/disponibilidad', authAdmin, async (req, res) => {
-  const {
-    negocio_id, dia_semana, hora_inicio, hora_fin,
-    precio_por_hora, cantidad_canchas, zona
-  } = req.body;
-
-  if (!negocio_id || dia_semana === undefined || !hora_inicio || !hora_fin || !precio_por_hora) {
+  const { negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha } = req.body;
+  if (!negocio_id || dia_semana === undefined || !hora_inicio || !hora_fin || !precio_por_hora)
     return res.status(400).json({ error: 'negocio_id, dia_semana, hora_inicio, hora_fin y precio_por_hora son requeridos' });
-  }
-
   try {
     const result = await pool.query(`
       INSERT INTO disponibilidad_padel
-        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas || 1, zona]);
-
+    `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas || 1, zona, numero_cancha || 1]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('POST /padel/disponibilidad:', err);
@@ -272,8 +237,7 @@ router.post('/disponibilidad', authAdmin, async (req, res) => {
   }
 });
 
-// ── PUT /padel/disponibilidad/:id ────────────────────────────────────
-// El club modifica un horario existente
+// PUT /padel/disponibilidad/:id
 router.put('/disponibilidad/:id', authAdmin, async (req, res) => {
   const { hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, activo } = req.body;
   try {
@@ -287,7 +251,6 @@ router.put('/disponibilidad/:id', authAdmin, async (req, res) => {
       WHERE id = $6
       RETURNING *
     `, [hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, activo, req.params.id]);
-
     if (result.rows.length === 0) return res.status(404).json({ error: 'Horario no encontrado' });
     res.json(result.rows[0]);
   } catch (err) {
@@ -296,39 +259,26 @@ router.put('/disponibilidad/:id', authAdmin, async (req, res) => {
   }
 });
 
-// ── GET /padel/turnos-disponibles ────────────────────────────────────
-// Turnos libres para una fecha y club específico
+// GET /padel/turnos-disponibles
 router.get('/turnos-disponibles', async (req, res) => {
   const { negocio_id, fecha } = req.query;
-
-  if (!negocio_id || !fecha) {
+  if (!negocio_id || !fecha)
     return res.status(400).json({ error: 'negocio_id y fecha son requeridos' });
-  }
-
   try {
-    const fechaObj = new Date(fecha);
-    const diaSemana = fechaObj.getDay(); // 0=domingo, 6=sábado
+    const fechaObj = new Date(fecha + 'T00:00:00');
+    const diaSemana = fechaObj.getDay();
 
-    // Turnos configurados para ese día
     const disponibles = await pool.query(`
-      SELECT d.*
-      FROM disponibilidad_padel d
-      WHERE d.negocio_id = $1
-        AND d.dia_semana = $2
-        AND d.activo = true
+      SELECT * FROM disponibilidad_padel
+      WHERE negocio_id = $1 AND dia_semana = $2 AND activo = true
     `, [negocio_id, diaSemana]);
 
-    // Reservas ya tomadas en esa fecha
     const reservadas = await pool.query(`
-      SELECT disponibilidad_id
-      FROM reservas_padel
-      WHERE negocio_id = $1
-        AND fecha = $2
-        AND estado != 'rechazado'
+      SELECT disponibilidad_id FROM reservas_padel
+      WHERE negocio_id = $1 AND fecha = $2 AND estado != 'rechazado'
     `, [negocio_id, fecha]);
 
     const idsReservados = reservadas.rows.map(r => r.disponibilidad_id);
-
     const libres = disponibles.rows.filter(turno => {
       const tomados = idsReservados.filter(id => id === turno.id).length;
       return tomados < turno.cantidad_canchas;
@@ -345,23 +295,17 @@ router.get('/turnos-disponibles', async (req, res) => {
 //   RESERVAS
 // ════════════════════════════════════════════════
 
-// ── POST /padel/reservas ─────────────────────────────────────────────
-// El jugador reserva una cancha
+// POST /padel/reservas — Fase 1: confirmación automática + notif WhatsApp
 router.post('/reservas', async (req, res) => {
-  const {
-    jugador_id, negocio_id, disponibilidad_id,
-    fecha, notas, telefono_contacto
-  } = req.body;
+  const { jugador_id, negocio_id, disponibilidad_id, fecha, notas } = req.body;
 
-  if (!jugador_id || !negocio_id || !disponibilidad_id || !fecha) {
+  if (!jugador_id || !negocio_id || !disponibilidad_id || !fecha)
     return res.status(400).json({ error: 'jugador_id, negocio_id, disponibilidad_id y fecha son requeridos' });
-  }
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // Verificar que el turno sigue disponible
     const turno = await client.query(
       'SELECT * FROM disponibilidad_padel WHERE id = $1 AND activo = true FOR UPDATE',
       [disponibilidad_id]
@@ -371,60 +315,91 @@ router.post('/reservas', async (req, res) => {
       return res.status(404).json({ error: 'Turno no encontrado o inactivo' });
     }
 
-    const reservasExistentes = await client.query(`
-      SELECT COUNT(*) FROM reservas_padel
-      WHERE disponibilidad_id = $1 AND fecha = $2 AND estado != 'rechazado'
-    `, [disponibilidad_id, fecha]);
-
+    const reservasExistentes = await client.query(
+      "SELECT COUNT(*) FROM reservas_padel WHERE disponibilidad_id = $1 AND fecha = $2 AND estado != 'rechazado'",
+      [disponibilidad_id, fecha]
+    );
     if (parseInt(reservasExistentes.rows[0].count) >= turno.rows[0].cantidad_canchas) {
       await client.query('ROLLBACK');
       return res.status(409).json({ error: 'No hay canchas disponibles para ese turno' });
     }
 
-    // Calcular comisión (10%)
-    const precioTotal = turno.rows[0].precio_por_hora;
-    const comision = Math.round(precioTotal * 0.10);
+    const t = turno.rows[0];
 
-    const result = await client.query(`
-      INSERT INTO reservas_padel
-        (jugador_id, negocio_id, disponibilidad_id, fecha, precio_total, comision_plataforma, notas, telefono_contacto)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *
-    `, [jugador_id, negocio_id, disponibilidad_id, fecha, precioTotal, comision, notas, telefono_contacto]);
+    const jugadorPerfil = await client.query(
+      'SELECT usuario_id, nombre FROM jugadores_padel WHERE id = $1',
+      [jugador_id]
+    );
+    if (jugadorPerfil.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
+    const usuarioIdReal = jugadorPerfil.rows[0].usuario_id;
+    const nombreJugador = jugadorPerfil.rows[0].nombre || 'N/A';
+
+    const negocioData = await client.query(
+      'SELECT nombre, whatsapp, dueno_tel FROM negocios WHERE id = $1',
+      [negocio_id]
+    );
+    const n = negocioData.rows[0] || {};
+    const telClub = (n.whatsapp || n.dueno_tel || '').replace(/\D/g, '');
+    const horaInicio = (t.hora_inicio || '').substring(0, 5);
+    const horaFin    = (t.hora_fin    || '').substring(0, 5);
+    const precioTotal = t.precio_por_hora;
+    const comision = Math.round(parseFloat(precioTotal) * 0.10);
+
+    let whatsapp_club = null;
+    if (telClub) {
+      const msgTexto = '🎾 *Nueva reserva confirmada*\n\n'
+        + '👤 Jugador: ' + nombreJugador + '\n'
+        + '📅 Fecha: ' + fecha + '\n'
+        + '🕐 Horario: ' + horaInicio + ' - ' + horaFin + '\n'
+        + '🏟️ Cancha N°' + (t.numero_cancha || 1) + '\n'
+        + '💰 $' + precioTotal + '\n\n'
+        + 'Ver reservas: https://cordobalux.com/negocio.html';
+      whatsapp_club = 'https://wa.me/' + telClub + '?text=' + encodeURIComponent(msgTexto);
+    }
+
+    const result = await client.query(
+      'INSERT INTO reservas_padel (negocio_id, usuario_id, disponibilidad_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, whatsapp_club, notas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [negocio_id, usuarioIdReal, disponibilidad_id, fecha, String(t.hora_inicio), String(t.hora_fin), parseFloat(precioTotal), 'confirmado', parseInt(t.numero_cancha) || 1, whatsapp_club, notas || null]
+    );
 
     await client.query('COMMIT');
-    res.status(201).json(result.rows[0]);
+
+    res.status(201).json({
+      ...result.rows[0],
+      comision_plataforma: comision,
+      whatsapp_club
+    });
+
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('POST /padel/reservas:', err);
-    res.status(500).json({ error: 'Error interno' });
+    console.error('POST /padel/reservas:', err.message, err.detail);
+    res.status(500).json({ error: 'Error interno', detalle: err.message });
   } finally {
     client.release();
   }
 });
 
-// ── GET /padel/reservas/mis-reservas ─────────────────────────────────
-// Reservas del jugador
+// GET /padel/reservas/mis-reservas
 router.get('/reservas/mis-reservas', async (req, res) => {
   const { jugador_id } = req.query;
   if (!jugador_id) return res.status(400).json({ error: 'jugador_id es requerido' });
-
   try {
     const result = await pool.query(`
       SELECT
         r.*,
-        n.nombre AS club_nombre,
-        n.logo_url AS club_logo,
-        d.hora_inicio,
-        d.hora_fin,
-        d.zona AS zona_cancha
+        n.nombre    AS club_nombre,
+        n.logo_url  AS club_logo,
+        n.whatsapp  AS club_whatsapp,
+        d.zona      AS zona_cancha
       FROM reservas_padel r
       JOIN negocios n ON n.id = r.negocio_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
-      WHERE r.jugador_id = $1
-      ORDER BY r.fecha DESC, d.hora_inicio ASC
+      WHERE r.usuario_id = $1
+      ORDER BY r.fecha DESC, r.hora_inicio ASC
     `, [jugador_id]);
-
     res.json(result.rows);
   } catch (err) {
     console.error('GET /padel/reservas/mis-reservas:', err);
@@ -432,36 +407,29 @@ router.get('/reservas/mis-reservas', async (req, res) => {
   }
 });
 
-// ── GET /padel/reservas/del-club ─────────────────────────────────────
-// Reservas del club (panel negocio)
+// GET /padel/reservas/del-club
 router.get('/reservas/del-club', authAdmin, async (req, res) => {
   const { negocio_id, fecha } = req.query;
   if (!negocio_id) return res.status(400).json({ error: 'negocio_id es requerido' });
-
   try {
     let query = `
       SELECT
         r.*,
-        j.nombre AS jugador_nombre,
-        j.nivel  AS jugador_nivel,
+        j.nombre   AS jugador_nombre,
+        j.nivel    AS jugador_nivel,
         j.foto_url AS jugador_foto,
-        d.hora_inicio,
-        d.hora_fin,
-        d.zona AS zona_cancha
+        d.zona     AS zona_cancha
       FROM reservas_padel r
-      JOIN jugadores_padel j ON j.id = r.jugador_id
+      JOIN jugadores_padel j ON j.id = r.usuario_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
       WHERE r.negocio_id = $1
     `;
     const params = [negocio_id];
-
     if (fecha) {
       query += ` AND r.fecha = $2`;
       params.push(fecha);
     }
-
-    query += ` ORDER BY r.fecha DESC, d.hora_inicio ASC`;
-
+    query += ` ORDER BY r.fecha DESC, r.hora_inicio ASC`;
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
@@ -470,25 +438,19 @@ router.get('/reservas/del-club', authAdmin, async (req, res) => {
   }
 });
 
-// ── PUT /padel/reservas/:id ──────────────────────────────────────────
-// El club confirma o rechaza una reserva
+// PUT /padel/reservas/:id — Fase 2 (por ahora solo para emergencias)
 router.put('/reservas/:id', authAdmin, async (req, res) => {
   const { estado, motivo_rechazo } = req.body;
-
-  if (!estado || !['confirmado', 'rechazado'].includes(estado)) {
+  if (!estado || !['confirmado','rechazado'].includes(estado))
     return res.status(400).json({ error: 'estado debe ser "confirmado" o "rechazado"' });
-  }
-
   try {
     const result = await pool.query(`
       UPDATE reservas_padel SET
-        estado           = $1,
-        motivo_rechazo   = CASE WHEN $1 = 'rechazado' THEN $2 ELSE NULL END,
-        respondido_en    = NOW()
+        estado     = $1,
+        notas      = CASE WHEN $1 = 'rechazado' THEN $2 ELSE notas END
       WHERE id = $3
       RETURNING *
     `, [estado, motivo_rechazo, req.params.id]);
-
     if (result.rows.length === 0) return res.status(404).json({ error: 'Reserva no encontrada' });
     res.json(result.rows[0]);
   } catch (err) {
@@ -501,46 +463,29 @@ router.put('/reservas/:id', authAdmin, async (req, res) => {
 //   RANKING
 // ════════════════════════════════════════════════
 
-// ── GET /padel/ranking ───────────────────────────────────────────────
-// Ranking de jugadores por ciudad/nivel
+// GET /padel/ranking
 router.get('/ranking', async (req, res) => {
   const { nivel, zona, limite } = req.query;
   try {
     let conditions = ['j.activo = true'];
     let params = [];
     let idx = 1;
-
-    if (nivel) {
-      conditions.push(`j.nivel = $${idx++}`);
-      params.push(nivel);
-    }
-    if (zona) {
-      conditions.push(`j.zona ILIKE $${idx++}`);
-      params.push(`%${zona}%`);
-    }
-
+    if (nivel) { conditions.push(`j.nivel = $${idx++}`); params.push(nivel); }
+    if (zona)  { conditions.push(`j.zona ILIKE $${idx++}`); params.push(`%${zona}%`); }
     const where = 'WHERE ' + conditions.join(' AND ');
     const limit = parseInt(limite) || 50;
     params.push(limit);
-
     const result = await pool.query(`
       SELECT
         ROW_NUMBER() OVER (ORDER BY j.ranking_puntos DESC) AS posicion,
-        j.id,
-        j.nombre,
-        j.nivel,
-        j.zona,
-        j.foto_url,
-        j.ranking_puntos,
-        j.partidos_jugados,
-        j.victorias,
+        j.id, j.nombre, j.nivel, j.zona, j.foto_url,
+        j.ranking_puntos, j.partidos_jugados, j.victorias,
         ROUND(j.promedio_resenas::numeric, 1) AS promedio_resenas
       FROM jugadores_padel j
       ${where}
       ORDER BY j.ranking_puntos DESC
       LIMIT $${idx}
     `, params);
-
     res.json(result.rows);
   } catch (err) {
     console.error('GET /padel/ranking:', err);
