@@ -121,7 +121,7 @@ router.post('/negocios', authSuperAdmin, async (req, res) => {
 
 // ── PUT /superadmin/negocios/:id ─────────────────────────────────────
 router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan, estado_pago } = req.body;
+  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan, estado_pago, zona } = req.body;
   try {
     const result = await pool.query(`
       UPDATE negocios SET
@@ -134,10 +134,11 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
         dueno_tel        = COALESCE($7, dueno_tel),
         activo           = COALESCE($8, activo),
         vencimiento_plan = COALESCE($9, vencimiento_plan),
-        estado_pago      = COALESCE($10, estado_pago)
-      WHERE id = $11
+        estado_pago      = COALESCE($10, estado_pago),
+        zona             = COALESCE($11, zona)
+      WHERE id = $12
       RETURNING *
-    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan||null, estado_pago||null, req.params.id]);
+    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan||null, estado_pago||null, zona||null, req.params.id]);
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });

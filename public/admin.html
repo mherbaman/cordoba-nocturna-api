@@ -989,7 +989,7 @@ function abrirModalNegocio(n={}) {
       </div>
       <div>
         <label class="field-label">Tipo</label>
-        <select class="input-field" id="neg-tipo" style="color:#fff;background:#1a0030;">
+        <select class="input-field" id="neg-tipo" style="color:#fff;background:#1a0030;" onchange="toggleZona(this.value)">
           <optgroup label="── Córdoba Nocturna ──" style="color:rgba(255,255,255,.4);background:#1a0030">
           <option value="disco" style="background:#1a0030" ${n.tipo==='disco'?'selected':''}>🎧 Discoteca</option>
           <option value="bar" style="background:#1a0030" ${n.tipo==='bar'?'selected':''}>🍺 Bar</option>
@@ -1024,12 +1024,6 @@ function abrirModalNegocio(n={}) {
           <option value="club" style="background:#1a0030" ${n.tipo==='club'?'selected':''}>🏅 Club deportivo</option>
           <option value="torneo" style="background:#1a0030" ${n.tipo==='torneo'?'selected':''}>🏆 Torneo</option>
           </optgroup>
-          <optgroup label="── Padel Connect ──" style="color:rgba(255,255,255,.4);background:#1a0030">
-          <option value="padel" style="background:#1a0030" ${n.tipo==='padel'?'selected':''}>🎾 Club de Padel</option>
-          <option value="cancha" style="background:#1a0030" ${n.tipo==='cancha'?'selected':''}>🏟️ Cancha de Padel</option>
-          <option value="club" style="background:#1a0030" ${n.tipo==='club'?'selected':''}>🏅 Club deportivo</option>
-          <option value="torneo" style="background:#1a0030" ${n.tipo==='torneo'?'selected':''}>🏆 Torneo</option>
-          </optgroup>
           <optgroup label="── Shopping Connect ──" style="color:rgba(255,255,255,.4);background:#1a0030">
           <option value="shopping" style="background:#1a0030" ${n.tipo==='shopping'?'selected':''}>🏬 Shopping / Centro comercial</option>
           <option value="mall" style="background:#1a0030" ${n.tipo==='mall'?'selected':''}>🛍️ Mall</option>
@@ -1050,6 +1044,43 @@ function abrirModalNegocio(n={}) {
       <div class="full">
         <label class="field-label">Slug (URL amigable)</label>
         <input class="input-field" id="neg-slug" value="${n.slug||''}" placeholder="disco-la-noche">
+      </div>
+      <div class="full" id="zona-field" style="display:none">
+        <label class="field-label">Zona / Barrio</label>
+        <select class="input-field" id="neg-zona" style="color:#fff;background:#1a0030;" onchange="toggleZonaCustom(this.value)">
+          <option value="" style="background:#1a0030">Seleccioná la zona...</option>
+          <option value="Centro" style="background:#1a0030" ${n.zona==='Centro'?'selected':''}>Centro</option>
+          <option value="Nueva Córdoba" style="background:#1a0030" ${n.zona==='Nueva Córdoba'?'selected':''}>Nueva Córdoba</option>
+          <option value="Güemes" style="background:#1a0030" ${n.zona==='Güemes'?'selected':''}>Güemes</option>
+          <option value="Alberdi" style="background:#1a0030" ${n.zona==='Alberdi'?'selected':''}>Alberdi</option>
+          <option value="General Paz" style="background:#1a0030" ${n.zona==='General Paz'?'selected':''}>General Paz</option>
+          <option value="Cerro de las Rosas" style="background:#1a0030" ${n.zona==='Cerro de las Rosas'?'selected':''}>Cerro de las Rosas</option>
+          <option value="Villa Allende" style="background:#1a0030" ${n.zona==='Villa Allende'?'selected':''}>Villa Allende</option>
+          <option value="Arguello" style="background:#1a0030" ${n.zona==='Arguello'?'selected':''}>Arguello</option>
+          <option value="Colinas de Vélez Sársfield" style="background:#1a0030" ${n.zona==='Colinas de Vélez Sársfield'?'selected':''}>Colinas de Vélez Sársfield</option>
+          <option value="Urca" style="background:#1a0030" ${n.zona==='Urca'?'selected':''}>Urca</option>
+          <option value="Quebrada de las Rosas" style="background:#1a0030" ${n.zona==='Quebrada de las Rosas'?'selected':''}>Quebrada de las Rosas</option>
+          <option value="San Vicente" style="background:#1a0030" ${n.zona==='San Vicente'?'selected':''}>San Vicente</option>
+          <option value="Alta Córdoba" style="background:#1a0030" ${n.zona==='Alta Córdoba'?'selected':''}>Alta Córdoba</option>
+          <option value="Talleres" style="background:#1a0030" ${n.zona==='Talleres'?'selected':''}>Talleres</option>
+          <option value="Villa del Parque" style="background:#1a0030" ${n.zona==='Villa del Parque'?'selected':''}>Villa del Parque</option>
+          <option value="Jardín" style="background:#1a0030" ${n.zona==='Jardín'?'selected':''}>Jardín</option>
+          <option value="Cañitas" style="background:#1a0030" ${n.zona==='Cañitas'?'selected':''}>Cañitas</option>
+          <option value="Maipú" style="background:#1a0030" ${n.zona==='Maipú'?'selected':''}>Maipú</option>
+          <option value="Palermo" style="background:#1a0030" ${n.zona==='Palermo'?'selected':''}>Palermo</option>
+          <option value="Villa Belgrano" style="background:#1a0030" ${n.zona==='Villa Belgrano'?'selected':''}>Villa Belgrano</option>
+          <option value="Country Club" style="background:#1a0030" ${n.zona==='Country Club'?'selected':''}>Country Club</option>
+          <option value="Buen Pastor" style="background:#1a0030" ${n.zona==='Buen Pastor'?'selected':''}>Buen Pastor</option>
+          <option value="Poeta Lugones" style="background:#1a0030" ${n.zona==='Poeta Lugones'?'selected':''}>Poeta Lugones</option>
+          <option value="Manantiales" style="background:#1a0030" ${n.zona==='Manantiales'?'selected':''}>Manantiales</option>
+          <option value="Villa Warcalde" style="background:#1a0030" ${n.zona==='Villa Warcalde'?'selected':''}>Villa Warcalde</option>
+          <option value="La Calera" style="background:#1a0030" ${n.zona==='La Calera'?'selected':''}>La Calera</option>
+          <option value="Unquillo" style="background:#1a0030" ${n.zona==='Unquillo'?'selected':''}>Unquillo</option>
+          <option value="Mendiolaza" style="background:#1a0030" ${n.zona==='Mendiolaza'?'selected':''}>Mendiolaza</option>
+          <option value="Salsipuedes" style="background:#1a0030" ${n.zona==='Salsipuedes'?'selected':''}>Salsipuedes</option>
+          <option value="otra" style="background:#1a0030">📍 Otra zona...</option>
+        </select>
+        <input class="input-field" id="neg-zona-custom" placeholder="Escribí la zona..." style="display:none;margin-top:8px">
       </div>
       <div>
         <label class="field-label">Nombre del dueño</label>
@@ -1086,6 +1117,17 @@ function abrirModalNegocio(n={}) {
       </button>
     </div>`;
   document.getElementById('modal-overlay').classList.add('show');
+  // Mostrar zona si es tipo padel y preseleccionar valor guardado
+  const tipoActual = n.tipo || '';
+  toggleZona(tipoActual);
+  if (n.zona) {
+    const sel = document.getElementById('neg-zona');
+    if (sel) {
+      const opt = Array.from(sel.options).find(o => o.value === n.zona);
+      if (opt) { sel.value = n.zona; }
+      else { sel.value = 'otra'; const custom = document.getElementById('neg-zona-custom'); if (custom) { custom.value = n.zona; custom.style.display = 'block'; } }
+    }
+  }
 }
 
 function editarNegocio(n) { abrirModalNegocio(n); }
@@ -1158,6 +1200,17 @@ function mostrarToast(msg) {
   setTimeout(()=>t.remove(), 2500);
 }
 
+function toggleZona(tipo) {
+  const tiposPadel = ['padel','cancha','club','torneo'];
+  const el = document.getElementById('zona-field');
+  if (el) el.style.display = tiposPadel.includes(tipo) ? 'block' : 'none';
+}
+
+function toggleZonaCustom(val) {
+  const custom = document.getElementById('neg-zona-custom');
+  if (custom) custom.style.display = val === 'otra' ? 'block' : 'none';
+}
+
 async function guardarNegocio(id) {
   const body = {
     nombre:      document.getElementById('neg-nombre').value.trim(),
@@ -1168,7 +1221,12 @@ async function guardarNegocio(id) {
     dueno_email:       document.getElementById('neg-email').value.trim(),
     dueno_tel:         document.getElementById('neg-tel').value.trim(),
     fecha_vencimiento: document.getElementById('neg-vencimiento').value||null,
-    estado_pago:       document.getElementById('neg-pago').value
+    estado_pago:       document.getElementById('neg-pago').value,
+    zona:              (()=>{
+      const sel = document.getElementById('neg-zona')?.value;
+      if(sel === 'otra') return document.getElementById('neg-zona-custom')?.value.trim()||null;
+      return sel||null;
+    })()
   };
   if (!body.nombre || !body.slug) { alert('Nombre y slug son requeridos'); return; }
   try {
