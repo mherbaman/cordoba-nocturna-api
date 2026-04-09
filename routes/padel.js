@@ -34,15 +34,11 @@ router.get('/jugadores/mi-perfil', async (req, res) => {
 // Matchmaking: lista jugadores filtrando por nivel, zona, disponibilidad
 router.get('/jugadores', async (req, res) => {
   const { nivel, zona, excluir_id } = req.query;
+  const NIVELES = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
   try {
     let conditions = ['j.activo = true'];
     let params = [];
     let idx = 1;
-
-    if (nivel) {
-      conditions.push(`j.nivel = $${idx++}`);
-      params.push(nivel);
-    }
     if (zona) {
       conditions.push(`j.zona ILIKE $${idx++}`);
       params.push(`%${zona}%`);
@@ -51,30 +47,34 @@ router.get('/jugadores', async (req, res) => {
       conditions.push(`j.usuario_id != $${idx++}`);
       params.push(excluir_id);
     }
-
-    const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
-
+    const where = 'WHERE ' + conditions.join(' AND ');
     const result = await pool.query(`
       SELECT
-        j.id,
-        j.usuario_id,
-        j.nombre,
-        j.nivel,
-        j.zona,
-        j.foto_url,
-        j.descripcion,
-        j.ranking_puntos,
-        j.partidos_jugados,
-        j.victorias,
+        j.id, j.usuario_id, j.nombre, j.nivel, j.zona,
+        j.foto_url, j.descripcion, j.ranking_puntos,
+        j.partidos_jugados, j.victorias,
         ROUND(j.promedio_resenas::numeric, 1) AS promedio_resenas,
-        j.total_resenas
+        j.total_resenas, u.edad, u.vibe
       FROM jugadores_padel j
+      LEFT JOIN usuarios u ON u.id = j.usuario_id
       ${where}
       ORDER BY j.ranking_puntos DESC
     `, params);
-
-    res.json(result.rows);
+    let jugadores = result.rows;
+    if (nivel && NIVELES.includes(nivel)) {
+      const idxNivel = NIVELES.indexOf(nivel);
+      jugadores = jugadores.sort((a, b) => {
+        const da = Math.abs(NIVELES.indexOf(a.nivel) - idxNivel);
+        const db = Math.abs(NIVELES.indexOf(b.nivel) - idxNivel);
+        return da - db;
+      });
+    }
+    res.json(jugadores);
   } catch (err) {
+    console.error('GET /padel/jugadores:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
     console.error('GET /padel/jugadores:', err);
     res.status(500).json({ error: 'Error interno' });
   }
