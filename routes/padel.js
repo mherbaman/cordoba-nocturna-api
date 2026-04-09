@@ -262,10 +262,6 @@ router.get('/disponibilidad/:id', async (req, res) => {
 // ── POST /padel/disponibilidad ───────────────────────────────────────
 // El club carga un horario disponible
 router.post('/disponibilidad', authAdmin, async (req, res) => {
-  const {
-    negocio_id, dia_semana, hora_inicio, hora_fin,
-    precio_por_hora, cantidad_canchas, zona
-  } = req.body;
 
   const { negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha } = req.body;
   if (!negocio_id || dia_semana === undefined || !hora_inicio || !hora_fin || !precio_por_hora) {
