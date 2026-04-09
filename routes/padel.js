@@ -267,6 +267,7 @@ router.post('/disponibilidad', authAdmin, async (req, res) => {
     precio_por_hora, cantidad_canchas, zona
   } = req.body;
 
+  const { negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha } = req.body;
   if (!negocio_id || dia_semana === undefined || !hora_inicio || !hora_fin || !precio_por_hora) {
     return res.status(400).json({ error: 'negocio_id, dia_semana, hora_inicio, hora_fin y precio_por_hora son requeridos' });
   }
@@ -274,10 +275,10 @@ router.post('/disponibilidad', authAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       INSERT INTO disponibilidad_padel
-        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas || 1, zona]);
+    `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas || 1, zona, numero_cancha || 1]);
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -401,13 +402,34 @@ router.post('/reservas', async (req, res) => {
 
     const result = await client.query(`
       INSERT INTO reservas_padel
-        (jugador_id, negocio_id, disponibilidad_id, fecha, precio_total, comision_plataforma, notas, telefono_contacto)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        (jugador_id, negocio_id, disponibilidad_id, fecha, precio_total, comision_plataforma, notas, telefono_contacto, estado, numero_cancha)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'confirmado', $9)
       RETURNING *
-    `, [jugador_id, negocio_id, disponibilidad_id, fecha, precioTotal, comision, notas, telefono_contacto]);
+    `, [jugador_id, negocio_id, disponibilidad_id, fecha, precioTotal, comision, notas, telefono_contacto, turno.rows[0].numero_cancha || 1]);
+
+    // Datos del negocio para WhatsApp
+    const negocio = await client.query('SELECT nombre, dueno_tel FROM negocios WHERE id = $1', [negocio_id]);
+    const jugador = await client.query('SELECT nombre FROM jugadores_padel WHERE id = $1', [jugador_id]);
 
     await client.query('COMMIT');
-    res.status(201).json(result.rows[0]);
+
+    // Generar link WhatsApp para el club
+    let whatsapp_club = null;
+    if (negocio.rows[0]?.dueno_tel) {
+      const tel = negocio.rows[0].dueno_tel.replace(/\D/g, '');
+      const msg = encodeURIComponent(
+        `🎾 *Nueva reserva confirmada*\n\n` +
+        `👤 Jugador: ${jugador.rows[0]?.nombre || 'N/A'}\n` +
+        `📅 Fecha: ${fecha}\n` +
+        `🕐 Horario: ${turno.rows[0].hora_inicio.substring(0,5)} - ${turno.rows[0].hora_fin.substring(0,5)}\n` +
+        `🏟️ Cancha N°${turno.rows[0].numero_cancha || 1}\n` +
+        `💰 $${precioTotal}\n\n` +
+        `Ver en panel: https://cordobalux.com/negocio.html`
+      );
+      whatsapp_club = `https://wa.me/${tel}?text=${msg}`;
+    }
+
+    res.status(201).json({ ...result.rows[0], whatsapp_club });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('POST /padel/reservas:', err);

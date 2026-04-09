@@ -1350,6 +1350,7 @@ async function verTurnosCancha(negocioId, nombre) {
         <div class="turno-item">
           <div>
             <div class="turno-hora">🕐 ${t.hora_inicio.substring(0,5)} - ${t.hora_fin.substring(0,5)}</div>
+            <div style="color:var(--muted);font-size:11px">🏟️ Cancha N°${t.numero_cancha||1}</div>
             <div class="turno-precio">$${t.precio_por_hora}</div>
           </div>
           <button class="btn-reservar" onclick="confirmarReserva('${negocioId}','${t.id}','${hoy}','${t.hora_inicio.substring(0,5)}','${t.precio_por_hora}')">Reservar</button>
@@ -1366,7 +1367,7 @@ async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio
   if (!confirm(`Reservar turno ${hora} por $${precio}?`)) return;
   showLoader('Reservando...');
   try {
-    await api('/padel/reservas', { method:'POST', body:JSON.stringify({
+    const data = await api('/padel/reservas', { method:'POST', body:JSON.stringify({
       jugador_id: perfilPadel.id,
       negocio_id: negocioId,
       disponibilidad_id: disponibilidadId,
@@ -1374,7 +1375,13 @@ async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio
       telefono_contacto: usuario.telefono || null
     })});
     document.getElementById('modal-reserva').classList.remove('show');
-    alert('✅ Reserva enviada. El club te va a confirmar pronto.');
+    if (data.whatsapp_club) {
+      if (confirm(`✅ ¡Reserva confirmada!\n🏟️ Cancha N°${data.numero_cancha||1}\n🕐 ${hora}\n💰 $${precio}\n\n¿Querés avisarle al club por WhatsApp?`)) {
+        window.open(data.whatsapp_club);
+      }
+    } else {
+      alert(`✅ ¡Reserva confirmada!\n🏟️ Cancha N°${data.numero_cancha||1}\n🕐 ${hora}`);
+    }
   } catch(err) { alert(err.message); }
   finally { hideLoader(); }
 }

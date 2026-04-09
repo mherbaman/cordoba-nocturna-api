@@ -660,7 +660,7 @@ async function cargarCanchas() {
             <div>
               <div style="font-weight:600;font-size:15px">🕐 ${t.hora_inicio.substring(0,5)} - ${t.hora_fin.substring(0,5)}</div>
               <div style="color:var(--muted);font-size:12px;margin-top:3px">
-                💰 $${t.precio} normal · $${t.precio_app} por app · ${t.max_turnos} turno(s)
+                🏟️ Cancha N°${t.numero_cancha||1} · 💰 $${t.precio_por_hora} · ${t.cantidad_canchas} turno(s) máx
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-shrink:0">
@@ -701,7 +701,11 @@ function abrirModalDisponibilidad(t={}) {
         <input class="input-field" id="disp-precio-app" type="number" value="${t.precio_app||''}" placeholder="10000" style="margin:0">
         <div style="color:var(--muted);font-size:10px;margin-top:4px">Con descuento para pagos en app</div>
       </div>
-      <div style="grid-column:1/-1">
+      <div>
+        <label class="field-label">N° de cancha</label>
+        <input class="input-field" id="disp-nro-cancha" type="number" value="${t.numero_cancha||1}" min="1" max="20" style="margin:0">
+      </div>
+      <div>
         <label class="field-label">Máximo de turnos simultáneos</label>
         <input class="input-field" id="disp-max" type="number" value="${t.max_turnos||1}" min="1" max="10" style="margin:0">
       </div>
@@ -723,7 +727,8 @@ async function guardarTurno(id) {
     hora_inicio:     document.getElementById('disp-inicio').value,
     hora_fin:        document.getElementById('disp-fin').value,
     precio_por_hora: parseFloat(document.getElementById('disp-precio').value)||0,
-    cantidad_canchas:parseInt(document.getElementById('disp-max').value)||1
+    cantidad_canchas:parseInt(document.getElementById('disp-max').value)||1,
+    numero_cancha:   parseInt(document.getElementById('disp-nro-cancha').value)||1
   };
   if (!body.hora_inicio || !body.hora_fin) { alert('Ingresá hora de inicio y fin'); return; }
   try {
