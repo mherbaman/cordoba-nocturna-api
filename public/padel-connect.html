@@ -424,9 +424,10 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <button class="nivel-btn" onclick="selectNivel(this,'primera')">1ra categoría</button>
     </div>
     <label class="field-label">Tu zona</label>
-    <select class="input-field" id="padel-zona" style="color:#fff;background:#030d06">
+    <select class="input-field" id="padel-zona" style="color:#fff;background:#030d06" onchange="toggleZonaCustomPerfil(this.value)">
       <option value="">Seleccioná tu zona...</option>
     </select>
+    <input class="input-field" id="padel-zona-custom" placeholder="Escribí tu zona..." style="display:none;margin-top:8px">
     <button class="btn-primary" onclick="guardarPerfilPadel()" style="margin-top:8px">GUARDAR Y JUGAR →</button>
   </div>
 </div>
@@ -1232,6 +1233,11 @@ const NIVELES_PADEL = ['8va','7ma','6ta','5ta','4ta','3ra','2da','1ra'];
 let nivelSeleccionado = '';
 let perfilPadel = null;
 
+function toggleZonaCustomPerfil(val) {
+  const el = document.getElementById('padel-zona-custom');
+  if (el) el.style.display = val === 'Otra zona' ? 'block' : 'none';
+}
+
 function selectNivel(btn, nivel) {
   document.querySelectorAll('.nivel-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -1269,7 +1275,10 @@ async function cargarZonasPadel() {
 }
 
 async function guardarPerfilPadel() {
-  const zona = document.getElementById('padel-zona')?.value;
+  const zonaSelect = document.getElementById('padel-zona')?.value;
+  const zona = zonaSelect === 'Otra zona'
+    ? document.getElementById('padel-zona-custom')?.value.trim()
+    : zonaSelect;
   const errEl = document.getElementById('padel-error');
   if (!nivelSeleccionado) { errEl.textContent='Seleccioná tu categoría'; errEl.style.display='block'; return; }
   if (!zona) { errEl.textContent='Seleccioná tu zona'; errEl.style.display='block'; return; }
@@ -1398,7 +1407,7 @@ async function cargarRanking() {
 }
 
 // ── PERFIL EXTENDIDO ─────────────────────────────────────────────────
-const ZONAS_DISPONIBLES = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes'];
+const ZONAS_DISPONIBLES = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes', '+ Otra zona'];
 let nivelModal = '';
 let zonasModal = [];
 
@@ -1412,9 +1421,42 @@ function renderZonasModal() {
   const el = document.getElementById('modal-zonas-chips');
   if (!el) return;
   el.innerHTML = ZONAS_DISPONIBLES.map(z => {
+    if (z === '+ Otra zona') {
+      return `<button class="pv-chip" onclick="agregarZonaCustom()" style="border-style:dashed">+ Otra zona</button>`;
+    }
     const sel = zonasModal.includes(z);
     return `<button class="pv-chip ${sel?'sel':''}" onclick="toggleZonaModal(this,'${z}')">${z}</button>`;
-  }).join('');
+  }).join('') + `<div id="zona-custom-input" style="display:none;width:100%;margin-top:8px;display:flex;gap:6px">
+    <input id="zona-custom-val" class="input-field" style="margin:0;flex:1;font-size:13px" placeholder="Escribí tu zona...">
+    <button onclick="confirmarZonaCustom()" style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">+</button>
+  </div>`;
+  // Mostrar input si hay zonas custom
+  const customZonas = zonasModal.filter(z => !ZONAS_DISPONIBLES.includes(z) && z !== '+ Otra zona');
+  if (customZonas.length) {
+    customZonas.forEach(z => {
+      const btn = document.createElement('button');
+      btn.className = 'pv-chip sel';
+      btn.textContent = z;
+      btn.onclick = () => toggleZonaModal(btn, z);
+      el.insertBefore(btn, el.lastChild);
+    });
+  }
+}
+
+function agregarZonaCustom() {
+  const input = document.getElementById('zona-custom-input');
+  if (input) input.style.display = 'flex';
+  setTimeout(() => document.getElementById('zona-custom-val')?.focus(), 100);
+}
+
+function confirmarZonaCustom() {
+  const val = document.getElementById('zona-custom-val')?.value.trim();
+  if (!val) return;
+  if (zonasModal.length >= 3) { alert('Podés elegir hasta 3 zonas'); return; }
+  if (!zonasModal.includes(val)) zonasModal.push(val);
+  document.getElementById('zona-custom-val').value = '';
+  document.getElementById('zona-custom-input').style.display = 'none';
+  renderZonasModal();
 }
 
 function toggleZonaModal(btn, zona) {
