@@ -557,26 +557,64 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 <div id="profile-modal">
   <div class="profile-sheet">
     <div class="profile-handle"></div>
+    <!-- FOTO + NOMBRE -->
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div class="photo-ring" id="modal-photo-ring">
         <img id="modal-big-img" src="" alt="">
         <span id="modal-big-emoji">😎</span>
         <input type="file" accept="image/*" capture="user" id="modal-photo-input" onchange="onModalPhoto(event)">
       </div>
-      <div>
-        <div style="font-weight:700;font-size:18px" id="modal-name">—</div>
-        <div style="color:var(--muted);font-size:12px;margin-top:3px" id="modal-vibe">—</div>
+      <div style="flex:1">
+        <input id="modal-name-input" style="font-weight:700;font-size:17px;background:transparent;border:none;border-bottom:1px solid rgba(34,197,94,.3);color:#fff;width:100%;outline:none;padding-bottom:3px" placeholder="Tu nombre">
+        <div style="color:var(--muted);font-size:11px;margin-top:4px">Tocá para editar nombre · Foto arriba</div>
       </div>
     </div>
+    <!-- STATS -->
     <div class="stats-row">
       <div class="sbox"><div class="snum" id="s-visto">0</div><div class="slbl">Vistos</div></div>
       <div class="sbox"><div class="snum" id="s-likes">0</div><div class="slbl">Conexiones</div></div>
       <div class="sbox"><div class="snum" id="s-matches">0</div><div class="slbl">Matches</div></div>
     </div>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:7px">Tu vibe — tocá para cambiar</div>
+    <!-- EDAD -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Edad</div>
+      <input id="modal-edad" type="number" min="18" max="99" class="input-field" style="margin:0" placeholder="Tu edad">
+    </div>
+    <!-- NIVEL -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Categoría</div>
+      <div class="nivel-grid" id="modal-nivel-grid">
+        <button class="nivel-btn" onclick="selectNivelModal(this,'octava')">8va</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'septima')">7ma</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'sexta')">6ta</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'quinta')">5ta</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'cuarta')">4ta</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'tercera')">3ra</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'segunda')">2da</button>
+        <button class="nivel-btn" onclick="selectNivelModal(this,'primera')">1ra</button>
+      </div>
+    </div>
+    <!-- ZONAS MULTIPLES -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Zonas donde jugás (hasta 3)</div>
+      <div id="modal-zonas-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+    </div>
+    <!-- VIBE -->
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:7px">Tu vibe</div>
     <div class="pv-chips" id="pv-chips"></div>
+    <!-- CAMBIAR CONTRASEÑA -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px;cursor:pointer" onclick="toggleCambiarPass()">🔑 Cambiar contraseña ▾</div>
+      <div id="cambiar-pass-form" style="display:none">
+        <input class="input-field" id="pass-actual" type="password" placeholder="Contraseña actual" style="margin-bottom:8px">
+        <input class="input-field" id="pass-nueva" type="password" placeholder="Nueva contraseña (mín. 6)" style="margin-bottom:8px">
+        <input class="input-field" id="pass-confirmar" type="password" placeholder="Confirmar nueva contraseña" style="margin-bottom:8px">
+        <button onclick="cambiarPassword()" style="width:100%;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:10px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Actualizar contraseña</button>
+      </div>
+    </div>
+    <button onclick="guardarPerfilCompleto()" style="width:100%;background:linear-gradient(135deg,var(--green-dark),var(--green));border:none;color:#fff;padding:13px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">GUARDAR CAMBIOS ✓</button>
     <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
-    <button class="profile-close-btn" onclick="closeProfile()">Listo ✓</button>
+    <button class="profile-close-btn" onclick="closeProfile()">Cancelar</button>
   </div>
 </div>
 
@@ -733,7 +771,8 @@ async function doLogin(){
     syncProfileBtn();connectSocket();
     const tienePerfil = await verificarPerfilPadel();
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
-    if(sesionId)showScreen('swipe');else showScreen('qr-screen');
+    await cargarJugadoresPadel();
+    showScreen('swipe');
   }catch(err){
     errEl.textContent=err.message;errEl.style.display='block';
   }finally{hideLoader();}
@@ -773,6 +812,20 @@ async function entrarConQR(){
 function mostrarNombreSesion(nombre){
   const el=document.getElementById('sesion-nombre-header');
   if(el&&nombre){el.textContent='📍 '+nombre;el.style.display='block';}
+}
+
+async function cargarJugadoresPadel(){
+  try {
+    const nivel = perfilPadel?.nivel || '';
+    const zona  = perfilPadel?.zona?.split(',')[0]?.trim() || '';
+    const excluir = usuario?.id || '';
+    const params = new URLSearchParams();
+    if (nivel) params.append('nivel', nivel);
+    if (zona)  params.append('zona', zona);
+    if (excluir) params.append('excluir_id', excluir);
+    perfiles = await api('/padel/jugadores?' + params.toString());
+    perfilIdx = 0;
+  } catch(err) { perfiles = []; }
 }
 
 async function cargarPerfiles(){
@@ -833,8 +886,12 @@ function renderCard(){
           :`<div class="card-photo-placeholder">😊</div>`}
         <div class="card-body">
           <div class="card-name">${p.nombre}${p.edad?`, <span style="color:var(--green)">${p.edad}</span>`:''}</div>
-          <div class="card-vibe">${p.vibe||''}</div>
-          <div class="card-online"><div class="online-dot"></div><span class="online-text">En este club ahora mismo 🎾</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            ${p.nivel?`<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:3px 10px;border-radius:50px;font-size:11px;font-weight:600">${p.nivel}</span>`:''}
+            ${p.zona?p.zona.split(',').map(z=>`<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:3px 10px;border-radius:50px;font-size:11px">📍${z.trim()}</span>`).join(''):''}
+          </div>
+          <div class="card-vibe" style="margin-top:8px">${p.vibe||''}</div>
+          <div class="card-online"><div class="online-dot"></div><span class="online-text">Disponible para jugar 🎾</span></div>
         </div>
       </div>
     </div>`;
@@ -1038,16 +1095,30 @@ function syncProfileBtn(){
 async function openProfile(){
   if(!usuario)return;
   try{const perfil=await api('/auth/perfil');usuario={...usuario,...perfil};clSetUsuario(usuario);}catch(e){}
-  document.getElementById('modal-name').textContent=usuario.nombre||'—';
-  document.getElementById('modal-vibe').textContent=usuario.vibe||'—';
+  // Foto y nombre
   const bigImg=document.getElementById('modal-big-img');
   const bigEmoji=document.getElementById('modal-big-emoji');
   if(usuario.foto_url){bigImg.src=usuario.foto_url;bigImg.style.display='block';bigEmoji.style.display='none';}
   else{bigImg.style.display='none';bigEmoji.style.display='block';}
+  document.getElementById('modal-name-input').value = usuario.nombre||'';
+  document.getElementById('modal-edad').value = usuario.edad||'';
+  // Stats
   document.getElementById('s-visto').textContent=perfilIdx;
   document.getElementById('s-likes').textContent=matchesList.length;
   document.getElementById('s-matches').textContent=matchesList.length;
-  document.querySelectorAll('#pv-chips .pv-chip').forEach(c=>c.classList.toggle('sel',c.textContent===usuario.vibe));
+  // Nivel padel
+  nivelModal = perfilPadel?.nivel || '';
+  document.querySelectorAll('#modal-nivel-grid .nivel-btn').forEach(b=>{
+    b.classList.toggle('selected', b.getAttribute('onclick').includes("'"+nivelModal+"'"));
+  });
+  // Zonas
+  zonasModal = perfilPadel?.zona ? perfilPadel.zona.split(',').map(z=>z.trim()).filter(Boolean) : [];
+  renderZonasModal();
+  // Vibes
+  selectedVibes = usuario.vibe ? usuario.vibe.split(',').map(v=>v.trim()).filter(Boolean) : [];
+  document.querySelectorAll('#pv-chips .pv-chip').forEach(c=>{
+    c.classList.toggle('sel', selectedVibes.includes(c.textContent.trim()));
+  });
   document.getElementById('profile-modal').classList.add('show');
 }
 
@@ -1213,8 +1284,8 @@ async function guardarPerfilPadel() {
       foto_url: usuario.foto_url || null
     })});
     perfilPadel = { nivel: nivelSeleccionado, zona };
-    if(sesionId) showScreen('swipe');
-    else showScreen('qr-screen');
+    await cargarJugadoresPadel();
+    showScreen('swipe');
   } catch(err) {
     errEl.textContent = err.message; errEl.style.display='block';
   } finally { hideLoader(); }
@@ -1324,6 +1395,93 @@ async function cargarRanking() {
   } catch(err) {
     el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
   }
+}
+
+// ── PERFIL EXTENDIDO ─────────────────────────────────────────────────
+const ZONAS_DISPONIBLES = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes'];
+let nivelModal = '';
+let zonasModal = [];
+
+function selectNivelModal(btn, nivel) {
+  document.querySelectorAll('#modal-nivel-grid .nivel-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  nivelModal = nivel;
+}
+
+function renderZonasModal() {
+  const el = document.getElementById('modal-zonas-chips');
+  if (!el) return;
+  el.innerHTML = ZONAS_DISPONIBLES.map(z => {
+    const sel = zonasModal.includes(z);
+    return `<button class="pv-chip ${sel?'sel':''}" onclick="toggleZonaModal(this,'${z}')">${z}</button>`;
+  }).join('');
+}
+
+function toggleZonaModal(btn, zona) {
+  if (zonasModal.includes(zona)) {
+    zonasModal = zonasModal.filter(z => z !== zona);
+    btn.classList.remove('sel');
+  } else {
+    if (zonasModal.length >= 3) { alert('Podés elegir hasta 3 zonas'); return; }
+    zonasModal.push(zona);
+    btn.classList.add('sel');
+  }
+}
+
+function toggleCambiarPass() {
+  const el = document.getElementById('cambiar-pass-form');
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function cambiarPassword() {
+  const actual = document.getElementById('pass-actual')?.value;
+  const nueva = document.getElementById('pass-nueva')?.value;
+  const confirmar = document.getElementById('pass-confirmar')?.value;
+  if (!actual || !nueva || !confirmar) { alert('Completá todos los campos'); return; }
+  if (nueva.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
+  if (nueva !== confirmar) { alert('Las contraseñas no coinciden'); return; }
+  showLoader('Cambiando contraseña...');
+  try {
+    await api('/auth/cambiar-password', { method:'POST', body:JSON.stringify({ password_actual: actual, password_nueva: nueva }) });
+    document.getElementById('cambiar-pass-form').style.display = 'none';
+    document.getElementById('pass-actual').value = '';
+    document.getElementById('pass-nueva').value = '';
+    document.getElementById('pass-confirmar').value = '';
+    alert('✅ Contraseña actualizada');
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
+}
+
+async function guardarPerfilCompleto() {
+  const nombre = document.getElementById('modal-name-input')?.value.trim();
+  const edad = parseInt(document.getElementById('modal-edad')?.value) || null;
+  if (!nombre) { alert('Ingresá tu nombre'); return; }
+  if (!nivelModal) { alert('Seleccioná tu categoría'); return; }
+  if (zonasModal.length === 0) { alert('Seleccioná al menos una zona'); return; }
+  showLoader('Guardando...');
+  try {
+    // Actualizar usuario general
+    await api('/auth/perfil', { method:'PUT', body:JSON.stringify({
+      nombre,
+      edad,
+      vibe: selectedVibes.join(', ') || usuario.vibe
+    })});
+    // Actualizar perfil padel
+    await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
+      usuario_id: usuario.id,
+      nombre,
+      nivel: nivelModal,
+      zona: zonasModal.join(', '),
+      foto_url: usuario.foto_url || null
+    })});
+    usuario = { ...usuario, nombre, edad, vibe: selectedVibes.join(', ') || usuario.vibe };
+    clSetUsuario(usuario);
+    perfilPadel = { ...perfilPadel, nivel: nivelModal, zona: zonasModal.join(', ') };
+    syncProfileBtn();
+    document.getElementById('profile-modal').classList.remove('show');
+    alert('✅ Perfil actualizado');
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
 }
 </script>
 </body>
