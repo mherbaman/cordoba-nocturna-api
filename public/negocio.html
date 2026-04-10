@@ -149,6 +149,17 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
   .main{padding:16px}
   .qr-code{font-size:20px}
 }
+
+.turno-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.dia-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;padding:6px 0}
+.btn-sm{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:7px 12px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-sm:hover{background:rgba(255,45,120,.1);border-color:var(--pink)}
+.btn-sm.btn-edit{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+.reserva-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.reserva-estado{padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;flex-shrink:0}
+.estado-pendiente{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+.estado-confirmado{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.estado-rechazado{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
 </style>
 </head>
 <body>
@@ -220,8 +231,6 @@ async function apiAdmin(path, opts={}) {
     <button class="tab" onclick="navTo('historial',this)">📅 Historial</button>
     <button class="tab" onclick="navTo('clientes',this)">👥 Clientes</button>
     <button class="tab" onclick="navTo('stats',this)">📊 Estadísticas</button>
-    <button class="tab" id="tab-canchas" onclick="navTo('canchas',this)" style="display:none">🎾 Mis Canchas</button>
-    <button class="tab" id="tab-reservas" onclick="navTo('reservas',this)" style="display:none">📋 Reservas</button>
     <button class="tab" id="tab-canchas" onclick="navTo('canchas',this)" style="display:none">🎾 Mis Canchas</button>
     <button class="tab" id="tab-reservas" onclick="navTo('reservas',this)" style="display:none">📋 Reservas</button>
   </div>
@@ -303,9 +312,6 @@ async function apiAdmin(path, opts={}) {
       </div>
     </div>
 
-  </div>
-
-    <!-- CANCHAS -->
 
     <!-- CANCHAS -->
     <div class="page" id="page-canchas">
@@ -325,7 +331,7 @@ async function apiAdmin(path, opts={}) {
         <div class="section-title">📋 Reservas recibidas</div>
         <div style="display:flex;gap:8px;">
           <button class="btn-sm btn-edit" onclick="filtrarReservas('pendiente')" id="f-pendiente" style="background:rgba(251,191,36,.15);color:#fbbf24;border-color:rgba(251,191,36,.3)">⏳ Pendientes</button>
-          <button class="btn-sm btn-edit" onclick="filtrarReservas('confirmado')" id="f-confirmada">✅ Confirmadas</button>
+          <button class="btn-sm btn-edit" onclick="filtrarReservas('confirmado')" id="f-confirmado">✅ Confirmadas</button>
           <button class="btn-sm btn-edit" onclick="filtrarReservas('todas')" id="f-todas">📋 Todas</button>
         </div>
       </div>
@@ -754,7 +760,7 @@ async function cargarReservas() {
   const el = document.getElementById('reservas-list');
   el.innerHTML = '<div class="loader"></div>';
   try {
-    todasLasReservas = await apiAdmin('/padel/reservas/del-club');
+    todasLasReservas = await apiAdmin(`/padel/reservas/del-club?negocio_id=${negocioData.id}`);
     filtrarReservas('pendiente');
   } catch(err) {
     el.innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
@@ -763,7 +769,7 @@ async function cargarReservas() {
 
 function filtrarReservas(estado) {
   const el = document.getElementById('reservas-list');
-  ['pendiente','confirmada','todas'].forEach(e => {
+  ['pendiente','confirmado','todas'].forEach(e => {
     const btn = document.getElementById('f-'+e);
     if (btn) btn.style.background = e===estado ? 'rgba(255,45,120,.2)' : 'rgba(255,255,255,.06)';
   });
@@ -781,7 +787,7 @@ function filtrarReservas(estado) {
             <div style="font-weight:600;font-size:14px">${r.jugador_nombre}</div>
             ${r.jugador_tel ? `<div style="color:#22c55e;font-size:11px">📱 ${r.jugador_tel}</div>` : ''}
           </div>
-          <span class="reserva-estado estado-${r.estado}">${r.estado === 'pendiente' ? '⏳ Pendiente' : r.estado === 'confirmada' ? '✅ Confirmada' : '❌ Rechazada'}</span>
+          <span class="reserva-estado estado-${r.estado}">${r.estado === 'pendiente' ? '⏳ Pendiente' : r.estado === 'confirmado' ? '✅ Confirmada' : '❌ Rechazada'}</span>
         </div>
         <div style="color:var(--muted);font-size:13px">
           📅 ${new Date(r.fecha+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}
@@ -794,15 +800,15 @@ function filtrarReservas(estado) {
       </div>
       ${r.estado === 'pendiente' ? `
         <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-          <button onclick="responderReserva('${r.id}','confirmada')" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✅ Confirmar</button>
-          <button onclick="responderReserva('${r.id}','rechazada')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">❌ Rechazar</button>
+          <button onclick="responderReserva('${r.id}','confirmado')" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✅ Confirmar</button>
+          <button onclick="responderReserva('${r.id}','rechazado')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">❌ Rechazar</button>
           ${r.jugador_tel ? `<button onclick="window.open('https://wa.me/${r.jugador_tel}')" style="background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.2);color:#25d366;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">💬 WA</button>` : ''}
         </div>` : ''}
     </div>`).join('');
 }
 
 async function responderReserva(id, estado) {
-  const accion = estado === 'confirmada' ? 'confirmar' : 'rechazar';
+  const accion = estado === 'confirmado' ? 'confirmar' : 'rechazar';
   if (!confirm(`¿${accion.charAt(0).toUpperCase()+accion.slice(1)} esta reserva?`)) return;
   try {
     const data = await apiAdmin(`/padel/reservas/${id}`, { method:'PUT', body:JSON.stringify({estado}) });
