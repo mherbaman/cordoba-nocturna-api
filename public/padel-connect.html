@@ -679,6 +679,9 @@ window.onload=function(){
   const yaM=document.getElementById('cl-ya-miembro');
   if(yaM&&clYaRegistrado())yaM.style.display='block';
   if(token&&usuario){
+    // Mostrar loader mientras verifica, no mostrar auth
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    showLoader('Cargando tu perfil...');
     syncProfileBtn();
     connectSocket();
     const negocio=localStorage.getItem('pc_negocio');
