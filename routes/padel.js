@@ -320,14 +320,18 @@ router.get('/turnos-disponibles', async (req, res) => {
     const fechaObj = new Date(fecha);
     const diaSemana = fechaObj.getDay(); // 0=domingo, 6=sábado
 
-    // Turnos configurados para ese día
+    // Turnos para ese día: con fecha exacta O recurrentes del mismo día
     const disponibles = await pool.query(`
       SELECT d.*
       FROM disponibilidad_padel d
       WHERE d.negocio_id = $1
-        AND d.dia_semana = $2
         AND d.activo = true
-    `, [negocio_id, diaSemana]);
+        AND (
+          (d.fecha_especifica = $3)
+          OR
+          (d.fecha_especifica IS NULL AND d.dia_semana = $2)
+        )
+    `, [negocio_id, diaSemana, fecha]);
 
     // Reservas ya tomadas en esa fecha
     const reservadas = await pool.query(`
@@ -771,13 +775,14 @@ router.post('/disponibilidad/masiva', authAdmin, async (req, res) => {
 
       for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
         if (dias.includes(d.getDay())) {
+          const fechaStr = d.toISOString().split('T')[0];
           const r = await pool.query(`
             INSERT INTO disponibilidad_padel
-              (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+              (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha, fecha_especifica)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
             ON CONFLICT DO NOTHING
             RETURNING id
-          `, [negocio_id, d.getDay(), hora_inicio, hora_fin, precio_por_hora, cantidad_canchas||1, zona, numero_cancha||1]);
+          `, [negocio_id, d.getDay(), hora_inicio, hora_fin, precio_por_hora, cantidad_canchas||1, zona, numero_cancha||1, fechaStr]);
           if (r.rows.length) inserted.push(r.rows[0].id);
         }
       }
