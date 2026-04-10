@@ -358,7 +358,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Nombre</th><th>Tipo</th><th>Plan</th><th>Estado</th><th>Acciones</th></tr>
+              <tr><th>Nombre</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Plan</th><th>Estado</th><th>Acciones</th></tr>
             </thead>
             <tbody id="negocios-tbody">
               <tr><td colspan="5"><div class="loader"></div></td></tr>
@@ -961,6 +961,8 @@ async function cargarNegocios() {
       <tr class="negocio-row">
         <td>${n.nombre}</td>
         <td><span class="badge badge-yellow">${n.tipo}</span></td>
+        <td style="font-size:13px;color:var(--muted)">${n.dueno_email||'—'}</td>
+        <td style="font-size:13px">${n.dueno_tel ? `<span style="color:#22c55e">📱 ${n.dueno_tel}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
         <td><span class="badge badge-green">${n.plan}</span></td>
         <td><span class="badge ${n.activo?'badge-green':'badge-red'}">${n.activo?'Activo':'Inactivo'}</span>
           ${n.estado_pago==='trial'?'<span class="badge badge-yellow">🎁 Trial</span>':n.estado_pago==='vencido'?'<span class="badge badge-red">❌ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge" style="background:rgba(156,163,175,.15);color:#9ca3af">⏸️ Suspendido</span>':'<span class="badge badge-green">✅ Pago</span>'}
@@ -972,6 +974,7 @@ async function cargarNegocios() {
           </div>
           <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
           <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}')">🔑 Acceso</button>
+          <button class="btn-sm" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)" onclick="verPasswordNegocio('${n.id}','${n.nombre}')">🔐 Contraseña</button>
         </div></td>
       </tr>`).join('');
   } catch(err) {
@@ -1398,6 +1401,40 @@ function exportarExcel() {
   a.download = `reporte-cordoba-nocturna-${desde}-${hasta}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ─── VER/RESETEAR CONTRASEÑA NEGOCIO ─────────────────────────────────
+async function verPasswordNegocio(negocioId, negocioNombre) {
+  document.getElementById('modal-title').textContent = `🔐 Contraseña — ${negocioNombre}`;
+  document.getElementById('modal-body').innerHTML = `
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">
+      La contraseña actual está encriptada y no puede verse. Podés establecer una nueva contraseña para este negocio.
+    </p>
+    <div class="modal-grid">
+      <div class="full">
+        <label class="field-label">Nueva contraseña</label>
+        <input class="input-field" id="new-pass" type="text" placeholder="Mínimo 6 caracteres" autocomplete="off">
+        <div style="color:var(--muted);font-size:11px;margin-top:4px">Se va a actualizar la contraseña del admin de este negocio</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="resetearPassword('${negocioId}')">🔐 ACTUALIZAR CONTRASEÑA</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+async function resetearPassword(negocioId) {
+  const pass = document.getElementById('new-pass').value.trim();
+  if (!pass || pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+  try {
+    await apiAdmin(`/superadmin/admin-negocio-password`, {
+      method: 'POST',
+      body: JSON.stringify({ negocio_id: negocioId, password: pass })
+    });
+    cerrarModal();
+    alert('✅ Contraseña actualizada correctamente');
+  } catch(err) { alert('Error: ' + err.message); }
 }
 
 // ─── MODAL ────────────────────────────────────────────────────────────
