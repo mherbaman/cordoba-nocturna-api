@@ -660,30 +660,48 @@ async function cargarCanchas() {
       el.innerHTML = `<div class="empty-state"><div class="icon">🎾</div>No tenés turnos cargados aún.<br>Agregá tu primera disponibilidad.</div>`;
       return;
     }
-    el.innerHTML = turnos.map(t => {
-      const fechaLabel = t.fecha_especifica
-        ? new Date(t.fecha_especifica + 'T00:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long', year:'numeric'})
-        : (() => {
+    // Ordenar turnos: primero por fecha_especifica, luego recurrentes por dia_semana
+    turnos.sort((a, b) => {
+      const fa = a.fecha_especifica ? a.fecha_especifica.substring(0,10) : '9999-' + String(a.dia_semana).padStart(2,'0');
+      const fb = b.fecha_especifica ? b.fecha_especifica.substring(0,10) : '9999-' + String(b.dia_semana).padStart(2,'0');
+      if (fa !== fb) return fa < fb ? -1 : 1;
+      return a.hora_inicio < b.hora_inicio ? -1 : 1;
+    });
+    // Agrupar por clave de día
+    const grupos = {};
+    turnos.forEach(t => {
+      let key, titulo;
+      if (t.fecha_especifica) {
+        key = t.fecha_especifica.substring(0,10);
+        titulo = new Date(key + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+      } else {
+        key = 'rec_' + t.dia_semana;
         const hoyD = new Date();
         const diff = (t.dia_semana - hoyD.getDay() + 7) % 7;
         const prox = new Date(hoyD); prox.setDate(hoyD.getDate() + diff);
-        return DIAS[t.dia_semana] + ' (recurrente · próximo ' + prox.toLocaleDateString('es-AR', {day:'numeric', month:'long'}) + ')';
-      })();
-      const reservado = idsReservados.includes(t.id);
-      return '<div class="turno-card" style="' + (reservado ? 'border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)' : '') + '">' +
-        '<div style="flex:1">' +
-          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-            '<span style="font-weight:600;font-size:15px">🕐 ' + t.hora_inicio.substring(0,5) + ' - ' + t.hora_fin.substring(0,5) + '</span>' +
-            (reservado ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700">🔴 RESERVADO HOY</span>' : '<span style="background:rgba(34,197,94,.1);color:#22c55e;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700">🟢 LIBRE</span>') +
+        titulo = DIAS[t.dia_semana] + ' (recurrente · próximo ' + prox.toLocaleDateString('es-AR', {day:'numeric', month:'long'}) + ')';
+      }
+      if (!grupos[key]) grupos[key] = { titulo, turnos: [] };
+      grupos[key].turnos.push(t);
+    });
+    el.innerHTML = Object.values(grupos).map(g => {
+      const turnosHtml = g.turnos.map(t => {
+        const reservado = idsReservados.includes(t.id);
+        return '<div class="turno-card" style="' + (reservado ? 'border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)' : '') + '">' +
+          '<div style="flex:1">' +
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+              '<span style="font-weight:600;font-size:15px">🕐 ' + t.hora_inicio.substring(0,5) + ' - ' + t.hora_fin.substring(0,5) + '</span>' +
+              (reservado ? '<span style="background:rgba(239,68,68,.15);color:#ef4444;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700">🔴 RESERVADO HOY</span>' : '<span style="background:rgba(34,197,94,.1);color:#22c55e;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700">🟢 LIBRE</span>') +
+            '</div>' +
+            '<div style="color:var(--muted);font-size:12px;margin-top:2px">🏟️ Cancha N°' + (t.numero_cancha||1) + ' · 💰 $' + t.precio_por_hora + ' · ' + t.cantidad_canchas + ' turno(s) máx</div>' +
           '</div>' +
-          '<div style="color:#22c55e;font-size:12px;margin-top:3px;font-weight:600">📅 ' + fechaLabel + '</div>' +
-          '<div style="color:var(--muted);font-size:12px;margin-top:2px">🏟️ Cancha N°' + (t.numero_cancha||1) + ' · 💰 $' + t.precio_por_hora + ' · ' + t.cantidad_canchas + ' turno(s) máx</div>' +
-        '</div>' +
-        '<div style="display:flex;gap:6px;flex-shrink:0">' +
-          '<button class="btn-sm" onclick="editarTurno(' + JSON.stringify(t).replace(/"/g,'&quot;') + ')" style="background:rgba(255,255,255,.08)">✏️</button>' +
-          '<button class="btn-sm" onclick="borrarTurno(\'' + t.id + '\')" style="background:rgba(239,68,68,.1);color:#ef4444;border-color:rgba(239,68,68,.2)">🗑</button>' +
-        '</div>' +
-      '</div>';
+          '<div style="display:flex;gap:6px;flex-shrink:0">' +
+            '<button class="btn-sm" onclick="editarTurno(' + JSON.stringify(t).replace(/"/g,'&quot;') + ')" style="background:rgba(255,255,255,.08)">✏️</button>' +
+            '<button class="btn-sm" onclick="borrarTurno(\'' + t.id + '\')" style="background:rgba(239,68,68,.1);color:#ef4444;border-color:rgba(239,68,68,.2)">🗑</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      return '<div style="margin-bottom:20px"><div class="dia-label" style="color:rgba(34,197,94,.8);font-size:12px;padding:8px 0;border-bottom:1px solid rgba(34,197,94,.15);margin-bottom:8px">📅 ' + g.titulo.toUpperCase() + '</div>' + turnosHtml + '</div>';
     }).join('');
   } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: " + err.message + "</div>"; }
 }
