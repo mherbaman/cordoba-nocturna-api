@@ -750,6 +750,15 @@ window.onload = function() {
   // Limpiar tokens viejos si ya hay cl_token activo
   if(clGetToken()) clLimpiarTokensViejos();
 
+  // Deep link QR — leer ?codigo= de la URL
+  const _urlParams = new URLSearchParams(window.location.search);
+  const _codigoQR = _urlParams.get('codigo');
+  if (_codigoQR) {
+    localStorage.setItem('cl_pending_codigo', _codigoQR.toUpperCase());
+    // Limpiar la URL sin recargar
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
   // Cargar sponsors desde la API
   cargarSponsorsApp();
 
@@ -759,6 +768,14 @@ window.onload = function() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('age-verify').classList.add('active');
     return;
+  }
+
+  // Si hay código QR en la URL y NO está logueado, guardarlo igual
+  const _urlP = new URLSearchParams(window.location.search);
+  const _cQR = _urlP.get('codigo');
+  if (_cQR) {
+    localStorage.setItem('cl_pending_codigo', _cQR.toUpperCase());
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 
   // Si ya está logueado, ir directo
@@ -774,8 +791,18 @@ window.onload = function() {
     const tagline = document.getElementById('main-tagline');
     if (tagline) tagline.textContent = cat.slogan;
     if (negocio) mostrarNombreSesion(negocio);
-    if (sesionId) { cargarPerfiles().then(() => showScreen('swipe')); }
-    else saltearQR();
+    // Si hay código QR pendiente por deep link, entrar automático
+    const _pendingCodigo = localStorage.getItem('cl_pending_codigo');
+    if (_pendingCodigo) {
+      localStorage.removeItem('cl_pending_codigo');
+      document.getElementById('qr-codigo') && (document.getElementById('qr-codigo').value = _pendingCodigo);
+      showScreen('qr-screen');
+      setTimeout(() => entrarConQR(), 300);
+    } else if (sesionId) {
+      cargarPerfiles().then(() => showScreen('swipe'));
+    } else {
+      saltearQR();
+    }
   }
 };
 
