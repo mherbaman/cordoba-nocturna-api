@@ -693,9 +693,16 @@ function abrirModalDisponibilidad(t={}) {
   document.getElementById('modal-disp-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="grid-column:1/-1">
-        <label class="field-label">Día de la semana</label>
-        <select class="input-field" id="disp-dia" style="color:#fff;background:#1a0030;margin:0">
-          ${DIAS.map((d,i) => `<option value="${i}" ${t.dia_semana==i?'selected':''} style="background:#1a0030">${d}</option>`).join('')}
+        <label class="field-label">Fecha</label>
+        <input class="input-field" id="disp-fecha" type="date" value="${t.fecha||''}" style="margin:0;color-scheme:dark">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">¿Repetir semanalmente?</label>
+        <select class="input-field" id="disp-repetir" style="color:#fff;background:#1a0030;margin:0">
+          <option value="0" style="background:#1a0030">Solo ese día</option>
+          <option value="2" style="background:#1a0030">2 semanas</option>
+          <option value="4" style="background:#1a0030">4 semanas</option>
+          <option value="8" style="background:#1a0030">8 semanas</option>
         </select>
       </div>
       <div>
@@ -735,21 +742,50 @@ function editarTurno(t) { abrirModalDisponibilidad(t); }
 function cerrarModalDisp() { document.getElementById('modal-disponibilidad').style.display = 'none'; }
 
 async function guardarTurno(id) {
-  const body = {
-    negocio_id:      negocioData.id,
-    dia_semana:      parseInt(document.getElementById('disp-dia').value),
-    hora_inicio:     document.getElementById('disp-inicio').value,
-    hora_fin:        document.getElementById('disp-fin').value,
-    precio_por_hora: parseFloat(document.getElementById('disp-precio').value)||0,
-    cantidad_canchas:parseInt(document.getElementById('disp-max').value)||1,
-    numero_cancha:   parseInt(document.getElementById('disp-nro-cancha').value)||1
-  };
-  if (!body.hora_inicio || !body.hora_fin) { alert('Ingresá hora de inicio y fin'); return; }
+  const fecha      = document.getElementById('disp-fecha').value;
+  const repetir    = parseInt(document.getElementById('disp-repetir').value) || 0;
+  const hora_inicio = document.getElementById('disp-inicio').value;
+  const hora_fin    = document.getElementById('disp-fin').value;
+  const precio      = parseFloat(document.getElementById('disp-precio').value)||0;
+  const max         = parseInt(document.getElementById('disp-max').value)||1;
+  const nro         = parseInt(document.getElementById('disp-nro-cancha').value)||1;
+  if (!fecha) { alert('Seleccioná una fecha'); return; }
+  if (!hora_inicio || !hora_fin) { alert('Ingresá hora de inicio y fin'); return; }
+  const fechaObj = new Date(fecha + 'T00:00:00');
+  const dia_semana = fechaObj.getDay();
   try {
-    if (id) await apiAdmin(`/padel/disponibilidad/${id}`, { method:'PUT', body:JSON.stringify(body) });
-    else     await apiAdmin('/padel/disponibilidad', { method:'POST', body:JSON.stringify(body) });
+    if (id) {
+      await apiAdmin('/padel/disponibilidad/' + id, { method:'PUT', body:JSON.stringify({
+        hora_inicio, hora_fin, precio_por_hora: precio, cantidad_canchas: max
+      })});
+    } else if (repetir > 0) {
+      // Carga masiva por semanas
+      const dias_semana = [dia_semana];
+      const fecha_hasta = new Date(fechaObj);
+      fecha_hasta.setDate(fecha_hasta.getDate() + repetir * 7);
+      await apiAdmin('/padel/disponibilidad/masiva', { method:'POST', body:JSON.stringify({
+        negocio_id: negocioData.id,
+        hora_inicio, hora_fin,
+        precio_por_hora: precio,
+        cantidad_canchas: max,
+        numero_cancha: nro,
+        fecha_desde: fecha,
+        fecha_hasta: fecha_hasta.toISOString().split('T')[0],
+        dias_semana
+      })});
+    } else {
+      await apiAdmin('/padel/disponibilidad', { method:'POST', body:JSON.stringify({
+        negocio_id: negocioData.id,
+        dia_semana,
+        hora_inicio, hora_fin,
+        precio_por_hora: precio,
+        cantidad_canchas: max,
+        numero_cancha: nro
+      })});
+    }
     cerrarModalDisp();
     cargarCanchas();
+    alert('✅ Turno(s) guardado(s)');
   } catch(err) { alert(err.message); }
 }
 
@@ -806,7 +842,7 @@ function filtrarReservas(estado) {
           · 🔑 ${r.id.substring(0,8).toUpperCase()}
         </div>
       </div>
-      ${r.estado === 'cancelado' ? `<button onclick="dejarResenaJugador('${r.jugador_id}','${r.jugador_nombre}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseña negativa</button>` : ''}
+      ${r.estado === 'cancelado' ? `<button onclick="dejarResenaJugador('${r.jugador_id}','${r.jugador_nombre}','${r.id}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseña negativa</button>` : ''}
       ${r.estado === 'pendiente' ? `
         <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
           <button onclick="responderReserva('${r.id}','confirmado')" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 14px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✅ Confirmar</button>
@@ -864,7 +900,7 @@ async function cargarStats() {
   }
 }
 
-async function dejarResenaJugador(jugadorId, nombre) {
+async function dejarResenaJugador(jugadorId, nombre, reservaId) {
   if (!jugadorId || jugadorId === 'null') { alert('No se puede reseñar este jugador'); return; }
   const puntuacion = prompt('Reseña para ' + nombre + ' (canceló su turno)\nPuntuación 1 al 5:');
   if (!puntuacion) return;
@@ -872,9 +908,9 @@ async function dejarResenaJugador(jugadorId, nombre) {
   if (pts < 1 || pts > 5) { alert('Debe ser entre 1 y 5'); return; }
   const comentario = prompt('Comentario (opcional):') || 'Canceló la reserva';
   try {
-    await apiAdmin('/padel/resenas', {
+    await apiAdmin('/padel/resenas-club', {
       method: 'POST',
-      body: JSON.stringify({ de_jugador_id: jugadorId, a_jugador_id: jugadorId, puntuacion: pts, comentario })
+      body: JSON.stringify({ negocio_id: negocioData.id, jugador_id: jugadorId, reserva_id: reservaId || null, puntuacion: pts, comentario })
     });
     alert('Reseña enviada');
   } catch(err) { alert('Error: ' + err.message); }

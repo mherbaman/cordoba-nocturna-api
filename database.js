@@ -247,6 +247,21 @@ async function agregarTablasPadel() {
     `);
     console.log('✅ Tabla resenas_padel lista');
 
+    // Reseñas de clubes hacia jugadores (por cancelaciones)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS resenas_club_jugador (
+        id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        negocio_id    UUID NOT NULL REFERENCES negocios(id) ON DELETE CASCADE,
+        jugador_id    UUID NOT NULL REFERENCES jugadores_padel(id) ON DELETE CASCADE,
+        reserva_id    UUID REFERENCES reservas_padel(id) ON DELETE SET NULL,
+        puntuacion    INTEGER NOT NULL CHECK (puntuacion BETWEEN 1 AND 5),
+        comentario    TEXT,
+        creado_en     TIMESTAMP DEFAULT NOW(),
+        UNIQUE(negocio_id, reserva_id)
+      )
+    `);
+    console.log('✅ Tabla resenas_club_jugador lista');
+
     // Horarios disponibles cargados por el club
     await pool.query(`
       CREATE TABLE IF NOT EXISTS disponibilidad_padel (

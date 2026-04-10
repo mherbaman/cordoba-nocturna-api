@@ -601,6 +601,77 @@ router.delete('/disponibilidad/:id', authAdmin, async (req, res) => {
   }
 });
 
+// ── POST /padel/resenas-club ─────────────────────────────────────────
+// El club deja reseña a un jugador (por cancelación u otro motivo)
+router.post('/resenas-club', authAdmin, async (req, res) => {
+  const { negocio_id, jugador_id, reserva_id, puntuacion, comentario } = req.body;
+  if (!negocio_id || !jugador_id || !puntuacion)
+    return res.status(400).json({ error: 'negocio_id, jugador_id y puntuacion son requeridos' });
+  if (puntuacion < 1 || puntuacion > 5)
+    return res.status(400).json({ error: 'Puntuacion debe ser entre 1 y 5' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const resena = await client.query(`
+      INSERT INTO resenas_club_jugador (negocio_id, jugador_id, reserva_id, puntuacion, comentario)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (negocio_id, reserva_id) DO UPDATE SET
+        puntuacion  = EXCLUDED.puntuacion,
+        comentario  = EXCLUDED.comentario
+      RETURNING *
+    `, [negocio_id, jugador_id, reserva_id || null, puntuacion, comentario || null]);
+
+    // Recalcular promedio del jugador incluyendo reseñas de clubes
+    await client.query(`
+      UPDATE jugadores_padel SET
+        promedio_resenas = (
+          SELECT ROUND(AVG(p)::numeric, 2) FROM (
+            SELECT puntuacion AS p FROM resenas_padel WHERE a_jugador_id = $1
+            UNION ALL
+            SELECT puntuacion AS p FROM resenas_club_jugador WHERE jugador_id = $1
+          ) t
+        ),
+        total_resenas = (
+          SELECT COUNT(*) FROM resenas_padel WHERE a_jugador_id = $1
+        ) + (
+          SELECT COUNT(*) FROM resenas_club_jugador WHERE jugador_id = $1
+        )
+      WHERE id = $1
+    `, [jugador_id]);
+
+    await client.query('COMMIT');
+    res.status(201).json(resena.rows[0]);
+  } catch(err) {
+    await client.query('ROLLBACK');
+    console.error('POST /padel/resenas-club:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  } finally {
+    client.release();
+  }
+});
+
+// ── GET /padel/resenas-club/:jugador_id ──────────────────────────────
+// Ver reseñas de clubes recibidas por un jugador
+router.get('/resenas-club/:jugador_id', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        r.id, r.puntuacion, r.comentario, r.creado_en,
+        n.nombre AS club_nombre, n.logo_url AS club_logo
+      FROM resenas_club_jugador r
+      JOIN negocios n ON n.id = r.negocio_id
+      WHERE r.jugador_id = $1
+      ORDER BY r.creado_en DESC
+    `, [req.params.jugador_id]);
+    res.json(result.rows);
+  } catch(err) {
+    console.error('GET /padel/resenas-club:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
