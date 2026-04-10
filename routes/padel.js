@@ -457,7 +457,7 @@ router.get('/reservas/mis-reservas', async (req, res) => {
       FROM reservas_padel r
       JOIN negocios n ON n.id = r.negocio_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
-      WHERE r.jugador_id = $1
+      WHERE r.jugador_id = $1 OR r.usuario_id = $1
       ORDER BY r.fecha DESC, d.hora_inicio ASC
     `, [jugador_id]);
 
@@ -600,3 +600,134 @@ router.delete('/disponibilidad/:id', authAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
+// ── DELETE /padel/reservas/:id ───────────────────────────────────────
+// El jugador cancela su reserva + WhatsApp al club
+router.delete('/reservas/:id', async (req, res) => {
+  const { usuario_id } = req.body;
+  if (!usuario_id) return res.status(400).json({ error: 'usuario_id requerido' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const reserva = await client.query(
+      `SELECT r.*, n.nombre AS club_nombre, n.whatsapp, n.dueno_tel,
+              d.hora_inicio, d.hora_fin, j.nombre AS jugador_nombre
+       FROM reservas_padel r
+       JOIN negocios n ON n.id = r.negocio_id
+       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
+       LEFT JOIN jugadores_padel j ON j.id = r.jugador_id OR j.usuario_id = r.usuario_id
+       WHERE r.id = $1`,
+      [req.params.id]
+    );
+
+    if (reserva.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Reserva no encontrada' });
+    }
+
+    const r = reserva.rows[0];
+
+    // Verificar que sea el dueño
+    if (r.usuario_id !== usuario_id && r.jugador_id !== usuario_id) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    if (r.estado === 'cancelado') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'La reserva ya está cancelada' });
+    }
+
+    await client.query(
+      `UPDATE reservas_padel SET estado = 'cancelado', respondido_en = NOW() WHERE id = $1`,
+      [req.params.id]
+    );
+
+    // WhatsApp al club
+    let whatsapp_club = null;
+    const telClub = (r.whatsapp || r.dueno_tel || '').replace(/\D/g, '');
+    if (telClub) {
+      const horaInicio = String(r.hora_inicio).substring(0, 5);
+      const horaFin = String(r.hora_fin).substring(0, 5);
+      const msg = '⚠️ Reserva cancelada por el jugador'
+        + ' - Jugador: ' + (r.jugador_nombre || 'N/A')
+        + ' - Fecha: ' + r.fecha
+        + ' - Horario: ' + horaInicio + ' a ' + horaFin
+        + ' - El turno quedó liberado';
+      whatsapp_club = 'https://wa.me/' + telClub + '?text=' + encodeURIComponent(msg);
+    }
+
+    await client.query('COMMIT');
+    res.json({ ok: true, whatsapp_club });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('DELETE /padel/reservas/:id:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  } finally {
+    client.release();
+  }
+});
+
+// ── POST /padel/disponibilidad/masiva ────────────────────────────────
+// El club carga turnos en masa: por rango de fechas o repetición semanal
+router.post('/disponibilidad/masiva', authAdmin, async (req, res) => {
+  const {
+    negocio_id, hora_inicio, hora_fin, precio_por_hora,
+    cantidad_canchas, zona, numero_cancha,
+    // Modo rango: fecha_desde + fecha_hasta + dias_semana (array [0-6])
+    fecha_desde, fecha_hasta, dias_semana,
+    // Modo semanal: dia_semana + repetir_semanas
+    dia_semana, repetir_semanas
+  } = req.body;
+
+  if (!negocio_id || !hora_inicio || !hora_fin || !precio_por_hora) {
+    return res.status(400).json({ error: 'negocio_id, hora_inicio, hora_fin y precio_por_hora son requeridos' });
+  }
+
+  try {
+    const inserted = [];
+
+    if (fecha_desde && fecha_hasta && dias_semana) {
+      // Modo rango de fechas
+      const desde = new Date(fecha_desde);
+      const hasta = new Date(fecha_hasta);
+      const dias = Array.isArray(dias_semana) ? dias_semana : [dias_semana];
+
+      for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
+        if (dias.includes(d.getDay())) {
+          const r = await pool.query(`
+            INSERT INTO disponibilidad_padel
+              (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+            ON CONFLICT DO NOTHING
+            RETURNING id
+          `, [negocio_id, d.getDay(), hora_inicio, hora_fin, precio_por_hora, cantidad_canchas||1, zona, numero_cancha||1]);
+          if (r.rows.length) inserted.push(r.rows[0].id);
+        }
+      }
+    } else if (dia_semana !== undefined && repetir_semanas) {
+      // Modo repetición semanal
+      const semanas = parseInt(repetir_semanas) || 4;
+      for (let i = 0; i < semanas; i++) {
+        const r = await pool.query(`
+          INSERT INTO disponibilidad_padel
+            (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+          ON CONFLICT DO NOTHING
+          RETURNING id
+        `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas||1, zona, numero_cancha||1]);
+        if (r.rows.length) inserted.push(r.rows[0].id);
+      }
+    } else {
+      return res.status(400).json({ error: 'Usá modo rango (fecha_desde+fecha_hasta+dias_semana) o semanal (dia_semana+repetir_semanas)' });
+    }
+
+    res.status(201).json({ ok: true, creados: inserted.length, ids: inserted });
+  } catch (err) {
+    console.error('POST /padel/disponibilidad/masiva:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
