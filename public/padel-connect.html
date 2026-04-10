@@ -1426,7 +1426,7 @@ async function verTurnosCancha(negocioId, nombre) {
 async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio) {
   if (!usuario) { alert('Tenés que iniciar sesión'); return; }
   if (!perfilPadel) { alert('Completá tu perfil de jugador primero'); showScreen('perfil-padel'); return; }
-  if (!confirm(`Reservar turno ${hora} por $${precio}?`)) return;
+  if (!confirm(`Reservar turno ${hora} por ${precio}?\n\n⚠️ Atención: si cancelás tu reserva, el club podrá dejarte una reseña negativa.`)) return;
   showLoader('Reservando...');
   try {
     const data = await api('/padel/reservas', { method:'POST', body:JSON.stringify({
@@ -1605,7 +1605,7 @@ async function cargarMisReservas() {
   }
   el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
   try {
-    const reservas = await api('/padel/reservas/mis-reservas?jugador_id=' + perfilPadel.id);
+    const reservas = await api('/padel/reservas/mis-reservas?usuario_id=' + usuario.id);
     if (!reservas.length) {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés reservas aún.<br>Reservá desde el tab 🏟️ Canchas</div>';
       return;

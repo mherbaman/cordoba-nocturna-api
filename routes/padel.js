@@ -442,8 +442,9 @@ router.post('/reservas', async (req, res) => {
 // ── GET /padel/reservas/mis-reservas ─────────────────────────────────
 // Reservas del jugador
 router.get('/reservas/mis-reservas', async (req, res) => {
-  const { jugador_id } = req.query;
-  if (!jugador_id) return res.status(400).json({ error: 'jugador_id es requerido' });
+  const { jugador_id, usuario_id } = req.query;
+  const id = jugador_id || usuario_id;
+  if (!id) return res.status(400).json({ error: 'jugador_id o usuario_id es requerido' });
 
   try {
     const result = await pool.query(`
@@ -457,9 +458,10 @@ router.get('/reservas/mis-reservas', async (req, res) => {
       FROM reservas_padel r
       JOIN negocios n ON n.id = r.negocio_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
-      WHERE r.jugador_id = $1 OR r.usuario_id = $1
+      JOIN jugadores_padel j ON j.id = r.jugador_id
+      WHERE j.usuario_id = $1 OR r.usuario_id = $1
       ORDER BY r.fecha DESC, d.hora_inicio ASC
-    `, [jugador_id]);
+    `, [id]);
 
     res.json(result.rows);
   } catch (err) {
