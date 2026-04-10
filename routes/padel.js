@@ -584,4 +584,19 @@ router.get('/ranking', async (req, res) => {
   }
 });
 
+// DELETE /padel/disponibilidad/:id
+router.delete('/disponibilidad/:id', authAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'UPDATE disponibilidad_padel SET activo = false WHERE id = $1 RETURNING id',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Turno no encontrado' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /padel/disponibilidad/:id:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
