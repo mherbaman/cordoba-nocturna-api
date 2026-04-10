@@ -438,7 +438,7 @@ window.onload = () => {
   if (adminToken && adminData) {
     // Recargar datos del negocio
     apiAdmin('/superadmin/mi-negocio')
-      .then(data => { negocioData = data; mostrarApp(); })
+      .then(data => { negocioData = { id: data.id, nombre: data.nombre, tipo: data.tipo }; mostrarApp(); })
       .catch(() => doLogout());
   }
 };
