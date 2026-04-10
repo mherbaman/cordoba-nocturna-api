@@ -683,8 +683,20 @@ window.onload=function(){
     connectSocket();
     const negocio=localStorage.getItem('pc_negocio');
     if(negocio)mostrarNombreSesion(negocio);
-    if(sesionId)showScreen('swipe');
-    else showScreen('qr-screen');
+    // Verificar y cargar perfil padel antes de mostrar la app
+    verificarPerfilPadel().then(async tienePerfil => {
+      if(!tienePerfil){
+        await cargarZonasPadel();
+        showScreen('perfil-padel');
+      } else {
+        await cargarJugadoresPadel();
+        if(sesionId) showScreen('swipe');
+        else showScreen('qr-screen');
+      }
+    }).catch(() => {
+      if(sesionId) showScreen('swipe');
+      else showScreen('qr-screen');
+    });
   }
 };
 
@@ -1096,6 +1108,13 @@ function syncProfileBtn(){
 async function openProfile(){
   if(!usuario)return;
   try{const perfil=await api('/auth/perfil');usuario={...usuario,...perfil};clSetUsuario(usuario);}catch(e){}
+  // Asegurar que perfilPadel esté cargado
+  if(!perfilPadel){
+    try{
+      const dp=await api('/padel/jugadores/mi-perfil?usuario_id='+usuario.id);
+      if(dp.tiene_perfil)perfilPadel=dp.perfil;
+    }catch(e){}
+  }
   // Foto y nombre
   const bigImg=document.getElementById('modal-big-img');
   const bigEmoji=document.getElementById('modal-big-emoji');
@@ -1110,10 +1129,11 @@ async function openProfile(){
   // Nivel padel
   nivelModal = perfilPadel?.nivel || '';
   document.querySelectorAll('#modal-nivel-grid .nivel-btn').forEach(b=>{
-    b.classList.toggle('selected', b.getAttribute('onclick').includes("'"+nivelModal+"'"));
+    const onc = b.getAttribute('onclick') || '';
+    b.classList.toggle('selected', nivelModal && onc.includes("'"+nivelModal+"'"));
   });
   // Zonas
-  zonasModal = perfilPadel?.zona ? perfilPadel.zona.split(',').map(z=>z.trim()).filter(Boolean) : [];
+  zonasModal = (perfilPadel?.zona || '').split(',').map(z=>z.trim()).filter(Boolean);
   renderZonasModal();
   // Vibes
   selectedVibes = usuario.vibe ? usuario.vibe.split(',').map(v=>v.trim()).filter(Boolean) : [];
