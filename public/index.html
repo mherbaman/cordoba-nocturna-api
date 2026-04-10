@@ -774,8 +774,8 @@ window.onload = function() {
     const tagline = document.getElementById('main-tagline');
     if (tagline) tagline.textContent = cat.slogan;
     if (negocio) mostrarNombreSesion(negocio);
-    if (sesionId) showScreen('swipe');
-    else showScreen('qr-screen');
+    if (sesionId) { cargarPerfiles().then(() => showScreen('swipe')); }
+    else saltearQR();
   }
 };
 
@@ -888,8 +888,8 @@ async function doLogin() {
     clLimpiarTokensViejos();
     syncProfileBtn();
     connectSocket();
-    if (sesionId) showScreen('swipe');
-    else showScreen('qr-screen');
+    if (sesionId) { cargarPerfiles().then(() => showScreen('swipe')); }
+    else saltearQR();
   } catch(err) {
     errEl.textContent = err.message; errEl.style.display='block';
   } finally { hideLoader(); }
