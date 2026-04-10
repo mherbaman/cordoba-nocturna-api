@@ -27,7 +27,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .screen { display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:center; padding:24px; pointer-events:none; }
-.screen.active { pointer-events:all; }
+.screen.active { display:flex; pointer-events:all; }
 
 /* AGE VERIFICATION */
 #age-verify { background:var(--bg);z-index:500; }
@@ -57,7 +57,7 @@ body {
 .politicas-inner ul { color:rgba(255,255,255,.75);font-size:14px;line-height:1.8;padding-left:20px;margin-bottom:12px; }
 .politicas-inner ul li { margin-bottom:6px; }
 .back-politicas { display:flex;align-items:center;gap:8px;color:var(--pink);cursor:pointer;font-size:14px;font-weight:600;margin-bottom:24px;background:none;border:none;padding:0; }
-.screen.active { display:flex; }
+/* .screen.active unificado arriba */
 
 /* ANIMATIONS */
 @keyframes fadeUp    { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
