@@ -1383,11 +1383,18 @@ async function cargarCanchasJugador() {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
       return;
     }
-    el.innerHTML = canchas.map(c => `
+    // Agrupar por negocio — mostrar cada uno una sola vez
+    const porNegocio = {};
+    canchas.forEach(c => {
+      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
+      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
+      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
+    });
+    el.innerHTML = Object.values(porNegocio).map(c => `
       <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
         <div class="cancha-nombre">🏟️ ${c.nombre}</div>
-        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.turnos_disponibles} turnos disponibles</div>
-        <div style="color:var(--green);font-size:13px">💰 Desde $${c.precio_por_hora} · Ver turnos →</div>
+        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
+        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
       </div>`).join('');
   } catch(err) {
     el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
