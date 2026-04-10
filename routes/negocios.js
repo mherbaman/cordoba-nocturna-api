@@ -9,19 +9,32 @@ const { pool } = require('../database');
 const { authAdmin, authSuperAdmin } = require('../middleware/auth');
 
 // ── GET /negocios/sesiones-activas ───────────────────────────────────
+// Devuelve sesiones activas filtradas por tipo (query param)
+// Sin filtro: todas. ?tipo=padel: solo padel. ?tipo=nocturna: discos/bares/etc
 router.get('/sesiones-activas', async (req, res) => {
+  const { tipo } = req.query;
+  const TIPOS_PADEL = ['padel','cancha','club','torneo'];
+  const TIPOS_NOCTURNA = ['disco','bar','pub','restaurante','baile','sunset','playa','terraza','gimnasio','crossfit','yoga','festival','feria','recital','shopping','mall','outlet','casamiento','cumple18','corporativo','privado'];
   try {
+    let whereExtra = '';
+    if (tipo === 'padel') {
+      whereExtra = `AND n.tipo IN (${TIPOS_PADEL.map((t,i)=>`$${i+1}`).join(',')})`;
+    } else if (tipo === 'nocturna') {
+      whereExtra = `AND n.tipo IN (${TIPOS_NOCTURNA.map((t,i)=>`$${i+1}`).join(',')})`;
+    }
+    const params = tipo === 'padel' ? TIPOS_PADEL : tipo === 'nocturna' ? TIPOS_NOCTURNA : [];
     const result = await pool.query(`
       SELECT n.nombre, n.tipo, n.slug, n.logo_url,
              s.id as sesion_id, s.nombre as sesion_nombre,
              s.total_usuarios, s.abierta_en
       FROM sesiones_noche s
       JOIN negocios n ON n.id = s.negocio_id
-      WHERE s.activa = true AND n.activo = true
+      WHERE s.activa = true AND n.activo = true ${whereExtra}
       ORDER BY s.total_usuarios DESC
-    `);
+    `, params);
     res.json(result.rows);
   } catch (err) {
+    console.error('GET /negocios/sesiones-activas:', err.message);
     res.status(500).json({ error: 'Error interno' });
   }
 });
