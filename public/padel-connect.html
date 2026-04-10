@@ -1405,28 +1405,41 @@ async function verTurnosCancha(negocioId, nombre) {
   const hoy = new Date().toISOString().split('T')[0];
   const modal = document.getElementById('modal-reserva');
   const body = document.getElementById('modal-reserva-body');
-  body.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="loader"></div></div>';
   modal.classList.add('show');
+  // Mostrar selector de fecha primero
+  body.innerHTML = `
+    <div style="font-weight:700;font-size:15px;margin-bottom:14px">🏟️ ${nombre}</div>
+    <label style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Seleccioná una fecha</label>
+    <input type="date" id="fecha-turno" value="${hoy}" min="${hoy}"
+      style="background:rgba(255,255,255,.04);border:1.5px solid rgba(34,197,94,.2);color:#fff;padding:12px;border-radius:12px;font-size:15px;width:100%;margin-bottom:14px;color-scheme:dark"
+      onchange="cargarTurnosFecha('${negocioId}','${nombre}',this.value)">
+    <div id="turnos-resultado"><div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Seleccioná una fecha para ver los turnos disponibles</div></div>
+    <button onclick="document.getElementById('modal-reserva').classList.remove('show')" style="width:100%;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>`;
+}
+
+async function cargarTurnosFecha(negocioId, nombre, fecha) {
+  const el = document.getElementById('turnos-resultado');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="loader"></div></div>';
   try {
-    const turnos = await api(`/padel/turnos-disponibles?negocio_id=${negocioId}&fecha=${hoy}`);
+    const turnos = await api(`/padel/turnos-disponibles?negocio_id=${negocioId}&fecha=${fecha}`);
+    const fechaLabel = new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
     if (!turnos.length) {
-      body.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted)">No hay turnos disponibles hoy.<br><br><button onclick="document.getElementById('modal-reserva').classList.remove('show')" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Cerrar</button></div>`;
+      el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted)">No hay turnos disponibles para ${fechaLabel}</div>`;
       return;
     }
-    body.innerHTML = `
-      <div style="margin-bottom:14px;font-weight:600">${nombre} — Hoy</div>
+    el.innerHTML = `
+      <div style="color:var(--green);font-size:13px;font-weight:600;margin-bottom:10px">📅 ${fechaLabel} — ${turnos.length} turno(s) disponible(s)</div>
       ${turnos.map(t => `
         <div class="turno-item">
           <div>
             <div class="turno-hora">🕐 ${t.hora_inicio.substring(0,5)} - ${t.hora_fin.substring(0,5)}</div>
             <div style="color:var(--muted);font-size:11px">🏟️ Cancha N°${t.numero_cancha||1}</div>
-            <div class="turno-precio">$${t.precio_por_hora}</div>
+            <div class="turno-precio">${t.precio_por_hora}</div>
           </div>
-          <button class="btn-reservar" onclick="confirmarReserva('${negocioId}','${t.id}','${hoy}','${t.hora_inicio.substring(0,5)}','${t.precio_por_hora}')">Reservar</button>
-        </div>`).join('')}
-      <button onclick="document.getElementById('modal-reserva').classList.remove('show')" style="width:100%;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>`;
+          <button class="btn-reservar" onclick="confirmarReserva('${negocioId}','${t.id}','${fecha}','${t.hora_inicio.substring(0,5)}','${t.precio_por_hora}')">Reservar</button>
+        </div>`).join('')}`;
   } catch(err) {
-    body.innerHTML = `<div style="color:var(--muted);text-align:center;padding:20px">${err.message}</div>`;
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:16px">${err.message}</div>`;
   }
 }
 

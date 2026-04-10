@@ -437,8 +437,8 @@ function mostrarApp() {
 window.onload = () => {
   if (adminToken && adminData) {
     // Recargar datos del negocio
-    apiAdmin('/superadmin/login-negocio-token')
-      .then(data => { negocioData = data.negocio; mostrarApp(); })
+    apiAdmin('/superadmin/mi-negocio')
+      .then(data => { negocioData = data; mostrarApp(); })
       .catch(() => doLogout());
   }
 };
