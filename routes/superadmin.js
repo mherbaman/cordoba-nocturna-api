@@ -304,4 +304,23 @@ router.post('/crear-superadmin', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+// ── POST /superadmin/admin-negocio-password ──────────────────────────
+router.post('/admin-negocio-password', authSuperAdmin, async (req, res) => {
+  const { negocio_id, password } = req.body;
+  if (!negocio_id || !password) return res.status(400).json({ error: 'Faltan datos' });
+  if (password.length < 6) return res.status(400).json({ error: 'Mínimo 6 caracteres' });
+  try {
+    const password_hash = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      'UPDATE admins SET password_hash = $1 WHERE negocio_id = $2 AND es_superadmin = false RETURNING email, nombre',
+      [password_hash, negocio_id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Admin no encontrado para este negocio' });
+    res.json({ ok: true, email: result.rows[0].email, nombre: result.rows[0].nombre });
+  } catch (err) {
+    console.error('POST /superadmin/admin-negocio-password:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
