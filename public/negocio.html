@@ -330,10 +330,13 @@ async function apiAdmin(path, opts={}) {
       <div class="section-hdr">
         <div class="section-title">📋 Reservas recibidas</div>
         <div style="display:flex;gap:8px;">
-          <button class="btn-sm btn-edit" onclick="filtrarReservas('pendiente')" id="f-pendiente" style="background:rgba(251,191,36,.15);color:#fbbf24;border-color:rgba(251,191,36,.3)">⏳ Pendientes</button>
           <button class="btn-sm btn-edit" onclick="filtrarReservas('confirmado')" id="f-confirmado">✅ Confirmadas</button>
-          <button class="btn-sm btn-edit" onclick="filtrarReservas('todas')" id="f-todas">📋 Todas</button>
+          <button class="btn-sm btn-edit" onclick="filtrarReservas('todas')" id="f-todas" style="background:rgba(255,45,120,.2)">📋 Todas</button>
         </div>
+      </div>
+      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.8)">
+        ✅ <strong>Las reservas se confirman automáticamente.</strong> El jugador recibe confirmación al instante y vos recibís una notificación por WhatsApp.<br>
+        <span style="color:rgba(251,191,36,.9);font-size:12px;margin-top:6px;display:block">⚠️ Los jugadores que cancelen pueden recibir una reseña negativa de tu parte — esto reduce las cancelaciones.</span>
       </div>
       <div id="reservas-list"><div class="loader"></div></div>
     </div>
@@ -761,7 +764,7 @@ async function cargarReservas() {
   el.innerHTML = '<div class="loader"></div>';
   try {
     todasLasReservas = await apiAdmin(`/padel/reservas/del-club?negocio_id=${negocioData.id}`);
-    filtrarReservas('pendiente');
+    filtrarReservas('todas');
   } catch(err) {
     el.innerHTML = `<div class="empty-state">Error: ${err.message}</div>`;
   }
