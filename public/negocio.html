@@ -680,7 +680,7 @@ async function cargarCanchas() {
         '</div>' +
       '</div>';
     }).join('');
-  }
+  } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: " + err.message + "</div>"; }
 }
 
 function abrirModalDisponibilidad(t={}) {
