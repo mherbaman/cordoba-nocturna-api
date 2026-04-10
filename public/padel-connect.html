@@ -469,6 +469,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div class="swipe-tab active" onclick="switchTab('jugar',this)">🎾 Jugar</div>
     <div class="swipe-tab" onclick="switchTab('canchas',this)">🏟️ Canchas</div>
     <div class="swipe-tab" onclick="switchTab('ranking',this)">🏆 Ranking</div>
+    <div class="swipe-tab" onclick="switchTab('misreservas',this)">📋 Mis turnos</div>
   </div>
   <!-- TAB JUGAR -->
   <div class="tab-content active" id="tab-jugar">
@@ -485,6 +486,12 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   <div class="tab-content" id="tab-canchas">
     <div style="padding:14px 18px 0;font-size:12px;color:var(--muted)">Reservá una cancha cerca tuyo</div>
     <div id="canchas-jugador-list" style="padding:8px 0 40px"></div>
+  </div>
+
+  <!-- TAB MIS RESERVAS -->
+  <div class="tab-content" id="tab-misreservas">
+    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted)">Tus reservas confirmadas</div>
+    <div id="mis-reservas-list" style="padding:8px 0 40px"></div>
   </div>
 
   <!-- TAB RANKING -->
@@ -1363,6 +1370,7 @@ function switchTab(tab, btn) {
   document.getElementById('action-buttons').style.display = tab==='jugar' ? 'flex' : 'none';
   if(tab==='canchas') cargarCanchasJugador();
   if(tab==='ranking') cargarRanking();
+  if(tab==='misreservas') cargarMisReservas();
 }
 
 // ── CANCHAS JUGADOR ───────────────────────────────────────────────────
@@ -1583,6 +1591,65 @@ async function guardarPerfilCompleto() {
     syncProfileBtn();
     document.getElementById('profile-modal').classList.remove('show');
     alert('✅ Perfil actualizado');
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
+}
+
+// ── MIS RESERVAS ──────────────────────────────────────────────────────
+async function cargarMisReservas() {
+  const el = document.getElementById('mis-reservas-list');
+  if (!el) return;
+  if (!perfilPadel) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Completá tu perfil primero</div>';
+    return;
+  }
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const reservas = await api('/padel/reservas/mis-reservas?jugador_id=' + perfilPadel.id);
+    if (!reservas.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés reservas aún.<br>Reservá desde el tab 🏟️ Canchas</div>';
+      return;
+    }
+    const hoy = new Date().toISOString().split('T')[0];
+    el.innerHTML = reservas.map(r => {
+      const esPasada = r.fecha < hoy;
+      const esCancelada = r.estado === 'cancelado';
+      const colorEstado = esCancelada ? '#ef4444' : r.estado === 'confirmado' ? '#22c55e' : '#f59e0b';
+      const labelEstado = esCancelada ? '✕ Cancelada' : r.estado === 'confirmado' ? '✓ Confirmada' : r.estado;
+      const puedeCanc = !esPasada && !esCancelada;
+      return `<div style="background:var(--card);border:1px solid ${esCancelada?'rgba(239,68,68,.2)':'var(--border)'};border-radius:16px;padding:16px;margin:8px 18px;opacity:${esPasada||esCancelada?'.6':'1'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-weight:700;font-size:15px">🏟️ ${r.club_nombre}</div>
+            <div style="color:var(--muted);font-size:12px;margin-top:2px">📍 ${r.zona_cancha||''}</div>
+          </div>
+          <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:13px;margin-bottom:12px">
+          <span>📅 ${r.fecha}</span>
+          <span>🕐 ${String(r.hora_inicio).substring(0,5)} - ${String(r.hora_fin).substring(0,5)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:var(--green);font-weight:700">💰 ${r.precio_cobrado||r.precio_total}</span>
+          ${puedeCanc ? `<button onclick="cancelarReserva('${r.id}','${r.club_nombre}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">Cancelar turno</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+
+async function cancelarReserva(reservaId, clubNombre) {
+  if (!confirm(`¿Cancelar la reserva en ${clubNombre}?\nEl club será notificado por WhatsApp.`)) return;
+  showLoader('Cancelando...');
+  try {
+    const data = await api(`/padel/reservas/${reservaId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ usuario_id: usuario.id })
+    });
+    if (data.whatsapp_club) window.open(data.whatsapp_club);
+    await cargarMisReservas();
   } catch(err) { alert(err.message); }
   finally { hideLoader(); }
 }
