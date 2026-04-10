@@ -535,7 +535,7 @@ let chatMatchId = null, chatOtro = null;
     </div>
     <button class="btn-primary" onclick="entrarConQR()">ENTRAR A LA NOCHE →</button>
     <div style="margin-top:16px;">
-      <button class="btn-secondary" onclick="showScreen('swipe')" style="width:100%;max-width:340px;">Saltear por ahora</button>
+      <button class="btn-secondary" onclick="saltearQR()" style="width:100%;max-width:340px;">Saltear por ahora</button>
     </div>
 
     <!-- EVENTOS ACTIVOS -->
@@ -1568,6 +1568,20 @@ function participarPromoWA(pp) {
   window.open('https://wa.me/' + pp.whatsapp + '?text=' + msg, '_blank');
 }
 
+
+function saltearQR() {
+  showScreen('swipe');
+  const area = document.getElementById('card-area');
+  const btns = document.getElementById('action-buttons');
+  if (btns) btns.style.display = 'none';
+  if (area) area.innerHTML = `<div class="empty-state">
+    <div class="big-emoji">📍</div>
+    <h2>SIN UBICACIÓN</h2>
+    <p>Escaneá el QR del local para ver perfiles y hacer matches.</p>
+    <button class="btn-primary" onclick="showScreen('qr-screen')">INGRESAR CÓDIGO →</button>
+    <button class="btn-secondary" style="margin-top:10px;width:100%;max-width:340px;" onclick="openProfile()">Mi perfil 👤</button>
+  </div>`;
+}
 
 async function cargarEventosActivos() {
   var el = document.getElementById('eventos-activos-list');
