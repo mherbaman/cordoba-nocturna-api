@@ -298,6 +298,16 @@ function clGetToken(){ return localStorage.getItem(CL_TOKEN_KEY); }
 function clGetUsuario(){ return JSON.parse(localStorage.getItem(CL_USUARIO_KEY)||'null'); }
 function clSetToken(t){ localStorage.setItem(CL_TOKEN_KEY, t); }
 function clSetUsuario(u){ localStorage.setItem(CL_USUARIO_KEY, JSON.stringify(u)); }
+function clLimpiarTokensViejos(){
+  // Borra tokens de versiones anteriores que puedan quedar duplicados
+  ['clx_token','clx_usuario','clx_sesion','clx_negocio','clx_tipo',
+   'cc_token','cc_usuario','cc_sesion','cc_negocio','cc_tipo',
+   'fc_token','fc_usuario','fc_sesion','fc_negocio','fc_tipo',
+   'sc_token','sc_usuario','sc_sesion','sc_negocio','sc_tipo',
+   'fc2_token','fc2_usuario','fc2_sesion','fc2_negocio','fc2_tipo'
+  ].forEach(function(k){ localStorage.removeItem(k); });
+}
+
 function clClearAuth(){
   [CL_TOKEN_KEY, CL_USUARIO_KEY,
    'clx_token','clx_usuario','clx_sesion','clx_negocio','clx_tipo',
@@ -847,6 +857,7 @@ async function doRegister(){
     token=d.token;usuario=d.usuario;
     clSetToken(token);
     clSetUsuario(usuario);
+    clLimpiarTokensViejos();
     syncProfileBtn();connectSocket();showScreen('qr-screen');
   }catch(e){
     var m=e.message||'Error';
@@ -869,6 +880,7 @@ async function doLogin() {
     token = data.token; usuario = data.usuario;
     clSetToken(token);
     clSetUsuario(usuario);
+    clLimpiarTokensViejos();
     syncProfileBtn();
     connectSocket();
     if (sesionId) showScreen('swipe');
