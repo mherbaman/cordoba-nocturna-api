@@ -688,6 +688,7 @@ window.onload=function(){
     if(negocio)mostrarNombreSesion(negocio);
     // Verificar y cargar perfil padel antes de mostrar la app
     verificarPerfilPadel().then(async tienePerfil => {
+      hideLoader();
       if(!tienePerfil){
         await cargarZonasPadel();
         showScreen('perfil-padel');
@@ -697,6 +698,7 @@ window.onload=function(){
         else showScreen('qr-screen');
       }
     }).catch(() => {
+      hideLoader();
       if(sesionId) showScreen('swipe');
       else showScreen('qr-screen');
     });
