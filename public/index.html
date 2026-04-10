@@ -745,6 +745,9 @@ window.onload = function() {
     el.innerHTML = VIBES.map(v => `<button class="${id==='pv-chips'?'pv-chip':'vibe-chip'}" onclick="selectVibe(this,'${id}')">${v}</button>`).join('');
   });
 
+  // Limpiar tokens viejos si ya hay cl_token activo
+  if(clGetToken()) clLimpiarTokensViejos();
+
   // Cargar sponsors desde la API
   cargarSponsorsApp();
 
