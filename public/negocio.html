@@ -663,7 +663,12 @@ async function cargarCanchas() {
     el.innerHTML = turnos.map(t => {
       const fechaLabel = t.fecha_especifica
         ? new Date(t.fecha_especifica + 'T00:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long', year:'numeric'})
-        : DIAS[t.dia_semana] + ' (recurrente)';
+        : (() => {
+        const hoyD = new Date();
+        const diff = (t.dia_semana - hoyD.getDay() + 7) % 7;
+        const prox = new Date(hoyD); prox.setDate(hoyD.getDate() + diff);
+        return DIAS[t.dia_semana] + ' (recurrente · próximo ' + prox.toLocaleDateString('es-AR', {day:'numeric', month:'long'}) + ')';
+      })();
       const reservado = idsReservados.includes(t.id);
       return '<div class="turno-card" style="' + (reservado ? 'border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)' : '') + '">' +
         '<div style="flex:1">' +
@@ -757,7 +762,7 @@ async function guardarTurno(id) {
       // Carga masiva por semanas
       const dias_semana = [dia_semana];
       const fecha_hasta = new Date(fechaObj);
-      fecha_hasta.setDate(fecha_hasta.getDate() + repetir * 7);
+      fecha_hasta.setDate(fecha_hasta.getDate() + (repetir - 1) * 7);
       await apiAdmin('/padel/disponibilidad/masiva', { method:'POST', body:JSON.stringify({
         negocio_id: negocioData.id,
         hora_inicio, hora_fin,
@@ -829,7 +834,7 @@ function filtrarReservas(estado) {
           <span class="reserva-estado estado-${r.estado}">${r.estado === 'pendiente' ? '⏳ Pendiente' : r.estado === 'confirmado' ? '✅ Confirmada' : '❌ Rechazada'}</span>
         </div>
         <div style="color:var(--muted);font-size:13px">
-          📅 ${new Date(r.fecha+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}
+          📅 ${new Date(r.fecha.substring(0,10)+'T00:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}
           · 🕐 ${r.hora_inicio.substring(0,5)} - ${r.hora_fin.substring(0,5)}
         </div>
         <div style="color:var(--muted);font-size:12px;margin-top:3px">
