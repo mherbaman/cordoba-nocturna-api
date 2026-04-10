@@ -1232,22 +1232,46 @@ async function cargarEventosActivos(){
   const el=document.getElementById('eventos-activos-list');
   if(!el)return;
   try{
-    const sesiones=await fetch(API+'/negocios/sesiones-activas').then(r=>r.json());
-    if(!sesiones.length){
-      el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No hay canchas activas ahora</div>';
-      return;
+    const [canchas, nocturna] = await Promise.all([
+      fetch(API+'/negocios/sesiones-activas?tipo=padel').then(r=>r.json()).catch(()=>[]),
+      fetch(API+'/negocios/sesiones-activas?tipo=nocturna').then(r=>r.json()).catch(()=>[])
+    ]);
+
+    let html = '';
+
+    if(canchas.length){
+      html += canchas.map(s=>{
+        const emoji=s.tipo==='torneo'?'🏆':s.tipo==='club'?'🏅':'🎾';
+        return`<div class="evento-card" onclick="document.getElementById('qr-codigo').value='';document.getElementById('qr-codigo').focus()">
+          <div class="evento-img">${emoji}</div>
+          <div class="evento-info">
+            <div class="evento-nombre">${s.nombre}</div>
+            <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} jugadores</div>
+          </div>
+          <span class="evento-codigo" style="background:linear-gradient(135deg,#15803d,#22c55e)">ABIERTO</span>
+        </div>`;
+      }).join('');
+    } else {
+      html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No hay canchas activas ahora</div>';
     }
-    el.innerHTML=sesiones.map(s=>{
-      const emoji=s.tipo==='padel'?'🎾':s.tipo==='torneo'?'🏆':s.tipo==='club'?'🏅':'🎾';
-      return`<div class="evento-card" onclick="document.getElementById('qr-codigo').value='';document.getElementById('qr-codigo').focus()">
-        <div class="evento-img">${emoji}</div>
-        <div class="evento-info">
-          <div class="evento-nombre">${s.nombre}</div>
-          <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} jugadores</div>
-        </div>
-        <span class="evento-codigo">${s.sesion_id?s.sesion_id.substring(0,6).toUpperCase():''}</span>
-      </div>`;
-    }).join('');
+
+    if(nocturna.length){
+      html += `<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:16px 0 8px;text-align:left">🌙 También esta noche en CórdobaLux</div>`;
+      html += nocturna.slice(0,3).map(s=>{
+        const emojiMap={disco:'🎧',bar:'🍺',pub:'🎸',restaurante:'🍽️',casamiento:'💍',sunset:'🌅',gimnasio:'💪',festival:'🎪'};
+        const emoji=emojiMap[s.tipo]||'🌙';
+        return`<div class="evento-card" style="opacity:.75;border-color:rgba(255,45,120,.15)" onclick="window.open('https://cordobalux.com/index.html')">
+          <div class="evento-img" style="background:linear-gradient(135deg,rgba(255,45,120,.2),rgba(124,58,237,.15))">${emoji}</div>
+          <div class="evento-info">
+            <div class="evento-nombre">${s.nombre}</div>
+            <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} personas</div>
+          </div>
+          <span class="evento-codigo" style="background:linear-gradient(135deg,#7c3aed,#ff2d78);font-size:9px">CÓRDOBA LUX</span>
+        </div>`;
+      }).join('');
+    }
+
+    el.innerHTML = html;
   }catch(e){
     el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No se pudieron cargar las canchas</div>';
   }
