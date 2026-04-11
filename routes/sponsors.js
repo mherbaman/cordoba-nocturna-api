@@ -25,14 +25,14 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', authAdmin, async (req, res) => {
-  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden } = req.body;
+  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, app, orden } = req.body;
   if (!nombre || !promo) return res.status(400).json({ error: 'Nombre y promo son requeridos' });
   try {
     const result = await pool.query(`
-      INSERT INTO sponsors (nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden)
+      INSERT INTO sponsors (nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, app, orden)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
-    `, [nombre, promo, emoji||'🎯', tag||'PROMO', whatsapp||'', instagram||'', imagen_url||'', imagen_promo||'', pantalla||'todas', orden||0]);
+    `, [nombre, promo, emoji||'🎯', tag||'PROMO', whatsapp||'', instagram||'', imagen_url||'', imagen_promo||'', pantalla||'todas', app||'todas', orden||0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
@@ -40,7 +40,7 @@ router.post('/', authAdmin, async (req, res) => {
 });
 
 router.put('/:id', authAdmin, async (req, res) => {
-  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden, activo } = req.body;
+  const { nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, app, orden, activo } = req.body;
   try {
     const result = await pool.query(`
       UPDATE sponsors SET
@@ -53,11 +53,12 @@ router.put('/:id', authAdmin, async (req, res) => {
         imagen_url = COALESCE($7, imagen_url),
         imagen_promo = COALESCE($8, imagen_promo),
         pantalla = COALESCE($9, pantalla),
-        orden = COALESCE($10, orden),
-        activo = COALESCE($11, activo)
-      WHERE id = $12
+        app = COALESCE($10, app),
+        orden = COALESCE($11, orden),
+        activo = COALESCE($12, activo)
+      WHERE id = $13
       RETURNING *
-    `, [nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, orden, activo, req.params.id]);
+    `, [nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, app, orden, activo, req.params.id]);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Error interno' });
