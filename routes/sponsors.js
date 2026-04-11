@@ -30,7 +30,7 @@ router.post('/', authAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       INSERT INTO sponsors (nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, app, orden)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `, [nombre, promo, emoji||'🎯', tag||'PROMO', whatsapp||'', instagram||'', imagen_url||'', imagen_promo||'', pantalla||'todas', app||'todas', orden||0]);
     res.status(201).json(result.rows[0]);
