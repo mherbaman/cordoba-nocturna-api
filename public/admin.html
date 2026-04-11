@@ -646,8 +646,8 @@ function abrirModalSponsor(s={}) {
       <div class="full">
         <label class="field-label">Apps Connect donde aparece</label>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          ${['córdoba','fiesta','sunset','festival','gym','shopping','todas'].map(a => {
-            const appLabels = {córdoba:'🎧 CórdobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
+          ${['córdoba','fiesta','sunset','padel','gym','shopping','todas'].map(a => {
+            const appLabels = {córdoba:'🎧 CórdobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',padel:'🎾 PadelConnect',gym:'💪 GymConnect',shopping:'🛍️ ShoppingConnect',todas:'✅ Todas'};
             const apps = (s.app||'todas') === 'todas' ? ['todas'] : (s.app||'').split(',');
             const checked = apps.includes(a) ? 'checked' : '';
             return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
@@ -707,7 +707,7 @@ async function guardarSponsor(id) {
     imagen_promo: document.getElementById('sp-imagen-promo').value.trim(),
     orden:        parseInt(document.getElementById('sp-orden').value)||0
   };
-  const apps = ['córdoba','fiesta','sunset','festival','gym','shopping','todas'].filter(a => document.getElementById(`sp-a-${a}`)?.checked);
+  const apps = ['córdoba','fiesta','sunset','padel','gym','shopping','todas'].filter(a => document.getElementById(`sp-a-${a}`)?.checked);
   body.app = apps.includes('todas') || apps.length === 0 ? 'todas' : apps.join(',');
   const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`sp-p-${p}`)?.checked);
   body.pantalla = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
