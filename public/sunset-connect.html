@@ -1332,7 +1332,7 @@ function confirmarPromo(btn){
 function renderizarAds(pantalla){
   var el=document.getElementById('ads-'+pantalla);
   if(!el)return;
-  var appNombre='todas';
+  var appNombre='sunset';
   var filtrados=sponsorsCache.filter(function(s){
     if(!s.activo)return false;
     var sApp=(s.app||'todas').toLowerCase();
