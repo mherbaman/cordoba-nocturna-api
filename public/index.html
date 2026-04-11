@@ -222,6 +222,18 @@ body {
 .chat-btn { background:linear-gradient(135deg,var(--pink),var(--purple));border:none;color:#fff;padding:8px 14px;border-radius:50px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap; }
 .no-matches { text-align:center;color:var(--muted);padding-top:50px; }
 .no-matches .icon { font-size:44px;margin-bottom:14px; }
+.tabs-bar { display:flex;width:100%;max-width:420px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:0; }
+.tab-btn { flex:1;padding:14px 0;background:none;border:none;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px; }
+.tab-btn.active { color:#fff;border-bottom-color:var(--pink); }
+.tab-content { display:none;width:100%;flex:1;overflow-y:auto; }
+.tab-content.active { display:flex;flex-direction:column; }
+.conv-card { background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer;transition:background .2s; }
+.conv-card:hover { background:rgba(255,45,120,.08); }
+.conv-av { width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,var(--pink),var(--purple)); }
+.conv-info { flex:1;min-width:0; }
+.conv-nm { font-size:14px;font-weight:600; }
+.conv-last { color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.conv-badge { background:var(--pink);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;flex-shrink:0; }
 
 /* MATCH OVERLAY */
 #match-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(10px); }
@@ -612,12 +624,25 @@ let chatMatchId = null, chatOtro = null;
 <div class="screen" id="matches-screen" style="padding:0;justify-content:flex-start;">
   <div class="matches-header">
     <button class="back-btn" onclick="showScreen('swipe')">←</button>
-    <div class="matches-title">TUS MATCHES 🔥</div>
+    <div class="matches-title">CONEXIONES 🔥</div>
   </div>
   <div style="width:100%;max-width:420px;padding:0 20px 8px;">
     <div id="ads-matches"></div>
   </div>
-  <div class="matches-list" id="matches-list"></div>
+  <div class="tabs-bar">
+    <button class="tab-btn active" id="tab-btn-matches" onclick="switchTab('matches')">
+      ❤️ MATCHES <span id="tab-badge-matches" style="background:var(--pink);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;display:none;">0</span>
+    </button>
+    <button class="tab-btn" id="tab-btn-mensajes" onclick="switchTab('mensajes')">
+      💬 MENSAJES <span id="tab-badge-mensajes" style="background:var(--pink);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;display:none;">0</span>
+    </button>
+  </div>
+  <div class="tab-content active" id="tab-matches" style="padding:16px 20px 40px;">
+    <div id="matches-list"></div>
+  </div>
+  <div class="tab-content" id="tab-mensajes" style="padding:16px 20px 40px;">
+    <div id="mensajes-list"></div>
+  </div>
 </div>
 
 <!-- PROMO MODAL -->
@@ -730,7 +755,12 @@ function showScreen(id) {
   el.style.display = '';
   el.classList.add('active');
   if (id === 'swipe') { renderCard(); pingActividad(); cargarMatchCount(); }
-  if (id === 'matches-screen') { loadMatches(); renderizarAds('matches'); }
+  if (id === 'matches-screen') {
+    loadMatches();
+    renderizarAds('matches');
+    // Resetear tabs al abrir
+    switchTab('matches');
+  }
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────
@@ -1221,6 +1251,9 @@ async function loadMatches() {
   list.innerHTML = `<div style="display:flex;justify-content:center;padding:40px"><div class="loader"></div></div>`;
   try {
     const matches = await api('/matches/mis-matches');
+    // Badge tab matches
+    const badgeM = document.getElementById('tab-badge-matches');
+    if (badgeM && matches.length > 0) { badgeM.textContent = matches.length; badgeM.style.display = 'inline'; }
     if (!matches.length) {
       list.innerHTML = `<div class="no-matches"><div class="icon">👀</div><p>Todavía no hay matches.<br>¡Seguí swipeando!</p></div>`;
       return;
@@ -1593,6 +1626,62 @@ function cerrarPromo() {
 }
 
 // ─── BORRAR MATCH ────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-btn-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'mensajes') loadConversaciones();
+}
+
+async function loadConversaciones() {
+  const list = document.getElementById('mensajes-list');
+  list.innerHTML = `<div style="display:flex;justify-content:center;padding:40px"><div class="loader"></div></div>`;
+  try {
+    const matches = await api('/matches/mis-matches');
+    if (!matches.length) {
+      list.innerHTML = `<div class="no-matches"><div class="icon">💬</div><p>Todavía no tenés conversaciones.<br>¡Hacé un match primero!</p></div>`;
+      return;
+    }
+    // Para cada match traer mensajes
+    const convs = await Promise.all(matches.map(async m => {
+      try {
+        const msgs = await api('/mensajes/' + m.id);
+        return { ...m, mensajes: msgs, no_leidos: msgs.filter(msg => msg.de_usuario !== usuario.id && !msg.leido).length };
+      } catch(e) { return { ...m, mensajes: [], no_leidos: 0 }; }
+    }));
+    // Ordenar por último mensaje
+    convs.sort((a, b) => {
+      const aLast = a.mensajes.length ? new Date(a.mensajes[a.mensajes.length-1].creado_en) : new Date(a.creado_en);
+      const bLast = b.mensajes.length ? new Date(b.mensajes[b.mensajes.length-1].creado_en) : new Date(b.creado_en);
+      return bLast - aLast;
+    });
+    // Badge total mensajes
+    const totalNoLeidos = convs.reduce((acc, c) => acc + c.no_leidos, 0);
+    const badge = document.getElementById('tab-badge-mensajes');
+    if (totalNoLeidos > 0) { badge.textContent = totalNoLeidos; badge.style.display = 'inline'; }
+    else badge.style.display = 'none';
+
+    list.innerHTML = convs.map(m => {
+      const lastMsg = m.mensajes.length ? m.mensajes[m.mensajes.length-1] : null;
+      const lastText = lastMsg ? (lastMsg.de_usuario === usuario.id ? '✓ ' + lastMsg.texto : lastMsg.texto) : 'Sin mensajes aún';
+      const av = m.otro_foto
+        ? `<img class="conv-av" src="${m.otro_foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">`
+        : `<div class="conv-av">😊</div>`;
+      return `<div class="conv-card" onclick="openChat('${m.id}',{id:'${m.otro_id}',nombre:'${m.otro_nombre}',foto_url:'${m.otro_foto||''}',vibe:'${m.otro_vibe||''}'})">
+        ${av}
+        <div class="conv-info">
+          <div class="conv-nm">${m.otro_nombre}</div>
+          <div class="conv-last">${escapeHtml(lastText)}</div>
+        </div>
+        ${m.no_leidos > 0 ? `<span class="conv-badge">${m.no_leidos}</span>` : ''}
+      </div>`;
+    }).join('');
+  } catch(err) {
+    list.innerHTML = `<div class="no-matches"><p>Error cargando conversaciones</p></div>`;
+  }
+}
+
 async function borrarMatch(matchId, nombre) {
   if (!confirm(`¿Borrar el match con ${nombre}? Se elimina el chat para siempre.`)) return;
   try {
