@@ -61,10 +61,10 @@ router.put('/:id', authAdmin, async (req, res) => {
     `, [nombre, promo, emoji, tag, whatsapp, instagram, imagen_url, imagen_promo, pantalla, app, orden, activo, req.params.id]);
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Error interno' });
+    console.error('PUT /sponsors error:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
-
 router.delete('/:id', authAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM sponsors WHERE id = $1', [req.params.id]);
