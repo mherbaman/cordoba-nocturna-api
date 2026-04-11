@@ -619,32 +619,17 @@ let chatMatchId = null, chatOtro = null;
     </div>
   </div>
 </div>
-
 <!-- MATCHES SCREEN -->
-<div class="screen" id="matches-screen" style="padding:0;justify-content:flex-start;flex-direction:column;height:100vh;overflow:hidden;">
+<div class="screen" id="matches-screen" style="padding:0;justify-content:flex-start">
   <div class="matches-header">
     <button class="back-btn" onclick="showScreen('swipe')">←</button>
-    <div class="matches-title">CONEXIONES 🔥</div>
+    <div class="matches-title">TUS MATCHES 🔥</div>
   </div>
   <div style="width:100%;max-width:420px;padding:0 20px 8px;">
     <div id="ads-matches"></div>
   </div>
-  <div class="tabs-bar">
-    <button class="tab-btn active" id="tab-btn-matches" onclick="switchTab('matches')">
-      ❤️ MATCHES <span id="tab-badge-matches" style="background:var(--pink);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;display:none;">0</span>
-    </button>
-    <button class="tab-btn" id="tab-btn-mensajes" onclick="switchTab('mensajes')">
-      💬 MENSAJES <span id="tab-badge-mensajes" style="background:var(--pink);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;display:none;">0</span>
-    </button>
-  </div>
-  <div class="tab-content active" id="tab-matches" style="padding:16px 20px 40px;">
-    <div id="matches-list"></div>
-  </div>
-  <div class="tab-content" id="tab-mensajes" style="padding:16px 20px 40px;">
-    <div id="mensajes-list"></div>
-  </div>
+  <div class="matches-list" id="matches-list"></div>
 </div>
-
 <!-- PROMO MODAL -->
 <div id="promo-modal">
   <div class="promo-inner">
