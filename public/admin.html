@@ -648,7 +648,7 @@ function abrirModalSponsor(s={}) {
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
           ${['córdoba','fiesta','sunset','padel','gym','shopping','todas'].map(a => {
             const appLabels = {córdoba:'🎧 CórdobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',padel:'🎾 PadelConnect',gym:'💪 GymConnect',shopping:'🛍️ ShoppingConnect',todas:'✅ Todas'};
-            const apps = (s.app||'todas') === 'todas' ? ['todas'] : (s.app||'').split(',');
+            const apps = (s.app||'todas') === 'todas' ? ['todas'] : (s.app||'').split(',').map(x=>x.trim());
             const checked = apps.includes(a) ? 'checked' : '';
             return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
               <input type="checkbox" id="sp-a-${a}" ${checked} style="accent-color:var(--pink)"> ${appLabels[a]}
@@ -661,7 +661,7 @@ function abrirModalSponsor(s={}) {
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
           ${['splash','qr','swipe','matches'].map(p => {
             const labels = {splash:'🌙 Inicio',qr:'📱 QR',swipe:'❤️ Swipe',matches:'🔥 Matches'};
-            const pantallas = (s.pantalla||'todas') === 'todas' ? ['splash','qr','swipe','matches'] : (s.pantalla||'').split(',');
+            const pantallas = (s.pantalla||'todas') === 'todas' ? ['splash','qr','swipe','matches'] : (s.pantalla||'').split(',').map(x=>x.trim());
             const checked = pantallas.includes(p) ? 'checked' : '';
             return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
               <input type="checkbox" id="sp-p-${p}" ${checked} style="accent-color:var(--pink)"> ${labels[p]}
