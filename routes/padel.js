@@ -491,14 +491,15 @@ router.get('/reservas/del-club', authAdmin, async (req, res) => {
     let query = `
       SELECT
         r.*,
-        j.nombre AS jugador_nombre,
+        COALESCE(j.nombre, u.nombre) AS jugador_nombre,
         j.nivel  AS jugador_nivel,
-        j.foto_url AS jugador_foto,
+        COALESCE(j.foto_url, u.foto_url) AS jugador_foto,
         d.hora_inicio,
         d.hora_fin,
         d.zona AS zona_cancha
       FROM reservas_padel r
       LEFT JOIN jugadores_padel j ON j.id = r.jugador_id
+      LEFT JOIN usuarios u ON u.id = r.usuario_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
       WHERE r.negocio_id = $1
     `;
@@ -636,7 +637,7 @@ router.post('/resenas-club', authAdmin, async (req, res) => {
     const resena = await client.query(`
       INSERT INTO resenas_club_jugador (negocio_id, jugador_id, reserva_id, puntuacion, comentario)
       VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (negocio_id, reserva_id) DO UPDATE SET
+      ON CONFLICT (negocio_id, reserva_id) WHERE reserva_id IS NOT NULL DO UPDATE SET
         puntuacion  = EXCLUDED.puntuacion,
         comentario  = EXCLUDED.comentario
       RETURNING *
