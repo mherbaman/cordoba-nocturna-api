@@ -1646,7 +1646,7 @@ async function cargarMisReservas() {
           <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
         </div>
         <div style="display:flex;gap:16px;font-size:13px;margin-bottom:12px">
-          <span>📅 ${r.fecha}</span>
+          <span>📅 ${String(r.fecha).substring(0,10)}</span>
           <span>🕐 ${String(r.hora_inicio).substring(0,5)} - ${String(r.hora_fin).substring(0,5)}</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center">
