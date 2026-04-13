@@ -498,7 +498,7 @@ router.get('/reservas/del-club', authAdmin, async (req, res) => {
         d.hora_fin,
         d.zona AS zona_cancha
       FROM reservas_padel r
-      JOIN jugadores_padel j ON j.id = r.jugador_id
+      LEFT JOIN jugadores_padel j ON j.id = r.jugador_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
       WHERE r.negocio_id = $1
     `;
@@ -615,11 +615,18 @@ router.delete('/disponibilidad/:id', authAdmin, async (req, res) => {
 // ── POST /padel/resenas-club ─────────────────────────────────────────
 // El club deja reseña a un jugador (por cancelación u otro motivo)
 router.post('/resenas-club', authAdmin, async (req, res) => {
-  const { negocio_id, jugador_id, reserva_id, puntuacion, comentario } = req.body;
+  let { negocio_id, jugador_id, reserva_id, puntuacion, comentario } = req.body;
   if (!negocio_id || !jugador_id || !puntuacion)
     return res.status(400).json({ error: 'negocio_id, jugador_id y puntuacion son requeridos' });
   if (puntuacion < 1 || puntuacion > 5)
     return res.status(400).json({ error: 'Puntuacion debe ser entre 1 y 5' });
+  try {
+    const ck = await pool.query('SELECT id FROM jugadores_padel WHERE id = $1',[jugador_id]);
+      const bu = await pool.query('SELECT id FROM jugadores_padel WHERE usuario_id = $1',[jugador_id]);
+      if(bu.rows.length) jugador_id = bu.rows[0].id;
+      else return res.status(404).json({ error: 'Jugador no encontrado' });
+    }
+  } catch(e){ return res.status(500).json({ error: 'Error buscando jugador' }); }
 
   const client = await pool.connect();
   try {
