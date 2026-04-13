@@ -622,6 +622,7 @@ router.post('/resenas-club', authAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Puntuacion debe ser entre 1 y 5' });
   try {
     const ck = await pool.query('SELECT id FROM jugadores_padel WHERE id = $1',[jugador_id]);
+    if(!ck.rows.length){
       const bu = await pool.query('SELECT id FROM jugadores_padel WHERE usuario_id = $1',[jugador_id]);
       if(bu.rows.length) jugador_id = bu.rows[0].id;
       else return res.status(404).json({ error: 'Jugador no encontrado' });
