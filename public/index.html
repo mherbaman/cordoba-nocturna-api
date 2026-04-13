@@ -1615,15 +1615,56 @@ function renderizarAds(pantalla){
     if(sPan==='todas')return true;
     return sPan.split(',').map(function(x){return x.trim()}).indexOf(pantalla)>=0;
   });
-  if(!filtrados.length){el.innerHTML='';return}
-  el.innerHTML=filtrados.map(function(s){
-    var img=s.imagen_url?('<img src="'+s.imagen_url+'">'):(s.emoji||'*');
-    return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer">'
-      +'<div class="ad-img">'+img+'</div>'
-      +'<div class="ad-info"><div class="ad-name">'+s.nombre+'</div>'
-      +'<div class="ad-promo">'+s.promo+'</div></div>'
-      +'<span class="ad-tag">'+s.tag+'</span></div>';
-  }).join('');
+  if(!filtrados.length){el.innerHTML='';return;}
+
+  // Separar por orden
+  var principal = filtrados.filter(function(s){ return s.orden===0||s.orden==='0'; });
+  var premium   = filtrados.filter(function(s){ var o=parseInt(s.orden)||0; return o>=1&&o<=2; });
+  var estandar  = filtrados.filter(function(s){ var o=parseInt(s.orden)||0; return o>=3; });
+
+  var html = '';
+
+  // PRINCIPAL — banner ancho
+  if(principal.length){
+    html += principal.map(function(s){
+      var img=s.imagen_url?('<img src="'+s.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">'):(s.emoji||'🎯');
+      return '<div class="ad-banner" data-sid="'+s.id+'" style="cursor:pointer;margin-bottom:10px;">'
+        +'<div class="ad-img">'+img+'</div>'
+        +'<div class="ad-info"><div class="ad-name">'+s.nombre+'</div>'
+        +'<div class="ad-promo">'+s.promo+'</div></div>'
+        +'<span class="ad-tag">'+s.tag+'</span></div>';
+    }).join('');
+  }
+
+  // PREMIUM — grid 2 columnas
+  if(premium.length){
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+    html += premium.map(function(s){
+      var img=s.imagen_url?('<img src="'+s.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">'):(s.emoji||'🎯');
+      return '<div class="ad-card-premium" data-sid="'+s.id+'" style="cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);border-radius:16px;padding:14px;text-align:center;">'
+        +'<div style="font-size:32px;margin-bottom:8px;">'+img+'</div>'
+        +'<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+s.nombre+'</div>'
+        +'<div style="font-size:11px;color:var(--pink);">'+s.promo+'</div>'
+        +'</div>';
+    }).join('');
+    html += '</div>';
+  }
+
+  // ESTANDAR — grid 3 columnas
+  if(estandar.length){
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">';
+    html += estandar.map(function(s){
+      var img=s.imagen_url?('<img src="'+s.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">'):(s.emoji||'🎯');
+      return '<div class="ad-card-std" data-sid="'+s.id+'" style="cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center;">'
+        +'<div style="font-size:24px;margin-bottom:6px;">'+img+'</div>'
+        +'<div style="font-size:11px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+s.nombre+'</div>'
+        +'<div style="font-size:10px;color:var(--pink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+s.promo+'</div>'
+        +'</div>';
+    }).join('');
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
   el.querySelectorAll('[data-sid]').forEach(function(d){
     d.onclick=function(){abrirPromoSponsor(d.getAttribute('data-sid'));};
   });
