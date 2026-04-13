@@ -601,7 +601,7 @@ async function cargarClientes() {
   const tbody = document.getElementById('clientes-tbody');
   tbody.innerHTML = `<tr><td colspan="6"><div class="loader"></div></td></tr>`;
   try {
-    const data = await apiAdmin(`/superadmin/reportes?desde=2024-01-01&hasta=2099-01-01&negocio_id=${negocioData.id}`);
+    const data = await apiAdmin(`/superadmin/reportes-negocio?desde=2024-01-01&hasta=2099-01-01`);
     clientesData = data.usuarios || [];
     if (!clientesData.length) {
       tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div>No hay clientes aún</div></td></tr>`;
