@@ -323,4 +323,41 @@ router.post('/admin-negocio-password', authSuperAdmin, async (req, res) => {
   }
 });
 
+
+// ── GET /superadmin/reportes-negocio ─────────────────────────────────
+// Versión para admins de negocio (no requiere superadmin)
+router.get('/reportes-negocio', async (req, res) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token requerido' });
+  let negocio_id_token;
+  try {
+    const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
+    if (!decoded.negocio_id) return res.status(403).json({ error: 'Acceso denegado' });
+    negocio_id_token = decoded.negocio_id;
+  } catch (err) {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+
+  const { desde, hasta } = req.query;
+  if (!desde || !hasta) return res.status(400).json({ error: 'Fechas requeridas' });
+
+  try {
+    const usuarios = await pool.query(`
+      SELECT u.id, u.nombre, u.email, u.telefono, u.foto_url, u.vibe, u.edad,
+        COUNT(p.id) as visitas, MAX(p.entro_en) as ultimo_ingreso
+      FROM presencias p
+      JOIN usuarios u ON u.id = p.usuario_id
+      WHERE p.entro_en BETWEEN $1 AND $2::date + interval '1 day'
+        AND p.negocio_id = $3
+      GROUP BY u.id, u.nombre, u.email, u.telefono, u.foto_url, u.vibe, u.edad
+      ORDER BY MAX(p.entro_en) DESC
+    `, [desde, hasta, negocio_id_token]);
+
+    res.json({ usuarios: usuarios.rows });
+  } catch (err) {
+    console.error('GET /superadmin/reportes-negocio:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
