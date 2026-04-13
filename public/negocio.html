@@ -279,6 +279,7 @@ async function apiAdmin(path, opts={}) {
           <thead>
             <tr>
               <th>Nombre</th>
+              <th>Email</th>
               <th>Vibe</th>
               <th>Edad</th>
               <th>Teléfono</th>
@@ -604,7 +605,7 @@ async function cargarClientes() {
     const data = await apiAdmin(`/superadmin/reportes-negocio?desde=2024-01-01&hasta=2099-01-01`);
     clientesData = data.usuarios || [];
     if (!clientesData.length) {
-      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="icon">👥</div>No hay clientes aún</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div>No hay clientes aún</div></td></tr>`;
       return;
     }
     tbody.innerHTML = clientesData.map(u => `
@@ -615,6 +616,7 @@ async function cargarClientes() {
             <strong>${u.nombre}</strong>
           </div>
         </td>
+        <td style="color:var(--muted);font-size:12px">${u.email||'—'}</td>
         <td style="color:var(--muted)">${u.vibe||'—'}</td>
         <td>${u.edad||'—'}</td>
         <td>${u.telefono ? `<span style="color:#22c55e">📱 ${u.telefono}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
@@ -622,16 +624,16 @@ async function cargarClientes() {
         <td style="color:var(--muted);font-size:12px">${u.ultimo_ingreso ? new Date(u.ultimo_ingreso).toLocaleDateString('es-AR') : '—'}</td>
       </tr>`).join('');
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Error cargando clientes</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">Error cargando clientes</td></tr>`;
   }
 }
 
 function exportarClientes() {
   if (!clientesData.length) { alert('No hay clientes para exportar'); return; }
   const BOM = '\uFEFF';
-  const headers = ['Nombre','Vibe','Edad','Teléfono','Visitas','Último ingreso'];
+  const headers = ['Nombre','Email','Vibe','Edad','Teléfono','Visitas','Último ingreso'];
   const rows = clientesData.map(u => [
-    u.nombre, u.vibe||'', u.edad||'', u.telefono||'',
+    u.nombre, u.email||'', u.vibe||'', u.edad||'', u.telefono||'',
     u.visitas||1,
     u.ultimo_ingreso ? new Date(u.ultimo_ingreso).toLocaleDateString('es-AR') : ''
   ]);
