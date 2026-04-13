@@ -392,14 +392,21 @@ router.post('/reservas', async (req, res) => {
 
     const t = turno.rows[0];
 
-    const jugadorPerfil = await client.query(
-      'SELECT usuario_id, nombre FROM jugadores_padel WHERE id = $1',
+    let jugadorPerfil = await client.query(
+      'SELECT id, usuario_id, nombre FROM jugadores_padel WHERE id = $1',
       [jugador_id]
     );
+    if (jugadorPerfil.rows.length === 0) {
+      jugadorPerfil = await client.query(
+        'SELECT id, usuario_id, nombre FROM jugadores_padel WHERE usuario_id = $1',
+        [jugador_id]
+      );
+    }
     if (jugadorPerfil.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Jugador no encontrado' });
     }
+    const jugadorIdReal = jugadorPerfil.rows[0].id;
     const usuarioIdReal = jugadorPerfil.rows[0].usuario_id;
     const nombreJugador = jugadorPerfil.rows[0].nombre || 'NA';
 
@@ -427,8 +434,8 @@ router.post('/reservas', async (req, res) => {
     }
 
     const result = await client.query(
-      'INSERT INTO reservas_padel (negocio_id, usuario_id, disponibilidad_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, whatsapp_club, notas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
-      [negocio_id, usuarioIdReal, disponibilidad_id, fecha, t.hora_inicio, t.hora_fin, precioTotal, 'confirmado', parseInt(t.numero_cancha) || 1, whatsapp_club, notas || null]
+      'INSERT INTO reservas_padel (negocio_id, usuario_id, jugador_id, disponibilidad_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, whatsapp_club, notas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+      [negocio_id, usuarioIdReal, jugadorIdReal, disponibilidad_id, fecha, t.hora_inicio, t.hora_fin, precioTotal, 'confirmado', parseInt(t.numero_cancha) || 1, whatsapp_club, notas || null]
     );
 
     await client.query('COMMIT');
@@ -462,8 +469,8 @@ router.get('/reservas/mis-reservas', async (req, res) => {
       FROM reservas_padel r
       JOIN negocios n ON n.id = r.negocio_id
       JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
-      JOIN jugadores_padel j ON j.id = r.jugador_id
-      WHERE j.usuario_id = $1 OR r.usuario_id = $1
+      LEFT JOIN jugadores_padel j ON j.id = r.jugador_id
+      WHERE r.usuario_id = $1 OR j.usuario_id = $1
       ORDER BY r.fecha DESC, d.hora_inicio ASC
     `, [id]);
 
