@@ -125,9 +125,44 @@ tr:hover td { background:rgba(255,255,255,.02); }
 .negocio-row td:first-child { font-weight:600; }
 
 @media (max-width:768px) {
-  .sidebar { display:none; }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+    z-index: 200;
+  }
+  .sidebar.open { transform: translateX(0); }
   .main { margin-left:0; }
   .modal-grid { grid-template-columns:1fr; }
+}
+.hamburger {
+  display:none;
+  position:fixed;
+  top:14px;
+  left:14px;
+  z-index:300;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  width:40px;
+  height:40px;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+  color:#fff;
+}
+.drawer-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:199;
+  backdrop-filter:blur(2px);
+}
+.drawer-overlay.show { display:block; }
+@media (max-width:768px) {
+  .hamburger { display:flex; }
+  .main { padding:20px 16px; padding-top:70px; }
 }
 </style>
 </head>
@@ -151,6 +186,8 @@ tr:hover td { background:rgba(255,255,255,.02); }
 </div>
 
 <!-- APP -->
+<button class="hamburger" onclick="toggleSidebar()" id="hamburger-btn">☰</button>
+<div class="drawer-overlay" id="drawer-overlay" onclick="cerrarSidebar()"></div>
 <div id="app">
   <div class="layout">
     <!-- SIDEBAR -->
@@ -519,11 +556,31 @@ window.onload = () => {
 };
 
 // ─── NAVEGACIÓN ───────────────────────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('drawer-overlay');
+  const btn     = document.getElementById('hamburger-btn');
+  const isOpen  = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+  btn.textContent = isOpen ? '☰' : '✕';
+}
+
+function cerrarSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('drawer-overlay');
+  const btn     = document.getElementById('hamburger-btn');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+  btn.textContent = '☰';
+}
+
 function navTo(page, btn) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
+  cerrarSidebar();
   if (page === 'reportes') cargarFiltrosReporte();
 
   if (page === 'dashboard') cargarDashboard();
