@@ -980,6 +980,7 @@ async function cargarNegocios() {
           <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
           <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}')">🔑 Acceso</button>
           <button class="btn-sm" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)" onclick="verPasswordNegocio('${n.id}','${n.nombre}')">🔐 Contraseña</button>
+          <button class="btn-sm" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2)" onclick="verPanelNegocio('${n.id}','${n.nombre}')">👁 Ver panel</button>
         </div></td>
       </tr>`).join('');
   } catch(err) {
@@ -1440,6 +1441,22 @@ async function resetearPassword(negocioId) {
     cerrarModal();
     alert('✅ Contraseña actualizada correctamente');
   } catch(err) { alert('Error: ' + err.message); }
+}
+
+// ─── VER PANEL NEGOCIO (impersonate) ─────────────────────────────────
+async function verPanelNegocio(negocioId, negocioNombre) {
+  try {
+    const data = await apiAdmin('/superadmin/login-negocio-por-id', {
+      method: 'POST',
+      body: JSON.stringify({ negocio_id: negocioId })
+    });
+    localStorage.setItem('neg_token', data.token);
+    localStorage.setItem('neg_admin', JSON.stringify(data.admin));
+    localStorage.setItem('neg_negocio', JSON.stringify(data.negocio));
+    window.open('negocio.html', '_blank');
+  } catch(err) {
+    alert('❌ ' + err.message + '\n\nAsegurate de que este negocio tenga un admin creado (botón 🔑 Acceso).');
+  }
 }
 
 // ─── MODAL ────────────────────────────────────────────────────────────

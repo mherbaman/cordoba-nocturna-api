@@ -53,6 +53,31 @@ router.post('/login-negocio', async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+// ── POST /superadmin/login-negocio-por-id (impersonate) ─────────────
+router.post('/login-negocio-por-id', authSuperAdmin, async (req, res) => {
+  const { negocio_id } = req.body;
+  if (!negocio_id) return res.status(400).json({ error: 'Falta negocio_id' });
+  try {
+    const result = await pool.query(`
+      SELECT a.*, n.id as neg_id, n.nombre as neg_nombre, n.tipo as neg_tipo
+      FROM admins a JOIN negocios n ON n.id = a.negocio_id
+      WHERE a.negocio_id = $1 AND a.activo = true AND a.es_superadmin = false
+      LIMIT 1
+    `, [negocio_id]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Este negocio no tiene admin creado aún' });
+    const admin = result.rows[0];
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, negocio_id: admin.negocio_id },
+      process.env.JWT_SECRET, { expiresIn: '8h' }
+    );
+    res.json({
+      token,
+      admin: { id: admin.id, nombre: admin.nombre, email: admin.email },
+      negocio: { id: admin.neg_id, nombre: admin.neg_nombre, tipo: admin.neg_tipo }
+    });
+  } catch (err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
 // ── GET /superadmin/dashboard ────────────────────────────────────────
 router.get('/dashboard', authSuperAdmin, async (req, res) => {
   try {
