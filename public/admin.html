@@ -225,44 +225,48 @@ tr:hover td { background:rgba(255,255,255,.02); }
               <input class="input-field" id="pp-whatsapp" placeholder="543512291554" value="543512291554">
               <div style="color:var(--muted);font-size:11px;margin-top:4px;">Sin el + ni espacios. Ej: 543512291554</div>
             </div>
-            <div class="full">
-              <label class="field-label">🖼️ URL de imagen de la promo</label>
-              <input class="input-field" id="pp-imagen-url" placeholder="https://tuhosting.com/promo.jpg">
-            </div>
-            <div class="full">
-              <label class="field-label">🔗 URL específica de la promo (opcional)</label>
-              <input class="input-field" id="pp-url-promo" placeholder="https://tulink.com/promo">
-              <div style="color:var(--muted);font-size:11px;margin-top:4px;">Si lo completás, el botón de la promo abre esta URL además del WhatsApp.</div>
-            </div>
+
             <div class="full">
               <label class="field-label">Apps Connect donde aparece</label>
               <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                ${['córdoba','fiesta','sunset','festival','gym','shopping','todas'].map(a => {
-                  const labels = {córdoba:'🎧 CórdobaConnect',fiesta:'💍 FiestaConnect',sunset:'🌅 SunsetConnect',festival:'🎪 FestivalConnect',gym:'💪 GymConnect',todas:'✅ Todas'};
-                  return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
-                    <input type="checkbox" id="pp-a-${a}" ${a==='todas'?'checked':''} style="accent-color:var(--pink)"> ${labels[a]}
-                  </label>`;
-                }).join('')}
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-córdoba" style="accent-color:var(--pink)"> 🎧 CórdobaConnect
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-fiesta" style="accent-color:var(--pink)"> 💍 FiestaConnect
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-sunset" style="accent-color:var(--pink)"> 🌅 SunsetConnect
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-padel" style="accent-color:var(--pink)"> 🎾 PadelConnect
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-gym" style="accent-color:var(--pink)"> 💪 GymConnect
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-shopping" style="accent-color:var(--pink)"> 🛍️ ShoppingConnect
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:12px;">
+                  <input type="checkbox" id="pp-a-todas" checked style="accent-color:var(--pink)"> ✅ Todas
+                </label>
               </div>
             </div>
             <div class="full">
-              <label class="field-label">¿En qué Connect aparece?</label>
-              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="sp-connects-wrap">
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="córdoba" style="accent-color:var(--pink)"> 🎧 CórdobaConnect</label>
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="fiesta" style="accent-color:var(--pink)"> 💍 FiestaConnect</label>
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="sunset" style="accent-color:var(--pink)"> 🌅 SunsetConnect</label>
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="festival" style="accent-color:var(--pink)"> 🎪 FestivalConnect</label>
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.2);border-radius:50px;cursor:pointer;font-size:12px"><input type="checkbox" name="sp-connect" value="gym" style="accent-color:var(--pink)"> 💪 GymConnect</label>
-                <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(255,45,120,.15);border-radius:50px;cursor:pointer;font-size:12px;background:rgba(255,45,120,.05)"><input type="checkbox" name="sp-connect" value="todos" style="accent-color:var(--pink)" onchange="toggleTodosConnect(this)"> ✅ Todas</label>
-              </div>
               <label class="field-label">Pantallas donde aparece</label>
               <div style="display:flex;flex-wrap:wrap;gap:8px;">
-                ${['splash','qr','swipe','matches'].map(p => {
-                  const labels = {splash:'🌙 Inicio',qr:'📱 QR',swipe:'❤️ Swipe',matches:'🔥 Matches'};
-                  return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
-                    <input type="checkbox" id="pp-p-${p}" checked style="accent-color:var(--pink)"> ${labels[p]}
-                  </label>`;
-                }).join('')}
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+                  <input type="checkbox" id="pp-p-splash" checked style="accent-color:var(--pink)"> 🌙 Inicio
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+                  <input type="checkbox" id="pp-p-qr" checked style="accent-color:var(--pink)"> 📱 QR
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+                  <input type="checkbox" id="pp-p-swipe" checked style="accent-color:var(--pink)"> ❤️ Swipe
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+                  <input type="checkbox" id="pp-p-matches" checked style="accent-color:var(--pink)"> 🔥 Matches
+                </label>
               </div>
             </div>
           </div>
@@ -843,7 +847,7 @@ async function cargarPromoPrincipal() {
     document.getElementById('pp-imagen-url').value = pp.imagen_url || '';
     document.getElementById('pp-url-promo').value = pp.url_promo || '';
     const apps_loaded = (pp.app||'todas') === 'todas' ? ['todas'] : pp.app.split(',');
-    ['córdoba','fiesta','sunset','festival','gym','todas'].forEach(a => {
+    ['córdoba','fiesta','sunset','padel','gym','shopping','todas'].forEach(a => {
       const el = document.getElementById(`pp-a-${a}`);
       if(el) el.checked = apps_loaded.includes(a) || (a==='todas' && pp.app==='todas');
     });
@@ -880,7 +884,7 @@ async function guardarPromoPersonal() {
   const whatsapp      = document.getElementById('pp-whatsapp').value.trim();
   const confirmacion  = document.getElementById('pp-confirmacion')?.value.trim()||'Al participar acepto recibir información de esta promoción';
   if (!titulo || !desc) { alert('Completá el título y la descripción'); return; }
-  const apps_pp = ['córdoba','fiesta','sunset','festival','gym','todas'].filter(a => document.getElementById(`pp-a-${a}`)?.checked);
+  const apps_pp = ['córdoba','fiesta','sunset','padel','gym','shopping','todas'].filter(a => document.getElementById(`pp-a-${a}`)?.checked);
   const app_pp = apps_pp.includes('todas') || apps_pp.length === 0 ? 'todas' : apps_pp.join(',');
   const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`pp-p-${p}`)?.checked);
   const pantalla  = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
