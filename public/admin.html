@@ -1027,13 +1027,9 @@ async function cargarNegocios() {
         <td style="font-size:13px">${n.dueno_tel ? `<span style="color:#22c55e">📱 ${n.dueno_tel}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
         <td><span class="badge badge-green">${n.plan}</span></td>
         <td><span class="badge ${n.activo?'badge-green':'badge-red'}">${n.activo?'Activo':'Inactivo'}</span>
-        ${n.estado_pago==='mes_gratis'?'<span class="badge badge-yellow">🎁 Mes gratis</span>':n.estado_pago==='vencido'?'<span class="badge badge-red">⚠️ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge" style="background:rgba(156,163,175,.15);color:#9ca3af">⏸️ Suspendido</span>':n.estado_pago==='pago'?'<span class="badge badge-green">✅ Pagó</span>':'<span class="badge badge-yellow">🎁 Mes gratis</span>'}
-        ${n.vencimiento_plan?`<span class="badge badge-yellow" style="font-size:10px">Vence: ${new Date(n.vencimiento_plan+'T00:00:00').toLocaleDateString('es-AR')}</span>`:''}</td>
+          ${n.estado_pago==='mes_gratis'?'<span class="badge badge-yellow">🎁 Mes gratis</span>':n.estado_pago==='vencido'?'<span class="badge badge-red">⚠️ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge" style="background:rgba(156,163,175,.15);color:#9ca3af">⏸️ Suspendido</span>':n.estado_pago==='pago'?'<span class="badge badge-green">✅ Pagó</span>':'<span class="badge badge-yellow">🎁 Mes gratis</span>'}
+          ${n.vencimiento_plan?`<span class="badge badge-yellow" style="font-size:10px">Vence: ${new Date(n.vencimiento_plan.slice(0,10)+'T12:00:00').toLocaleDateString('es-AR')}</span>`:''}</td>
         <td><div class="td-actions">
-          <div style="margin-bottom:6px">
-            ${n.estado_pago==='vencido'?'<span class="badge badge-red">⚠️ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge" style="background:rgba(156,163,175,.15);color:#9ca3af">⏸️ Suspendido</span>':n.estado_pago==='pago'?'<span class="badge badge-green">✅ Pagó</span>':'<span class="badge badge-yellow">🎁 Mes gratis</span>'}
-            ${n.vencimiento_plan?`<span style="color:var(--muted);font-size:11px">Vence: ${new Date(n.vencimiento_plan).toLocaleDateString('es-AR')}</span>`:''}
-          </div>
           <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
           <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}')">🔑 Acceso</button>
           <button class="btn-sm" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)" onclick="verPasswordNegocio('${n.id}','${n.nombre}')">🔐 Contraseña</button>
