@@ -249,7 +249,7 @@ router.get('/disponibilidad/:id', async (req, res) => {
       SELECT *
       FROM disponibilidad_padel
       WHERE negocio_id = $1 AND activo = true
-      ORDER BY dia_semana ASC, hora_inicio ASC
+        AND (fecha_especifica IS NULL OR fecha_especifica::date >= CURRENT_DATE)
     `, [req.params.id]);
 
     res.json(result.rows);
@@ -327,10 +327,11 @@ router.get('/turnos-disponibles', async (req, res) => {
       WHERE d.negocio_id = $1
         AND d.activo = true
         AND (
-          (d.fecha_especifica = $3)
+          (d.fecha_especifica::date = $3::date)
           OR
           (d.fecha_especifica IS NULL AND d.dia_semana = $2)
         )
+        AND (d.fecha_especifica IS NULL OR d.fecha_especifica::date = $3::date)
     `, [negocio_id, diaSemana, fecha]);
 
     // Reservas ya tomadas en esa fecha
