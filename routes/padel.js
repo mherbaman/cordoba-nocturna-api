@@ -342,10 +342,10 @@ router.get('/turnos-disponibles', async (req, res) => {
         AND estado != 'rechazado'
     `, [negocio_id, fecha]);
 
-    const idsReservados = reservadas.rows.map(r => r.disponibilidad_id);
+    const idsReservados = reservadas.rows.map(r => String(r.disponibilidad_id));
 
     const libres = disponibles.rows.filter(turno => {
-      const tomados = idsReservados.filter(id => id === turno.id).length;
+      const tomados = idsReservados.filter(id => id === String(turno.id)).length;
       return tomados < turno.cantidad_canchas;
     });
 
@@ -688,6 +688,29 @@ router.get('/resenas-club/:jugador_id', async (req, res) => {
     res.json(result.rows);
   } catch(err) {
     console.error('GET /padel/resenas-club:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+
+// ── GET /padel/resenas-club-negocio ──────────────────────────────────
+// Ver reseñas dejadas por el negocio a jugadores
+router.get('/resenas-club-negocio', authAdmin, async (req, res) => {
+  const negocio_id = req.admin.negocio_id;
+  try {
+    const result = await pool.query(`
+      SELECT
+        r.id, r.puntuacion, r.comentario, r.creado_en,
+        jp.nombre AS jugador_nombre, jp.foto_url AS jugador_foto,
+        r.reserva_id
+      FROM resenas_club_jugador r
+      JOIN jugadores_padel jp ON jp.id = r.jugador_id
+      WHERE r.negocio_id = $1
+      ORDER BY r.creado_en DESC
+    `, [negocio_id]);
+    res.json(result.rows);
+  } catch(err) {
+    console.error('GET /padel/resenas-club-negocio:', err.message);
     res.status(500).json({ error: 'Error interno' });
   }
 });
