@@ -648,15 +648,15 @@ router.post('/resenas-club', authAdmin, async (req, res) => {
       UPDATE jugadores_padel SET
         promedio_resenas = (
           SELECT ROUND(AVG(p)::numeric, 2) FROM (
-            SELECT puntuacion AS p FROM resenas_padel WHERE a_jugador_id = $1
+            SELECT estrellas AS p FROM resenas_padel WHERE a_usuario = $1
             UNION ALL
             SELECT puntuacion AS p FROM resenas_club_jugador WHERE jugador_id = $1
           ) t
         ),
         total_resenas = (
-          SELECT COUNT(*) FROM resenas_padel WHERE a_jugador_id = $1
-        ) + (
           SELECT COUNT(*) FROM resenas_club_jugador WHERE jugador_id = $1
+        ) + (
+          SELECT COUNT(*) FROM resenas_padel WHERE a_usuario = $1
         )
       WHERE id = $1
     `, [jugador_id]);
