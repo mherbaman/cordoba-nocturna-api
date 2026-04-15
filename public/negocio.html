@@ -196,11 +196,9 @@ async function apiAdmin(path, opts={}) {
 }
 
 async function cargarResenasClub() {
-  const token = localStorage.getItem('adminToken');
   const el = document.getElementById('resenas-club-list');
   try {
-    const r = await fetch('/padel/resenas-club-negocio', { headers: { Authorization: 'Bearer ' + token } });
-    const data = await r.json();
+    const data = await apiAdmin('/padel/resenas-club-negocio');
     const estrellas = n => '★'.repeat(n) + '☆'.repeat(5-n);
     el.innerHTML = data.map(r => `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start">
