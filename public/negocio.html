@@ -194,6 +194,28 @@ async function apiAdmin(path, opts={}) {
   if (!r.ok) throw new Error(data.error || 'Error');
   return data;
 }
+
+async function cargarResenasClub() {
+  const token = localStorage.getItem('adminToken');
+  const el = document.getElementById('resenas-club-list');
+  try {
+    const r = await fetch('/padel/resenas-club-negocio', { headers: { Authorization: 'Bearer ' + token } });
+    const data = await r.json();
+    const estrellas = n => '★'.repeat(n) + '☆'.repeat(5-n);
+    el.innerHTML = data.map(r => `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start">
+        <div style="width:42px;height:42px;border-radius:50%;background:rgba(255,45,120,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${r.jugador_foto ? '<img src="'+r.jugador_foto+'" style="width:42px;height:42px;border-radius:50%;object-fit:cover">' : '👤'}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${r.jugador_nombre || 'Jugador'}</div>
+          <div style="color:#fbbf24;font-size:16px;margin:2px 0">${estrellas(r.puntuacion)}</div>
+          ${r.comentario ? '<div style="color:var(--muted);font-size:13px">' + r.comentario + '</div>' : ''}
+          <div style="color:rgba(255,255,255,.3);font-size:11px;margin-top:4px">${new Date(r.creado_en).toLocaleDateString('es-AR')}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { el.innerHTML = '<p style="color:red;padding:16px">Error cargando reseñas.</p>'; }
+}
+
 </script>
 
 <!-- LOGIN -->
@@ -233,6 +255,7 @@ async function apiAdmin(path, opts={}) {
     <button class="tab" onclick="navTo('stats',this)">📊 Estadísticas</button>
     <button class="tab" id="tab-canchas" onclick="navTo('canchas',this)" style="display:none">🎾 Mis Canchas</button>
     <button class="tab" id="tab-reservas" onclick="navTo('reservas',this)" style="display:none">📋 Reservas</button>
+    <button class="tab" id="tab-resenas" onclick="navTo('resenas',this)" style="display:none">⭐ Reseñas</button>
   </div>
 
   <div class="main">
@@ -342,6 +365,13 @@ async function apiAdmin(path, opts={}) {
       <div id="reservas-list"><div class="loader"></div></div>
     </div>
 
+
+    <div class="page" id="page-resenas">
+      <div class="section-hdr">
+        <div class="section-title">⭐ Reseñas dejadas a jugadores</div>
+      </div>
+      <div id="resenas-club-list"><div class="loader"></div></div>
+    </div>
 <!-- MODAL DISPONIBILIDAD -->
 <div id="modal-disponibilidad" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div style="background:#0f0019;border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:28px;width:90%;max-width:440px;max-height:90vh;overflow-y:auto">
@@ -432,6 +462,7 @@ function mostrarApp() {
   const esPadel = ['padel','cancha'].includes(negocioData.tipo);
   document.getElementById('tab-canchas').style.display = esPadel ? 'block' : 'none';
   document.getElementById('tab-reservas').style.display = esPadel ? 'block' : 'none';
+  document.getElementById('tab-resenas').style.display = esPadel ? 'block' : 'none';
   cargarInicio();
 }
 
@@ -455,6 +486,7 @@ function navTo(page, btn) {
   if (page === 'reservas')  cargarReservas();
   if (page === 'clientes')  cargarClientes();
   if (page === 'stats')     cargarStats();
+  if (page === 'resenas')   cargarResenasClub();
 }
 
 // ─── INICIO ───────────────────────────────────────────────────────────
