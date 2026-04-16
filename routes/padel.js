@@ -716,6 +716,29 @@ router.get('/resenas-club-negocio', authAdmin, async (req, res) => {
   }
 });
 
+
+// ── POST /padel/chat-directo ─────────────────────────────────────────
+// Busca o crea un match directo entre dos jugadores para chatear
+router.post('/chat-directo', authUsuario, async (req, res) => {
+  const { otro_usuario_id } = req.body;
+  const yo = req.usuario.id;
+  try {
+    const existe = await pool.query(`
+      SELECT id FROM matches
+      WHERE sesion_id IS NULL
+      AND ((usuario_1 = $1 AND usuario_2 = $2) OR (usuario_1 = $2 AND usuario_2 = $1))
+    `, [yo, otro_usuario_id]);
+    if (existe.rows.length) return res.json({ match_id: existe.rows[0].id });
+    const nuevo = await pool.query(`
+      INSERT INTO matches (usuario_1, usuario_2) VALUES ($1, $2) RETURNING id
+    `, [yo, otro_usuario_id]);
+    res.json({ match_id: nuevo.rows[0].id });
+  } catch(err) {
+    console.error('POST /padel/chat-directo:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
