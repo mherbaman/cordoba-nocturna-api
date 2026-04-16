@@ -602,6 +602,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div class="swipe-tab active" onclick="switchTab('jugar',this)">🎾 Jugar</div>
     <div class="swipe-tab" onclick="switchTab('canchas',this)">🏟️ Canchas</div>
     <div class="swipe-tab" onclick="switchTab('ranking',this)">🏆 Ranking</div>
+    <div class="swipe-tab" onclick="switchTab('partidos',this)">⚡ Partidos</div>
     <div class="swipe-tab" onclick="switchTab('misreservas',this)">📋 Mis turnos</div>
   </div>
   <!-- TAB JUGAR -->
@@ -621,6 +622,15 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 
   <!-- TAB MIS RESERVAS -->
+  <div class="tab-content" id="tab-partidos">
+    <div style="padding:16px">
+      <button onclick="abrirCrearPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">⚡ Crear partido</button>
+    </div>
+    <div id="partidos-list" style="padding:0 16px 16px">
+      <p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando partidos...</p>
+    </div>
+  </div>
+
   <div class="tab-content" id="tab-misreservas">
     <div style="padding:14px 18px 0;font-size:12px;color:var(--muted)">Tus reservas confirmadas</div>
     <div id="mis-reservas-list" style="padding:8px 0 40px"></div>
@@ -1548,6 +1558,7 @@ function switchTab(tab, btn) {
   if(tab==='jugar') { cargarJugadoresPadel(); poblarZonas(); }
   if(tab==='canchas') cargarCanchasJugador();
   if(tab==='ranking') cargarRanking();
+  if(tab==='partidos') cargarPartidos();
   if(tab==='misreservas') cargarMisReservas();
 }
 
@@ -1647,6 +1658,15 @@ async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio
 }
 
 // ── RANKING ───────────────────────────────────────────────────────────
+async function cargarPartidos() {
+  const el = document.getElementById('partidos-list');
+  el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Próximamente — cargando partidos...</p>';
+}
+
+function abrirCrearPartido() {
+  alert('Crear partido — próximamente');
+}
+
 async function cargarRanking() {
   const el = document.getElementById('ranking-list');
   const nivel = document.getElementById('ranking-nivel-filter')?.value || '';
