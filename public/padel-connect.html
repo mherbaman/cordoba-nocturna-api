@@ -1320,7 +1320,7 @@ function renderizarAds(pantalla){
   const filtrados=sponsorsCache.filter(s=>{
     if(!s.activo)return false;
     const sApp=(s.app||'todas').toLowerCase();
-    if(sApp!=='todas'&&sApp!=='padel')return false;
+    if(sApp!=='todas'&&!sApp.split(',').map(x=>x.trim()).includes('padel'))return false;
     const sPan=(s.pantalla||'todas').toLowerCase();
     if(sPan==='todas')return true;
     return sPan.split(',').map(x=>x.trim()).includes(pantalla);
