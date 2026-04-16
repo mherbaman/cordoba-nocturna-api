@@ -9,6 +9,15 @@
 <script>
 // ─── JUGADORES PADEL (tab Jugar) ─────────────────────────────────────
 let jugadoresList = [], jugadorIdx = 0;
+const NIVELES_PADEL = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
+
+function puedeContactar(nivelJugador, nivelOtro) {
+  if (!nivelJugador || !nivelOtro) return true;
+  const idxA = NIVELES_PADEL.indexOf(nivelJugador);
+  const idxB = NIVELES_PADEL.indexOf(nivelOtro);
+  if (idxA === -1 || idxB === -1) return true;
+  return Math.abs(idxA - idxB) <= 2;
+}
 
 async function cargarJugadoresPadel() {
   const el = document.getElementById('jugadores-padel-list');
@@ -55,7 +64,9 @@ function renderJugadores() {
         <div style="display:flex;gap:8px;margin-top:16px">
           <button onclick="anteriorJugador()" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">← Anterior</button>
           <button onclick="siguienteJugador()" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Next →</button>
-          <button onclick="chatearConJugador('${p.usuario_id}','${p.nombre}','${p.foto_url||''}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">💬 Mensaje</button>
+          ${puedeContactar(perfilPadel?.nivel, p.nivel)
+            ? `<button onclick="chatearConJugador('${p.usuario_id}','${p.nombre}','${p.foto_url||''}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">💬 Mensaje</button>`
+            : `<button disabled style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);border-radius:50px;font-size:12px;cursor:not-allowed">Categoría muy diferente</button>`}
         </div>
         <div style="text-align:center;margin-top:10px">
           <button onclick="verResenasJugador('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de clubes</button>
