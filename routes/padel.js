@@ -6,7 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
-const { authAdmin } = require('../middleware/auth');
+const { authAdmin, authUsuario } = require('../middleware/auth');
 
 // ════════════════════════════════════════════════
 //   JUGADORES
