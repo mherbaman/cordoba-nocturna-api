@@ -1780,5 +1780,16 @@ async function cancelarReserva(reservaId, clubNombre) {
   finally { hideLoader(); }
 }
 </script>
+
+<!-- MODAL RESENAS JUGADOR -->
+<div id="modal-resenas-jugador" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div style="background:#030d06;border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:24px;width:90%;max-width:420px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:Bebas Neue,cursive;font-size:22px;letter-spacing:1px" id="modal-resenas-titulo">Resenas</div>
+      <button onclick="document.getElementById('modal-resenas-jugador').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer">x</button>
+    </div>
+    <div id="modal-resenas-body"></div>
+  </div>
+</div>
 </body>
 </html>
