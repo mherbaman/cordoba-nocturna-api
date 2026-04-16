@@ -304,6 +304,9 @@ tr:hover td { background:rgba(255,255,255,.02); }
                 <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
                   <input type="checkbox" id="pp-p-matches" checked style="accent-color:var(--pink)"> 🔥 Matches
                 </label>
+                <label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
+                  <input type="checkbox" id="pp-p-chat" style="accent-color:var(--pink)"> 💬 Chat
+                </label>
               </div>
             </div>
           </div>
@@ -721,9 +724,9 @@ function abrirModalSponsor(s={}) {
       <div class="full">
         <label class="field-label">Pantallas donde aparece</label>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
-          ${['splash','qr','swipe','matches'].map(p => {
-            const labels = {splash:'🌙 Inicio',qr:'📱 QR',swipe:'❤️ Swipe',matches:'🔥 Matches'};
-            const pantallas = (s.pantalla||'todas') === 'todas' ? ['splash','qr','swipe','matches'] : (s.pantalla||'').split(',').map(x=>x.trim());
+          ${['splash','qr','swipe','matches','chat'].map(p => {
+            const labels = {splash:'🌙 Inicio',qr:'📱 QR',swipe:'❤️ Swipe',matches:'🔥 Matches',chat:'💬 Chat'};
+            const pantallas = (s.pantalla||'todas') === 'todas' ? ['splash','qr','swipe','matches','chat'] : (s.pantalla||'').split(',').map(x=>x.trim());
             const checked = pantallas.includes(p) ? 'checked' : '';
             return `<label style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,45,120,.2);padding:8px 14px;border-radius:50px;cursor:pointer;font-size:13px;">
               <input type="checkbox" id="sp-p-${p}" ${checked} style="accent-color:var(--pink)"> ${labels[p]}
@@ -771,8 +774,8 @@ async function guardarSponsor(id) {
   };
   const apps = ['córdoba','fiesta','sunset','padel','gym','shopping','todas'].filter(a => document.getElementById(`sp-a-${a}`)?.checked);
   body.app = apps.includes('todas') || apps.length === 0 ? 'todas' : apps.join(',');
-  const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`sp-p-${p}`)?.checked);
-  body.pantalla = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
+  const pantallas = ['splash','qr','swipe','matches','chat'].filter(p => document.getElementById(`sp-p-${p}`)?.checked);
+  body.pantalla = pantallas.length === 5 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
   if (!body.nombre || !body.promo) { alert('Nombre y promo son requeridos'); return; }
   try {
     if (id) await apiAdmin(`/sponsors/${id}`, { method:'PUT', body:JSON.stringify(body) });
@@ -944,8 +947,8 @@ async function guardarPromoPersonal() {
   if (!titulo || !desc) { alert('Completá el título y la descripción'); return; }
   const apps_pp = ['córdoba','fiesta','sunset','padel','gym','shopping','todas'].filter(a => document.getElementById(`pp-a-${a}`)?.checked);
   const app_pp = apps_pp.includes('todas') || apps_pp.length === 0 ? 'todas' : apps_pp.join(',');
-  const pantallas = ['splash','qr','swipe','matches'].filter(p => document.getElementById(`pp-p-${p}`)?.checked);
-  const pantalla  = pantallas.length === 4 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
+  const pantallas = ['splash','qr','swipe','matches','chat'].filter(p => document.getElementById(`pp-p-${p}`)?.checked);
+  const pantalla  = pantallas.length === 5 || pantallas.length === 0 ? 'todas' : pantallas.join(',');
   const imagen_url  = document.getElementById('pp-imagen-url')?.value.trim()||'';
   const url_promo   = document.getElementById('pp-url-promo')?.value.trim()||'';
   try {
