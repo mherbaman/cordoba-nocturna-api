@@ -70,6 +70,8 @@ function renderJugadores() {
         </div>
         <div style="text-align:center;margin-top:10px">
           <button onclick="verResenasJugador('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de clubes</button>
+          <br>
+          <button onclick="verResenasDeJugadores('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de jugadores</button>
         </div>
       </div>
     </div>`;
@@ -88,6 +90,24 @@ async function chatearConJugador(otro_usuario_id, nombre, foto) {
     const data = await api('/padel/chat-directo', { method: 'POST', body: JSON.stringify({ otro_usuario_id }) });
     openChat(data.match_id, { id: otro_usuario_id, nombre, foto_url: foto });
   } catch(e) { alert('Error abriendo chat'); }
+}
+
+async function verResenasDeJugadores(jugador_id, nombre) {
+  document.getElementById('modal-resenas-titulo').textContent = 'Reseñas de jugadores — ' + nombre;
+  document.getElementById('modal-resenas-body').innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">Cargando...</p>';
+  document.getElementById('modal-resenas').style.display = 'flex';
+  const data = await api('/padel/resenas-jugador/' + jugador_id);
+  if (!data.length) {
+    document.getElementById('modal-resenas-body').innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">Sin reseñas de jugadores todavia.</p>';
+    return;
+  }
+  document.getElementById('modal-resenas-body').innerHTML = data.map(r => `
+    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="color:#facc15;font-size:14px">${'★'.repeat(r.estrellas)}${'☆'.repeat(5 - r.estrellas)}</div>
+      <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px">${r.comentario || 'Sin comentario'}</div>
+      <div style="color:rgba(255,255,255,.35);font-size:11px;margin-top:4px">Por ${r.de_nombre || 'Jugador'}</div>
+    </div>
+  `).join('');
 }
 
 async function verResenasJugador(jugador_id, nombre) {

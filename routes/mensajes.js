@@ -14,7 +14,7 @@ const { authUsuario } = require('../middleware/auth');
 // ── POST /mensajes/:match_id ─────────────────────────────────────────
 // Enviar un mensaje
 router.post('/:match_id', authUsuario, async (req, res) => {
-  const { texto } = req.body;
+  const { texto, app } = req.body;
   const { match_id } = req.params;
 
   if (!texto || texto.trim() === '') {
@@ -36,10 +36,11 @@ router.post('/:match_id', authUsuario, async (req, res) => {
       return res.status(403).json({ error: 'No tenés acceso a este chat' });
     }
 
-    // Guardar el mensaje — expira en 8 días
+    // Guardar el mensaje — expira en 48h para padel, 8 días para el resto
+    const intervalo = app === 'padel' ? '48 hours' : '8 days';
     const result = await pool.query(`
       INSERT INTO mensajes (match_id, de_usuario, texto, expira_en)
-      VALUES ($1, $2, $3, NOW() + INTERVAL '8 days')
+      VALUES ($1, $2, $3, NOW() + INTERVAL '${intervalo}')
       RETURNING *
     `, [match_id, req.usuario.id, texto.trim()]);
 

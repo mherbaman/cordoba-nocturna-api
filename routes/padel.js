@@ -739,6 +739,25 @@ router.post('/chat-directo', authUsuario, async (req, res) => {
   }
 });
 
+
+// GET reseñas de jugadores recibidas por un jugador
+router.get('/resenas-jugador/:jugador_id', async (req, res) => {
+  const { jugador_id } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT rp.estrellas, rp.comentario, u.nombre AS de_nombre
+      FROM resenas_padel rp
+      LEFT JOIN usuarios u ON u.id = rp.de_usuario
+      WHERE rp.a_usuario = $1
+      ORDER BY rp.id DESC
+    `, [jugador_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error resenas-jugador:', err);
+    res.status(500).json({ error: 'Error al obtener reseñas' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
