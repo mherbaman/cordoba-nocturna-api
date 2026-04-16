@@ -1653,10 +1653,10 @@ function renderizarAds(pantalla){
 
   // ESTANDAR — grid 3 columnas
   if(estandar.length){
-    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;align-items:start;">';
     html += estandar.map(function(s){
       var img=s.imagen_url?('<img src="'+s.imagen_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">'):(s.emoji||'🎯');
-      return '<div class="ad-card-std" data-sid="'+s.id+'" style="cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center;">'
+      return '<div class="ad-card-std" data-sid="'+s.id+'" style="cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;">'
         +'<div style="font-size:24px;margin-bottom:6px;">'+img+'</div>'
         +'<div style="font-size:11px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+s.nombre+'</div>'
         +'<div style="font-size:10px;color:var(--pink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+s.promo+'</div>'
