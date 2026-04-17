@@ -952,12 +952,22 @@ router.put('/partidos/:id/editar', authUsuario, async (req, res) => {
     if (!p.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
     if (p.rows[0].creador_id !== usuario_id) return res.status(403).json({ error: 'Solo el creador puede editar' });
     if (p.rows[0].estado === 'jugado') return res.status(400).json({ error: 'No se puede editar un partido jugado' });
+    const { equipo1_j2, equipo2_j1, equipo2_j2 } = req.body;
     await pool.query(
-      'UPDATE partidos_padel SET fecha = $1, hora = $2, lugar = $3, estado = $4 WHERE id = $5',
-      [fecha, hora, lugar, 'pendiente', id]
+      'UPDATE partidos_padel SET fecha = $1, hora = $2, lugar = $3, estado = $4, equipo1_j2 = $5, equipo2_j1 = $6, equipo2_j2 = $7 WHERE id = $8',
+      [fecha, hora, lugar, 'pendiente', equipo1_j2||null, equipo2_j1||null, equipo2_j2||null, id]
     );
-    // Resetear invitaciones a pendiente
-    await pool.query('UPDATE invitaciones_partido SET estado = $1 WHERE partido_id = $2', ['pendiente', id]);
+    // Borrar invitaciones viejas y crear nuevas
+    await pool.query('DELETE FROM invitaciones_partido WHERE partido_id = $1', [id]);
+    const invitados = [
+      { jugador_id: equipo1_j2, equipo: 1 },
+      { jugador_id: equipo2_j1, equipo: 2 },
+      { jugador_id: equipo2_j2, equipo: 2 },
+    ].filter(i => i.jugador_id);
+    for (const inv of invitados) {
+      await pool.query('INSERT INTO invitaciones_partido (partido_id, jugador_id, equipo) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [id, inv.jugador_id, inv.equipo]);
+    }
     res.json({ ok: true });
   } catch (err) {
     console.error('PUT /padel/partidos/editar:', err.message);

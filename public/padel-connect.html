@@ -1703,7 +1703,7 @@ async function cargarPartidos() {
       <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:4px">Esperando que los jugadores acepten</div>` : ''}
       ${esCreador && p.estado !== 'jugado' && p.estado !== 'cancelado' ? `
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="abrirEditarPartido('${p.id}','${p.fecha ? p.fecha.slice(0,10) : ''}','${p.hora ? p.hora.slice(0,5) : ''}','${p.lugar||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✏️ Editar</button>
+        <button onclick="abrirEditarPartido('${p.id}','${p.fecha ? p.fecha.slice(0,10) : ''}','${p.hora ? p.hora.slice(0,5) : ''}','${p.lugar||''}','${p.equipo1_j2||''}','${p.equipo2_j1||''}','${p.equipo2_j2||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✏️ Editar</button>
         <button onclick="cancelarPartido('${p.id}')" style="flex:1;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">❌ Cancelar</button>
       </div>` : ''}
     </div>`;
@@ -1717,12 +1717,29 @@ async function cancelarPartido(partido_id) {
 }
 
 let editandoPartidoId = null;
-function abrirEditarPartido(id, fecha, hora, lugar) {
+function abrirEditarPartido(id, fecha, hora, lugar, eq1j2, eq2j1, eq2j2) {
   editandoPartidoId = id;
   document.getElementById('editar-fecha').value = fecha;
   document.getElementById('editar-hora').value = hora;
   document.getElementById('editar-lugar').value = lugar;
   document.getElementById('modal-editar-partido').style.display = 'flex';
+  // Cargar selectores con jugadores disponibles
+  if (!jugadoresDisponibles.length) {
+    api('/padel/jugadores').then(data => {
+      jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
+      poblarSelectsEditar(eq1j2, eq2j1, eq2j2);
+    });
+  } else {
+    poblarSelectsEditar(eq1j2, eq2j1, eq2j2);
+  }
+}
+function poblarSelectsEditar(eq1j2, eq2j1, eq2j2) {
+  ['editar-eq1j2','editar-eq2j1','editar-eq2j2'].forEach((campo, i) => {
+    const sel = document.getElementById(campo);
+    const val = [eq1j2, eq2j1, eq2j2][i] || '';
+    sel.innerHTML = '<option value="">— Sin jugador —</option>' +
+      jugadoresDisponibles.map(j => `<option value="${j.usuario_id}" ${j.usuario_id === val ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`).join('');
+  });
 }
 function cerrarEditarPartido() {
   document.getElementById('modal-editar-partido').style.display = 'none';
@@ -1731,8 +1748,11 @@ async function confirmarEditarPartido() {
   const fecha = document.getElementById('editar-fecha').value;
   const hora = document.getElementById('editar-hora').value;
   const lugar = document.getElementById('editar-lugar').value;
+  const eq1j2 = document.getElementById('editar-eq1j2').value;
+  const eq2j1 = document.getElementById('editar-eq2j1').value;
+  const eq2j2 = document.getElementById('editar-eq2j2').value;
   if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos/' + editandoPartidoId + '/editar', {method:'PUT',body:JSON.stringify({fecha,hora,lugar})});
+  const res = await api('/padel/partidos/' + editandoPartidoId + '/editar', {method:'PUT',body:JSON.stringify({fecha,hora,lugar,equipo1_j2:eq1j2||null,equipo2_j1:eq2j1||null,equipo2_j2:eq2j2||null})});
   if (res.ok) { cerrarEditarPartido(); cargarPartidos(); }
 }
 
@@ -2182,7 +2202,23 @@ async function cancelarReserva(reservaId, clubNombre) {
       <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">LUGAR (opcional)</div>
       <input type="text" id="editar-lugar" placeholder="Ej: Club Atlético Córdoba" style="width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px">
     </div>
-    <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;margin-bottom:12px">Al editar, las invitaciones vuelven a estado pendiente</div>
+    <div style="background:rgba(34,197,94,.06);border-radius:12px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px">EQUIPO 1</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px">Vos (creador)</div>
+      <select id="editar-eq1j2" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+        <option value="">— Sin jugador —</option>
+      </select>
+    </div>
+    <div style="background:rgba(34,197,94,.06);border-radius:12px;padding:12px;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px">EQUIPO 2</div>
+      <select id="editar-eq2j1" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px;margin-bottom:8px">
+        <option value="">— Jugador 1 —</option>
+      </select>
+      <select id="editar-eq2j2" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+        <option value="">— Jugador 2 —</option>
+      </select>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;margin-bottom:12px">Al editar, las invitaciones se resetean</div>
     <button onclick="confirmarEditarPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">✅ Guardar cambios</button>
   </div>
 </div>
