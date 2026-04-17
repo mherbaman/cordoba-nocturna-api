@@ -1706,7 +1706,7 @@ async function cargarPartidos() {
 }
 
 async function responderInvitacion(partido_id, estado) {
-  const res = await api('/padel/partidos/' + partido_id + '/responder', 'PUT', { estado });
+  const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
   if (res.ok) cargarPartidos();
 }
 
@@ -1738,7 +1738,7 @@ async function confirmarCrearPartido() {
   const eq2j1 = document.getElementById('partido-eq2j1').value;
   const eq2j2 = document.getElementById('partido-eq2j2').value;
   if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos', 'POST', { fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null });
+  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null })});
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
 
@@ -1754,12 +1754,12 @@ async function confirmarResultado() {
   const eq1 = parseInt(document.getElementById('res-eq1').value);
   const eq2 = parseInt(document.getElementById('res-eq2').value);
   if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
-  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', 'PUT', { resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] });
+  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] })});
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
 async function responderInvitacion(partido_id, estado) {
-  const res = await api('/padel/partidos/' + partido_id + '/responder', 'PUT', { estado });
+  const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
   if (res.ok) cargarPartidos();
 }
 
@@ -1790,7 +1790,7 @@ async function confirmarCrearPartido() {
   const eq2j1 = document.getElementById('partido-eq2j1').value;
   const eq2j2 = document.getElementById('partido-eq2j2').value;
   if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos', 'POST', { fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null });
+  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null })});
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
 
@@ -1805,7 +1805,7 @@ async function confirmarResultado() {
   const eq1 = parseInt(document.getElementById('res-eq1').value);
   const eq2 = parseInt(document.getElementById('res-eq2').value);
   if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
-  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', 'PUT', { resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] });
+  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] })});
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
