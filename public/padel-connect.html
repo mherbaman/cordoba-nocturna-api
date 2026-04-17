@@ -1677,10 +1677,10 @@ async function cargarPartidos() {
     if (p.estado === 'jugado') return `
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? new Date(p.fecha).toLocaleDateString('es-AR') : ''} ${p.hora ? p.hora.slice(0,5) : ''}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? new Date(p.fecha).toLocaleDateString('es-AR') : ''} ${p.hora ? p.hora.slice(0,5) : ''}${p.lugar ? ' · '+p.lugar : ''}</div>
         <div style="font-size:11px;font-weight:700;color:#60a5fa">🏆 Jugado</div>
       </div>
-      ${p.lugar ? `<div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:8px">📍 ${p.lugar}</div>` : ''}
+
       <button onclick="toggleResultado('res-${p.id}')" style="width:100%;padding:9px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:#60a5fa;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Ver más</button>
       <div id="res-${p.id}" style="display:none;margin-top:10px">
         <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1743,6 +1743,11 @@ async function cargarPartidos() {
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+function toggleResultado(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 async function cancelarPartido(partido_id) {
@@ -1861,6 +1866,11 @@ async function confirmarResultado() {
   if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
   const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] })});
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
+}
+
+function toggleResultado(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 async function cancelarPartido(partido_id) {
