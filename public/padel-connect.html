@@ -1723,15 +1723,10 @@ function abrirEditarPartido(id, fecha, hora, lugar, eq1j2, eq2j1, eq2j2) {
   document.getElementById('editar-hora').value = hora;
   document.getElementById('editar-lugar').value = lugar;
   document.getElementById('modal-editar-partido').style.display = 'flex';
-  // Cargar selectores con jugadores disponibles
-  if (!jugadoresDisponibles.length) {
-    api('/padel/jugadores').then(data => {
-      jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
-      poblarSelectsEditar(eq1j2, eq2j1, eq2j2);
-    });
-  } else {
+  api('/padel/jugadores').then(data => {
+    jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
     poblarSelectsEditar(eq1j2, eq2j1, eq2j2);
-  }
+  });
 }
 function poblarSelectsEditar(eq1j2, eq2j1, eq2j2) {
   ['editar-eq1j2','editar-eq2j1','editar-eq2j2'].forEach((campo, i) => {
