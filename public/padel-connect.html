@@ -204,7 +204,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .age-check label{font-size:13px;color:rgba(255,255,255,.75);cursor:pointer;line-height:1.5}
 .age-check label a{color:var(--green);text-decoration:none}
 .btn-age{background:linear-gradient(135deg,var(--green-dark),var(--green));border:none;color:#fff;padding:15px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;width:100%;opacity:.35;pointer-events:none;transition:all .2s}
-.btn-age.enabled{opacity:1;pointer-events:all;box-shadow:0 0 30px rgba(34,197,94,.4)}
+.btn-age.enabled{opacity:1;pointer-events:all;box-shadow:0 0 30px rgba(34,197,94,.4)}.btn-age:disabled{opacity:.35;pointer-events:none}
 
 /* AUTH */
 #auth{justify-content:flex-start;padding-top:40px}
@@ -467,7 +467,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <p class="age-sub">PadelConnect es exclusivamente para mayores de 18 años.</p>
     <div class="age-check"><input type="checkbox" id="check-edad" onchange="checkAge()"><label for="check-edad">Confirmo que tengo <strong>18 años o más</strong>.</label></div>
     <div class="age-check"><input type="checkbox" id="check-pol" onchange="checkAge()"><label for="check-pol">Acepto los <a href="https://api.cordobalux.com/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label></div>
-    <button class="btn-age" id="btn-age" onclick="aceptarEdad()">ENTRAR 🎾</button>
+    <button class="btn-age" id="btn-age" onclick="aceptarEdad()" disabled>ENTRAR 🎾</button>
   </div>
 </div>
 
@@ -805,7 +805,8 @@ function checkAge(){
   const edad=document.getElementById('check-edad')?.checked;
   const pol=document.getElementById('check-pol')?.checked;
   const btn=document.getElementById('btn-age');
-  if(btn)btn.classList.toggle('enabled',edad&&pol);
+  btn.disabled = !(edad && pol);
+  btn.classList.toggle('enabled', edad && pol);
 }
 
 function aceptarEdad(){
