@@ -1772,7 +1772,6 @@ function cerrarCrearPartido() {
   document.getElementById('modal-crear-partido').style.display = 'none';
 }
 
-let jugadoresDisponibles = [];
 async function cargarJugadoresParaPartido() {
   const data = await api('/padel/jugadores');
   jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuarioActual?.id);
@@ -1795,7 +1794,6 @@ async function confirmarCrearPartido() {
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
 
-let partidoResultadoId = null;
 function abrirResultado(partido_id) {
   partidoResultadoId = partido_id;
   document.getElementById('modal-resultado').style.display = 'flex';
