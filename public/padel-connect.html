@@ -1820,25 +1820,6 @@ async function cancelarPartido(partido_id) {
   if (res.ok) cargarPartidos();
 }
 
-function abrirEditarPartido(id, fecha, hora, lugar) {
-  editandoPartidoId = id;
-  document.getElementById('editar-fecha').value = fecha;
-  document.getElementById('editar-hora').value = hora;
-  document.getElementById('editar-lugar').value = lugar;
-  document.getElementById('modal-editar-partido').style.display = 'flex';
-}
-function cerrarEditarPartido() {
-  document.getElementById('modal-editar-partido').style.display = 'none';
-}
-async function confirmarEditarPartido() {
-  const fecha = document.getElementById('editar-fecha').value;
-  const hora = document.getElementById('editar-hora').value;
-  const lugar = document.getElementById('editar-lugar').value;
-  if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos/' + editandoPartidoId + '/editar', {method:'PUT',body:JSON.stringify({fecha,hora,lugar})});
-  if (res.ok) { cerrarEditarPartido(); cargarPartidos(); }
-}
-
 async function responderInvitacion(partido_id, estado) {
   const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
   if (res.ok) cargarPartidos();
