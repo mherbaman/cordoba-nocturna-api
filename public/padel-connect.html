@@ -1669,7 +1669,7 @@ async function cargarPartidos() {
     return;
   }
   el.innerHTML = data.map(p => {
-    const esCreador = p.creador_id === usuarioActual?.id;
+    const esCreador = p.creador_id === usuario?.id;
     const invPendiente = !esCreador && p.mi_invitacion === 'pendiente';
     const estadoColor = p.estado==='confirmado'?'#22c55e':p.estado==='jugado'?'#60a5fa':p.estado==='suspendido'?'#f87171':'#facc15';
     const estadoLabel = p.estado==='confirmado'?'✅ Confirmado':p.estado==='jugado'?'🏆 Jugado':p.estado==='suspendido'?'❌ Suspendido':'⏳ Pendiente';
@@ -1722,7 +1722,7 @@ function cerrarCrearPartido() {
 let jugadoresDisponibles = [];
 async function cargarJugadoresParaPartido() {
   const data = await api('/padel/jugadores');
-  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuarioActual?.id);
+  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
   ['eq1j2','eq2j1','eq2j2'].forEach(campo => {
     const sel = document.getElementById('partido-' + campo);
     sel.innerHTML = '<option value="">— Elegir jugador —</option>' +
@@ -1774,7 +1774,7 @@ function cerrarCrearPartido() {
 
 async function cargarJugadoresParaPartido() {
   const data = await api('/padel/jugadores');
-  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuarioActual?.id);
+  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
   ['eq1j2','eq2j1','eq2j2'].forEach(campo => {
     const sel = document.getElementById('partido-' + campo);
     sel.innerHTML = '<option value="">— Elegir jugador —</option>' +
