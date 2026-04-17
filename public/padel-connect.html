@@ -1697,6 +1697,11 @@ async function cargarPartidos() {
         <button onclick="responderInvitacion('${p.id}','aceptado')" style="flex:1;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">✅ Aceptar</button>
         <button onclick="responderInvitacion('${p.id}','rechazado')" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:50px;font-size:13px;cursor:pointer">❌ Rechazar</button>
       </div>` : ''}
+      ${p.estado==='jugado' ? `
+      <div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;margin-top:4px">
+        <div style="font-family:'Bebas Neue',cursive;font-size:28px;color:#fff">${p.resultado_eq1} — ${p.resultado_eq2}</div>
+        <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
+      </div>` : ''}
       ${esCreador && p.estado==='confirmado' ? `
       <button onclick="abrirResultado('${p.id}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
       ${esCreador && p.estado==='pendiente' ? `
