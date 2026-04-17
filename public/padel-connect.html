@@ -1805,7 +1805,6 @@ async function cancelarPartido(partido_id) {
   if (res.ok) cargarPartidos();
 }
 
-let editandoPartidoId = null;
 function abrirEditarPartido(id, fecha, hora, lugar) {
   editandoPartidoId = id;
   document.getElementById('editar-fecha').value = fecha;
@@ -2189,3 +2188,4 @@ async function cancelarReserva(reservaId, clubNombre) {
 </div>
 </body>
 </html>
+
