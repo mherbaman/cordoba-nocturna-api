@@ -1758,6 +1758,59 @@ async function confirmarResultado() {
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
+async function responderInvitacion(partido_id, estado) {
+  const res = await api('/padel/partidos/' + partido_id + '/responder', 'PUT', { estado });
+  if (res.ok) cargarPartidos();
+}
+
+function abrirCrearPartido() {
+  document.getElementById('modal-crear-partido').style.display = 'flex';
+  cargarJugadoresParaPartido();
+}
+
+function cerrarCrearPartido() {
+  document.getElementById('modal-crear-partido').style.display = 'none';
+}
+
+let jugadoresDisponibles = [];
+async function cargarJugadoresParaPartido() {
+  const data = await api('/padel/jugadores');
+  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuarioActual?.id);
+  ['eq1j2','eq2j1','eq2j2'].forEach(campo => {
+    const sel = document.getElementById('partido-' + campo);
+    sel.innerHTML = '<option value="">— Elegir jugador —</option>' +
+      jugadoresDisponibles.map(j => `<option value="${j.usuario_id}">${j.nombre} (${j.nivel||''})</option>`).join('');
+  });
+}
+
+async function confirmarCrearPartido() {
+  const fecha = document.getElementById('partido-fecha').value;
+  const hora = document.getElementById('partido-hora').value;
+  const lugar = document.getElementById('partido-lugar').value;
+  const eq1j2 = document.getElementById('partido-eq1j2').value;
+  const eq2j1 = document.getElementById('partido-eq2j1').value;
+  const eq2j2 = document.getElementById('partido-eq2j2').value;
+  if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
+  const res = await api('/padel/partidos', 'POST', { fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null });
+  if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
+}
+
+let partidoResultadoId = null;
+function abrirResultado(partido_id) {
+  partidoResultadoId = partido_id;
+  document.getElementById('modal-resultado').style.display = 'flex';
+}
+function cerrarResultado() {
+  document.getElementById('modal-resultado').style.display = 'none';
+}
+async function confirmarResultado() {
+  const eq1 = parseInt(document.getElementById('res-eq1').value);
+  const eq2 = parseInt(document.getElementById('res-eq2').value);
+  if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
+  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', 'PUT', { resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] });
+  if (res.ok) { cerrarResultado(); cargarPartidos(); }
+}
+
 async function cargarRanking() {
   const el = document.getElementById('ranking-list');
   const nivel = document.getElementById('ranking-nivel-filter')?.value || '';
