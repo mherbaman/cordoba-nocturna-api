@@ -766,11 +766,12 @@ router.post('/partidos', authUsuario, async (req, res) => {
   const creador_id = req.usuario.id;
   const { fecha, hora, lugar, equipo1_j2, equipo2_j1, equipo2_j2 } = req.body;
   try {
+    const { reserva_id } = req.body;
     const partido = await pool.query(`
-      INSERT INTO partidos_padel (creador_id, equipo1_j1, equipo1_j2, equipo2_j1, equipo2_j2, fecha, hora, lugar)
-      VALUES ($1, $1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO partidos_padel (creador_id, equipo1_j1, equipo1_j2, equipo2_j1, equipo2_j2, fecha, hora, lugar, reserva_id)
+      VALUES ($1, $1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING id
-    `, [creador_id, equipo1_j2 || null, equipo2_j1 || null, equipo2_j2 || null, fecha, hora, lugar || null]);
+    `, [creador_id, equipo1_j2 || null, equipo2_j1 || null, equipo2_j2 || null, fecha, hora, lugar || null, reserva_id || null]);
 
     const partido_id = partido.rows[0].id;
 
@@ -972,6 +973,30 @@ router.put('/partidos/:id/editar', authUsuario, async (req, res) => {
   } catch (err) {
     console.error('PUT /padel/partidos/editar:', err.message);
     res.status(500).json({ error: 'Error al editar partido' });
+  }
+});
+
+
+// GET /padel/mis-turnos-disponibles — turnos confirmados sin partido creado
+router.get('/mis-turnos-disponibles', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  try {
+    const result = await pool.query(`
+      SELECT r.id, r.fecha, r.hora_inicio, r.hora_fin, n.nombre AS cancha, n.zona AS lugar
+      FROM reservas_padel r
+      JOIN negocios n ON n.id = r.negocio_id
+      WHERE r.usuario_id = $1
+        AND r.estado = 'confirmado'
+        AND r.fecha >= CURRENT_DATE
+        AND NOT EXISTS (
+          SELECT 1 FROM partidos_padel p WHERE p.reserva_id = r.id
+        )
+      ORDER BY r.fecha ASC, r.hora_inicio ASC
+    `, [usuario_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/mis-turnos-disponibles:', err.message);
+    res.status(500).json({ error: 'Error al obtener turnos' });
   }
 });
 

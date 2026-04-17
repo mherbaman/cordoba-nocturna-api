@@ -1821,9 +1821,44 @@ function cerrarCrearPartido() {
 
 let jugadoresDisponibles = [];
 async function cargarJugadoresParaPartido() {
+  // Cargar turnos disponibles
+  const turnos = await api('/padel/mis-turnos-disponibles');
+  const turnosSel = document.getElementById('partido-turno');
+  const turnosLoading = document.getElementById('turnos-loading');
+  if (!turnos || !turnos.length) {
+    turnosLoading.textContent = 'No tenés turnos confirmados disponibles. Reservá una cancha primero.';
+  } else {
+    turnosLoading.style.display = 'none';
+    turnosSel.style.display = 'block';
+    turnosSel.innerHTML = '<option value="">— Elegir turno —</option>' +
+      turnos.map(t => {
+        const fecha = new Date(t.fecha).toLocaleDateString('es-AR');
+        const hora = t.hora_inicio.slice(0,5);
+        return `<option value="${t.id}" data-fecha="${t.fecha.slice(0,10)}" data-hora="${hora}" data-lugar="${t.cancha} — ${t.lugar||''}">${fecha} ${hora}hs — ${t.cancha}</option>`;
+      }).join('');
+  }
+  // Cargar jugadores
   const data = await api('/padel/jugadores');
   jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
   actualizarSelectsPartido();
+}
+
+function elegirTurno() {
+  const sel = document.getElementById('partido-turno');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt.value) {
+    document.getElementById('turno-detalle').style.display = 'none';
+    return;
+  }
+  const fecha = opt.dataset.fecha;
+  const hora = opt.dataset.hora;
+  const lugar = opt.dataset.lugar;
+  document.getElementById('partido-fecha').value = fecha;
+  document.getElementById('partido-hora').value = hora;
+  document.getElementById('partido-lugar').value = lugar;
+  document.getElementById('partido-reserva-id').value = opt.value;
+  document.getElementById('turno-detalle').style.display = 'block';
+  document.getElementById('turno-detalle').innerHTML = `📅 ${new Date(fecha).toLocaleDateString('es-AR')} · ⏰ ${hora}hs · 📍 ${lugar}`;
 }
 
 function actualizarSelectsPartido() {
@@ -1848,7 +1883,9 @@ async function confirmarCrearPartido() {
   const eq2j1 = document.getElementById('partido-eq2j1').value;
   const eq2j2 = document.getElementById('partido-eq2j2').value;
   if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null })});
+  const reserva_id = document.getElementById('partido-reserva-id').value;
+  if (!reserva_id) { alert('Seleccioná un turno confirmado'); return; }
+  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null, reserva_id: reserva_id||null })});
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
 
@@ -1894,9 +1931,44 @@ function cerrarCrearPartido() {
 }
 
 async function cargarJugadoresParaPartido() {
+  // Cargar turnos disponibles
+  const turnos = await api('/padel/mis-turnos-disponibles');
+  const turnosSel = document.getElementById('partido-turno');
+  const turnosLoading = document.getElementById('turnos-loading');
+  if (!turnos || !turnos.length) {
+    turnosLoading.textContent = 'No tenés turnos confirmados disponibles. Reservá una cancha primero.';
+  } else {
+    turnosLoading.style.display = 'none';
+    turnosSel.style.display = 'block';
+    turnosSel.innerHTML = '<option value="">— Elegir turno —</option>' +
+      turnos.map(t => {
+        const fecha = new Date(t.fecha).toLocaleDateString('es-AR');
+        const hora = t.hora_inicio.slice(0,5);
+        return `<option value="${t.id}" data-fecha="${t.fecha.slice(0,10)}" data-hora="${hora}" data-lugar="${t.cancha} — ${t.lugar||''}">${fecha} ${hora}hs — ${t.cancha}</option>`;
+      }).join('');
+  }
+  // Cargar jugadores
   const data = await api('/padel/jugadores');
   jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
   actualizarSelectsPartido();
+}
+
+function elegirTurno() {
+  const sel = document.getElementById('partido-turno');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt.value) {
+    document.getElementById('turno-detalle').style.display = 'none';
+    return;
+  }
+  const fecha = opt.dataset.fecha;
+  const hora = opt.dataset.hora;
+  const lugar = opt.dataset.lugar;
+  document.getElementById('partido-fecha').value = fecha;
+  document.getElementById('partido-hora').value = hora;
+  document.getElementById('partido-lugar').value = lugar;
+  document.getElementById('partido-reserva-id').value = opt.value;
+  document.getElementById('turno-detalle').style.display = 'block';
+  document.getElementById('turno-detalle').innerHTML = `📅 ${new Date(fecha).toLocaleDateString('es-AR')} · ⏰ ${hora}hs · 📍 ${lugar}`;
 }
 
 function actualizarSelectsPartido() {
@@ -1921,7 +1993,9 @@ async function confirmarCrearPartido() {
   const eq2j1 = document.getElementById('partido-eq2j1').value;
   const eq2j2 = document.getElementById('partido-eq2j2').value;
   if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null })});
+  const reserva_id = document.getElementById('partido-reserva-id').value;
+  if (!reserva_id) { alert('Seleccioná un turno confirmado'); return; }
+  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null, reserva_id: reserva_id||null })});
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
 
@@ -2164,18 +2238,18 @@ async function cancelarReserva(reservaId, clubNombre) {
       <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">⚡ Crear partido</div>
       <button onclick="cerrarCrearPartido()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer">✕</button>
     </div>
-    <div style="margin-bottom:12px">
-      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">FECHA</div>
-      <input type="date" id="partido-fecha" style="width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px">
-    </div>
-    <div style="margin-bottom:12px">
-      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">HORA</div>
-      <input type="time" id="partido-hora" style="width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px">
-    </div>
     <div style="margin-bottom:16px">
-      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">LUGAR (opcional)</div>
-      <input type="text" id="partido-lugar" placeholder="Ej: Club Atlético Córdoba" style="width:100%;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">TURNO CONFIRMADO</div>
+      <div id="turnos-loading" style="color:rgba(255,255,255,.35);font-size:13px;text-align:center;padding:10px">Cargando turnos...</div>
+      <select id="partido-turno" onchange="elegirTurno()" style="display:none;width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+        <option value="">— Elegir turno —</option>
+      </select>
+      <div id="turno-detalle" style="display:none;margin-top:8px;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;font-size:12px;color:rgba(255,255,255,.7)"></div>
     </div>
+    <input type="hidden" id="partido-fecha">
+    <input type="hidden" id="partido-hora">
+    <input type="hidden" id="partido-lugar">
+    <input type="hidden" id="partido-reserva-id">
     <div style="background:rgba(34,197,94,.06);border-radius:12px;padding:12px;margin-bottom:12px">
       <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px">EQUIPO 1</div>
       <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px">Vos (creador)</div>
