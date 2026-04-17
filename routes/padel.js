@@ -924,6 +924,47 @@ router.get('/ranking', async (req, res) => {
 });
 
 
+
+// PUT /padel/partidos/:id/cancelar
+router.put('/partidos/:id/cancelar', authUsuario, async (req, res) => {
+  const { id } = req.params;
+  const usuario_id = req.usuario.id;
+  try {
+    const p = await pool.query('SELECT creador_id, estado FROM partidos_padel WHERE id = $1', [id]);
+    if (!p.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
+    if (p.rows[0].creador_id !== usuario_id) return res.status(403).json({ error: 'Solo el creador puede cancelar' });
+    if (p.rows[0].estado === 'jugado') return res.status(400).json({ error: 'No se puede cancelar un partido jugado' });
+    await pool.query('UPDATE partidos_padel SET estado = $1 WHERE id = $2', ['cancelado', id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /padel/partidos/cancelar:', err.message);
+    res.status(500).json({ error: 'Error al cancelar partido' });
+  }
+});
+
+// PUT /padel/partidos/:id/editar
+router.put('/partidos/:id/editar', authUsuario, async (req, res) => {
+  const { id } = req.params;
+  const usuario_id = req.usuario.id;
+  const { fecha, hora, lugar } = req.body;
+  try {
+    const p = await pool.query('SELECT creador_id, estado FROM partidos_padel WHERE id = $1', [id]);
+    if (!p.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
+    if (p.rows[0].creador_id !== usuario_id) return res.status(403).json({ error: 'Solo el creador puede editar' });
+    if (p.rows[0].estado === 'jugado') return res.status(400).json({ error: 'No se puede editar un partido jugado' });
+    await pool.query(
+      'UPDATE partidos_padel SET fecha = $1, hora = $2, lugar = $3, estado = $4 WHERE id = $5',
+      [fecha, hora, lugar, 'pendiente', id]
+    );
+    // Resetear invitaciones a pendiente
+    await pool.query('UPDATE invitaciones_partido SET estado = $1 WHERE partido_id = $2', ['pendiente', id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /padel/partidos/editar:', err.message);
+    res.status(500).json({ error: 'Error al editar partido' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
