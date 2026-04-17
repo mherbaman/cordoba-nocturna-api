@@ -758,6 +758,171 @@ router.get('/resenas-jugador/:jugador_id', async (req, res) => {
   }
 });
 
+
+// ── PARTIDOS PADEL ────────────────────────────────────────────────────────
+
+// POST /padel/partidos — crear partido e invitar jugadores
+router.post('/partidos', authUsuario, async (req, res) => {
+  const creador_id = req.usuario.id;
+  const { fecha, hora, lugar, equipo1_j2, equipo2_j1, equipo2_j2 } = req.body;
+  try {
+    const partido = await pool.query(`
+      INSERT INTO partidos_padel (creador_id, equipo1_j1, equipo1_j2, equipo2_j1, equipo2_j2, fecha, hora, lugar)
+      VALUES ($1, $1, $2, $3, $4, $5, $6, $7)
+      RETURNING id
+    `, [creador_id, equipo1_j2 || null, equipo2_j1 || null, equipo2_j2 || null, fecha, hora, lugar || null]);
+
+    const partido_id = partido.rows[0].id;
+
+    const invitados = [
+      { jugador_id: equipo1_j2, equipo: 1 },
+      { jugador_id: equipo2_j1, equipo: 2 },
+      { jugador_id: equipo2_j2, equipo: 2 },
+    ].filter(i => i.jugador_id);
+
+    for (const inv of invitados) {
+      await pool.query(`
+        INSERT INTO invitaciones_partido (partido_id, jugador_id, equipo)
+        VALUES ($1, $2, $3)
+        ON CONFLICT DO NOTHING
+      `, [partido_id, inv.jugador_id, inv.equipo]);
+    }
+
+    res.json({ ok: true, partido_id });
+  } catch (err) {
+    console.error('POST /padel/partidos:', err.message);
+    res.status(500).json({ error: 'Error al crear partido' });
+  }
+});
+
+// GET /padel/partidos — mis partidos
+router.get('/partidos', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  try {
+    const result = await pool.query(`
+      SELECT p.*,
+        u1.nombre AS eq1j1_nombre, u1.foto_url AS eq1j1_foto,
+        u2.nombre AS eq1j2_nombre, u2.foto_url AS eq1j2_foto,
+        u3.nombre AS eq2j1_nombre, u3.foto_url AS eq2j1_foto,
+        u4.nombre AS eq2j2_nombre, u4.foto_url AS eq2j2_foto,
+        inv.estado AS mi_invitacion
+      FROM partidos_padel p
+      LEFT JOIN usuarios u1 ON u1.id = p.equipo1_j1
+      LEFT JOIN usuarios u2 ON u2.id = p.equipo1_j2
+      LEFT JOIN usuarios u3 ON u3.id = p.equipo2_j1
+      LEFT JOIN usuarios u4 ON u4.id = p.equipo2_j2
+      LEFT JOIN invitaciones_partido inv ON inv.partido_id = p.id AND inv.jugador_id = $1
+      WHERE p.creador_id = $1
+         OR p.equipo1_j1 = $1 OR p.equipo1_j2 = $1
+         OR p.equipo2_j1 = $1 OR p.equipo2_j2 = $1
+      ORDER BY p.creado_en DESC
+    `, [usuario_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/partidos:', err.message);
+    res.status(500).json({ error: 'Error al obtener partidos' });
+  }
+});
+
+// PUT /padel/partidos/:id/responder — aceptar o rechazar invitacion
+router.put('/partidos/:id/responder', authUsuario, async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+  const jugador_id = req.usuario.id;
+  try {
+    await pool.query(`
+      UPDATE invitaciones_partido SET estado = $1
+      WHERE partido_id = $2 AND jugador_id = $3
+    `, [estado, id, jugador_id]);
+
+    const inv = await pool.query(`
+      SELECT COUNT(*) FILTER (WHERE estado = 'aceptado') AS aceptados,
+             COUNT(*) AS total
+      FROM invitaciones_partido WHERE partido_id = $1
+    `, [id]);
+
+    const { aceptados, total } = inv.rows[0];
+    if (parseInt(aceptados) === parseInt(total)) {
+      await pool.query(`UPDATE partidos_padel SET estado = 'confirmado' WHERE id = $1`, [id]);
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /padel/partidos/responder:', err.message);
+    res.status(500).json({ error: 'Error al responder invitacion' });
+  }
+});
+
+// PUT /padel/partidos/:id/resultado — cargar resultado y ELO
+router.put('/partidos/:id/resultado', authUsuario, async (req, res) => {
+  const { id } = req.params;
+  const { resultado_eq1, resultado_eq2, faltaron } = req.body;
+  const ganador_equipo = resultado_eq1 > resultado_eq2 ? 1 : 2;
+  try {
+    await pool.query(`
+      UPDATE partidos_padel
+      SET estado = $1, resultado_eq1 = $2, resultado_eq2 = $3,
+          ganador_equipo = $4, faltaron = $5
+      WHERE id = $6
+    `, [
+      faltaron && faltaron.length ? 'suspendido' : 'jugado',
+      resultado_eq1, resultado_eq2, ganador_equipo,
+      faltaron && faltaron.length ? faltaron : null,
+      id
+    ]);
+
+    if (!faltaron || !faltaron.length) {
+      const p = await pool.query(`SELECT * FROM partidos_padel WHERE id = $1`, [id]);
+      const partido = p.rows[0];
+      const ganadores = ganador_equipo === 1
+        ? [partido.equipo1_j1, partido.equipo1_j2]
+        : [partido.equipo2_j1, partido.equipo2_j2];
+      const perdedores = ganador_equipo === 1
+        ? [partido.equipo2_j1, partido.equipo2_j2]
+        : [partido.equipo1_j1, partido.equipo1_j2];
+
+      for (const uid of ganadores.filter(Boolean)) {
+        await pool.query(`
+          UPDATE jugadores_padel SET ranking = COALESCE(ranking, 1000) + 20
+          WHERE usuario_id = $1
+        `, [uid]);
+      }
+      for (const uid of perdedores.filter(Boolean)) {
+        await pool.query(`
+          UPDATE jugadores_padel SET ranking = GREATEST(COALESCE(ranking, 1000) - 20, 0)
+          WHERE usuario_id = $1
+        `, [uid]);
+      }
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /padel/partidos/resultado:', err.message);
+    res.status(500).json({ error: 'Error al cargar resultado' });
+  }
+});
+
+// GET /padel/ranking — ranking ELO
+router.get('/ranking', async (req, res) => {
+  const { nivel } = req.query;
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.nombre, u.foto_url,
+             jp.nivel, jp.ranking,
+             ROW_NUMBER() OVER (ORDER BY jp.ranking DESC NULLS LAST) AS posicion
+      FROM jugadores_padel jp
+      JOIN usuarios u ON u.id = jp.usuario_id
+      WHERE ($1::text IS NULL OR jp.nivel = $1)
+      ORDER BY jp.ranking DESC NULLS LAST
+      LIMIT 50
+    `, [nivel || null]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/ranking:', err.message);
+    res.status(500).json({ error: 'Error al obtener ranking' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
