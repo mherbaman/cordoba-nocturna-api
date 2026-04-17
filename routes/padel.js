@@ -883,13 +883,13 @@ router.put('/partidos/:id/resultado', authUsuario, async (req, res) => {
 
       for (const uid of ganadores.filter(Boolean)) {
         await pool.query(`
-          UPDATE jugadores_padel SET ranking = COALESCE(ranking, 1000) + 20
+          UPDATE jugadores_padel SET ranking_puntos = COALESCE(ranking_puntos, 1000) + 20
           WHERE usuario_id = $1
         `, [uid]);
       }
       for (const uid of perdedores.filter(Boolean)) {
         await pool.query(`
-          UPDATE jugadores_padel SET ranking = GREATEST(COALESCE(ranking, 1000) - 20, 0)
+          UPDATE jugadores_padel SET ranking_puntos = GREATEST(COALESCE(ranking_puntos, 1000) - 20, 0)
           WHERE usuario_id = $1
         `, [uid]);
       }
@@ -908,12 +908,12 @@ router.get('/ranking', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT u.id, u.nombre, u.foto_url,
-             jp.nivel, jp.ranking,
-             ROW_NUMBER() OVER (ORDER BY jp.ranking DESC NULLS LAST) AS posicion
+             jp.nivel, jp.ranking_puntos AS ranking,
+             ROW_NUMBER() OVER (ORDER BY jp.ranking_puntos DESC NULLS LAST) AS posicion
       FROM jugadores_padel jp
       JOIN usuarios u ON u.id = jp.usuario_id
       WHERE ($1::text IS NULL OR jp.nivel = $1)
-      ORDER BY jp.ranking DESC NULLS LAST
+      ORDER BY jp.ranking_puntos DESC NULLS LAST
       LIMIT 50
     `, [nivel || null]);
     res.json(result.rows);
