@@ -1972,9 +1972,6 @@ async function confirmarResultado() {
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
-let partidoResenaId = null;
-let jugadoresResena = [];
-let resenasYaHechas = [];
 
 async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
   partidoResenaId = partido_id;
