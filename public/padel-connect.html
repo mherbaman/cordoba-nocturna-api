@@ -95,7 +95,7 @@ async function chatearConJugador(otro_usuario_id, nombre, foto) {
 async function verResenasDeJugadores(jugador_id, nombre) {
   document.getElementById('modal-resenas-titulo').textContent = 'Reseñas de jugadores — ' + nombre;
   document.getElementById('modal-resenas-body').innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">Cargando...</p>';
-  document.getElementById('modal-resenas').style.display = 'flex';
+  document.getElementById('modal-resenas-jugador').style.display = 'flex';
   const data = await api('/padel/resenas-jugador/' + jugador_id);
   if (!data.length) {
     document.getElementById('modal-resenas-body').innerHTML = '<p style="color:var(--muted);padding:16px;text-align:center">Sin reseñas de jugadores todavia.</p>';
