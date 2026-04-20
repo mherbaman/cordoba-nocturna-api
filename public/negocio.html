@@ -688,6 +688,8 @@ async function cargarCanchas() {
       apiAdmin(`/padel/reservas/del-club?negocio_id=${negocioData.id}&fecha=${hoy}`).catch(()=>[])
     ]);
     const idsReservados = reservasHoy.filter(r=>r.estado!=="cancelado").map(r=>r.disponibilidad_id);
+    const reservadoPor = {};
+    reservasHoy.filter(r=>r.estado!=="cancelado").forEach(r=>{ reservadoPor[r.disponibilidad_id] = { nombre: r.jugador_nombre, tel: r.jugador_tel }; });
     if (!turnos.length) {
       el.innerHTML = `<div class="empty-state"><div class="icon">🎾</div>No tenés turnos cargados aún.<br>Agregá tu primera disponibilidad.</div>`;
       return;
