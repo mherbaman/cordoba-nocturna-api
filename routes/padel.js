@@ -1213,6 +1213,369 @@ router.delete('/partidos-publicos/:id/desinscribirse', authUsuario, async (req, 
 });
 
 // ─── FIN PARTIDOS PÚBLICOS ───────────────────────────────────────────────────
+// ════════════════════════════════════════════════
+//   PROFESORES / CLASES PARTICULARES
+// ════════════════════════════════════════════════
+
+// GET /padel/profesores — lista profesores con filtro zona
+router.get('/profesores', async (req, res) => {
+  const { zona } = req.query;
+  try {
+    let where = 'WHERE p.activo = true';
+    const params = [];
+    if (zona) {
+      params.push(`%${zona}%`);
+      where += ` AND EXISTS (
+        SELECT 1 FROM profesor_zonas pz
+        WHERE pz.profesor_id = p.id AND pz.zona ILIKE $1
+      )`;
+    }
+    const result = await pool.query(`
+      SELECT
+        p.*,
+        u.email,
+        json_agg(DISTINCT jsonb_build_object('id', pz.id, 'zona', pz.zona, 'lugar', pz.lugar))
+          FILTER (WHERE pz.id IS NOT NULL) AS zonas
+      FROM profesores_padel p
+      JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN profesor_zonas pz ON pz.profesor_id = p.id
+      ${where}
+      GROUP BY p.id, u.email
+      ORDER BY p.promedio_resenas DESC, p.creado_en DESC
+    `, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/profesores:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// GET /padel/profesores/mi-perfil — perfil del profesor logueado
+router.get('/profesores/mi-perfil', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  try {
+    const result = await pool.query(`
+      SELECT p.*,
+        json_agg(DISTINCT jsonb_build_object('id', pz.id, 'zona', pz.zona, 'lugar', pz.lugar))
+          FILTER (WHERE pz.id IS NOT NULL) AS zonas
+      FROM profesores_padel p
+      LEFT JOIN profesor_zonas pz ON pz.profesor_id = p.id
+      WHERE p.usuario_id = $1
+      GROUP BY p.id
+    `, [usuario_id]);
+    if (!result.rows.length) return res.json({ tiene_perfil: false });
+    res.json({ tiene_perfil: true, perfil: result.rows[0] });
+  } catch (err) {
+    console.error('GET /padel/profesores/mi-perfil:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /padel/profesores — crear o actualizar perfil de profesor
+router.post('/profesores', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  const { nombre, bio, foto_url, precio_hora, modalidad, nivel_minimo, nivel_maximo, whatsapp, whatsapp_grupo, zonas } = req.body;
+  if (!nombre) return res.status(400).json({ error: 'nombre es requerido' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await client.query(`
+      INSERT INTO profesores_padel
+        (usuario_id, nombre, bio, foto_url, precio_hora, modalidad, nivel_minimo, nivel_maximo, whatsapp, whatsapp_grupo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      ON CONFLICT (usuario_id) DO UPDATE SET
+        nombre         = EXCLUDED.nombre,
+        bio            = EXCLUDED.bio,
+        foto_url       = COALESCE(EXCLUDED.foto_url, profesores_padel.foto_url),
+        precio_hora    = EXCLUDED.precio_hora,
+        modalidad      = EXCLUDED.modalidad,
+        nivel_minimo   = EXCLUDED.nivel_minimo,
+        nivel_maximo   = EXCLUDED.nivel_maximo,
+        whatsapp       = EXCLUDED.whatsapp,
+        whatsapp_grupo = EXCLUDED.whatsapp_grupo,
+        actualizado_en = NOW()
+      RETURNING *
+    `, [usuario_id, nombre, bio||null, foto_url||null, precio_hora||null, modalidad||'presencial', nivel_minimo||null, nivel_maximo||null, whatsapp||null, whatsapp_grupo||null]);
+
+    const profesor_id = result.rows[0].id;
+
+    // Reemplazar zonas si se mandaron
+    if (zonas && Array.isArray(zonas)) {
+      await client.query('DELETE FROM profesor_zonas WHERE profesor_id = $1', [profesor_id]);
+      for (const z of zonas) {
+        if (z.zona) {
+          await client.query(
+            'INSERT INTO profesor_zonas (profesor_id, zona, lugar) VALUES ($1,$2,$3)',
+            [profesor_id, z.zona, z.lugar||null]
+          );
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    res.status(201).json({ ok: true, perfil: result.rows[0] });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('POST /padel/profesores:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  } finally {
+    client.release();
+  }
+});
+
+// GET /padel/profesores/:id/disponibilidad
+router.get('/profesores/:id/disponibilidad', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM disponibilidad_profesor
+      WHERE profesor_id = $1 AND activo = true
+        AND (fecha_especifica IS NULL OR fecha_especifica >= CURRENT_DATE)
+      ORDER BY COALESCE(fecha_especifica, ('2000-01-0' || (dia_semana+1))::date), hora_inicio
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/profesores/:id/disponibilidad:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /padel/profesores/disponibilidad — el profe carga un slot
+router.post('/profesores/disponibilidad', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  const { fecha, dia_semana, hora_inicio, hora_fin, zona, lugar } = req.body;
+  if (!hora_inicio || !hora_fin) return res.status(400).json({ error: 'hora_inicio y hora_fin son requeridos' });
+  try {
+    const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
+    if (!p.rows.length) return res.status(404).json({ error: 'Perfil de profesor no encontrado' });
+    const profesor_id = p.rows[0].id;
+    const result = await pool.query(`
+      INSERT INTO disponibilidad_profesor
+        (profesor_id, fecha_especifica, dia_semana, hora_inicio, hora_fin, zona, lugar)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `, [profesor_id, fecha||null, dia_semana !== undefined ? dia_semana : null, hora_inicio, hora_fin, zona||null, lugar||null]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('POST /padel/profesores/disponibilidad:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// DELETE /padel/profesores/disponibilidad/:id
+router.delete('/profesores/disponibilidad/:id', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  try {
+    const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
+    if (!p.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    await pool.query(
+      'UPDATE disponibilidad_profesor SET activo = false WHERE id = $1 AND profesor_id = $2',
+      [req.params.id, p.rows[0].id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /padel/profesores/disponibilidad:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /padel/clases/reservar — alumno reserva clase
+router.post('/clases/reservar', authUsuario, async (req, res) => {
+  const alumno_id = req.usuario.id;
+  const { profesor_id, disponibilidad_id, fecha, hora_inicio, hora_fin, zona, lugar, notas } = req.body;
+  if (!profesor_id || !fecha || !hora_inicio || !hora_fin)
+    return res.status(400).json({ error: 'profesor_id, fecha, hora_inicio y hora_fin son requeridos' });
+  try {
+    // Verificar que el slot no esté ya reservado
+    if (disponibilidad_id) {
+      const ocupado = await pool.query(
+        "SELECT id FROM reservas_clase WHERE disponibilidad_id = $1 AND fecha = $2 AND estado != 'cancelada'",
+        [disponibilidad_id, fecha]
+      );
+      if (ocupado.rows.length) return res.status(409).json({ error: 'Ese horario ya está reservado' });
+    }
+    const p = await pool.query('SELECT precio_hora, whatsapp FROM profesores_padel WHERE id = $1', [profesor_id]);
+    const precio = p.rows[0]?.precio_hora || null;
+    const telProfe = (p.rows[0]?.whatsapp || '').replace(/\D/g,'');
+
+    const alumno = await pool.query('SELECT nombre FROM usuarios WHERE id = $1', [alumno_id]);
+    const nombreAlumno = alumno.rows[0]?.nombre || 'Alumno';
+
+    const result = await pool.query(`
+      INSERT INTO reservas_clase
+        (profesor_id, alumno_id, disponibilidad_id, fecha, hora_inicio, hora_fin, zona, lugar, precio_cobrado, notas)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      RETURNING *
+    `, [profesor_id, alumno_id, disponibilidad_id||null, fecha, hora_inicio, hora_fin, zona||null, lugar||null, precio||null, notas||null]);
+
+    let whatsapp_profe = null;
+    if (telProfe) {
+      const msg = `🎾 Nueva reserva de clase\nAlumno: ${nombreAlumno}\nFecha: ${fecha}\nHorario: ${hora_inicio.substring(0,5)} a ${hora_fin.substring(0,5)}\n${zona ? 'Zona: '+zona : ''}\nCordobaLux`;
+      whatsapp_profe = `https://wa.me/${telProfe}?text=${encodeURIComponent(msg)}`;
+    }
+
+    res.status(201).json({ ok: true, reserva: result.rows[0], whatsapp_profe });
+  } catch (err) {
+    console.error('POST /padel/clases/reservar:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// GET /padel/clases/mis-clases — clases del profesor logueado
+router.get('/clases/mis-clases', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  try {
+    const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
+    if (!p.rows.length) return res.json([]);
+    const result = await pool.query(`
+      SELECT r.*, u.nombre AS alumno_nombre, u.foto_url AS alumno_foto, u.telefono AS alumno_tel
+      FROM reservas_clase r
+      JOIN usuarios u ON u.id = r.alumno_id
+      WHERE r.profesor_id = $1
+      ORDER BY r.fecha ASC, r.hora_inicio ASC
+    `, [p.rows[0].id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/clases/mis-clases:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// GET /padel/clases/mis-reservas-alumno — clases reservadas por el alumno
+router.get('/clases/mis-reservas-alumno', authUsuario, async (req, res) => {
+  const alumno_id = req.usuario.id;
+  try {
+    const result = await pool.query(`
+      SELECT r.*, p.nombre AS profesor_nombre, p.foto_url AS profesor_foto, p.whatsapp AS profesor_whatsapp
+      FROM reservas_clase r
+      JOIN profesores_padel p ON p.id = r.profesor_id
+      WHERE r.alumno_id = $1
+      ORDER BY r.fecha DESC, r.hora_inicio ASC
+    `, [alumno_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/clases/mis-reservas-alumno:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// PUT /padel/clases/:id/responder — profe confirma o cancela
+router.put('/clases/:id/responder', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  const { estado } = req.body;
+  if (!['confirmada','cancelada'].includes(estado))
+    return res.status(400).json({ error: 'estado debe ser confirmada o cancelada' });
+  try {
+    const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
+    if (!p.rows.length) return res.status(403).json({ error: 'No autorizado' });
+    const result = await pool.query(
+      'UPDATE reservas_clase SET estado = $1 WHERE id = $2 AND profesor_id = $3 RETURNING *',
+      [estado, req.params.id, p.rows[0].id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Reserva no encontrada' });
+    res.json({ ok: true, reserva: result.rows[0] });
+  } catch (err) {
+    console.error('PUT /padel/clases/:id/responder:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /padel/profesores/:id/resena — alumno deja reseña al profe
+router.post('/profesores/:id/resena', authUsuario, async (req, res) => {
+  const de_usuario_id = req.usuario.id;
+  const a_profesor_id = req.params.id;
+  const { estrellas, comentario } = req.body;
+  if (!estrellas || estrellas < 1 || estrellas > 5)
+    return res.status(400).json({ error: 'estrellas debe ser entre 1 y 5' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(`
+      INSERT INTO resenas_profesor (de_usuario_id, a_profesor_id, estrellas, comentario)
+      VALUES ($1,$2,$3,$4)
+      ON CONFLICT (de_usuario_id, a_profesor_id) DO UPDATE SET
+        estrellas = EXCLUDED.estrellas, comentario = EXCLUDED.comentario, creado_en = NOW()
+    `, [de_usuario_id, a_profesor_id, estrellas, comentario||null]);
+    await client.query(`
+      UPDATE profesores_padel SET
+        promedio_resenas = (SELECT ROUND(AVG(estrellas)::numeric,2) FROM resenas_profesor WHERE a_profesor_id = $1),
+        total_resenas    = (SELECT COUNT(*) FROM resenas_profesor WHERE a_profesor_id = $1)
+      WHERE id = $1
+    `, [a_profesor_id]);
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('POST /padel/profesores/:id/resena:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  } finally {
+    client.release();
+  }
+});
+
+// GET /padel/profesores/:id/resenas
+router.get('/profesores/:id/resenas', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT r.estrellas, r.comentario, r.creado_en, u.nombre AS de_nombre, u.foto_url AS de_foto
+      FROM resenas_profesor r
+      JOIN usuarios u ON u.id = r.de_usuario_id
+      WHERE r.a_profesor_id = $1
+      ORDER BY r.creado_en DESC
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// GET /padel/clases/resumen-dia — resumen del día para WhatsApp
+router.get('/clases/resumen-dia', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  const fecha = req.query.fecha || new Date().toISOString().split('T')[0];
+  try {
+    const p = await pool.query('SELECT id, nombre, whatsapp_grupo FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
+    if (!p.rows.length) return res.status(404).json({ error: 'Perfil no encontrado' });
+    const { id: profesor_id, nombre, whatsapp_grupo } = p.rows[0];
+
+    const clases = await pool.query(`
+      SELECT r.hora_inicio, r.hora_fin, r.zona, r.lugar, r.estado,
+             u.nombre AS alumno_nombre
+      FROM reservas_clase r
+      JOIN usuarios u ON u.id = r.alumno_id
+      WHERE r.profesor_id = $1 AND r.fecha = $2
+      ORDER BY r.hora_inicio
+    `, [profesor_id, fecha]);
+
+    const fechaLabel = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', {
+      weekday:'long', day:'numeric', month:'long'
+    });
+
+    const confirmadas = clases.rows.filter(c => c.estado === 'confirmada');
+    const pendientes  = clases.rows.filter(c => c.estado === 'pendiente');
+
+    let msg = `🎾 *Resumen de clases — ${fechaLabel}*\n`;
+    msg += `👨‍🏫 Profe: ${nombre}\n\n`;
+
+    if (!clases.rows.length) {
+      msg += `😴 Sin clases programadas para hoy.`;
+    } else {
+      clases.rows.forEach(c => {
+        const hi = String(c.hora_inicio).substring(0,5);
+        const hf = String(c.hora_fin).substring(0,5);
+        const estado = c.estado === 'confirmada' ? '✅' : c.estado === 'cancelada' ? '❌' : '⏳';
+        const lugar = c.zona ? ` · 📍 ${c.zona}${c.lugar ? ' — '+c.lugar : ''}` : '';
+        msg += `${estado} ${hi} - ${hf} · ${c.alumno_nombre}${lugar}\n`;
+      });
+      msg += `\n📊 Total: ${confirmadas.length} confirmada(s)`;
+      if (pendientes.length) msg += ` · ${pendientes.length} pendiente(s)`;
+    }
+
+    res.json({ ok: true, mensaje: msg, whatsapp_grupo, fecha });
+  } catch (err) {
+    console.error('GET /padel/clases/resumen-dia:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
 
 module.exports = router;
 
