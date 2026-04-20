@@ -2725,9 +2725,9 @@ function renderPartidoPublico(p) {
   if (lleno && !yoInscripto) {
     btnHTML = '<button class="btn-inscribirse" disabled>Partido completo — ' + cupos + '/' + cupos + '</button>';
   } else if (yoInscripto) {
-    btnHTML = '<button class="btn-inscribirse inscripto" onclick="desinscribirsePartido('" + p.id + "')">✓ Inscripto — Cancelar</button>';
+    btnHTML = '<button class="btn-inscribirse inscripto" onclick="desinscribirsePartido(\'' + p.id + '\')">✓ Inscripto — Cancelar</button>';
   } else {
-    btnHTML = '<button class="btn-inscribirse" onclick="inscribirsePartido('" + p.id + "')">⚡ Unirme — ' + inscriptos + '/' + cupos + '</button>';
+    btnHTML = '<button class="btn-inscribirse" onclick="inscribirsePartido(\'' + p.id + '\')">⚡ Unirme — ' + inscriptos + '/' + cupos + '</button>';
   }
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
