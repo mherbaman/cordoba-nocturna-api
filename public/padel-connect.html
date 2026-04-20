@@ -878,7 +878,21 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
         <button onclick="cambiarPassword()" style="width:100%;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:10px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Actualizar contraseña</button>
       </div>
     </div>
-    <button onclick="guardarPerfilCompleto()" style="width:100%;background:linear-gradient(135deg,var(--green-dark),var(--green));border:none;color:#fff;padding:13px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">GUARDAR CAMBIOS ✓</button>
+    <!-- MIS RESEÑAS -->
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="toggleMisResenas()">
+        <span>⭐ Mis reseñas</span>
+        <span id="mis-resenas-toggle" style="font-size:14px">▾</span>
+      </div>
+      <div id="mis-resenas-section" style="display:none">
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button onclick="verMisResenas('jugadores')" id="btn-mis-res-jug" style="flex:1;padding:7px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">🎾 De jugadores</button>
+          <button onclick="verMisResenas('clubes')" id="btn-mis-res-club" style="flex:1;padding:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">🏟️ De clubes</button>
+        </div>
+        <div id="mis-resenas-body" style="max-height:220px;overflow-y:auto"></div>
+      </div>
+    </div>
+        <button onclick="guardarPerfilCompleto()" style="width:100%;background:linear-gradient(135deg,var(--green-dark),var(--green));border:none;color:#fff;padding:13px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">GUARDAR CAMBIOS ✓</button>
     <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
     <button class="profile-close-btn" onclick="closeProfile()">Cancelar</button>
   </div>
@@ -1428,6 +1442,52 @@ async function openProfile(){
     c.classList.toggle('sel', selectedVibes.includes(c.textContent.trim()));
   });
   document.getElementById('profile-modal').classList.add('show');
+}
+
+async function toggleMisResenas() {
+  const sec = document.getElementById('mis-resenas-section');
+  const tog = document.getElementById('mis-resenas-toggle');
+  const abierto = sec.style.display !== 'none';
+  sec.style.display = abierto ? 'none' : 'block';
+  tog.textContent = abierto ? '▾' : '▴';
+  if (!abierto) verMisResenas('jugadores');
+}
+
+let _misResenasTab = 'jugadores';
+async function verMisResenas(tipo) {
+  _misResenasTab = tipo;
+  const body = document.getElementById('mis-resenas-body');
+  const btnJug = document.getElementById('btn-mis-res-jug');
+  const btnClub = document.getElementById('btn-mis-res-club');
+  const activeStyle = 'flex:1;padding:7px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer';
+  const inactiveStyle = 'flex:1;padding:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:50px;font-size:12px;font-weight:700;cursor:pointer';
+  btnJug.style.cssText = tipo === 'jugadores' ? activeStyle : inactiveStyle;
+  btnClub.style.cssText = tipo === 'clubes' ? activeStyle : inactiveStyle;
+  body.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Cargando...</p>';
+  try {
+    if (tipo === 'jugadores') {
+      if (!perfilPadel?.id) { body.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Sin perfil padelero.</p>'; return; }
+      const data = await api('/padel/resenas-jugador/' + perfilPadel.id);
+      if (!data.length) { body.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Todavía no tenés reseñas de jugadores.</p>'; return; }
+      body.innerHTML = data.map(r => `
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+          <div style="color:#facc15;font-size:13px">${'★'.repeat(r.estrellas)}${'☆'.repeat(5-r.estrellas)}</div>
+          ${r.comentario ? `<div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:4px">"${r.comentario}"</div>` : ''}
+          <div style="color:var(--muted);font-size:11px;margin-top:4px">Reseña anónima de partido</div>
+        </div>`).join('');
+    } else {
+      const data = await api('/padel/resenas-club/' + (perfilPadel?.id || usuario.id));
+      if (!data.length) { body.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Todavía no tenés reseñas de clubes.</p>'; return; }
+      body.innerHTML = data.map(r => `
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;margin-bottom:8px">
+          <div style="font-weight:600;font-size:13px">${r.negocio_nombre || 'Club'}</div>
+          <div style="color:#facc15;font-size:13px;margin-top:2px">${'★'.repeat(r.estrellas)}${'☆'.repeat(5-r.estrellas)}</div>
+          ${r.comentario ? `<div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:4px">"${r.comentario}"</div>` : ''}
+        </div>`).join('');
+    }
+  } catch(e) {
+    body.innerHTML = '<p style="color:red;font-size:13px;text-align:center;padding:12px">Error cargando reseñas.</p>';
+  }
 }
 
 async function closeProfile(){
