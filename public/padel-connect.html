@@ -550,7 +550,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div class="pp-title">Próximos <span>Partidos</span></div>
   </div>
   <div class="pp-filtros">
-    <select class="pp-filtro" id="pp-filtro-zona" onchange="cargarPartidosPublicos()">
+    <select class="pp-filtro" id="pp-filtro-zona" onchange="cargarPartidosPublicos()" style="color-scheme:dark;background:#030d06">
       <option value="">📍 Todas las zonas</option>
       <option value="Centro">Centro</option>
       <option value="Nueva Córdoba">Nueva Córdoba</option>
@@ -569,7 +569,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <option value="Mendiolaza">Mendiolaza</option>
       <option value="Salsipuedes">Salsipuedes</option>
     </select>
-    <select class="pp-filtro" id="pp-filtro-cat" onchange="cargarPartidosPublicos()">
+    <select class="pp-filtro" id="pp-filtro-cat" onchange="cargarPartidosPublicos()" style="color-scheme:dark;background:#030d06">
       <option value="">🎾 Todas las categorías</option>
       <option value="octava">8va categoría</option>
       <option value="septima">7ma categoría</option>
