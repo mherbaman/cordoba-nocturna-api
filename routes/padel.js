@@ -1006,14 +1006,22 @@ router.post('/resenas-partido', authUsuario, async (req, res) => {
   const de_usuario = req.usuario.id;
   const { partido_id, a_usuario, estrellas, comentario } = req.body;
   try {
-    // Verificar que ambos jugaron ese partido
+    // Verificar que el partido existe y ambos están en él
     const p = await pool.query(`
-      SELECT id FROM partidos_padel
-      WHERE id = $1 AND estado = 'jugado'
+      SELECT id, estado, faltaron FROM partidos_padel
+      WHERE id = $1 AND estado IN ('jugado', 'suspendido')
       AND (equipo1_j1 = $2 OR equipo1_j2 = $2 OR equipo2_j1 = $2 OR equipo2_j2 = $2)
       AND (equipo1_j1 = $3 OR equipo1_j2 = $3 OR equipo2_j1 = $3 OR equipo2_j2 = $3)
     `, [partido_id, de_usuario, a_usuario]);
     if (!p.rows.length) return res.status(403).json({ error: 'No jugaste ese partido con ese jugador' });
+
+    const partido = p.rows[0];
+    // Si el partido fue suspendido, solo los que fueron pueden reseñar al que faltó
+    if (partido.estado === 'suspendido') {
+      const faltaron = partido.faltaron || [];
+      if (faltaron.includes(de_usuario)) return res.status(403).json({ error: 'No podés reseñar si fuiste vos quien faltó' });
+      if (!faltaron.includes(a_usuario)) return res.status(403).json({ error: 'Solo podés reseñar al jugador que faltó' });
+    }
 
     await pool.query(`
       INSERT INTO resenas_padel (partido_id, de_usuario, a_usuario, estrellas, comentario)
