@@ -2708,7 +2708,7 @@ function renderPartidoPublico(p) {
   const libre = cupos - inscriptos;
   const lleno = libre <= 0;
   const jugadores = p.jugadores || [];
-  const fecha = new Date(p.fecha + 'T00:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  const fechaStr = p.fecha ? p.fecha.toString().substring(0,10) : ''; const fecha = fechaStr ? new Date(fechaStr+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}) : 'Sin fecha';
   const hora  = p.hora ? p.hora.substring(0,5) : '';
   const yoInscripto = jugadores.some(j => j.usuario_id === usuario?.id);
 
