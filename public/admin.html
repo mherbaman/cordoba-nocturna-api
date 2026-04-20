@@ -498,8 +498,6 @@ tr:hover td { background:rgba(255,255,255,.02); }
         </div>
       </div>
 
-    </div>
-  </div>
       <div class="page" id="page-partidos-pub">
         <div class="page-title">PARTIDOS ⚡</div>
         <div class="page-sub">Crea partidos para que los jugadores se inscriban desde PadelConnect.</div>
@@ -546,6 +544,8 @@ tr:hover td { background:rgba(255,255,255,.02); }
         <div style="font-family:'Bebas Neue',cursive;font-size:18px;margin-bottom:12px">Partidos creados</div>
         <div id="admin-partidos-pub-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
       </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -629,7 +629,6 @@ function navTo(page, btn) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  window.scrollTo(0,0);
   document.getElementById('page-' + page).classList.add('active');
   cerrarSidebar();
   if (page === 'reportes') cargarFiltrosReporte();
@@ -1584,20 +1583,21 @@ async function cargarPartidosPubAdmin() {
     el.innerHTML = data.map(p => {
       const ins = parseInt(p.inscriptos)||0;
       const cup = parseInt(p.cupos)||4;
-      const fecha = new Date(p.fecha+'T00:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
-      const hora = p.hora ? p.hora.substring(0,5) : '';
+      const fs = p.fecha ? p.fecha.toString().substring(0,10) : '';
+      const fecha = fs ? new Date(fs+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : 'Sin fecha';
+      const hora = p.hora ? p.hora.toString().substring(0,5) : '';
       const jugs = (p.jugadores||[]).map(j => '<span style="background:rgba(34,197,94,.1);padding:3px 8px;border-radius:50px;font-size:11px;color:rgba(255,255,255,.7)">'+j.nombre+'</span>').join(' ');
+      const pid = p.id;
       return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:16px;margin-bottom:10px">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">'+
         '<div><div style="font-weight:700;font-size:15px">'+p.zona+' - '+(catMap[p.categoria]||p.categoria)+' cat.</div>'+
-        '<div style="color:rgba(255,255,255,.45);font-size:12px;margin-top:2px">'+fecha+' '+hora+'hs'+(p.lugar?' · '+p.lugar:'')+(p.costo?' · '+p.costo:'')+'</div></div>'+
+        '<div style="color:rgba(255,255,255,.45);font-size:12px;margin-top:2px">'+fecha+' '+hora+'hs'+(p.lugar?' - '+p.lugar:'')+(p.costo?' - '+p.costo:'')+'</div></div>'+
         '<div style="font-family:Bebas Neue,cursive;font-size:24px;color:'+(ins>=cup?'#22c55e':'#fbbf24')+'">'+ins+'/'+cup+'</div></div>'+
         (jugs?'<div style="margin-bottom:10px">'+jugs+'</div>':'')+
-        '<button onclick="eliminarPartidoPub(\'' + p.id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;padding:7px 16px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Eliminar</button></div>';
+        '<button onclick="eliminarPartidoPub(''+pid+'')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;padding:7px 16px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Eliminar</button></div>';
     }).join('');
   } catch(e) { el.innerHTML = '<p style="color:red;padding:12px">Error: '+e.message+'</p>'; }
 }
-
 async function crearPartidoPublico() {
   const zona=document.getElementById('np-zona').value;
   const cat=document.getElementById('np-cat').value;
@@ -1625,7 +1625,6 @@ async function crearPartidoPublico() {
     msgEl.style.cssText='display:block;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171';
   }
 }
-
 async function eliminarPartidoPub(id) {
   if (!confirm('Eliminar este partido?')) return;
   try { await apiAdmin('/padel/partidos-publicos/'+id,{method:'DELETE'}); cargarPartidosPubAdmin(); }
