@@ -1681,7 +1681,10 @@ async function cargarPartidos() {
         <div style="font-size:11px;font-weight:700;color:#60a5fa">🏆 Jugado</div>
       </div>
 
-      <button onclick="toggleResultado('res-${p.id}')" style="width:100%;padding:9px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:#60a5fa;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Ver más</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="toggleResultado('res-${p.id}')" style="flex:1;padding:9px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:#60a5fa;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Ver más</button>
+        <button onclick="abrirResenasPartido('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar</button>
+      </div>
       <div id="res-${p.id}" style="display:none;margin-top:10px">
         <div style="display:flex;gap:8px;margin-bottom:10px">
           <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
@@ -1743,6 +1746,70 @@ async function cargarPartidos() {
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+let partidoResenaId = null;
+let jugadoresResena = [];
+let resenasYaHechas = [];
+
+async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  partidoResenaId = partido_id;
+  // Todos los jugadores del partido excepto yo
+  jugadoresResena = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id && j.id !== usuario?.id);
+
+  // Ver a quiénes ya reseñé
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
+
+function renderJugadoresResena() {
+  const el = document.getElementById('resenas-partido-list');
+  el.innerHTML = jugadoresResena.map(j => {
+    const yaResene = resenasYaHechas.includes(j.id);
+    return `
+    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:14px;color:#fff;font-weight:600;margin-bottom:8px">${j.nombre}</div>
+      ${yaResene ? `<div style="font-size:12px;color:var(--green)">✅ Ya reseñaste a este jugador</div>` : `
+      <div style="display:flex;gap:6px;margin-bottom:8px" id="estrellas-${j.id}">
+        ${[1,2,3,4,5].map(n => `<button onclick="elegirEstrella('${j.id}',${n})" style="background:none;border:none;font-size:24px;cursor:pointer;opacity:.4" data-n="${n}">★</button>`).join('')}
+      </div>
+      <input type="text" id="comentario-${j.id}" placeholder="Comentario (opcional)" maxlength="200"
+        style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;margin-bottom:8px">
+      <button onclick="enviarResena('${j.id}')" style="width:100%;padding:8px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Enviar reseña</button>
+      `}
+    </div>`;
+  }).join('');
+}
+
+let estrellasSeleccionadas = {};
+function elegirEstrella(jugador_id, n) {
+  estrellasSeleccionadas[jugador_id] = n;
+  const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
+  btns.forEach(b => b.style.opacity = parseFloat(b.dataset.n) <= n ? '1' : '.4');
+}
+
+async function enviarResena(a_usuario) {
+  const estrellas = estrellasSeleccionadas[a_usuario];
+  if (!estrellas) { alert('Elegí una puntuación'); return; }
+  const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
+  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
+    partido_id: partidoResenaId, a_usuario, estrellas, comentario
+  })});
+  if (res.ok) {
+    resenasYaHechas.push(a_usuario);
+    renderJugadoresResena();
+  }
+}
+
+function cerrarResenasPartido() {
+  document.getElementById('modal-resenas-partido').style.display = 'none';
 }
 
 function toggleResultado(id) {
@@ -1903,6 +1970,70 @@ async function confirmarResultado() {
   if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
   const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] })});
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
+}
+
+let partidoResenaId = null;
+let jugadoresResena = [];
+let resenasYaHechas = [];
+
+async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  partidoResenaId = partido_id;
+  // Todos los jugadores del partido excepto yo
+  jugadoresResena = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id && j.id !== usuario?.id);
+
+  // Ver a quiénes ya reseñé
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
+
+function renderJugadoresResena() {
+  const el = document.getElementById('resenas-partido-list');
+  el.innerHTML = jugadoresResena.map(j => {
+    const yaResene = resenasYaHechas.includes(j.id);
+    return `
+    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:14px;color:#fff;font-weight:600;margin-bottom:8px">${j.nombre}</div>
+      ${yaResene ? `<div style="font-size:12px;color:var(--green)">✅ Ya reseñaste a este jugador</div>` : `
+      <div style="display:flex;gap:6px;margin-bottom:8px" id="estrellas-${j.id}">
+        ${[1,2,3,4,5].map(n => `<button onclick="elegirEstrella('${j.id}',${n})" style="background:none;border:none;font-size:24px;cursor:pointer;opacity:.4" data-n="${n}">★</button>`).join('')}
+      </div>
+      <input type="text" id="comentario-${j.id}" placeholder="Comentario (opcional)" maxlength="200"
+        style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;margin-bottom:8px">
+      <button onclick="enviarResena('${j.id}')" style="width:100%;padding:8px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Enviar reseña</button>
+      `}
+    </div>`;
+  }).join('');
+}
+
+let estrellasSeleccionadas = {};
+function elegirEstrella(jugador_id, n) {
+  estrellasSeleccionadas[jugador_id] = n;
+  const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
+  btns.forEach(b => b.style.opacity = parseFloat(b.dataset.n) <= n ? '1' : '.4');
+}
+
+async function enviarResena(a_usuario) {
+  const estrellas = estrellasSeleccionadas[a_usuario];
+  if (!estrellas) { alert('Elegí una puntuación'); return; }
+  const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
+  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
+    partido_id: partidoResenaId, a_usuario, estrellas, comentario
+  })});
+  if (res.ok) {
+    resenasYaHechas.push(a_usuario);
+    renderJugadoresResena();
+  }
+}
+
+function cerrarResenasPartido() {
+  document.getElementById('modal-resenas-partido').style.display = 'none';
 }
 
 function toggleResultado(id) {
@@ -2329,6 +2460,18 @@ async function cancelarReserva(reservaId, clubNombre) {
     </div>
     <div style="font-size:11px;color:rgba(255,255,255,.35);text-align:center;margin-bottom:12px">Al editar, las invitaciones se resetean</div>
     <button onclick="confirmarEditarPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">✅ Guardar cambios</button>
+  </div>
+</div>
+
+<!-- Modal Reseñas Partido -->
+<div id="modal-resenas-partido" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:flex-end;justify-content:center">
+  <div style="background:#0a1a0f;border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:420px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">⭐ Reseñar jugadores</div>
+      <button onclick="cerrarResenasPartido()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:16px;text-align:center">Las reseñas son anónimas</div>
+    <div id="resenas-partido-list"></div>
   </div>
 </div>
 </body>

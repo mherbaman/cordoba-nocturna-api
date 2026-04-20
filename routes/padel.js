@@ -1000,6 +1000,57 @@ router.get('/mis-turnos-disponibles', authUsuario, async (req, res) => {
   }
 });
 
+
+// POST /padel/resenas-partido — dejar reseña anónima a jugador del partido
+router.post('/resenas-partido', authUsuario, async (req, res) => {
+  const de_usuario = req.usuario.id;
+  const { partido_id, a_usuario, estrellas, comentario } = req.body;
+  try {
+    // Verificar que ambos jugaron ese partido
+    const p = await pool.query(`
+      SELECT id FROM partidos_padel
+      WHERE id = $1 AND estado = 'jugado'
+      AND (equipo1_j1 = $2 OR equipo1_j2 = $2 OR equipo2_j1 = $2 OR equipo2_j2 = $2)
+      AND (equipo1_j1 = $3 OR equipo1_j2 = $3 OR equipo2_j1 = $3 OR equipo2_j2 = $3)
+    `, [partido_id, de_usuario, a_usuario]);
+    if (!p.rows.length) return res.status(403).json({ error: 'No jugaste ese partido con ese jugador' });
+
+    await pool.query(`
+      INSERT INTO resenas_padel (partido_id, de_usuario, a_usuario, estrellas, comentario)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (partido_id, de_usuario, a_usuario) DO NOTHING
+    `, [partido_id, de_usuario, a_usuario, estrellas, comentario || null]);
+
+    // Actualizar promedio en jugadores_padel
+    await pool.query(`
+      UPDATE jugadores_padel SET
+        promedio_resenas = (SELECT AVG(estrellas) FROM resenas_padel WHERE a_usuario = $1),
+        total_resenas = (SELECT COUNT(*) FROM resenas_padel WHERE a_usuario = $1)
+      WHERE usuario_id = $1
+    `, [a_usuario]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /padel/resenas-partido:', err.message);
+    res.status(500).json({ error: 'Error al dejar reseña' });
+  }
+});
+
+// GET /padel/resenas-partido/:partido_id/mias — reseñas que YO dejé en ese partido
+router.get('/resenas-partido/:partido_id/mias', authUsuario, async (req, res) => {
+  const de_usuario = req.usuario.id;
+  const { partido_id } = req.params;
+  try {
+    const result = await pool.query(`
+      SELECT a_usuario FROM resenas_padel
+      WHERE partido_id = $1 AND de_usuario = $2
+    `, [partido_id, de_usuario]);
+    res.json(result.rows.map(r => r.a_usuario));
+  } catch (err) {
+    res.status(500).json({ error: 'Error' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
