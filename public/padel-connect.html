@@ -2145,7 +2145,6 @@ async function confirmarCrearPartido() {
   const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null, reserva_id: reserva_id||null })});
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
-}
 
 async function cargarRanking() {
   const el = document.getElementById('ranking-list');
