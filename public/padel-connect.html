@@ -1736,7 +1736,7 @@ async function cargarPartidos() {
         <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
       </div>` : ''}
       ${esCreador && p.estado==='confirmado' ? `
-      <button onclick="abrirResultado('${p.id}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
+      <button onclick="abrirResultado('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
       ${esCreador && p.estado==='pendiente' ? `
       <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:4px">Esperando que los jugadores acepten</div>` : ''}
       ${esCreador && p.estado !== 'jugado' && p.estado !== 'cancelado' ? `
@@ -1957,18 +1957,38 @@ async function confirmarCrearPartido() {
 }
 
 let partidoResultadoId = null;
-function abrirResultado(partido_id) {
+let jugadoresPartidoActual = [];
+function abrirResultado(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
   partidoResultadoId = partido_id;
+  jugadoresPartidoActual = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id);
+  // Renderizar checkboxes de faltaron
+  const el = document.getElementById('faltaron-list');
+  el.innerHTML = jugadoresPartidoActual.map(j => `
+    <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer">
+      <input type="checkbox" value="${j.id}" style="width:16px;height:16px;accent-color:var(--green)">
+      <span style="font-size:13px;color:#fff">${j.nombre}</span>
+    </label>
+  `).join('');
   document.getElementById('modal-resultado').style.display = 'flex';
 }
 function cerrarResultado() {
   document.getElementById('modal-resultado').style.display = 'none';
 }
 async function confirmarResultado() {
-  const eq1 = parseInt(document.getElementById('res-eq1').value);
-  const eq2 = parseInt(document.getElementById('res-eq2').value);
-  if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
-  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] })});
+  const faltaron = [...document.querySelectorAll('#faltaron-list input:checked')].map(i => i.value);
+  const suspendido = faltaron.length > 0;
+  let eq1 = 0, eq2 = 0;
+  if (!suspendido) {
+    eq1 = parseInt(document.getElementById('res-eq1').value);
+    eq2 = parseInt(document.getElementById('res-eq2').value);
+    if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresá los sets de cada equipo'); return; }
+  }
+  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron })});
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
@@ -2125,20 +2145,6 @@ async function confirmarCrearPartido() {
   const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null, reserva_id: reserva_id||null })});
   if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
 }
-
-function abrirResultado(partido_id) {
-  partidoResultadoId = partido_id;
-  document.getElementById('modal-resultado').style.display = 'flex';
-}
-function cerrarResultado() {
-  document.getElementById('modal-resultado').style.display = 'none';
-}
-async function confirmarResultado() {
-  const eq1 = parseInt(document.getElementById('res-eq1').value);
-  const eq2 = parseInt(document.getElementById('res-eq2').value);
-  if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresa los sets de cada equipo'); return; }
-  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron: [] })});
-  if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
 async function cargarRanking() {
@@ -2415,7 +2421,12 @@ async function cancelarReserva(reservaId, clubNombre) {
         <input type="number" id="res-eq2" min="0" max="9" placeholder="0" style="width:100%;padding:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:28px;text-align:center">
       </div>
     </div>
-    <button onclick="confirmarResultado()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">✅ Confirmar resultado</button>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:#f87171;font-weight:700;margin-bottom:8px">¿ALGUIEN FALTÓ? (opcional)</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:8px">Si alguien faltó, marcalo y el partido quedará suspendido. No hace falta cargar resultado.</div>
+      <div id="faltaron-list" style="background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:4px"></div>
+    </div>
+    <button onclick="confirmarResultado()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">✅ Confirmar</button>
   </div>
 </div>
 
