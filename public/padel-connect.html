@@ -1736,7 +1736,7 @@ async function cargarPartidos() {
         <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
       </div>` : ''}
       ${p.estado==='suspendido' ? `
-      <button onclick="abrirResenasPartido('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar al que faltó</button>` : ''}
+      <button onclick="abrirResenasPartidoSuspendido('${p.id}',${JSON.stringify(p.faltaron||[])},${JSON.stringify([{id:p.equipo1_j1,nombre:p.eq1j1_nombre},{id:p.equipo1_j2,nombre:p.eq1j2_nombre},{id:p.equipo2_j1,nombre:p.eq2j1_nombre},{id:p.equipo2_j2,nombre:p.eq2j2_nombre}])})" style="width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar al que faltó</button>` : ''}
       ${esCreador && p.estado==='confirmado' ? `
       <button onclick="abrirResultado('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
       ${esCreador && p.estado==='pendiente' ? `
@@ -1753,6 +1753,15 @@ async function cargarPartidos() {
 let partidoResenaId = null;
 let jugadoresResena = [];
 let resenasYaHechas = [];
+
+async function abrirResenasPartidoSuspendido(partido_id, faltaron, todosJugadores) {
+  partidoResenaId = partido_id;
+  // Solo mostrar los que faltaron
+  jugadoresResena = todosJugadores.filter(j => j.id && faltaron.includes(j.id));
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
 
 async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
   partidoResenaId = partido_id;
@@ -1994,6 +2003,15 @@ async function confirmarResultado() {
   if (res.ok) { cerrarResultado(); cargarPartidos(); }
 }
 
+
+async function abrirResenasPartidoSuspendido(partido_id, faltaron, todosJugadores) {
+  partidoResenaId = partido_id;
+  // Solo mostrar los que faltaron
+  jugadoresResena = todosJugadores.filter(j => j.id && faltaron.includes(j.id));
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
 
 async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
   partidoResenaId = partido_id;
