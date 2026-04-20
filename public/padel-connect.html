@@ -1735,7 +1735,7 @@ async function cargarTurnosFecha(negocioId, nombre, fecha) {
   el.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="loader"></div></div>';
   try {
     const turnos = await api(`/padel/turnos-disponibles?negocio_id=${negocioId}&fecha=${fecha}`);
-    const fechaLabel = new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+    const fechaLabel = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
     if (!turnos.length) {
       el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted)">No hay turnos disponibles para ${fechaLabel}</div>`;
       return;
@@ -2071,7 +2071,7 @@ function elegirTurno() {
   document.getElementById('partido-lugar').value = lugar;
   document.getElementById('partido-reserva-id').value = opt.value;
   document.getElementById('turno-detalle').style.display = 'block';
-  document.getElementById('turno-detalle').innerHTML = `📅 ${new Date(fecha).toLocaleDateString('es-AR')} · ⏰ ${hora}hs · 📍 ${lugar}`;
+  document.getElementById('turno-detalle').innerHTML = `📅 ${fecha.split('-').reverse().join('/')} · ⏰ ${hora}hs · 📍 ${lugar}`;
 }
 
 function actualizarSelectsPartido() {
@@ -2281,7 +2281,7 @@ function elegirTurno() {
   document.getElementById('partido-lugar').value = lugar;
   document.getElementById('partido-reserva-id').value = opt.value;
   document.getElementById('turno-detalle').style.display = 'block';
-  document.getElementById('turno-detalle').innerHTML = `📅 ${new Date(fecha).toLocaleDateString('es-AR')} · ⏰ ${hora}hs · 📍 ${lugar}`;
+  document.getElementById('turno-detalle').innerHTML = `📅 ${fecha.split('-').reverse().join('/')} · ⏰ ${hora}hs · 📍 ${lugar}`;
 }
 
 function actualizarSelectsPartido() {

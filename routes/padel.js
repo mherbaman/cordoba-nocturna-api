@@ -884,13 +884,18 @@ router.put('/partidos/:id/resultado', authUsuario, async (req, res) => {
 
       for (const uid of ganadores.filter(Boolean)) {
         await pool.query(`
-          UPDATE jugadores_padel SET ranking_puntos = COALESCE(ranking_puntos, 1000) + 20
+          UPDATE jugadores_padel
+          SET ranking_puntos = COALESCE(ranking_puntos, 1000) + 20,
+              partidos_jugados = COALESCE(partidos_jugados, 0) + 1,
+              victorias = COALESCE(victorias, 0) + 1
           WHERE usuario_id = $1
         `, [uid]);
       }
       for (const uid of perdedores.filter(Boolean)) {
         await pool.query(`
-          UPDATE jugadores_padel SET ranking_puntos = GREATEST(COALESCE(ranking_puntos, 1000) - 20, 0)
+          UPDATE jugadores_padel
+          SET ranking_puntos = GREATEST(COALESCE(ranking_puntos, 1000) - 20, 0),
+              partidos_jugados = COALESCE(partidos_jugados, 0) + 1
           WHERE usuario_id = $1
         `, [uid]);
       }

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Panel — Profesor PadelConnect</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#22c55e;--green2:#86efac;--green-dark:#15803d;--green-neon:#4ade80;
+  --bg:#030d06;--card:#071a0a;--card2:#0a2010;
+  --text:#fff;--muted:rgba(255,255,255,.45);--border:rgba(34,197,94,.2);
+  --yellow:#fbbf24;--red:#ef4444;--blue:#60a5fa;
+}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min-height:100vh}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(34,197,94,.08) 0%,transparent 60%)}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px;width:100%;max-width:400px;animation:fadeUp .6s ease forwards}
+.login-logo{font-family:'Bebas Neue',cursive;font-size:38px;letter-spacing:2px;margin-bottom:4px}
+.login-logo span{color:var(--green)}
+.login-sub{color:var(--muted);font-size:13px;margin-bottom:32px}
+.field-label{color:rgba(255,255,255,.45);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;display:block}
+.input-field{background:rgba(255,255,255,.04);border:1.5px solid var(--border);color:#fff;padding:13px 16px;border-radius:12px;font-size:15px;width:100%;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .3s;margin-bottom:16px}
+.input-field:focus{border-color:var(--green);box-shadow:0 0 16px rgba(34,197,94,.15)}
+.input-field::placeholder{color:rgba(255,255,255,.2)}
+.btn-primary{background:linear-gradient(135deg,var(--green-dark),var(--green),var(--green-neon));border:none;color:#fff;padding:14px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;width:100%;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-primary:hover{opacity:.9;transform:scale(1.01)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.error-msg{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+
+/* TOP BAR */
+.top-bar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.top-logo{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:1px;flex-shrink:0}
+.top-logo span{color:var(--green)}
+.top-profe{flex:1;min-width:0}
+.top-profe .nombre{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-profe .sub{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-top:1px}
+.top-foto{width:38px;height:38px;border-radius:50%;border:2px solid var(--green);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(34,197,94,.15);flex-shrink:0}
+.top-foto img{width:100%;height:100%;object-fit:cover}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:7px 14px;border-radius:50px;font-size:12px;cursor:pointer;transition:all .2s;flex-shrink:0}
+.btn-logout:hover{border-color:var(--green);color:var(--green)}
+
+/* TABS */
+.nav-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 16px;display:flex;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.tab{padding:13px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif}
+.tab:hover{color:#fff}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+.main{padding:20px;max-width:860px;margin:0 auto;width:100%;flex:1}
+.page{display:none;animation:fadeUp .3s ease forwards}
+.page.active{display:block}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.stat-num{font-family:'Bebas Neue',cursive;font-size:32px;color:var(--green);line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+/* SECTION HEADER */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.section-title{font-size:16px;font-weight:700}
+
+/* PERFIL CARD */
+.perfil-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px}
+.perfil-top{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.perfil-foto{width:80px;height:80px;border-radius:50%;border:2px solid var(--green);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:36px;background:rgba(34,197,94,.1);flex-shrink:0;position:relative;cursor:pointer}
+.perfil-foto img{width:100%;height:100%;object-fit:cover;display:none}
+.perfil-foto input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.perfil-nombre{font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:1px}
+.perfil-precio{color:var(--green);font-size:14px;font-weight:600;margin-top:2px}
+.badge-modal{display:inline-block;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);font-size:10px;font-weight:700;padding:3px 10px;border-radius:50px;margin-top:6px}
+
+/* ZONA CHIP */
+.zona-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);padding:5px 12px;border-radius:50px;font-size:12px;margin:3px}
+.zona-chip button{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:14px;padding:0;line-height:1}
+.zona-chip button:hover{color:var(--red)}
+.add-zona-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* TURNO CARD */
+.turno-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.turno-hora{font-weight:700;font-size:15px}
+.turno-info{color:var(--muted);font-size:12px;margin-top:2px}
+
+/* RESERVA CARD */
+.reserva-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;animation:fadeUp .3s ease forwards}
+.alumno-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--green-dark),var(--green));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+.alumno-av img{width:100%;height:100%;object-fit:cover}
+.estado-badge{padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700}
+.estado-pendiente{background:rgba(251,191,36,.15);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+.estado-confirmada{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.estado-cancelada{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+
+/* BTN SM */
+.btn-sm{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{background:rgba(34,197,94,.1);border-color:var(--green)}
+.btn-sm.danger{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red)}
+.btn-sm.success{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);color:var(--green)}
+.btn-sm.wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.25);color:#25d366}
+
+/* RESUMEN BTN */
+.btn-resumen{background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;font-family:'DM Sans',sans-serif}
+.btn-resumen:hover{transform:scale(1.03);box-shadow:0 0 24px rgba(34,197,94,.4)}
+
+/* RESEÑA */
+.resena-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:8px}
+.estrellas{color:var(--yellow);font-size:18px}
+
+/* LOADER */
+.loader{width:22px;height:22px;border:2px solid rgba(34,197,94,.2);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:24px auto;display:block}
+.empty-state{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.empty-icon{font-size:40px;margin-bottom:12px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:flex-end;justify-content:center;backdrop-filter:blur(10px)}
+.modal-overlay.show{display:flex}
+.modal-sheet{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:500px;animation:slideUp .3s ease forwards;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:.5px;margin-bottom:20px}
+.modal-handle{width:36px;height:3px;border-radius:2px;background:rgba(255,255,255,.1);margin:0 auto 16px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+
+/* INFO BOX */
+.info-box{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.6}
+
+@media(max-width:600px){
+  .main{padding:12px}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<script>
+const API = 'https://api.cordobalux.com';
+let token = localStorage.getItem('profe_token') || null;
+let usuario = JSON.parse(localStorage.getItem('profe_usuario') || 'null');
+let perfilProfe = null;
+
+async function apiProfe(path, opts={}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const r = await fetch(API + path, { ...opts, headers });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+</script>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">PROFE<span>CONNECT</span></div>
+    <p class="login-sub">Panel de profesores · CórdobaLux</p>
+    <div class="error-msg" id="login-error"></div>
+    <label class="field-label">Email</label>
+    <input class="input-field" id="login-email" type="email" placeholder="tu@email.com">
+    <label class="field-label">Contraseña</label>
+    <input class="input-field" id="login-password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-primary" onclick="doLogin()">ENTRAR →</button>
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--muted)">
+      Usá las mismas credenciales de PadelConnect
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-logo">PROFE<span>CONNECT</span></div>
+    <div class="top-profe">
+      <div class="nombre" id="top-nombre">—</div>
+      <div class="sub">Panel de profesor 🎾</div>
+    </div>
+    <div class="top-foto" id="top-foto">👤</div>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="nav-tabs">
+    <button class="tab active" onclick="navTo('inicio',this)">🏠 Inicio</button>
+    <button class="tab" onclick="navTo('agenda',this)">📅 Mi Agenda</button>
+    <button class="tab" onclick="navTo('clases',this)">🎾 Clases</button>
+    <button class="tab" onclick="navTo('perfil',this)">👤 Mi Perfil</button>
+    <button class="tab" onclick="navTo('resenas',this)">⭐ Reseñas</button>
+  </div>
+
+  <div class="main">
+
+    <!-- INICIO -->
+    <div class="page active" id="page-inicio">
+      <div class="stats-row" id="stats-inicio">
+        <div class="loader"></div>
+      </div>
+
+      <!-- Perfil rápido -->
+      <div id="inicio-perfil-box"></div>
+
+      <!-- Próximas clases hoy -->
+      <div class="section-hdr" style="margin-top:8px">
+        <div class="section-title">📋 Clases de hoy</div>
+        <button class="btn-resumen" id="btn-resumen-dia" onclick="enviarResumenWhatsapp()">
+          💬 Resumen por WhatsApp
+        </button>
+      </div>
+      <div id="clases-hoy-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- AGENDA -->
+    <div class="page" id="page-agenda">
+      <div class="info-box">
+        📌 Cargá tus horarios disponibles. Los alumnos podrán reservar clases desde <strong>PadelConnect → Clases Particulares</strong>.
+      </div>
+      <div class="section-hdr">
+        <div class="section-title">⏰ Mis horarios disponibles</div>
+        <button class="btn-sm success" onclick="abrirModalTurno()">+ Agregar turno</button>
+      </div>
+      <div id="agenda-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- CLASES -->
+    <div class="page" id="page-clases">
+      <div class="section-hdr">
+        <div class="section-title">🎾 Reservas recibidas</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-sm" id="f-todas" onclick="filtrarClases('todas')" style="background:rgba(34,197,94,.15);border-color:var(--green)">Todas</button>
+          <button class="btn-sm" id="f-pendiente" onclick="filtrarClases('pendiente')">⏳ Pendientes</button>
+          <button class="btn-sm" id="f-confirmada" onclick="filtrarClases('confirmada')">✅ Confirmadas</button>
+        </div>
+      </div>
+      <div id="clases-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="page" id="page-perfil">
+      <div class="perfil-card" id="perfil-form-card">
+        <div style="font-family:'Bebas Neue',cursive;font-size:28px;margin-bottom:20px">Tu perfil <span style="color:var(--green)">público</span></div>
+
+        <!-- Foto -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+          <div class="perfil-foto" id="perfil-foto-ring">
+            <span id="perfil-foto-emoji">📸</span>
+            <img id="perfil-foto-img" src="" alt="">
+            <input type="file" accept="image/*" capture="user" id="perfil-foto-input" onchange="onFotoChange(event)">
+          </div>
+          <div>
+            <div style="font-size:13px;color:var(--muted)">Tocá para cambiar foto</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">Se muestra a los alumnos</div>
+          </div>
+        </div>
+
+        <label class="field-label">Tu nombre</label>
+        <input class="input-field" id="p-nombre" placeholder="Nombre y apellido">
+
+        <label class="field-label">Bio / Presentación</label>
+        <textarea class="input-field" id="p-bio" rows="3" placeholder="Contá tu experiencia, metodología, logros..." style="resize:vertical"></textarea>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="field-label">💰 Precio por hora</label>
+            <input class="input-field" id="p-precio" type="number" placeholder="Ej: 8000" style="margin:0">
+          </div>
+          <div>
+            <label class="field-label">Modalidad</label>
+            <select class="input-field" id="p-modalidad" style="color:#fff;background:#030d06;margin:0">
+              <option value="presencial">Presencial</option>
+              <option value="virtual">Virtual</option>
+              <option value="ambas">Ambas</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+          <div>
+            <label class="field-label">Nivel mínimo alumno</label>
+            <select class="input-field" id="p-nivel-min" style="color:#fff;background:#030d06;margin:0">
+              <option value="">Cualquier nivel</option>
+              <option value="octava">8va</option>
+              <option value="septima">7ma</option>
+              <option value="sexta">6ta</option>
+              <option value="quinta">5ta</option>
+              <option value="cuarta">4ta</option>
+              <option value="tercera">3ra</option>
+              <option value="segunda">2da</option>
+              <option value="primera">1ra</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Nivel máximo alumno</label>
+            <select class="input-field" id="p-nivel-max" style="color:#fff;background:#030d06;margin:0">
+              <option value="">Cualquier nivel</option>
+              <option value="octava">8va</option>
+              <option value="septima">7ma</option>
+              <option value="sexta">6ta</option>
+              <option value="quinta">5ta</option>
+              <option value="cuarta">4ta</option>
+              <option value="tercera">3ra</option>
+              <option value="segunda">2da</option>
+              <option value="primera">1ra</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <label class="field-label">📱 Tu WhatsApp (para recibir reservas)</label>
+          <input class="input-field" id="p-whatsapp" placeholder="Ej: 3516123456" style="margin:0">
+        </div>
+
+        <div style="margin-top:12px">
+          <label class="field-label">💬 Número de grupo WhatsApp (para resumen del día)</label>
+          <input class="input-field" id="p-whatsapp-grupo" placeholder="Ej: 5493516123456 (con código de país)" style="margin:0">
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Incluí el código de país sin + ni espacios. Ej: 5493516XXXXXX</div>
+        </div>
+
+        <!-- ZONAS — LIBRES -->
+        <div style="margin-top:20px">
+          <label class="field-label">📍 Zonas donde das clases</label>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Podés agregar todas las que quieras — clubes, barrios, ciudades</div>
+          <div id="zonas-chips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px"></div>
+          <div class="add-zona-row">
+            <input class="input-field" id="zona-nueva-texto" placeholder="Ej: Villa María — Club Atlético" style="flex:1;margin:0;font-size:13px">
+            <button onclick="agregarZona()" class="btn-sm success" style="flex-shrink:0">+ Agregar</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="guardarPerfil()" style="margin-top:24px">GUARDAR PERFIL ✓</button>
+      </div>
+    </div>
+
+    <!-- RESEÑAS -->
+    <div class="page" id="page-resenas">
+      <div class="section-hdr">
+        <div class="section-title">⭐ Reseñas recibidas</div>
+        <div id="resenas-promedio" style="color:var(--yellow);font-size:14px;font-weight:700"></div>
+      </div>
+      <div id="resenas-list"><div class="loader"></div></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL NUEVO TURNO -->
+<div class="modal-overlay" id="modal-turno">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⏰ Nuevo turno disponible</div>
+    <div class="info-box" style="font-size:12px">
+      Podés cargar un turno para una fecha específica o recurrente por día de la semana.
+    </div>
+
+    <label class="field-label">Tipo</label>
+    <select class="input-field" id="turno-tipo" onchange="onTurnoTipoChange()" style="color:#fff;background:#030d06">
+      <option value="fecha">Fecha específica</option>
+      <option value="dia">Día recurrente (ej: todos los lunes)</option>
+    </select>
+
+    <div id="turno-fecha-row">
+      <label class="field-label">Fecha</label>
+      <input class="input-field" id="turno-fecha" type="date" style="color-scheme:dark">
+    </div>
+
+    <div id="turno-dia-row" style="display:none">
+      <label class="field-label">Día de la semana</label>
+      <select class="input-field" id="turno-dia" style="color:#fff;background:#030d06">
+        <option value="1">Lunes</option>
+        <option value="2">Martes</option>
+        <option value="3">Miércoles</option>
+        <option value="4">Jueves</option>
+        <option value="5">Viernes</option>
+        <option value="6">Sábado</option>
+        <option value="0">Domingo</option>
+      </select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <input class="input-field" id="turno-inicio" type="time" style="color-scheme:dark;margin:0">
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <input class="input-field" id="turno-fin" type="time" style="color-scheme:dark;margin:0">
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label class="field-label">📍 Zona / Lugar (opcional)</label>
+      <input class="input-field" id="turno-zona" placeholder="Ej: Villa María — Club Atlético" style="margin:0">
+    </div>
+
+    <div class="modal-actions">
+      <button onclick="cerrarModalTurno()" class="btn-sm" style="flex:1;padding:12px">Cancelar</button>
+      <button onclick="guardarTurno()" class="btn-primary" style="flex:1;padding:12px;font-size:14px">GUARDAR →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── AUTH ──────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  try {
+    const data = await apiProfe('/auth/login', { method:'POST', body:JSON.stringify({email,password}) });
+    token = data.token;
+    usuario = data.usuario;
+    localStorage.setItem('profe_token', token);
+    localStorage.setItem('profe_usuario', JSON.stringify(usuario));
+    await mostrarApp();
+  } catch(err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function doLogout() {
+  token = null; usuario = null; perfilProfe = null;
+  localStorage.removeItem('profe_token');
+  localStorage.removeItem('profe_usuario');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+window.onload = async () => {
+  if (token && usuario) await mostrarApp();
+};
+
+async function mostrarApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').style.flexDirection = 'column';
+
+  document.getElementById('top-nombre').textContent = usuario.nombre || '—';
+  const fotoEl = document.getElementById('top-foto');
+  if (usuario.foto_url) fotoEl.innerHTML = `<img src="${usuario.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+
+  await cargarPerfilProfe();
+  cargarInicio();
+}
+
+async function cargarPerfilProfe() {
+  try {
+    const data = await apiProfe('/padel/profesores/mi-perfil');
+    if (data.tiene_perfil) {
+      perfilProfe = data.perfil;
+      rellenarFormPerfil();
+    }
+  } catch(e) {}
+}
+
+// ─── NAVEGACIÓN ────────────────────────────────────────────────────────
+function navTo(page, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if (page === 'agenda')  cargarAgenda();
+  if (page === 'clases')  cargarClases();
+  if (page === 'resenas') cargarResenas();
+}
+
+// ─── INICIO ────────────────────────────────────────────────────────────
+async function cargarInicio() {
+  // Stats
+  const statsEl = document.getElementById('stats-inicio');
+  try {
+    const clases = await apiProfe('/padel/clases/mis-clases');
+    const hoy = new Date().toISOString().split('T')[0];
+    const total = clases.length;
+    const confirmadas = clases.filter(c => c.estado === 'confirmada').length;
+    const hoyClases = clases.filter(c => c.fecha && c.fecha.substring(0,10) === hoy).length;
+    const pendientes = clases.filter(c => c.estado === 'pendiente').length;
+    statsEl.innerHTML = `
+      <div class="stat-card"><div style="font-size:22px;margin-bottom:6px">🎾</div><div class="stat-num">${total}</div><div class="stat-lbl">Total clases</div></div>
+      <div class="stat-card"><div style="font-size:22px;margin-bottom:6px">✅</div><div class="stat-num">${confirmadas}</div><div class="stat-lbl">Confirmadas</div></div>
+      <div class="stat-card"><div style="font-size:22px;margin-bottom:6px">📅</div><div class="stat-num">${hoyClases}</div><div class="stat-lbl">Hoy</div></div>
+      <div class="stat-card"><div style="font-size:22px;margin-bottom:6px">⏳</div><div class="stat-num">${pendientes}</div><div class="stat-lbl">Pendientes</div></div>
+    `;
+    // Clases de hoy
+    renderClasesHoy(clases.filter(c => c.fecha && c.fecha.substring(0,10) === hoy));
+  } catch(e) {
+    statsEl.innerHTML = '<p style="color:var(--muted)">Error cargando estadísticas</p>';
+  }
+
+  // Box perfil
+  const box = document.getElementById('inicio-perfil-box');
+  if (!perfilProfe) {
+    box.innerHTML = `
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">👋</div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Completá tu perfil de profesor</div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Los alumnos te van a ver en la sección Clases Particulares de PadelConnect.</p>
+        <button onclick="navTo('perfil',document.querySelectorAll('.tab')[3])" class="btn-primary" style="max-width:260px">COMPLETAR PERFIL →</button>
+      </div>`;
+  } else {
+    const zonas = perfilProfe.zonas ? perfilProfe.zonas.map(z => z.zona).join(' · ') : '—';
+    box.innerHTML = `
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+        <div style="width:52px;height:52px;border-radius:50%;border:2px solid var(--green);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(34,197,94,.1);flex-shrink:0">
+          ${perfilProfe.foto_url ? `<img src="${perfilProfe.foto_url}" style="width:100%;height:100%;object-fit:cover">` : '👨‍🏫'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:15px">${perfilProfe.nombre}</div>
+          <div style="color:var(--green);font-size:12px">${perfilProfe.precio_hora ? '$'+perfilProfe.precio_hora+'/hora' : ''} · ${perfilProfe.modalidad||''}</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ${zonas}</div>
+        </div>
+        ${perfilProfe.promedio_resenas ? `<div style="text-align:center;flex-shrink:0"><div style="color:var(--yellow);font-size:18px">${'★'.repeat(Math.round(perfilProfe.promedio_resenas))}</div><div style="font-size:11px;color:var(--muted)">${perfilProfe.promedio_resenas}</div></div>` : ''}
+      </div>`;
+  }
+}
+
+function renderClasesHoy(clases) {
+  const el = document.getElementById('clases-hoy-list');
+  if (!clases.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">😴</div>Sin clases programadas para hoy</div>';
+    return;
+  }
+  el.innerHTML = clases.map(c => {
+    const hi = String(c.hora_inicio).substring(0,5);
+    const hf = String(c.hora_fin).substring(0,5);
+    const estadoClass = 'estado-'+c.estado;
+    return `
+      <div class="reserva-card">
+        <div class="alumno-av">${c.alumno_foto ? `<img src="${c.alumno_foto}">` : '👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-weight:700;font-size:15px">${c.alumno_nombre}</span>
+            <span class="estado-badge ${estadoClass}">${c.estado}</span>
+          </div>
+          <div style="color:var(--muted);font-size:13px">🕐 ${hi} - ${hf}${c.zona ? ' · 📍 '+c.zona : ''}</div>
+          ${c.alumno_tel ? `<div style="color:var(--green);font-size:11px;margin-top:3px">📱 ${c.alumno_tel}</div>` : ''}
+        </div>
+        ${c.alumno_tel ? `<button onclick="window.open('https://wa.me/'+('${c.alumno_tel}'.replace(/\\D/g,'')))" class="btn-sm wa">💬</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ─── RESUMEN WHATSAPP ──────────────────────────────────────────────────
+async function enviarResumenWhatsapp() {
+  const btn = document.getElementById('btn-resumen-dia');
+  btn.textContent = '⏳ Generando...';
+  btn.disabled = true;
+  try {
+    const data = await apiProfe('/padel/clases/resumen-dia');
+    const msg = encodeURIComponent(data.mensaje);
+    const tel = data.whatsapp_grupo || '';
+    if (!tel) {
+      // Sin grupo configurado, abre WhatsApp igual para copiar
+      if (confirm('No tenés grupo de WhatsApp configurado en tu perfil.\n¿Querés abrir WhatsApp para copiar el mensaje?')) {
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+      }
+    } else {
+      window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+    }
+  } catch(e) { alert('Error generando resumen: ' + e.message); }
+  finally {
+    btn.innerHTML = '💬 Resumen por WhatsApp';
+    btn.disabled = false;
+  }
+}
+
+// ─── AGENDA ────────────────────────────────────────────────────────────
+async function cargarAgenda() {
+  const el = document.getElementById('agenda-list');
+  el.innerHTML = '<div class="loader"></div>';
+  if (!perfilProfe) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div>Completá tu perfil primero</div>';
+    return;
+  }
+  try {
+    const turnos = await apiProfe('/padel/profesores/'+perfilProfe.id+'/disponibilidad');
+    if (!turnos.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No tenés turnos cargados aún.<br>Agregá tu primera disponibilidad.</div>';
+      return;
+    }
+    const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    el.innerHTML = turnos.map(t => {
+      const hi = String(t.hora_inicio).substring(0,5);
+      const hf = String(t.hora_fin).substring(0,5);
+      const cuando = t.fecha_especifica
+        ? new Date(String(t.fecha_especifica).substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
+        : `Todos los ${DIAS[t.dia_semana]} (recurrente)`;
+      return `
+        <div class="turno-card">
+          <div style="flex:1">
+            <div class="turno-hora">🕐 ${hi} - ${hf}</div>
+            <div class="turno-info">📅 ${cuando}${t.zona ? ' · 📍 '+t.zona : ''}</div>
+          </div>
+          <button onclick="borrarTurno('${t.id}')" class="btn-sm danger">🗑</button>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+  }
+}
+
+function abrirModalTurno() {
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('turno-fecha').value = hoy;
+  document.getElementById('turno-fecha').min = hoy;
+  document.getElementById('modal-turno').classList.add('show');
+}
+function cerrarModalTurno() { document.getElementById('modal-turno').classList.remove('show'); }
+function onTurnoTipoChange() {
+  const tipo = document.getElementById('turno-tipo').value;
+  document.getElementById('turno-fecha-row').style.display = tipo === 'fecha' ? 'block' : 'none';
+  document.getElementById('turno-dia-row').style.display  = tipo === 'dia'   ? 'block' : 'none';
+}
+async function guardarTurno() {
+  const tipo     = document.getElementById('turno-tipo').value;
+  const fecha    = document.getElementById('turno-fecha').value;
+  const dia      = document.getElementById('turno-dia').value;
+  const inicio   = document.getElementById('turno-inicio').value;
+  const fin      = document.getElementById('turno-fin').value;
+  const zona     = document.getElementById('turno-zona').value.trim();
+  if (!inicio || !fin) { alert('Ingresá hora de inicio y fin'); return; }
+  try {
+    await apiProfe('/padel/profesores/disponibilidad', { method:'POST', body:JSON.stringify({
+      fecha: tipo === 'fecha' ? fecha : null,
+      dia_semana: tipo === 'dia' ? parseInt(dia) : undefined,
+      hora_inicio: inicio, hora_fin: fin,
+      zona: zona || null
+    })});
+    cerrarModalTurno();
+    cargarAgenda();
+  } catch(e) { alert(e.message); }
+}
+async function borrarTurno(id) {
+  if (!confirm('¿Eliminar este turno?')) return;
+  try {
+    await apiProfe('/padel/profesores/disponibilidad/'+id, { method:'DELETE' });
+    cargarAgenda();
+  } catch(e) { alert(e.message); }
+}
+
+// ─── CLASES ────────────────────────────────────────────────────────────
+let todasLasClases = [];
+async function cargarClases() {
+  const el = document.getElementById('clases-list');
+  el.innerHTML = '<div class="loader"></div>';
+  try {
+    todasLasClases = await apiProfe('/padel/clases/mis-clases');
+    filtrarClases('todas');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+  }
+}
+
+function filtrarClases(estado) {
+  ['todas','pendiente','confirmada'].forEach(e => {
+    const btn = document.getElementById('f-'+e);
+    if (btn) btn.style.background = e===estado ? 'rgba(34,197,94,.15)' : 'rgba(255,255,255,.06)';
+    if (btn) btn.style.borderColor = e===estado ? 'var(--green)' : 'rgba(255,255,255,.1)';
+  });
+  const filtradas = estado === 'todas' ? todasLasClases : todasLasClases.filter(c => c.estado === estado);
+  const el = document.getElementById('clases-list');
+  if (!filtradas.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎾</div>No hay clases ${estado === 'todas' ? '' : 'con estado '+estado}</div>`;
+    return;
+  }
+  el.innerHTML = filtradas.map(c => {
+    const hi = String(c.hora_inicio).substring(0,5);
+    const hf = String(c.hora_fin).substring(0,5);
+    const fechaLabel = c.fecha ? new Date(String(c.fecha).substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
+    const estadoClass = 'estado-'+c.estado;
+    return `
+      <div class="reserva-card">
+        <div class="alumno-av">${c.alumno_foto ? `<img src="${c.alumno_foto}">` : '👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <span style="font-weight:700;font-size:15px">${c.alumno_nombre}</span>
+            <span class="estado-badge ${estadoClass}">${c.estado}</span>
+          </div>
+          <div style="color:var(--muted);font-size:13px">📅 ${fechaLabel} · 🕐 ${hi} - ${hf}</div>
+          ${c.zona ? `<div style="color:rgba(255,255,255,.4);font-size:12px;margin-top:2px">📍 ${c.zona}</div>` : ''}
+          ${c.precio_cobrado ? `<div style="color:var(--green);font-size:12px;font-weight:600;margin-top:2px">💰 $${c.precio_cobrado}</div>` : ''}
+          ${c.notas ? `<div style="color:var(--muted);font-size:12px;margin-top:4px;font-style:italic">"${c.notas}"</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          ${c.estado === 'pendiente' ? `
+            <button onclick="responderClase('${c.id}','confirmada')" class="btn-sm success">✅</button>
+            <button onclick="responderClase('${c.id}','cancelada')" class="btn-sm danger">❌</button>` : ''}
+          ${c.alumno_tel ? `<button onclick="window.open('https://wa.me/'+('${c.alumno_tel}'.replace(/\\D/g,'')))" class="btn-sm wa">💬</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function responderClase(id, estado) {
+  try {
+    await apiProfe('/padel/clases/'+id+'/responder', { method:'PUT', body:JSON.stringify({estado}) });
+    cargarClases();
+    cargarInicio();
+  } catch(e) { alert(e.message); }
+}
+
+// ─── PERFIL ────────────────────────────────────────────────────────────
+let zonasProfe = [];
+
+function rellenarFormPerfil() {
+  if (!perfilProfe) return;
+  document.getElementById('p-nombre').value         = perfilProfe.nombre || '';
+  document.getElementById('p-bio').value            = perfilProfe.bio || '';
+  document.getElementById('p-precio').value         = perfilProfe.precio_hora || '';
+  document.getElementById('p-modalidad').value      = perfilProfe.modalidad || 'presencial';
+  document.getElementById('p-nivel-min').value      = perfilProfe.nivel_minimo || '';
+  document.getElementById('p-nivel-max').value      = perfilProfe.nivel_maximo || '';
+  document.getElementById('p-whatsapp').value       = perfilProfe.whatsapp || '';
+  document.getElementById('p-whatsapp-grupo').value = perfilProfe.whatsapp_grupo || '';
+  if (perfilProfe.foto_url) {
+    const img = document.getElementById('perfil-foto-img');
+    img.src = perfilProfe.foto_url;
+    img.style.display = 'block';
+    document.getElementById('perfil-foto-emoji').style.display = 'none';
+  }
+  zonasProfe = perfilProfe.zonas ? perfilProfe.zonas.filter(z=>z.zona).map(z=>({zona:z.zona,lugar:z.lugar||''})) : [];
+  renderZonasChips();
+}
+
+function renderZonasChips() {
+  const el = document.getElementById('zonas-chips');
+  if (!zonasProfe.length) { el.innerHTML = '<span style="color:var(--muted);font-size:12px">Ninguna zona agregada aún</span>'; return; }
+  el.innerHTML = zonasProfe.map((z,i) => `
+    <span class="zona-chip">
+      📍 ${z.zona}
+      <button onclick="quitarZona(${i})">×</button>
+    </span>`).join('');
+}
+
+function agregarZona() {
+  const val = document.getElementById('zona-nueva-texto').value.trim();
+  if (!val) return;
+  zonasProfe.push({ zona: val, lugar: '' });
+  document.getElementById('zona-nueva-texto').value = '';
+  renderZonasChips();
+}
+function quitarZona(i) {
+  zonasProfe.splice(i,1);
+  renderZonasChips();
+}
+
+let fotoBase64 = null;
+function onFotoChange(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const img = new Image(), reader = new FileReader();
+  reader.onload = ev => {
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const max = 600; let w = img.width, h = img.height;
+      if (w > h) { if (w > max) { h = h*max/w; w = max; } } else { if (h > max) { w = w*max/h; h = max; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      fotoBase64 = canvas.toDataURL('image/jpeg', .75);
+      const imgEl = document.getElementById('perfil-foto-img');
+      imgEl.src = fotoBase64; imgEl.style.display = 'block';
+      document.getElementById('perfil-foto-emoji').style.display = 'none';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function guardarPerfil() {
+  const nombre = document.getElementById('p-nombre').value.trim();
+  if (!nombre) { alert('Ingresá tu nombre'); return; }
+  const body = {
+    nombre,
+    bio:            document.getElementById('p-bio').value.trim() || null,
+    precio_hora:    parseInt(document.getElementById('p-precio').value) || null,
+    modalidad:      document.getElementById('p-modalidad').value,
+    nivel_minimo:   document.getElementById('p-nivel-min').value || null,
+    nivel_maximo:   document.getElementById('p-nivel-max').value || null,
+    whatsapp:       document.getElementById('p-whatsapp').value.trim() || null,
+    whatsapp_grupo: document.getElementById('p-whatsapp-grupo').value.trim() || null,
+    foto_url:       fotoBase64 || perfilProfe?.foto_url || null,
+    zonas:          zonasProfe
+  };
+  try {
+    const data = await apiProfe('/padel/profesores', { method:'POST', body:JSON.stringify(body) });
+    perfilProfe = data.perfil;
+    // Recargar zonas desde el servidor
+    const full = await apiProfe('/padel/profesores/mi-perfil');
+    if (full.tiene_perfil) perfilProfe = full.perfil;
+    rellenarFormPerfil();
+    alert('✅ Perfil guardado');
+    cargarInicio();
+  } catch(e) { alert(e.message); }
+}
+
+// ─── RESEÑAS ────────────────────────────────────────────────────────────
+async function cargarResenas() {
+  const el = document.getElementById('resenas-list');
+  const promEl = document.getElementById('resenas-promedio');
+  el.innerHTML = '<div class="loader"></div>';
+  if (!perfilProfe) { el.innerHTML = '<div class="empty-state">Completá tu perfil primero</div>'; return; }
+  try {
+    const data = await apiProfe('/padel/profesores/'+perfilProfe.id+'/resenas');
+    if (!data.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">⭐</div>Sin reseñas todavía</div>';
+      return;
+    }
+    const prom = (data.reduce((a,r) => a+r.estrellas, 0) / data.length).toFixed(1);
+    promEl.textContent = `★ ${prom} (${data.length} reseña${data.length===1?'':'s'})`;
+    el.innerHTML = data.map(r => `
+      <div class="resena-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          ${r.de_foto ? `<img src="${r.de_foto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border)">` : `<div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center">👤</div>`}
+          <div>
+            <div style="font-weight:600;font-size:13px">${r.de_nombre || 'Alumno'}</div>
+            <div class="estrellas">${'★'.repeat(r.estrellas)}${'☆'.repeat(5-r.estrellas)}</div>
+          </div>
+        </div>
+        ${r.comentario ? `<div style="color:rgba(255,255,255,.65);font-size:13px">${r.comentario}</div>` : ''}
+        <div style="color:rgba(255,255,255,.25);font-size:11px;margin-top:6px">${new Date(r.creado_en).toLocaleDateString('es-AR')}</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>
