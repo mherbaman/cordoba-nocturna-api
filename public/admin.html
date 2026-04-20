@@ -580,7 +580,7 @@ function cerrarSidebar() {
 }
 
 function navTo(page, btn) {
-  if(id==='partidos-pub') setTimeout(cargarPartidosPubAdmin, 100);
+  if(page==='partidos-pub') setTimeout(cargarPartidosPubAdmin, 100);
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -594,6 +594,7 @@ function navTo(page, btn) {
   if (page === 'negocios')  cargarNegocios();
   if (page === 'usuarios')  cargarUsuarios();
   if (page === 'promo-principal') cargarPromoPrincipal();
+  if (page === 'partidos-pub') cargarPartidosPubAdmin();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
@@ -1527,7 +1528,7 @@ document.getElementById('modal-overlay').addEventListener('click', function(e) {
 </script>
 
     <!-- ─── SECCIÓN PARTIDOS PÚBLICOS ─────────────────────────────────── -->
-    <div class="section" id="sec-partidos-pub" style="display:none">
+    <div class="section" id="page-partidos-pub" class="page" style="display:none">
       <h2 class="sec-title">⚡ Partidos Públicos</h2>
       <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:20px">
         Creá partidos para que los jugadores se inscriban desde PadelConnect.
