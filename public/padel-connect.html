@@ -1004,8 +1004,15 @@ async function cargarMatchCount(){
   try{
     const matches=await api('/matches/mis-matches');
     matchesList=matches;
-    document.getElementById('match-count').textContent=matches.length;
-    if(matches.length>0)document.getElementById('matches-header-btn').classList.add('has-matches');
+    // Sumar invitaciones pendientes a partidos
+    let invPendientes = 0;
+    try {
+      const partidos = await api('/padel/partidos');
+      invPendientes = (partidos || []).filter(p => p.mi_invitacion === 'pendiente').length;
+    } catch(e) {}
+    const total = matches.length + invPendientes;
+    document.getElementById('match-count').textContent=total;
+    if(total>0)document.getElementById('matches-header-btn').classList.add('has-matches');
     checkBadge();
   }catch(e){}
 }
