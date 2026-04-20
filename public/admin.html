@@ -629,6 +629,7 @@ function navTo(page, btn) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  window.scrollTo(0,0);
   document.getElementById('page-' + page).classList.add('active');
   cerrarSidebar();
   if (page === 'reportes') cargarFiltrosReporte();
