@@ -495,7 +495,7 @@ router.get('/reservas/del-club', authAdmin, async (req, res) => {
         COALESCE(j.nombre, u.nombre) AS jugador_nombre,
         j.nivel  AS jugador_nivel,
         COALESCE(j.foto_url, u.foto_url) AS jugador_foto,
-        COALESCE(j.telefono, u.telefono) AS jugador_tel,
+        u.telefono AS jugador_tel,
         d.hora_inicio,
         d.hora_fin,
         d.zona AS zona_cancha
