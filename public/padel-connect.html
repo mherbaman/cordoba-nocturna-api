@@ -2732,7 +2732,8 @@ function renderPartidoPublico(p) {
   }
 
   const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const fp  = new Date(p.fecha + 'T00:00:00'); fp.setHours(0,0,0,0);
+  const fechaP = p.fecha ? p.fecha.toString().substring(0,10) : '';
+  const fp = fechaP ? new Date(fechaP+'T12:00:00') : new Date(); fp.setHours(0,0,0,0);
   const dias = Math.round((fp - hoy) / 86400000);
   const urgencia = dias === 0 ? '🔴 ¡Hoy!' : dias === 1 ? '🟡 Mañana' : '🟢 En ' + dias + ' días';
 
