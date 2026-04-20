@@ -745,10 +745,10 @@ router.get('/resenas-jugador/:jugador_id', async (req, res) => {
   const { jugador_id } = req.params;
   try {
     const result = await pool.query(`
-      SELECT rp.estrellas, rp.comentario, u.nombre AS de_nombre
+      SELECT rp.estrellas, rp.comentario
       FROM resenas_padel rp
-      LEFT JOIN usuarios u ON u.id = rp.de_usuario
-      WHERE rp.a_usuario = $1
+      JOIN jugadores_padel jp ON jp.usuario_id = rp.a_usuario
+      WHERE jp.id = $1
       ORDER BY rp.id DESC
     `, [jugador_id]);
     res.json(result.rows);
