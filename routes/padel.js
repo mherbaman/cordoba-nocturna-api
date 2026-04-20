@@ -1103,7 +1103,7 @@ router.get('/partidos-publicos', async (req, res) => {
 });
 
 // POST /padel/partidos-publicos  — crear partido público (requiere auth admin)
-router.post('/partidos-publicos', authMiddleware, async (req, res) => {
+router.post('/partidos-publicos', authAdmin, async (req, res) => {
   try {
     const { zona, categoria, fecha, hora, lugar, costo, descripcion, cupos } = req.body;
     if (!zona || !categoria || !fecha || !hora) {
@@ -1122,7 +1122,7 @@ router.post('/partidos-publicos', authMiddleware, async (req, res) => {
 });
 
 // DELETE /padel/partidos-publicos/:id  — eliminar partido público (requiere auth admin)
-router.delete('/partidos-publicos/:id', authMiddleware, async (req, res) => {
+router.delete('/partidos-publicos/:id', authAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM partidos_publicos WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
@@ -1132,7 +1132,7 @@ router.delete('/partidos-publicos/:id', authMiddleware, async (req, res) => {
 });
 
 // POST /padel/partidos-publicos/:id/inscribirse  — jugador se inscribe
-router.post('/partidos-publicos/:id/inscribirse', authMiddleware, async (req, res) => {
+router.post('/partidos-publicos/:id/inscribirse', authUsuario, async (req, res) => {
   try {
     const { id } = req.params;
     const usuario_id = req.usuario.id;
@@ -1188,7 +1188,7 @@ router.post('/partidos-publicos/:id/inscribirse', authMiddleware, async (req, re
 });
 
 // DELETE /padel/partidos-publicos/:id/desinscribirse  — jugador cancela
-router.delete('/partidos-publicos/:id/desinscribirse', authMiddleware, async (req, res) => {
+router.delete('/partidos-publicos/:id/desinscribirse', authUsuario, async (req, res) => {
   try {
     const { id } = req.params;
     const usuario_id = req.usuario.id;
