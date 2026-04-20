@@ -2009,7 +2009,6 @@ function renderJugadoresResena() {
   }).join('');
 }
 
-let estrellasSeleccionadas = {};
 function elegirEstrella(jugador_id, n) {
   estrellasSeleccionadas[jugador_id] = n;
   const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
