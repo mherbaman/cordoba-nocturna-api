@@ -579,6 +579,7 @@ function cerrarSidebar() {
 }
 
 function navTo(page, btn) {
+  if(id==='partidos-pub') setTimeout(cargarPartidosPubAdmin, 100);
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1523,5 +1524,83 @@ document.getElementById('modal-overlay').addEventListener('click', function(e) {
   if (e.target === this) cerrarModal();
 });
 </script>
+
+    <!-- ─── SECCIÓN PARTIDOS PÚBLICOS ─────────────────────────────────── -->
+    <div class="section" id="sec-partidos-pub" style="display:none">
+      <h2 class="sec-title">⚡ Partidos Públicos</h2>
+      <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:20px">
+        Creá partidos para que los jugadores se inscriban desde PadelConnect.
+      </p>
+
+      <!-- Formulario crear partido -->
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:20px;margin-bottom:24px">
+        <div style="font-family:'Bebas Neue',cursive;font-size:20px;margin-bottom:16px;color:var(--green)">Nuevo partido</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Zona *</label>
+            <select id="np-zona" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+              <option value="">Seleccioná zona...</option>
+              <option>Centro</option><option>Nueva Córdoba</option><option>Güemes</option>
+              <option>Alberdi</option><option>General Paz</option><option>Cerro de las Rosas</option>
+              <option>Villa Allende</option><option>Arguello</option><option>Urca</option>
+              <option>Jardín</option><option>Maipú</option><option>Villa Belgrano</option>
+              <option>La Calera</option><option>Unquillo</option><option>Mendiolaza</option>
+              <option>Salsipuedes</option>
+            </select>
+          </div>
+          <div>
+            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Categoría *</label>
+            <select id="np-cat" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+              <option value="">Categoría...</option>
+              <option value="octava">8va categoría</option>
+              <option value="septima">7ma categoría</option>
+              <option value="sexta">6ta categoría</option>
+              <option value="quinta">5ta categoría</option>
+              <option value="cuarta">4ta categoría</option>
+              <option value="tercera">3ra categoría</option>
+              <option value="segunda">2da categoría</option>
+              <option value="primera">1ra categoría</option>
+            </select>
+          </div>
+          <div>
+            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Fecha *</label>
+            <input type="date" id="np-fecha" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark">
+          </div>
+          <div>
+            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Hora *</label>
+            <input type="time" id="np-hora" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark">
+          </div>
+          <div>
+            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lugar</label>
+            <input type="text" id="np-lugar" placeholder="Ej: Club Atlético Córdoba" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+          </div>
+          <div>
+            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Costo (informativo)</label>
+            <input type="text" id="np-costo" placeholder="Ej: $3.000 c/u" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Descripción (opcional)</label>
+          <input type="text" id="np-desc" placeholder="Info extra, nivel sugerido, etc." style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px">Cupos:</label>
+          <select id="np-cupos" style="padding:9px 14px;background:#030d06;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+            <option value="4" selected>4 jugadores</option>
+            <option value="2">2 jugadores</option>
+          </select>
+        </div>
+        <button onclick="crearPartidoPublico()" style="background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;padding:13px 28px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">⚡ Crear partido</button>
+        <div id="np-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;font-size:13px"></div>
+      </div>
+
+      <!-- Lista de partidos -->
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;margin-bottom:12px">Partidos creados</div>
+      <div id="admin-partidos-pub-list">
+        <p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>
+      </div>
+    </div>
+    <!-- ─── FIN PARTIDOS PÚBLICOS ─────────────────────────────────────── -->
+
 </body>
 </html>

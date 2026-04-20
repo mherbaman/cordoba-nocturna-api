@@ -410,6 +410,54 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .nivel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
 .nivel-btn{padding:12px;border-radius:12px;background:rgba(34,197,94,.06);border:1.5px solid rgba(34,197,94,.15);color:rgba(255,255,255,.7);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
 .nivel-btn:hover,.nivel-btn.selected{background:rgba(34,197,94,.2);border-color:var(--green);color:#fff}
+
+/* HOME POST-LOGIN */
+#home-screen { justify-content:flex-start; padding:0; }
+.home-header { width:100%; max-width:420px; padding:36px 24px 0; text-align:center; }
+.home-logo { font-family:'Bebas Neue',cursive; font-size:32px; letter-spacing:2px; }
+.home-logo span { color:var(--green); }
+.home-subtitle { color:var(--muted); font-size:13px; margin-top:6px; }
+.home-cards { width:100%; max-width:420px; padding:28px 20px 0; display:flex; flex-direction:column; gap:14px; }
+.home-card { border-radius:20px; padding:26px 22px; cursor:pointer; transition:all .2s; border:1.5px solid; position:relative; overflow:hidden; }
+.home-card:hover { transform:translateY(-2px); }
+.home-card-icon { font-size:42px; margin-bottom:10px; display:block; }
+.home-card-title { font-family:'Bebas Neue',cursive; font-size:24px; letter-spacing:1px; margin-bottom:5px; }
+.home-card-desc { font-size:13px; line-height:1.5; opacity:.75; }
+.home-card-arrow { position:absolute; bottom:20px; right:22px; font-size:22px; opacity:.4; }
+.home-card-perfil { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.3); }
+.home-card-perfil:hover { background:rgba(34,197,94,.14); border-color:var(--green); }
+.home-card-partidos { background:rgba(255,193,7,.06); border-color:rgba(255,193,7,.25); }
+.home-card-partidos:hover { background:rgba(255,193,7,.12); border-color:rgba(255,193,7,.6); }
+.home-card-partidos .home-card-title { color:#fbbf24; }
+
+/* PRÓXIMOS PARTIDOS */
+#proximos-partidos { justify-content:flex-start; padding:0; }
+.pp-header { width:100%; max-width:420px; padding:16px 18px 0; display:flex; align-items:center; gap:12px; }
+.pp-title { font-family:'Bebas Neue',cursive; font-size:26px; letter-spacing:.5px; flex:1; }
+.pp-title span { color:#fbbf24; }
+.pp-filtros { width:100%; max-width:420px; padding:12px 16px; display:flex; gap:8px; flex-wrap:wrap; }
+.pp-filtro { flex:1; min-width:120px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:#fff; padding:9px 12px; border-radius:50px; font-size:12px; outline:none; font-family:'DM Sans',sans-serif; cursor:pointer; }
+.pp-filtro:focus { border-color:var(--green); }
+.pp-list { width:100%; max-width:420px; padding:4px 16px 100px; overflow-y:auto; flex:1; }
+
+.partido-pub-card { background:var(--card); border:1.5px solid rgba(255,193,7,.2); border-radius:18px; padding:16px; margin-bottom:12px; animation:fadeUp .3s ease forwards; }
+.partido-pub-card.lleno { border-color:rgba(255,255,255,.1); opacity:.65; }
+.partido-pub-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.partido-pub-zona { font-size:12px; color:rgba(255,255,255,.4); }
+.partido-pub-cat { background:rgba(34,197,94,.15); border:1px solid rgba(34,197,94,.3); color:var(--green); font-size:10px; font-weight:700; padding:3px 10px; border-radius:50px; }
+.partido-pub-fecha { font-size:14px; font-weight:700; margin-bottom:4px; }
+.partido-pub-info { color:rgba(255,255,255,.45); font-size:12px; margin-bottom:12px; line-height:1.6; }
+.partido-pub-cupos { display:flex; gap:4px; align-items:center; margin-bottom:12px; }
+.cupo-slot { width:36px; height:36px; border-radius:50%; border:2px solid rgba(34,197,94,.3); display:flex; align-items:center; justify-content:center; font-size:16px; background:rgba(34,197,94,.06); overflow:hidden; }
+.cupo-slot.ocupado { border-color:var(--green); background:rgba(34,197,94,.15); }
+.cupo-slot img { width:100%; height:100%; object-fit:cover; }
+.cupo-label { font-family:'Bebas Neue',cursive; font-size:18px; color:#fbbf24; margin-left:6px; }
+.btn-inscribirse { width:100%; padding:12px; background:linear-gradient(135deg,#b45309,#f59e0b,#fbbf24); border:none; color:#000; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer; transition:all .2s; }
+.btn-inscribirse:hover { transform:scale(1.02); box-shadow:0 0 24px rgba(251,191,36,.4); }
+.btn-inscribirse.inscripto { background:rgba(34,197,94,.15); border:1.5px solid var(--green); color:var(--green); font-weight:700; cursor:pointer; }
+.btn-inscribirse:disabled { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.3); cursor:not-allowed; transform:none; }
+.partido-pub-costo { display:inline-block; background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.25); color:#fbbf24; font-size:11px; font-weight:700; padding:3px 10px; border-radius:50px; margin-bottom:10px; }
+
 </style>
 </head>
 <body>
@@ -468,6 +516,73 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div class="age-check"><input type="checkbox" id="check-edad" onchange="checkAge()"><label for="check-edad">Confirmo que tengo <strong>18 años o más</strong>.</label></div>
     <div class="age-check"><input type="checkbox" id="check-pol" onchange="checkAge()"><label for="check-pol">Acepto los <a href="https://api.cordobalux.com/politicas.html" target="_blank">Términos y Política de Privacidad</a>.</label></div>
     <button class="btn-age" id="btn-age" onclick="aceptarEdad()" disabled>ENTRAR 🎾</button>
+  </div>
+</div>
+
+
+<!-- HOME POST-LOGIN -->
+<div class="screen" id="home-screen">
+  <div class="home-header">
+    <div class="home-logo">PADEL<span>CONNECT</span></div>
+    <p class="home-subtitle" id="home-saludo">¿Qué querés hacer hoy? 🎾</p>
+  </div>
+  <div class="home-cards">
+    <div class="home-card home-card-partidos" onclick="irAProximosPartidos()">
+      <span class="home-card-icon">⚡</span>
+      <div class="home-card-title">Próximos Partidos</div>
+      <p class="home-card-desc">Encontrá y unite a partidos de pádel cerca tuyo. Filtrá por zona y categoría.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card home-card-perfil" onclick="irAMiPerfil()">
+      <span class="home-card-icon">👤</span>
+      <div class="home-card-title">Mi Perfil</div>
+      <p class="home-card-desc">Jugadores, canchas, ranking, mis reservas, mis partidos y configuración.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- PRÓXIMOS PARTIDOS PÚBLICOS -->
+<div class="screen" id="proximos-partidos">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">Próximos <span>Partidos</span></div>
+  </div>
+  <div class="pp-filtros">
+    <select class="pp-filtro" id="pp-filtro-zona" onchange="cargarPartidosPublicos()">
+      <option value="">📍 Todas las zonas</option>
+      <option value="Centro">Centro</option>
+      <option value="Nueva Córdoba">Nueva Córdoba</option>
+      <option value="Güemes">Güemes</option>
+      <option value="Alberdi">Alberdi</option>
+      <option value="General Paz">General Paz</option>
+      <option value="Cerro de las Rosas">Cerro de las Rosas</option>
+      <option value="Villa Allende">Villa Allende</option>
+      <option value="Arguello">Arguello</option>
+      <option value="Urca">Urca</option>
+      <option value="Jardín">Jardín</option>
+      <option value="Maipú">Maipú</option>
+      <option value="Villa Belgrano">Villa Belgrano</option>
+      <option value="La Calera">La Calera</option>
+      <option value="Unquillo">Unquillo</option>
+      <option value="Mendiolaza">Mendiolaza</option>
+      <option value="Salsipuedes">Salsipuedes</option>
+    </select>
+    <select class="pp-filtro" id="pp-filtro-cat" onchange="cargarPartidosPublicos()">
+      <option value="">🎾 Todas las categorías</option>
+      <option value="octava">8va categoría</option>
+      <option value="septima">7ma categoría</option>
+      <option value="sexta">6ta categoría</option>
+      <option value="quinta">5ta categoría</option>
+      <option value="cuarta">4ta categoría</option>
+      <option value="tercera">3ra categoría</option>
+      <option value="segunda">2da categoría</option>
+      <option value="primera">1ra categoría</option>
+    </select>
+  </div>
+  <div class="pp-list" id="pp-list">
+    <div style="display:flex;justify-content:center;padding:40px"><div class="loader"></div></div>
   </div>
 </div>
 
@@ -844,7 +959,7 @@ window.onload=function(){
         showScreen('perfil-padel');
       } else {
         await cargarJugadoresPadel();
-        showScreen('swipe');
+        mostrarHome();
       }
     }).catch(() => {
       hideLoader();
@@ -938,7 +1053,7 @@ async function doLogin(){
     const tienePerfil = await verificarPerfilPadel();
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
     await cargarJugadoresPadel();
-    showScreen('swipe');
+    mostrarHome();
   }catch(err){
     errEl.textContent=err.message;errEl.style.display='block';
   }finally{hideLoader();}
@@ -1685,7 +1800,7 @@ async function cargarPartidos() {
     if (p.estado === 'jugado') return `
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? new Date(p.fecha).toLocaleDateString('es-AR') : ''} ${p.hora ? p.hora.slice(0,5) : ''}${p.lugar ? ' · '+p.lugar : ''}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? p.fecha.slice(0,10).split('-').reverse().join('/') : ''} ${p.hora ? p.hora.slice(0,5) : ''}${p.lugar ? ' · '+p.lugar : ''}</div>
         <div style="font-size:11px;font-weight:700;color:#60a5fa">🏆 Jugado</div>
       </div>
 
@@ -1717,7 +1832,7 @@ async function cargarPartidos() {
     return `
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? new Date(p.fecha).toLocaleDateString('es-AR') : ''} ${p.hora ? p.hora.slice(0,5) : ''} ${p.lugar ? '· '+p.lugar : ''}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? p.fecha.slice(0,10).split('-').reverse().join('/') : ''} ${p.hora ? p.hora.slice(0,5) : ''} ${p.lugar ? '· '+p.lugar : ''}</div>
         <div style="font-size:11px;font-weight:700;color:${estadoColor}">${estadoLabel}</div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -1929,7 +2044,7 @@ async function cargarJugadoresParaPartido() {
     turnosSel.style.display = 'block';
     turnosSel.innerHTML = '<option value="">— Elegir turno —</option>' +
       turnos.map(t => {
-        const fecha = new Date(t.fecha).toLocaleDateString('es-AR');
+        const fecha = t.fecha.slice(0,10).split('-').reverse().join('/');
         const hora = t.hora_inicio.slice(0,5);
         return `<option value="${t.id}" data-fecha="${t.fecha.slice(0,10)}" data-hora="${hora}" data-lugar="${t.cancha} — ${t.lugar||''}">${fecha} ${hora}hs — ${t.cancha}</option>`;
       }).join('');
@@ -2139,7 +2254,7 @@ async function cargarJugadoresParaPartido() {
     turnosSel.style.display = 'block';
     turnosSel.innerHTML = '<option value="">— Elegir turno —</option>' +
       turnos.map(t => {
-        const fecha = new Date(t.fecha).toLocaleDateString('es-AR');
+        const fecha = t.fecha.slice(0,10).split('-').reverse().join('/');
         const hora = t.hora_inicio.slice(0,5);
         return `<option value="${t.id}" data-fecha="${t.fecha.slice(0,10)}" data-hora="${hora}" data-lugar="${t.cancha} — ${t.lugar||''}">${fecha} ${hora}hs — ${t.cancha}</option>`;
       }).join('');
