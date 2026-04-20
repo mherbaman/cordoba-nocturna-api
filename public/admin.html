@@ -1593,7 +1593,7 @@ async function cargarPartidosPubAdmin() {
         '<div style="color:rgba(255,255,255,.45);font-size:12px;margin-top:2px">'+fecha+' '+hora+'hs'+(p.lugar?' · '+p.lugar:'')+(p.costo?' · '+p.costo:'')+'</div></div>'+
         '<div style="font-family:Bebas Neue,cursive;font-size:24px;color:'+(ins>=cup?'#22c55e':'#fbbf24')+'">'+ins+'/'+cup+'</div></div>'+
         (jugs?'<div style="margin-bottom:10px">'+jugs+'</div>':'')+
-        '<button onclick="eliminarPartidoPub(''+p.id+'')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;padding:7px 16px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Eliminar</button></div>';
+        '<button onclick="eliminarPartidoPub(\'' + p.id + '\')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171;padding:7px 16px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Eliminar</button></div>';
     }).join('');
   } catch(e) { el.innerHTML = '<p style="color:red;padding:12px">Error: '+e.message+'</p>'; }
 }
