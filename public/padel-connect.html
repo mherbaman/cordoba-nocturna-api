@@ -1668,6 +1668,7 @@ async function cargarPartidos() {
     el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">No tens partidos todavia</p>';
     return;
   }
+  window._partidosCargados = data;
   el.innerHTML = data.map(p => {
     const esCreador = p.creador_id === usuario?.id;
     const invPendiente = !esCreador && p.mi_invitacion === 'pendiente';
@@ -1736,7 +1737,7 @@ async function cargarPartidos() {
         <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
       </div>` : ''}
       ${p.estado==='suspendido' ? `
-      <button onclick="abrirResenasPartidoSuspendido('${p.id}',${JSON.stringify(p.faltaron||[])},${JSON.stringify([{id:p.equipo1_j1,nombre:p.eq1j1_nombre},{id:p.equipo1_j2,nombre:p.eq1j2_nombre},{id:p.equipo2_j1,nombre:p.eq2j1_nombre},{id:p.equipo2_j2,nombre:p.eq2j2_nombre}])})" style="width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar al que faltó</button>` : ''}
+      <button onclick="prepararResenaSuspendido('${p.id}')" style="width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar al que faltó</button>` : ''}
       ${esCreador && p.estado==='confirmado' ? `
       <button onclick="abrirResultado('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
       ${esCreador && p.estado==='pendiente' ? `
@@ -1754,10 +1755,21 @@ let partidoResenaId = null;
 let jugadoresResena = [];
 let resenasYaHechas = [];
 
-async function abrirResenasPartidoSuspendido(partido_id, faltaron, todosJugadores) {
+async function prepararResenaSuspendido(partido_id) {
+  // Buscar el partido en la lista ya cargada
+  const lista = document.getElementById('partidos-list');
+  const allPartidos = window._partidosCargados || [];
+  const p = allPartidos.find(x => x.id === partido_id);
+  if (!p) return;
   partidoResenaId = partido_id;
-  // Solo mostrar los que faltaron
-  jugadoresResena = todosJugadores.filter(j => j.id && faltaron.includes(j.id));
+  const faltaron = p.faltaron || [];
+  const todos = [
+    { id: p.equipo1_j1, nombre: p.eq1j1_nombre },
+    { id: p.equipo1_j2, nombre: p.eq1j2_nombre },
+    { id: p.equipo2_j1, nombre: p.eq2j1_nombre },
+    { id: p.equipo2_j2, nombre: p.eq2j2_nombre },
+  ].filter(j => j.id);
+  jugadoresResena = todos.filter(j => faltaron.includes(j.id));
   resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
   renderJugadoresResena();
   document.getElementById('modal-resenas-partido').style.display = 'flex';
@@ -2004,10 +2016,21 @@ async function confirmarResultado() {
 }
 
 
-async function abrirResenasPartidoSuspendido(partido_id, faltaron, todosJugadores) {
+async function prepararResenaSuspendido(partido_id) {
+  // Buscar el partido en la lista ya cargada
+  const lista = document.getElementById('partidos-list');
+  const allPartidos = window._partidosCargados || [];
+  const p = allPartidos.find(x => x.id === partido_id);
+  if (!p) return;
   partidoResenaId = partido_id;
-  // Solo mostrar los que faltaron
-  jugadoresResena = todosJugadores.filter(j => j.id && faltaron.includes(j.id));
+  const faltaron = p.faltaron || [];
+  const todos = [
+    { id: p.equipo1_j1, nombre: p.eq1j1_nombre },
+    { id: p.equipo1_j2, nombre: p.eq1j2_nombre },
+    { id: p.equipo2_j1, nombre: p.eq2j1_nombre },
+    { id: p.equipo2_j2, nombre: p.eq2j2_nombre },
+  ].filter(j => j.id);
+  jugadoresResena = todos.filter(j => faltaron.includes(j.id));
   resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
   renderJugadoresResena();
   document.getElementById('modal-resenas-partido').style.display = 'flex';
