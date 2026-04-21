@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
 const { authAdmin, authUsuario } = require('../middleware/auth');
+const webpush = require('web-push');
 
 // ════════════════════════════════════════════════
 //   JUGADORES
@@ -1120,6 +1121,16 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
       [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4]
     );
+
+    try {
+      const subs = await pool.query('SELECT * FROM push_suscripciones WHERE zona = $1 OR zona IS NULL', [zona]);
+      const payload = JSON.stringify({ title: '⚡ Nuevo Partido de Pádel', body: categoria + ' en ' + (lugar || 'lugar a confirmar') + ' — ' + fecha + ' ' + hora, url: 'https://cordobalux.com/public/padel-connect.html' });
+      for (const sub of subs.rows) {
+        try { await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload); }
+        catch (e) { if (e.statusCode === 410) await pool.query('DELETE FROM push_suscripciones WHERE endpoint = $1', [sub.endpoint]); }
+      }
+    } catch (e) { console.error('Error push:', e.message); }
+    // Enviar push a suscriptores
     res.json({ ok: true, partido: result.rows[0] });
   } catch (err) {
     console.error('Error crear partido público:', err);
@@ -1639,6 +1650,23 @@ router.put('/profesores/:id/estado', authAdmin, async (req, res) => {
   } catch(err) {
     console.error('PUT /padel/profesores/:id/estado:', err.message);
     res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /padel/push-suscripcion — guardar suscripción
+router.post('/push-suscripcion', authUsuario, async (req, res) => {
+  const { endpoint, p256dh, auth, zona } = req.body;
+  const usuario_id = req.usuario.id;
+  try {
+    await pool.query(`
+      INSERT INTO push_suscripciones (usuario_id, endpoint, p256dh, auth, zona)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (usuario_id, endpoint) DO UPDATE SET zona = $5
+    `, [usuario_id, endpoint, p256dh, auth, zona]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error guardando suscripción' });
   }
 });
 

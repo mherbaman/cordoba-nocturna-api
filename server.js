@@ -9,6 +9,13 @@ const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
 const { initDatabase, agregarTablaMensajes, agregarTablaSponsors, agregarTablasPadel } = require('./database');
+const webpush = require('web-push');
+
+webpush.setVapidDetails(
+  'mailto:admin@cordobalux.com',
+  'BBC-BM0lWegmCr3e5ROgYJne9T_OtJDmUFPReuJkAUR83TOE90VmdVXLFBGZGde6VdFo5Ru53jziQPtQ_hZcd4Q',
+  '0y0zMBqZdqIdvA7G9FWTENw_2DpOBzAc97uL-oSHFUo'
+);
 const { iniciarLimpieza } = require('./limpieza');
 
 const app = express();
