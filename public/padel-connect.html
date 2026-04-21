@@ -429,6 +429,9 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .home-card-partidos { background:rgba(255,193,7,.06); border-color:rgba(255,193,7,.25); }
 .home-card-partidos:hover { background:rgba(255,193,7,.12); border-color:rgba(255,193,7,.6); }
 .home-card-partidos .home-card-title { color:#fbbf24; }
+.home-card-clases { background:rgba(139,92,246,.08); border-color:rgba(139,92,246,.3); }
+.home-card-clases:hover { background:rgba(139,92,246,.14); border-color:rgba(139,92,246,.6); }
+.home-card-clases .home-card-title { color:#a78bfa; }
 
 /* PRÓXIMOS PARTIDOS */
 #proximos-partidos { justify-content:flex-start; padding:0; }
@@ -539,9 +542,26 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <p class="home-card-desc">Jugadores, canchas, ranking, mis reservas, mis partidos y configuración.</p>
       <span class="home-card-arrow">→</span>
     </div>
+    <div class="home-card home-card-clases" onclick="showScreen('clases-screen');cargarClases()">
+      <span class="home-card-icon">🎓</span>
+      <div class="home-card-title">Clases Particulares</div>
+      <p class="home-card-desc">Encontrá profesores disponibles y reservá tu clase de pádel.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
   </div>
 </div>
 
+
+<!-- CLASES PARTICULARES -->
+<div class="screen" id="clases-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">Clases <span>Particulares</span></div>
+  </div>
+  <div style="padding:16px;width:100%;max-width:520px;margin:0 auto;box-sizing:border-box">
+    <div id="clases-list"><p style="color:rgba(255,255,255,.3);text-align:center;padding:40px">Cargando...</p></div>
+  </div>
+</div>
 
 <!-- PRÓXIMOS PARTIDOS PÚBLICOS -->
 <div class="screen" id="proximos-partidos">
@@ -2726,6 +2746,87 @@ function irAProximosPartidos() {
 function irAMiPerfil() {
   showScreen('swipe');
   setTimeout(() => switchTab('jugar', document.querySelector('.swipe-tab')), 100);
+}
+
+const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+async function cargarClases() {
+  const el = document.getElementById('clases-list');
+  if (!el) return;
+  el.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:40px">Cargando...</p>';
+  try {
+    const profesores = await api('/padel/profesores');
+    if (!profesores.length) { el.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:40px">No hay profesores disponibles por el momento.</p>'; return; }
+
+    // Cargar disponibilidad de cada profesor
+    const profesConDisp = await Promise.all(profesores.map(async p => {
+      try {
+        const disp = await api('/padel/profesores/' + p.id + '/disponibilidad');
+        return { ...p, disponibilidad: disp };
+      } catch(e) { return { ...p, disponibilidad: [] }; }
+    }));
+
+    // Agrupar slots por día
+    const porDia = {};
+    profesConDisp.forEach(p => {
+      p.disponibilidad.forEach(d => {
+        let diaKey, diaLabel;
+        if (d.fecha_especifica) {
+          const fecha = new Date(d.fecha_especifica + 'T12:00:00');
+          diaKey = d.fecha_especifica;
+          diaLabel = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+        } else if (d.dia_semana !== null && d.dia_semana !== undefined) {
+          diaKey = 'sem_' + d.dia_semana;
+          diaLabel = DIAS[d.dia_semana] + 's';
+        } else return;
+        if (!porDia[diaKey]) porDia[diaKey] = { label: diaLabel, slots: [] };
+        porDia[diaKey].slots.push({ disp: d, profe: p });
+      });
+    });
+
+    if (!Object.keys(porDia).length) {
+      el.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:40px">No hay turnos disponibles por el momento.</p>';
+      return;
+    }
+
+    // Ordenar días: fechas específicas primero, luego días de semana
+    const diasOrdenados = Object.entries(porDia).sort(([a], [b]) => {
+      const aEsFecha = !a.startsWith('sem_');
+      const bEsFecha = !b.startsWith('sem_');
+      if (aEsFecha && !bEsFecha) return -1;
+      if (!aEsFecha && bEsFecha) return 1;
+      if (aEsFecha && bEsFecha) return a.localeCompare(b);
+      return parseInt(a.replace('sem_','')) - parseInt(b.replace('sem_',''));
+    });
+
+    el.innerHTML = diasOrdenados.map(([diaKey, { label, slots }]) => {
+      // Ordenar slots por hora
+      slots.sort((a, b) => a.disp.hora_inicio.localeCompare(b.disp.hora_inicio));
+      const slotsHtml = slots.map(({ disp, profe }) => {
+        const zonas = (profe.zonas || []).filter(z => z.zona).map(z => z.zona).join(', ');
+        const lugar = disp.lugar || profe.zonas?.[0]?.lugar || '';
+        return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start">
+          ${profe.foto_url ? `<img src="${profe.foto_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,.4);flex-shrink:0">` : `<div style="width:48px;height:48px;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🎾</div>`}
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:15px;margin-bottom:2px">${profe.nombre}</div>
+            <div style="color:#a78bfa;font-size:13px;font-weight:600;margin-bottom:6px">🕐 ${disp.hora_inicio.substring(0,5)} — ${disp.hora_fin.substring(0,5)}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
+              ${profe.precio_hora ? `<span style="background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);color:#facc15;padding:2px 8px;border-radius:50px;font-size:11px">💰 $${profe.precio_hora}/h</span>` : ''}
+              ${profe.modalidad ? `<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:2px 8px;border-radius:50px;font-size:11px">${profe.modalidad}</span>` : ''}
+              ${lugar ? `<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:2px 8px;border-radius:50px;font-size:11px">📍 ${lugar}</span>` : ''}
+            </div>
+            ${profe.whatsapp ? `<a href="https://wa.me/${profe.whatsapp.replace(/\D/g,'')}" target="_blank" style="display:inline-block;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:7px 16px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none">💬 Contactar</a>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      return `<div style="margin-bottom:20px">
+        <div style="font-family:'Bebas Neue',cursive;font-size:18px;color:#a78bfa;letter-spacing:1px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(139,92,246,.2)">${label.toUpperCase()}</div>
+        ${slotsHtml}
+      </div>`;
+    }).join('');
+
+  } catch(e) { el.innerHTML = '<p style="color:rgba(255,45,120,.6);text-align:center;padding:40px">Error al cargar clases.</p>'; }
 }
 
 let _ppInterval = null;
