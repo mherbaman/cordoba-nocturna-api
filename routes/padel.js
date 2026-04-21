@@ -1147,7 +1147,44 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
         catch (e) { if (e.statusCode === 410) await pool.query('DELETE FROM push_suscripciones WHERE endpoint = $1', [sub.endpoint]); }
       }
     } catch (e) { console.error('Error push:', e.message); }
-    // Enviar push a suscriptores
+
+    // Enviar emails a jugadores de la zona
+    try {
+      const { Resend } = require('resend');
+      const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
+      const catLabels = { octava:'8va categoría', septima:'7ma categoría', sexta:'6ta categoría', quinta:'5ta categoría', cuarta:'4ta categoría', tercera:'3ra categoría', segunda:'2da categoría', primera:'1ra categoría' };
+      const catLabel = catLabels[categoria] || categoria;
+      const lugarLabel = lugar ? lugar : 'lugar a confirmar';
+      const jugadores = await pool.query(
+        `SELECT u.email, u.nombre FROM usuarios u JOIN jugadores_padel jp ON jp.usuario_id = u.id WHERE jp.zona ILIKE $1 AND u.email IS NOT NULL AND jp.activo = true`,
+        [`%${zona}%`]
+      );
+      console.log('Jugadores a notificar por email:', jugadores.rows.length);
+      for (const j of jugadores.rows) {
+        try {
+          await resend.emails.send({
+            from: 'partidos@cordobalux.com',
+            to: j.email,
+            subject: '⚡ Nuevo partido en tu zona — ' + catLabel,
+            html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;background:#111;color:#fff;border-radius:12px;padding:24px">
+              <h2 style="color:#facc15">⚡ ¡Nuevo partido en tu zona!</h2>
+              <p>Hola <strong>${j.nombre}</strong>,</p>
+              <p>Se creó un nuevo partido de <strong>${catLabel}</strong>:</p>
+              <ul style="line-height:2">
+                <li>📍 <strong>Lugar:</strong> ${lugarLabel}</li>
+                <li>📅 <strong>Fecha:</strong> ${fecha}</li>
+                <li>🕐 <strong>Hora:</strong> ${hora}</li>
+                <li>💰 <strong>Costo:</strong> ${costo ? '$' + costo : 'A confirmar'}</li>
+              </ul>
+              <a href="https://cordobalux.com/padel-connect.html" style="display:inline-block;background:#facc15;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 Ver partido</a>
+              <p style="margin-top:24px;font-size:12px;color:#666">CórdobaLux — cordobalux.com</p>
+            </div>`
+          });
+          console.log('✅ Email enviado a:', j.email);
+        } catch (e) { console.error('Error email a', j.email, e.message); }
+      }
+    } catch (e) { console.error('Error emails:', e.message); }
+
     res.json({ ok: true, partido: result.rows[0] });
   } catch (err) {
     console.error('Error crear partido público:', err);
