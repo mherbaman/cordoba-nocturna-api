@@ -1227,7 +1227,7 @@ router.delete('/partidos-publicos/:id/desinscribirse', authUsuario, async (req, 
 router.get('/profesores', async (req, res) => {
   const { zona } = req.query;
   try {
-    let where = 'WHERE p.activo = true';
+    let where = "WHERE p.activo = true AND p.estado = 'aprobado'";
     const params = [];
     if (zona) {
       params.push(`%${zona}%`);
@@ -1579,6 +1579,65 @@ router.get('/clases/resumen-dia', authUsuario, async (req, res) => {
     res.json({ ok: true, mensaje: msg, whatsapp_grupo, fecha });
   } catch (err) {
     console.error('GET /padel/clases/resumen-dia:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/profesores/pendientes — para el superadmin
+router.get('/profesores/pendientes', authAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, u.email,
+        json_agg(DISTINCT jsonb_build_object('zona', pz.zona, 'lugar', pz.lugar))
+          FILTER (WHERE pz.id IS NOT NULL) AS zonas
+      FROM profesores_padel p
+      JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN profesor_zonas pz ON pz.profesor_id = p.id
+      WHERE p.estado = 'pendiente'
+      GROUP BY p.id, u.email
+      ORDER BY p.creado_en ASC
+    `);
+    res.json(result.rows);
+  } catch(err) {
+    console.error('GET /padel/profesores/pendientes:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/profesores/todos — lista completa para admin
+router.get('/profesores/todos', authAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT p.*, u.email,
+        json_agg(DISTINCT jsonb_build_object('zona', pz.zona, 'lugar', pz.lugar))
+          FILTER (WHERE pz.id IS NOT NULL) AS zonas
+      FROM profesores_padel p
+      JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN profesor_zonas pz ON pz.profesor_id = p.id
+      GROUP BY p.id, u.email
+      ORDER BY p.creado_en DESC
+    `);
+    res.json(result.rows);
+  } catch(err) {
+    console.error('GET /padel/profesores/todos:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /padel/profesores/:id/estado — aprobar o rechazar
+router.put('/profesores/:id/estado', authAdmin, async (req, res) => {
+  const { estado } = req.body;
+  if (!['aprobado','rechazado','pendiente'].includes(estado))
+    return res.status(400).json({ error: 'estado inválido' });
+  try {
+    const result = await pool.query(
+      'UPDATE profesores_padel SET estado = $1 WHERE id = $2 RETURNING *',
+      [estado, req.params.id]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: 'Profesor no encontrado' });
+    res.json({ ok: true, perfil: result.rows[0] });
+  } catch(err) {
+    console.error('PUT /padel/profesores/:id/estado:', err.message);
     res.status(500).json({ error: 'Error interno' });
   }
 });
