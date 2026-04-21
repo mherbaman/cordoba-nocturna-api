@@ -1624,18 +1624,17 @@ async function cargarProfesoresAdmin(estado = 'pendiente') {
         </div>`;
       }).join('');
     } catch(e) { el.innerHTML = '<p style="color:rgba(255,45,120,.6);font-size:13px;text-align:center;padding:20px">Error al cargar profesores.</p>'; }
-  }
+}
 
-  async function cambiarEstadoProfesor(id, estado) {
-    try {
-      await apiAdmin('/padel/profesores/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado }) });
-      cargarProfesoresAdmin(estadoProfesorActual);
-    } catch(e) { alert('Error al actualizar estado'); }
-  }
+async function cambiarEstadoProfesor(id, estado) {
+  try {
+    await apiAdmin('/padel/profesores/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado }) });
+    cargarProfesoresAdmin(estadoProfesorActual);
+  } catch(e) { alert('Error al actualizar estado'); }
+}
 
-  function filtrarProfesores(estado) {
-    cargarProfesoresAdmin(estado);
-  }
+function filtrarProfesores(estado) {
+  cargarProfesoresAdmin(estado);
 }
 
 async function cargarPartidosPubAdmin() {
