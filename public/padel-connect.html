@@ -918,6 +918,30 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 </div>
 
+<!-- MODAL RESERVA CLASE -->
+<div id="modal-reserva-clase" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0d1117;border:1px solid rgba(139,92,246,.3);border-radius:20px;padding:24px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto">
+    <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:#a78bfa;margin-bottom:4px">📅 Reservar Clase</div>
+    <div id="modal-reserva-profe" style="color:rgba(255,255,255,.6);font-size:13px;margin-bottom:16px"></div>
+    <div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div id="modal-reserva-detalle" style="font-size:13px;line-height:1.8;color:rgba(255,255,255,.8)"></div>
+    </div>
+    <div id="modal-fechas-container" style="margin-bottom:16px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:8px">Elegí una fecha</div>
+      <div id="modal-fechas-opciones" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:6px">Nota para el profe (opcional)</div>
+      <input id="modal-reserva-notas" class="input-field" placeholder="Ej: Soy principiante..." style="margin:0">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="confirmarReservaClase()" id="btn-confirmar-reserva" style="flex:1;background:linear-gradient(135deg,#6d28d9,#a78bfa);border:none;color:#fff;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">Confirmar reserva</button>
+      <button onclick="cerrarModalReserva()" style="padding:13px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+    </div>
+    <div id="modal-reserva-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;font-size:13px;text-align:center"></div>
+  </div>
+</div>
+
 <!-- PROMO MODAL -->
 <div id="promo-modal">
   <div class="promo-inner">
@@ -1632,6 +1656,86 @@ function abrirPromoSponsor(id){
 }
 
 function cerrarPromo(){document.getElementById('promo-modal').classList.remove('show');}
+
+let _reservaDisp = null;
+let _reservaProfe = null;
+let _reservaFechaSeleccionada = null;
+
+function abrirModalReserva(dispJson, profeJson, fechasJson) {
+  _reservaDisp = JSON.parse(dispJson.replace(/&quot;/g, '"'));
+  _reservaProfe = JSON.parse(profeJson.replace(/&quot;/g, '"'));
+  const fechas = JSON.parse(fechasJson.replace(/&quot;/g, '"'));
+  _reservaFechaSeleccionada = fechas.length === 1 ? fechas[0] : null;
+
+  document.getElementById('modal-reserva-profe').textContent = 'Profesor: ' + _reservaProfe.nombre;
+  document.getElementById('modal-reserva-detalle').innerHTML =
+    '🕐 <strong>' + _reservaDisp.hora_inicio.substring(0,5) + ' — ' + _reservaDisp.hora_fin.substring(0,5) + '</strong><br>' +
+    (_reservaDisp.lugar ? '📍 ' + _reservaDisp.lugar + '<br>' : '') +
+    (_reservaProfe.precio_hora ? '💰 $' + _reservaProfe.precio_hora + '/hora' : '');
+
+  const contFechas = document.getElementById('modal-fechas-opciones');
+  contFechas.innerHTML = '';
+  fechas.forEach(f => {
+    const fecha = new Date(f + 'T12:00:00');
+    const label = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.dataset.fecha = f;
+    btn.style.cssText = 'padding:10px 16px;border-radius:50px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.08);color:#a78bfa;font-size:13px;font-weight:600;cursor:pointer;text-align:left';
+    btn.onclick = () => {
+      contFechas.querySelectorAll('button').forEach(b => { b.style.background='rgba(139,92,246,.08)'; b.style.borderColor='rgba(139,92,246,.3)'; });
+      btn.style.background = 'rgba(139,92,246,.25)';
+      btn.style.borderColor = '#a78bfa';
+      _reservaFechaSeleccionada = f;
+    };
+    if (fechas.length === 1) { btn.style.background='rgba(139,92,246,.25)'; btn.style.borderColor='#a78bfa'; }
+    contFechas.appendChild(btn);
+  });
+
+  document.getElementById('modal-reserva-notas').value = '';
+  document.getElementById('modal-reserva-msg').style.display = 'none';
+  const modal = document.getElementById('modal-reserva-clase');
+  modal.style.display = 'flex';
+}
+
+function cerrarModalReserva() {
+  document.getElementById('modal-reserva-clase').style.display = 'none';
+}
+
+async function confirmarReservaClase() {
+  if (!_reservaFechaSeleccionada) { alert('Elegí una fecha'); return; }
+  const notas = document.getElementById('modal-reserva-notas').value.trim();
+  const btn = document.getElementById('btn-confirmar-reserva');
+  btn.disabled = true; btn.textContent = 'Reservando...';
+  const msg = document.getElementById('modal-reserva-msg');
+  try {
+    const res = await api('/padel/clases/reservar', { method:'POST', body: JSON.stringify({
+      profesor_id: _reservaProfe.id,
+      disponibilidad_id: _reservaDisp.id,
+      fecha: _reservaFechaSeleccionada,
+      hora_inicio: _reservaDisp.hora_inicio,
+      hora_fin: _reservaDisp.hora_fin,
+      zona: _reservaDisp.zona,
+      lugar: _reservaDisp.lugar,
+      notas: notas || null
+    })});
+    msg.style.display = 'block';
+    msg.style.background = 'rgba(34,197,94,.1)';
+    msg.style.border = '1px solid rgba(34,197,94,.3)';
+    msg.style.color = '#22c55e';
+    msg.textContent = '✅ ¡Clase reservada! El profesor se va a contactar con vos.';
+    btn.textContent = '✓ Reservado';
+    if (res.whatsapp_profe) setTimeout(() => window.open(res.whatsapp_profe), 1000);
+    setTimeout(() => { cerrarModalReserva(); cargarClases(); }, 2500);
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.style.background = 'rgba(255,45,120,.1)';
+    msg.style.border = '1px solid rgba(255,45,120,.3)';
+    msg.style.color = '#ff2d78';
+    msg.textContent = '❌ ' + (e.message || 'Error al reservar');
+    btn.disabled = false; btn.textContent = 'Confirmar reserva';
+  }
+}
 
 async function cargarEventosActivos(){
   const el=document.getElementById('eventos-activos-list');
@@ -2803,9 +2907,29 @@ async function cargarClases() {
       // Ordenar slots por hora
       slots.sort((a, b) => a.disp.hora_inicio.localeCompare(b.disp.hora_inicio));
       const slotsHtml = slots.map(({ disp, profe }) => {
-        const zonas = (profe.zonas || []).filter(z => z.zona).map(z => z.zona).join(', ');
         const lugar = disp.lugar || profe.zonas?.[0]?.lugar || '';
-        return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start">
+        const cupos = disp.cupos || 1;
+        const ocupados = parseInt(disp.reservas_activas) || 0;
+        const libres = cupos - ocupados;
+        const sinCupos = libres <= 0;
+
+        // Para slots recurrentes calcular próximas fechas, para específicos usar la fecha fija
+        let fechasOpciones = [];
+        if (disp.fecha_especifica) {
+          fechasOpciones = [disp.fecha_especifica.substring(0,10)];
+        } else if (disp.dia_semana !== null && disp.dia_semana !== undefined) {
+          const hoy = new Date();
+          for (let i = 0; i < 14; i++) {
+            const d = new Date(hoy); d.setDate(hoy.getDate() + i);
+            if (d.getDay() === disp.dia_semana) { fechasOpciones.push(d.toISOString().substring(0,10)); if (fechasOpciones.length >= 3) break; }
+          }
+        }
+
+        const fechasJson = JSON.stringify(fechasOpciones).replace(/"/g, '&quot;');
+        const dispData = JSON.stringify({ id: disp.id, hora_inicio: disp.hora_inicio, hora_fin: disp.hora_fin, zona: disp.zona, lugar }).replace(/"/g, '&quot;');
+        const profeData = JSON.stringify({ id: profe.id, nombre: profe.nombre, precio_hora: profe.precio_hora, whatsapp: profe.whatsapp }).replace(/"/g, '&quot;');
+
+        return `<div style="background:rgba(255,255,255,.03);border:1px solid ${sinCupos ? 'rgba(255,255,255,.08)' : 'rgba(139,92,246,.2)'};border-radius:14px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;opacity:${sinCupos ? '0.5' : '1'}">
           ${profe.foto_url ? `<img src="${profe.foto_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,.4);flex-shrink:0">` : `<div style="width:48px;height:48px;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🎾</div>`}
           <div style="flex:1">
             <div style="font-weight:700;font-size:15px;margin-bottom:2px">${profe.nombre}</div>
@@ -2814,8 +2938,12 @@ async function cargarClases() {
               ${profe.precio_hora ? `<span style="background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);color:#facc15;padding:2px 8px;border-radius:50px;font-size:11px">💰 $${profe.precio_hora}/h</span>` : ''}
               ${profe.modalidad ? `<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:2px 8px;border-radius:50px;font-size:11px">${profe.modalidad}</span>` : ''}
               ${lugar ? `<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:2px 8px;border-radius:50px;font-size:11px">📍 ${lugar}</span>` : ''}
+              <span style="background:${sinCupos ? 'rgba(255,45,120,.1)' : 'rgba(139,92,246,.1)'};border:1px solid ${sinCupos ? 'rgba(255,45,120,.3)' : 'rgba(139,92,246,.3)'};color:${sinCupos ? '#ff2d78' : '#a78bfa'};padding:2px 8px;border-radius:50px;font-size:11px">${sinCupos ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares'}</span>
             </div>
-            ${profe.whatsapp ? `<a href="https://wa.me/${profe.whatsapp.replace(/\D/g,'')}" target="_blank" style="display:inline-block;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:7px 16px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none">💬 Contactar</a>` : ''}
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              ${!sinCupos ? `<button onclick="abrirModalReserva('${dispData}','${profeData}','${fechasJson}')" style="background:linear-gradient(135deg,#6d28d9,#a78bfa);border:none;color:#fff;padding:8px 18px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">📅 Reservar</button>` : `<span style="color:rgba(255,255,255,.3);font-size:12px">Turno completo</span>`}
+              ${profe.whatsapp ? `<a href="https://wa.me/${profe.whatsapp.replace(/\D/g,'')}" target="_blank" style="display:inline-block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none">💬 Consultar</a>` : ''}
+            </div>
           </div>
         </div>`;
       }).join('');

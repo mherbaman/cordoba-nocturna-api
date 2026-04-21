@@ -1398,10 +1398,16 @@ router.post('/profesores', authUsuario, async (req, res) => {
 router.get('/profesores/:id/disponibilidad', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT * FROM disponibilidad_profesor
-      WHERE profesor_id = $1 AND activo = true
-        AND (fecha_especifica IS NULL OR fecha_especifica >= CURRENT_DATE)
-      ORDER BY COALESCE(fecha_especifica, ('2000-01-0' || (dia_semana+1))::date), hora_inicio
+      SELECT d.*,
+        (SELECT COUNT(*) FROM reservas_clase r
+         WHERE r.disponibilidad_id = d.id
+           AND r.estado != 'cancelada'
+           AND (d.fecha_especifica IS NOT NULL OR r.fecha >= CURRENT_DATE)
+        ) AS reservas_activas
+      FROM disponibilidad_profesor d
+      WHERE d.profesor_id = $1 AND d.activo = true
+        AND (d.fecha_especifica IS NULL OR d.fecha_especifica >= CURRENT_DATE)
+      ORDER BY COALESCE(d.fecha_especifica, ('2000-01-0' || (d.dia_semana+1))::date), d.hora_inicio
     `, [req.params.id]);
     res.json(result.rows);
   } catch (err) {
@@ -1413,7 +1419,7 @@ router.get('/profesores/:id/disponibilidad', async (req, res) => {
 // POST /padel/profesores/disponibilidad — el profe carga un slot
 router.post('/profesores/disponibilidad', authUsuario, async (req, res) => {
   const usuario_id = req.usuario.id;
-  const { fecha, dia_semana, hora_inicio, hora_fin, zona, lugar } = req.body;
+  const { fecha, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos } = req.body;
   if (!hora_inicio || !hora_fin) return res.status(400).json({ error: 'hora_inicio y hora_fin son requeridos' });
   try {
     const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
@@ -1421,10 +1427,10 @@ router.post('/profesores/disponibilidad', authUsuario, async (req, res) => {
     const profesor_id = p.rows[0].id;
     const result = await pool.query(`
       INSERT INTO disponibilidad_profesor
-        (profesor_id, fecha_especifica, dia_semana, hora_inicio, hora_fin, zona, lugar)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (profesor_id, fecha_especifica, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [profesor_id, fecha||null, dia_semana !== undefined ? dia_semana : null, hora_inicio, hora_fin, zona||null, lugar||null]);
+    `, [profesor_id, fecha||null, dia_semana !== undefined ? dia_semana : null, hora_inicio, hora_fin, zona||null, lugar||null, cupos||1]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('POST /padel/profesores/disponibilidad:', err.message);
@@ -1456,13 +1462,15 @@ router.post('/clases/reservar', authUsuario, async (req, res) => {
   if (!profesor_id || !fecha || !hora_inicio || !hora_fin)
     return res.status(400).json({ error: 'profesor_id, fecha, hora_inicio y hora_fin son requeridos' });
   try {
-    // Verificar que el slot no esté ya reservado
+    // Verificar cupos disponibles
     if (disponibilidad_id) {
+      const slot = await pool.query('SELECT cupos FROM disponibilidad_profesor WHERE id = $1', [disponibilidad_id]);
+      const cuposMax = slot.rows[0]?.cupos || 1;
       const ocupado = await pool.query(
-        "SELECT id FROM reservas_clase WHERE disponibilidad_id = $1 AND fecha = $2 AND estado != 'cancelada'",
+        "SELECT COUNT(*) AS total FROM reservas_clase WHERE disponibilidad_id = $1 AND fecha = $2 AND estado != 'cancelada'",
         [disponibilidad_id, fecha]
       );
-      if (ocupado.rows.length) return res.status(409).json({ error: 'Ese horario ya está reservado' });
+      if (parseInt(ocupado.rows[0].total) >= cuposMax) return res.status(409).json({ error: 'No hay cupos disponibles para este turno' });
     }
     const p = await pool.query('SELECT precio_hora, whatsapp FROM profesores_padel WHERE id = $1', [profesor_id]);
     const precio = p.rows[0]?.precio_hora || null;
