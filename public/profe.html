@@ -614,25 +614,17 @@ function abrirModalTurno() {
   document.getElementById('modal-turno').classList.add('show');
 }
 function cerrarModalTurno() { document.getElementById('modal-turno').classList.remove('show'); }
-function onTurnoTipoChange() {
-  const tipo = document.getElementById('turno-tipo').value;
-  document.getElementById('turno-fecha-row').style.display = tipo === 'fecha' ? 'block' : 'none';
-  document.getElementById('turno-dia-row').style.display  = tipo === 'dia'   ? 'block' : 'none';
-}
 async function guardarTurno() {
-  const tipo     = document.getElementById('turno-tipo').value;
-  const fecha    = document.getElementById('turno-fecha').value;
-  const dia      = document.getElementById('turno-dia').value;
-  const inicio   = document.getElementById('turno-inicio').value;
-  const fin      = document.getElementById('turno-fin').value;
-  const zona     = document.getElementById('turno-zona').value.trim();
+  const fecha  = document.getElementById('turno-fecha').value;
+  const inicio = document.getElementById('turno-inicio').value;
+  const fin    = document.getElementById('turno-fin').value;
+  const zona   = document.getElementById('turno-zona').value.trim();
+  const cupos  = parseInt(document.getElementById('turno-cupos').value) || 1;
+  if (!fecha) { alert('Ingresá una fecha'); return; }
   if (!inicio || !fin) { alert('Ingresá hora de inicio y fin'); return; }
   try {
     await apiProfe('/padel/profesores/disponibilidad', { method:'POST', body:JSON.stringify({
-      fecha: tipo === 'fecha' ? fecha : null,
-      dia_semana: tipo === 'dia' ? parseInt(dia) : undefined,
-      hora_inicio: inicio, hora_fin: fin,
-      zona: zona || null
+      fecha, hora_inicio: inicio, hora_fin: fin, zona: zona || null, cupos
     })});
     cerrarModalTurno();
     cargarAgenda();
