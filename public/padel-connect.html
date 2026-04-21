@@ -2848,8 +2848,8 @@ async function registrarPush() {
       applicationServerKey: VAPID_PUBLIC
     });
     const zonas = perfilPadel?.zona ? perfilPadel.zona.split(',').map(z => z.trim()) : [null];
-    const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
-    const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+    const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey('auth')))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
     for (const zona of zonas) {
       await api('/padel/push-suscripcion', {
         method: 'POST',
