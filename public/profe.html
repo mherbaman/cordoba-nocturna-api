@@ -448,7 +448,30 @@ async function mostrarApp() {
   if (usuario.foto_url) fotoEl.innerHTML = `<img src="${usuario.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
 
   await cargarPerfilProfe();
+  aplicarEstadoPerfil();
   cargarInicio();
+}
+
+function aplicarEstadoPerfil() {
+  const tabs = document.querySelectorAll('.tab');
+  const bloqueadas = [1, 2, 4];
+  const aprobado = perfilProfe && perfilProfe.estado === 'aprobado';
+  bloqueadas.forEach(function(i) {
+    if (!tabs[i]) return;
+    tabs[i].style.opacity = aprobado ? '1' : '0.3';
+    tabs[i].style.pointerEvents = aprobado ? 'auto' : 'none';
+    tabs[i].title = aprobado ? '' : 'Disponible cuando tu perfil sea aprobado';
+  });
+  // Mostrar banner de estado en el box
+  var box = document.getElementById('inicio-perfil-box');
+  if (!box) return;
+  if (!perfilProfe) {
+    box.innerHTML = '<div style="background:rgba(34,197,94,.05);border:2px dashed rgba(34,197,94,.35);border-radius:20px;padding:52px 24px;margin-bottom:20px;text-align:center"><div style="font-family:Bebas Neue,cursive;font-size:46px;letter-spacing:2px;margin-bottom:14px">REGISTRATE COMO PROFE</div><p style="color:rgba(255,255,255,.5);font-size:15px;margin-bottom:28px;line-height:1.6">Completa tu perfil para aparecer en Clases Particulares de PadelConnect.</p><button onclick="navTo(&quot;perfil&quot;,document.querySelectorAll(&quot;.tab&quot;)[3])" class="btn-primary" style="max-width:280px">COMPLETAR MI PERFIL</button></div>';
+  } else if (perfilProfe.estado === 'pendiente') {
+    box.innerHTML = '<div style="background:rgba(251,191,36,.06);border:3px solid rgba(251,191,36,.55);border-radius:20px;padding:52px 24px;margin-bottom:20px;text-align:center"><div style="font-family:Bebas Neue,cursive;font-size:46px;letter-spacing:2px;color:#fbbf24;margin-bottom:14px">PERFIL EN REVISION</div><p style="color:rgba(255,255,255,.65);font-size:15px;line-height:1.7;margin-bottom:24px">Tu perfil fue enviado y esta siendo revisado por el equipo de CordobaLux. Te habilitaremos el acceso completo cuando sea aprobado.</p><div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:13px 24px;display:inline-block;font-size:14px;color:#fbbf24;font-weight:600">Mientras tanto podes seguir editando tu perfil en Mi Perfil</div></div>';
+  } else if (perfilProfe.estado === 'rechazado') {
+    box.innerHTML = '<div style="background:rgba(239,68,68,.05);border:2px solid rgba(239,68,68,.4);border-radius:20px;padding:52px 24px;margin-bottom:20px;text-align:center"><div style="font-family:Bebas Neue,cursive;font-size:46px;letter-spacing:2px;color:#ef4444;margin-bottom:14px">PERFIL RECHAZADO</div><p style="color:rgba(255,255,255,.5);font-size:15px;line-height:1.6;margin-bottom:24px">Tu perfil no fue aprobado. Revisa tu informacion y volvelo a enviar.</p></div>';
+  }
 }
 
 async function cargarPerfilProfe() {
@@ -495,17 +518,10 @@ async function cargarInicio() {
     statsEl.innerHTML = '<p style="color:var(--muted)">Error cargando estadísticas</p>';
   }
 
-  // Box perfil
+  // Box perfil — solo si esta aprobado
   const box = document.getElementById('inicio-perfil-box');
-  if (!perfilProfe) {
-    box.innerHTML = `
-      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:20px;margin-bottom:20px;text-align:center">
-        <div style="font-size:36px;margin-bottom:10px">👋</div>
-        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Completá tu perfil de profesor</div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Los alumnos te van a ver en la sección Clases Particulares de PadelConnect.</p>
-        <button onclick="navTo('perfil',document.querySelectorAll('.tab')[3])" class="btn-primary" style="max-width:260px">COMPLETAR PERFIL →</button>
-      </div>`;
-  } else {
+  if (!perfilProfe || perfilProfe.estado !== 'aprobado') return;
+  if (true) {
     const zonas = perfilProfe.zonas ? perfilProfe.zonas.map(z => z.zona).join(' · ') : '—';
     box.innerHTML = `
       <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:16px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
