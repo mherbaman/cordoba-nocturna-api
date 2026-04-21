@@ -1586,10 +1586,9 @@ document.getElementById('modal-overlay').addEventListener('click', function(e) {
 });
 </script>
 <script>
-async function cargarPartidosPubAdmin() {
-  let estadoProfesorActual = 'pendiente';
+let estadoProfesorActual = 'pendiente';
 
-  async function cargarProfesoresAdmin(estado = 'pendiente') {
+async function cargarProfesoresAdmin(estado = 'pendiente') {
     estadoProfesorActual = estado;
     const el = document.getElementById('admin-profesores-list');
     if (!el) return;
@@ -1637,7 +1636,9 @@ async function cargarPartidosPubAdmin() {
   function filtrarProfesores(estado) {
     cargarProfesoresAdmin(estado);
   }
+}
 
+async function cargarPartidosPubAdmin() {
   const el = document.getElementById('admin-partidos-pub-list');
   if (!el) return;
   el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>';
