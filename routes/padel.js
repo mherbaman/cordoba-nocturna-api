@@ -1124,7 +1124,10 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
 
     try {
       const subs = await pool.query('SELECT * FROM push_suscripciones', []);
-      const payload = JSON.stringify({ title: '⚡ Nuevo Partido de Pádel', body: categoria + ' en ' + (lugar || 'lugar a confirmar') + ' — ' + fecha + ' ' + hora, url: 'https://cordobalux.com/padel-connect.html' });
+      const catLabels = { octava:'8va categoría', septima:'7ma categoría', sexta:'6ta categoría', quinta:'5ta categoría', cuarta:'4ta categoría', tercera:'3ra categoría', segunda:'2da categoría', primera:'1ra categoría' };
+      const catLabel = catLabels[categoria] || categoria;
+      const lugarLabel = lugar ? lugar : 'lugar a confirmar';
+      const payload = JSON.stringify({ title: '⚡ ¡Unite al partido!', body: catLabel + ' en ' + lugarLabel + ' — ' + fecha + ' ' + hora, url: 'https://cordobalux.com/padel-connect.html' });
       console.log('Suscriptores encontrados:', subs.rows.length);
       for (const sub of subs.rows) {
         console.log('Enviando a:', sub.endpoint.substring(0,50), 'p256dh:', sub.p256dh?.substring(0,10), 'auth:', sub.auth?.substring(0,5));
