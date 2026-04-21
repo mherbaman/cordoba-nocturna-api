@@ -1163,7 +1163,7 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
       for (const j of jugadores.rows) {
         try {
           await resend.emails.send({
-            from: 'partidos@cordobalux.com',
+            from: 'partidos@send.cordobalux.com',
             to: j.email,
             subject: '⚡ Nuevo partido en tu zona — ' + catLabel,
             html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;background:#111;color:#fff;border-radius:12px;padding:24px">
