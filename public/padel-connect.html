@@ -1069,6 +1069,7 @@ async function doLogin(){
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
     await cargarJugadoresPadel();
     mostrarHome();
+    registrarPush();
   }catch(err){
     errEl.textContent=err.message;errEl.style.display='block';
   }finally{hideLoader();}
