@@ -1126,7 +1126,19 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
       const subs = await pool.query('SELECT * FROM push_suscripciones WHERE zona IS NULL OR zona ILIKE $1 OR zona ILIKE $2 OR $1 ILIKE '%' || zona || '%'', [zona, '%' + zona + '%']);
       const payload = JSON.stringify({ title: '⚡ Nuevo Partido de Pádel', body: categoria + ' en ' + (lugar || 'lugar a confirmar') + ' — ' + fecha + ' ' + hora, url: 'https://cordobalux.com/public/padel-connect.html' });
       for (const sub of subs.rows) {
-        try { await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload); }
+        try {
+          await webpush.sendNotification({
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth }
+          }, payload, {
+            vapidDetails: {
+              subject: 'mailto:admin@cordobalux.com',
+              publicKey: 'BBC-BM0lWegmCr3e5ROgYJne9T_OtJDmUFPReuJkAUR83TOE90VmdVXLFBGZGde6VdFo5Ru53jziQPtQ_hZcd4Q',
+              privateKey: '0y0zMBqZdqIdvA7G9FWTENw_2DpOBzAc97uL-oSHFUo'
+            }
+          });
+          console.log('✅ Push enviado a:', sub.endpoint.substring(0, 50));
+        } 
         catch (e) { if (e.statusCode === 410) await pool.query('DELETE FROM push_suscripciones WHERE endpoint = $1', [sub.endpoint]); }
       }
     } catch (e) { console.error('Error push:', e.message); }
