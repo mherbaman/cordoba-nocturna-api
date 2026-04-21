@@ -593,11 +593,16 @@ async function cargarAgenda() {
       const cuando = t.fecha_especifica
         ? new Date(String(t.fecha_especifica).substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
         : `Todos los ${DIAS[t.dia_semana]} (recurrente)`;
+      const ocupados = parseInt(t.reservas_activas) || 0;
+      const cupos = t.cupos || 1;
+      const libres = cupos - ocupados;
+      const color = libres <= 0 ? '#ff2d78' : libres === 1 ? '#fbbf24' : '#22c55e';
       return `
         <div class="turno-card">
           <div style="flex:1">
             <div class="turno-hora">🕐 ${hi} - ${hf}</div>
             <div class="turno-info">📅 ${cuando}${t.zona ? ' · 📍 '+t.zona : ''}</div>
+            <div style="margin-top:6px;font-size:12px;font-weight:700;color:${color}">${libres <= 0 ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares disponibles'}</div>
           </div>
           <button onclick="borrarTurno('${t.id}')" class="btn-sm danger">🗑</button>
         </div>`;
