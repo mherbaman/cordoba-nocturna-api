@@ -1,7 +1,7 @@
 {
   "name": "cordoba-nocturna-api",
   "version": "1.1.0",
-  "description": "Backend API para Córdoba Nocturna",
+  "description": "Backend API para C\u00f3rdoba Nocturna",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -17,6 +17,7 @@
     "pg": "^8.11.3",
     "socket.io": "^4.7.2",
     "uuid": "^9.0.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "resend": "^3.5.0"
   }
 }
