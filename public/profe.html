@@ -355,33 +355,17 @@ async function apiProfe(path, opts={}) {
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">⏰ Nuevo turno disponible</div>
-    <div class="info-box" style="font-size:12px">
-      Podés cargar un turno para una fecha específica o recurrente por día de la semana.
-    </div>
-
-    <label class="field-label">Tipo</label>
-    <select class="input-field" id="turno-tipo" onchange="onTurnoTipoChange()" style="color:#fff;background:#030d06">
-      <option value="fecha">Fecha específica</option>
-      <option value="dia">Día recurrente (ej: todos los lunes)</option>
+    <label class="field-label">Fecha</label>
+    <input class="input-field" id="turno-fecha" type="date" style="color-scheme:dark">
+    <label class="field-label">Cupos (cantidad de alumnos)</label>
+    <select class="input-field" id="turno-cupos" style="color:#fff;background:#030d06">
+      <option value="1">1 alumno (clase particular)</option>
+      <option value="2">2 alumnos</option>
+      <option value="3">3 alumnos</option>
+      <option value="4">4 alumnos</option>
+      <option value="5">5 alumnos</option>
+      <option value="6">6 alumnos</option>
     </select>
-
-    <div id="turno-fecha-row">
-      <label class="field-label">Fecha</label>
-      <input class="input-field" id="turno-fecha" type="date" style="color-scheme:dark">
-    </div>
-
-    <div id="turno-dia-row" style="display:none">
-      <label class="field-label">Día de la semana</label>
-      <select class="input-field" id="turno-dia" style="color:#fff;background:#030d06">
-        <option value="1">Lunes</option>
-        <option value="2">Martes</option>
-        <option value="3">Miércoles</option>
-        <option value="4">Jueves</option>
-        <option value="5">Viernes</option>
-        <option value="6">Sábado</option>
-        <option value="0">Domingo</option>
-      </select>
-    </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
