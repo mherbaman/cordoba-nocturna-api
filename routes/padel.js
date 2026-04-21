@@ -1123,7 +1123,7 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
     );
 
     try {
-      const subs = await pool.query('SELECT * FROM push_suscripciones WHERE zona = $1 OR zona IS NULL', [zona]);
+      const subs = await pool.query('SELECT * FROM push_suscripciones WHERE zona IS NULL OR zona ILIKE $1 OR zona ILIKE $2 OR $1 ILIKE '%' || zona || '%'', [zona, '%' + zona + '%']);
       const payload = JSON.stringify({ title: '⚡ Nuevo Partido de Pádel', body: categoria + ' en ' + (lugar || 'lugar a confirmar') + ' — ' + fecha + ' ' + hora, url: 'https://cordobalux.com/public/padel-connect.html' });
       for (const sub of subs.rows) {
         try { await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload); }
