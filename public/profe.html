@@ -564,7 +564,12 @@ async function enviarResumenWhatsapp() {
         window.open(`https://wa.me/?text=${msg}`, '_blank');
       }
     } else {
-      window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+      if (tel.startsWith('http')) {
+        window.open(tel, '_blank');
+      } else {
+        const telLimpio = tel.replace(/\D/g, '');
+        window.open(`https://wa.me/${telLimpio}?text=${msg}`, '_blank');
+      }
     }
   } catch(e) { alert('Error generando resumen: ' + e.message); }
   finally {
