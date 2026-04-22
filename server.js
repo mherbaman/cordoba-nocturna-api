@@ -59,6 +59,7 @@ app.use('/mensajes',    require('./routes/mensajes'));
 app.use('/superadmin',  require('./routes/superadmin'));
 app.use('/sponsors',    require('./routes/sponsors'));
 app.use('/padel',     require('./routes/padel'));
+app.use('/torneos',   require('./routes/torneos'));
 
 // ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
