@@ -601,6 +601,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <option value="primera">1ra categoría</option>
     </select>
   </div>
+  <div id="falta-jugador-section" style="display:none;padding:0 12px;margin-bottom:4px"></div>
   <div class="pp-list" id="pp-list">
     <div style="display:flex;justify-content:center;padding:40px"><div class="loader"></div></div>
   </div>
@@ -3043,8 +3044,47 @@ async function _renderPartidosPublicos() {
     const partidos = await api('/padel/partidos-publicos?' + params.toString());
     if (!partidos.length) {
       el.innerHTML = '<div style="text-align:center;padding:48px 16px"><div style="font-size:48px;margin-bottom:12px">🎾</div><div style="font-family:Bebas Neue,cursive;font-size:22px;margin-bottom:8px">No hay partidos disponibles</div><p style="color:var(--muted);font-size:13px">Probá otra zona o categoría.</p></div>';
+      document.getElementById('falta-jugador-section').style.display = 'none';
       return;
     }
+
+    // Sección FALTA UN JUGADOR
+    const faltaUno = partidos.filter(p => (parseInt(p.cupos)||4) - (parseInt(p.inscriptos)||0) === 1);
+    const secFalta = document.getElementById('falta-jugador-section');
+    if (faltaUno.length) {
+      const catLabels = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
+      secFalta.style.display = 'block';
+      secFalta.innerHTML = `
+        <div style="background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(251,191,36,.1));border:1.5px solid rgba(239,68,68,.4);border-radius:16px;padding:14px;margin-bottom:8px">
+          <div style="font-family:'Bebas Neue',cursive;font-size:20px;color:#f87171;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+            <span style="animation:pulse 1s infinite">🔥</span> ¡FALTA UN JUGADOR!
+          </div>
+          ${faltaUno.map(p => {
+            const fechaStr = p.fecha ? p.fecha.toString().substring(0,10) : '';
+            const fecha = fechaStr ? new Date(fechaStr+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
+            const hora = p.hora ? p.hora.substring(0,5) : '';
+            const cat = catLabels[p.categoria] || p.categoria;
+            const yoInscripto = (p.jugadores||[]).some(j => j.usuario_id === usuario?.id);
+            const hoy = new Date().toISOString().split('T')[0];
+            const mismodia = fechaStr === hoy;
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+              <div>
+                <div style="font-weight:700;font-size:14px">${cat} — ${p.zona}</div>
+                <div style="color:rgba(255,255,255,.5);font-size:12px">${fecha} ${hora}hs${p.lugar ? ' · ' + p.lugar : ''}</div>
+              </div>
+              ${yoInscripto
+                ? '<span style="color:#22c55e;font-size:12px;font-weight:700">✓ Inscripto</span>'
+                : mismodia
+                  ? '<span style="color:rgba(255,255,255,.3);font-size:11px">Hoy no disponible</span>'
+                  : `<button onclick="unirsePartidoPublico('${p.id}')" style="background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">UNIRME</button>`
+              }
+            </div>`;
+          }).join('')}
+        </div>`;
+    } else {
+      secFalta.style.display = 'none';
+    }
+
     el.innerHTML = partidos.map(p => renderPartidoPublico(p)).join('');
   } catch(err) {
     el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error: ' + err.message + '</div>';
