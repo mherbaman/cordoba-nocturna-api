@@ -1629,27 +1629,34 @@ router.get('/clases/resumen-dia', authUsuario, async (req, res) => {
       weekday:'long', day:'numeric', month:'long'
     });
 
-    const confirmadas = clases.rows.filter(c => c.estado === 'confirmada');
-    const pendientes  = clases.rows.filter(c => c.estado === 'pendiente');
-
     let msg = `🎾 *Resumen de clases — ${fechaLabel}*\n`;
     msg += `👨‍🏫 Profe: ${nombre}\n\n`;
-
     if (!clases.rows.length) {
       msg += `😴 Sin clases programadas para hoy.`;
     } else {
+      const turnos = {};
       clases.rows.forEach(c => {
         const hi = String(c.hora_inicio).substring(0,5);
         const hf = String(c.hora_fin).substring(0,5);
-        const estado = c.estado === 'confirmada' ? '✅' : c.estado === 'cancelada' ? '❌' : '⏳';
-        const lugar = c.zona ? ` · 📍 ${c.zona}${c.lugar ? ' — '+c.lugar : ''}` : '';
-        msg += `${estado} ${hi} - ${hf} · ${c.alumno_nombre}${lugar}\n`;
+        const key = hi + '-' + hf;
+        if (!turnos[key]) turnos[key] = { hi, hf, zona: c.zona, lugar: c.lugar, alumnos: [] };
+        if (c.estado !== 'cancelada') turnos[key].alumnos.push(c.alumno_nombre);
       });
-      msg += `\n📊 Total: ${confirmadas.length} confirmada(s)`;
-      if (pendientes.length) msg += ` · ${pendientes.length} pendiente(s)`;
+      let totalAlumnos = 0;
+      Object.values(turnos).forEach(t => {
+        const lugar = t.zona ? `📍 ${t.zona}${t.lugar ? ' — '+t.lugar : ''}` : '';
+        msg += `🕐 *${t.hi} - ${t.hf}hs*${lugar ? ' · ' + lugar : ''}\n`;
+        if (t.alumnos.length) {
+          t.alumnos.forEach((a, i) => { msg += `   ${i+1}. ${a}\n`; });
+          totalAlumnos += t.alumnos.length;
+        } else {
+          msg += `   (sin alumnos confirmados)\n`;
+        }
+        msg += `\n`;
+      });
+      msg += `📊 *Total: ${totalAlumnos} alumno(s) en ${Object.keys(turnos).length} turno(s)*`;
     }
-
-    res.json({ ok: true, mensaje: msg, whatsapp_grupo, fecha });
+        res.json({ ok: true, mensaje: msg, whatsapp_grupo, fecha });
   } catch (err) {
     console.error('GET /padel/clases/resumen-dia:', err.message);
     res.status(500).json({ error: 'Error interno' });
