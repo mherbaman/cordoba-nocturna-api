@@ -768,8 +768,12 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 
   <div class="tab-content" id="tab-misreservas">
-    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted)">Tus reservas confirmadas</div>
-    <div id="mis-reservas-list" style="padding:8px 0 40px"></div>
+    <div style="padding:14px 18px 8px;display:flex;gap:8px">
+      <button onclick="switchMisReservasTab('canchas',this)" id="btn-mis-canchas" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.15);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">🏟️ Canchas</button>
+      <button onclick="switchMisReservasTab('clases',this)" id="btn-mis-clases" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">🎓 Clases</button>
+    </div>
+    <div id="mis-reservas-list" style="padding:4px 0 40px"></div>
+    <div id="mis-clases-list" style="padding:4px 0 40px;display:none"></div>
   </div>
 
   <!-- TAB RANKING -->
@@ -2700,6 +2704,61 @@ async function cancelarReserva(reservaId, clubNombre) {
     await cargarMisReservas();
   } catch(err) { alert(err.message); }
   finally { hideLoader(); }
+}
+
+function switchMisReservasTab(tab, btn) {
+  document.getElementById('mis-reservas-list').style.display = tab === 'canchas' ? 'block' : 'none';
+  document.getElementById('mis-clases-list').style.display = tab === 'clases' ? 'block' : 'none';
+  document.getElementById('btn-mis-canchas').style.background = tab === 'canchas' ? 'rgba(34,197,94,.15)' : 'transparent';
+  document.getElementById('btn-mis-canchas').style.borderColor = tab === 'canchas' ? 'rgba(34,197,94,.3)' : 'rgba(255,255,255,.1)';
+  document.getElementById('btn-mis-canchas').style.color = tab === 'canchas' ? '#22c55e' : 'rgba(255,255,255,.5)';
+  document.getElementById('btn-mis-clases').style.background = tab === 'clases' ? 'rgba(139,92,246,.15)' : 'transparent';
+  document.getElementById('btn-mis-clases').style.borderColor = tab === 'clases' ? 'rgba(139,92,246,.3)' : 'rgba(255,255,255,.1)';
+  document.getElementById('btn-mis-clases').style.color = tab === 'clases' ? '#a78bfa' : 'rgba(255,255,255,.5)';
+  if (tab === 'clases') cargarMisClases();
+}
+
+async function cargarMisClases() {
+  const el = document.getElementById('mis-clases-list');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const clases = await api('/padel/clases/mis-reservas-alumno');
+    if (!clases.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés clases reservadas aún.<br>Buscá un profe en 🎓 Clases Particulares</div>';
+      return;
+    }
+    const hoy = new Date().toISOString().split('T')[0];
+    el.innerHTML = clases.map(c => {
+      const esPasada = c.fecha < hoy;
+      const colorEstado = c.estado === 'cancelada' ? '#ef4444' : c.estado === 'confirmada' ? '#22c55e' : '#f59e0b';
+      const labelEstado = c.estado === 'cancelada' ? '✕ Cancelada' : c.estado === 'confirmada' ? '✓ Confirmada' : '⏳ Pendiente';
+      const fecha = new Date(String(c.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short' });
+      return `<div style="background:var(--card);border:1px solid ${c.estado==='cancelada'?'rgba(239,68,68,.2)':'rgba(139,92,246,.2)'};border-radius:16px;padding:16px;margin:8px 18px;opacity:${esPasada||c.estado==='cancelada'?'.6':'1'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div style="display:flex;gap:10px;align-items:center">
+            ${c.profesor_foto ? `<img src="${c.profesor_foto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,.4)">` : `<div style="width:40px;height:40px;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:18px">🎾</div>`}
+            <div>
+              <div style="font-weight:700;font-size:15px">${c.profesor_nombre}</div>
+              <div style="color:var(--muted);font-size:12px">Clase particular</div>
+            </div>
+          </div>
+          <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:13px;margin-bottom:10px">
+          <span>📅 ${fecha}</span>
+          <span>🕐 ${String(c.hora_inicio).substring(0,5)} - ${String(c.hora_fin).substring(0,5)}</span>
+        </div>
+        ${c.lugar ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📍 ${c.lugar}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          ${c.precio_cobrado ? `<span style="color:#facc15;font-weight:700">💰 $${c.precio_cobrado}</span>` : '<span></span>'}
+          ${c.profesor_whatsapp && !esPasada && c.estado !== 'cancelada' ? `<a href="https://wa.me/${c.profesor_whatsapp.replace(/\D/g,'')}" target="_blank" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;text-decoration:none">💬 Profe</a>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
 }
 </script>
 
