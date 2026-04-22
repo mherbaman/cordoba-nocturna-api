@@ -565,6 +565,10 @@ async function enviarResumenWhatsapp() {
       }
     } else {
       if (tel.startsWith('http')) {
+        try {
+          await navigator.clipboard.writeText(decodeURIComponent(msg));
+        } catch(e) {}
+        alert('✅ Mensaje copiado al portapapeles.\nAbriendo el grupo — pegalo con larga presión o Ctrl+V');
         window.open(tel, '_blank');
       } else {
         const telLimpio = tel.replace(/\D/g, '');
