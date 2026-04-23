@@ -27,7 +27,7 @@ const APP_URL = 'https://cordobalux.com';
 // GET /torneos — lista torneos visibles
 router.get('/', async (req, res) => {
   try {
-    const { rows } = await db.query(`
+    const { rows } = await pool.query(`
       SELECT t.*,
         json_agg(
           json_build_object(
@@ -77,10 +77,10 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const torneo = await db.query('SELECT * FROM torneos WHERE id = $1', [id]);
+    const torneo = await pool.query('SELECT * FROM torneos WHERE id = $1', [id]);
     if (!torneo.rows[0]) return res.status(404).json({ error: 'Torneo no encontrado' });
 
-    const categorias = await db.query(`
+    const categorias = await pool.query(`
       SELECT ct.*,
         (SELECT COUNT(*) FROM parejas_torneo p WHERE p.categoria_id = ct.id AND p.estado = 'confirmada') AS inscriptos
       FROM categorias_torneo ct WHERE ct.torneo_id = $1 AND ct.activa = true
@@ -88,7 +88,7 @@ router.get('/:id', async (req, res) => {
     `, [id]);
 
     // Posiciones por categoría/grupo
-    const posiciones = await db.query(`
+    const posiciones = await pool.query(`
       SELECT pos.*, pt.nombre_pareja,
         u1.nombre AS jugador1_nombre, u1.foto_url AS jugador1_foto,
         u2.nombre AS jugador2_nombre, u2.foto_url AS jugador2_foto
@@ -101,7 +101,7 @@ router.get('/:id', async (req, res) => {
     `, [id]);
 
     // Partidos
-    const partidos = await db.query(`
+    const partidos = await pool.query(`
       SELECT par.*,
         p1.nombre_pareja AS pareja1_nombre,
         p2.nombre_pareja AS pareja2_nombre,
@@ -131,7 +131,7 @@ router.get('/confirmar/:token', async (req, res) => {
   try {
     const { token } = req.params;
 
-    const { rows } = await db.query(`
+    const { rows } = await pool.query(`
       SELECT pt.*, t.nombre AS torneo_nombre, ct.nombre AS categoria_nombre,
              u1.nombre AS jugador1_nombre
       FROM parejas_torneo pt
@@ -173,7 +173,7 @@ router.post('/confirmar/:token', async (req, res) => {
       return res.status(400).json({ error: 'Acción inválida' });
     }
 
-    const { rows } = await db.query(`
+    const { rows } = await pool.query(`
       SELECT pt.*, t.nombre AS torneo_nombre, ct.nombre AS categoria_nombre,
              u1.nombre AS jugador1_nombre, u1.email AS jugador1_email
       FROM parejas_torneo pt
@@ -194,7 +194,7 @@ router.post('/confirmar/:token', async (req, res) => {
 
     const nuevoEstado = accion === 'aceptar' ? 'confirmada' : 'rechazada';
 
-    await db.query(`
+    await pool.query(`
       UPDATE parejas_torneo
       SET estado = $1, actualizado_en = NOW()
       WHERE token_invitacion = $2
@@ -232,21 +232,21 @@ router.post('/inscribir', authUsuario, async (req, res) => {
     const jugador1_id = req.usuario.id;
 
     // Validar torneo
-    const torneoQ = await db.query(
+    const torneoQ = await pool.query(
       "SELECT * FROM torneos WHERE id = $1 AND estado = 'inscripciones_abiertas'",
       [torneo_id]
     );
     if (!torneoQ.rows[0]) return res.status(400).json({ error: 'El torneo no está recibiendo inscripciones' });
 
     // Validar categoría
-    const catQ = await db.query(
+    const catQ = await pool.query(
       'SELECT * FROM categorias_torneo WHERE id = $1 AND torneo_id = $2 AND activa = true',
       [categoria_id, torneo_id]
     );
     if (!catQ.rows[0]) return res.status(400).json({ error: 'Categoría no válida' });
 
     // Verificar cupo
-    const inscriptosQ = await db.query(
+    const inscriptosQ = await pool.query(
       "SELECT COUNT(*) FROM parejas_torneo WHERE categoria_id = $1 AND estado = 'confirmada'",
       [categoria_id]
     );
@@ -256,7 +256,7 @@ router.post('/inscribir', authUsuario, async (req, res) => {
     }
 
     // Verificar que jugador1 no esté ya inscripto en esta categoría
-    const yaInscriptoQ = await db.query(`
+    const yaInscriptoQ = await pool.query(`
       SELECT id FROM parejas_torneo
       WHERE categoria_id = $1 AND jugador1_id = $2 AND estado NOT IN ('rechazada', 'eliminada')
     `, [categoria_id, jugador1_id]);
@@ -265,7 +265,7 @@ router.post('/inscribir', authUsuario, async (req, res) => {
     }
 
     // Buscar si jugador2 existe en el sistema
-    const jugador2Q = await db.query(
+    const jugador2Q = await pool.query(
       'SELECT id, nombre FROM usuarios WHERE email = $1',
       [jugador2_email.toLowerCase()]
     );
@@ -277,7 +277,7 @@ router.post('/inscribir', authUsuario, async (req, res) => {
     expira.setHours(expira.getHours() + 72);
 
     // Crear pareja
-    const nuevaPareja = await db.query(`
+    const nuevaPareja = await pool.query(`
       INSERT INTO parejas_torneo
         (torneo_id, categoria_id, jugador1_id, jugador2_id, jugador2_email, jugador2_nombre,
          nombre_pareja, token_invitacion, token_expira_en, estado)
@@ -328,7 +328,7 @@ router.post('/inscribir', authUsuario, async (req, res) => {
 // GET /torneos/mis-inscripciones — parejas del usuario logueado
 router.get('/mis-inscripciones', authUsuario, async (req, res) => {
   try {
-    const { rows } = await db.query(`
+    const { rows } = await pool.query(`
       SELECT pt.*,
         t.nombre AS torneo_nombre, t.fecha_inicio, t.fecha_fin, t.sede, t.estado AS torneo_estado,
         ct.nombre AS categoria_nombre,
@@ -376,7 +376,7 @@ router.post('/', authAdmin, async (req, res) => {
       hora_fin_dia: hora_fin_dia || '21:00'
     });
 
-    const { rows } = await db.query(`
+    const { rows } = await pool.query(`
       INSERT INTO torneos
         (nombre, descripcion, sede, fecha_inicio, fecha_fin,
          cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min,
@@ -399,7 +399,7 @@ router.post('/', authAdmin, async (req, res) => {
     // Crear categorías si vienen en el body
     if (categorias && categorias.length > 0) {
       for (const cat of categorias) {
-        await db.query(`
+        await pool.query(`
           INSERT INTO categorias_torneo (torneo_id, nombre, nivel, genero, cupo_max)
           VALUES ($1, $2, $3, $4, $5)
         `, [torneo.id, cat.nombre, cat.nivel, cat.genero, cat.cupo_max || 16]);
@@ -429,7 +429,7 @@ router.put('/:id/estado', authAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Estado inválido' });
     }
 
-    await db.query(
+    await pool.query(
       'UPDATE torneos SET estado = $1, actualizado_en = NOW() WHERE id = $2',
       [estado, id]
     );
@@ -452,7 +452,7 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
     const { id } = req.params;
     const { resultado_pareja1, resultado_pareja2, walkover_ganador_id } = req.body;
 
-    const partidoQ = await db.query(
+    const partidoQ = await pool.query(
       'SELECT * FROM partidos_torneo WHERE id = $1',
       [id]
     );
@@ -482,7 +482,7 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
       updateData.ganador_id = parsed.ganador === 1 ? partido.pareja1_id : partido.pareja2_id;
     }
 
-    await db.query(`
+    await pool.query(`
       UPDATE partidos_torneo SET
         estado = $1, resultado_pareja1 = $2, resultado_pareja2 = $3,
         sets_pareja1 = $4, sets_pareja2 = $5,
@@ -535,7 +535,7 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
 const authDelegado = async (req, res, next) => {
   try {
     // authUsuario ya cargó req.usuario
-    const { rows } = await db.query(
+    const { rows } = await pool.query(
       'SELECT * FROM delegados_torneo WHERE usuario_id = $1 AND activo = true',
       [req.usuario.id]
     );
@@ -582,7 +582,7 @@ router.get('/delegado/partidos-hoy', authUsuario, authDelegado, async (req, res)
 
     q += ' ORDER BY par.hora_inicio, par.cancha';
 
-    const { rows } = await db.query(q, params);
+    const { rows } = await pool.query(q, params);
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -595,17 +595,17 @@ router.get('/delegado/partidos-hoy', authUsuario, authDelegado, async (req, res)
 // ============================================================
 
 async function generarFixtureCompleto(torneoId) {
-  const torneoQ = await db.query('SELECT * FROM torneos WHERE id = $1', [torneoId]);
+  const torneoQ = await pool.query('SELECT * FROM torneos WHERE id = $1', [torneoId]);
   const torneo = torneoQ.rows[0];
 
-  const categoriasQ = await db.query(
+  const categoriasQ = await pool.query(
     'SELECT * FROM categorias_torneo WHERE torneo_id = $1 AND activa = true',
     [torneoId]
   );
 
   const categorias = [];
   for (const cat of categoriasQ.rows) {
-    const parejasQ = await db.query(
+    const parejasQ = await pool.query(
       "SELECT * FROM parejas_torneo WHERE categoria_id = $1 AND estado = 'confirmada'",
       [cat.id]
     );
@@ -616,7 +616,7 @@ async function generarFixtureCompleto(torneoId) {
 
   // Insertar todos los partidos
   for (const p of partidos) {
-    await db.query(`
+    await pool.query(`
       INSERT INTO partidos_torneo
         (torneo_id, categoria_id, fase, grupo, ronda, pareja1_id, pareja2_id,
          cancha, fecha, hora_inicio, hora_fin, estado)
@@ -631,7 +631,7 @@ async function generarFixtureCompleto(torneoId) {
   // Inicializar posiciones
   for (const cat of categorias) {
     for (const pareja of cat.parejas) {
-      await db.query(`
+      await pool.query(`
         INSERT INTO posiciones_torneo
           (torneo_id, categoria_id, pareja_id, grupo)
         VALUES ($1, $2, $3, $4)
@@ -641,7 +641,7 @@ async function generarFixtureCompleto(torneoId) {
   }
 
   // Actualizar estado a en_curso
-  await db.query(
+  await pool.query(
     "UPDATE torneos SET estado = 'en_curso', actualizado_en = NOW() WHERE id = $1",
     [torneoId]
   );
@@ -653,12 +653,12 @@ async function generarFixtureCompleto(torneoId) {
 }
 
 async function recalcularPosiciones(torneoId, categoriaId, grupo) {
-  const parejasQ = await db.query(
+  const parejasQ = await pool.query(
     'SELECT * FROM parejas_torneo WHERE categoria_id = $1 AND numero_grupo = $2 AND estado = $3',
     [categoriaId, grupo, 'confirmada']
   );
 
-  const partidosQ = await db.query(
+  const partidosQ = await pool.query(
     "SELECT * FROM partidos_torneo WHERE torneo_id = $1 AND categoria_id = $2 AND grupo = $3 AND fase = 'grupos'",
     [torneoId, categoriaId, grupo]
   );
@@ -666,7 +666,7 @@ async function recalcularPosiciones(torneoId, categoriaId, grupo) {
   const posiciones = calcularPosiciones(parejasQ.rows, partidosQ.rows);
 
   for (const pos of posiciones) {
-    await db.query(`
+    await pool.query(`
       INSERT INTO posiciones_torneo
         (torneo_id, categoria_id, pareja_id, grupo,
          partidos_jugados, partidos_ganados, partidos_perdidos,
@@ -696,7 +696,7 @@ async function recalcularPosiciones(torneoId, categoriaId, grupo) {
 
 async function verificarYGenerarBracket(torneoId, categoriaId) {
   // Verificar si todos los partidos de grupos están jugados
-  const pendientesQ = await db.query(`
+  const pendientesQ = await pool.query(`
     SELECT COUNT(*) FROM partidos_torneo
     WHERE torneo_id = $1 AND categoria_id = $2
       AND fase = 'grupos' AND estado NOT IN ('jugado', 'walkover')
@@ -705,7 +705,7 @@ async function verificarYGenerarBracket(torneoId, categoriaId) {
   if (parseInt(pendientesQ.rows[0].count) > 0) return; // Aún hay partidos pendientes
 
   // Verificar que no existan ya partidos de semifinal para esta categoría
-  const semisQ = await db.query(`
+  const semisQ = await pool.query(`
     SELECT COUNT(*) FROM partidos_torneo
     WHERE torneo_id = $1 AND categoria_id = $2 AND fase = 'semifinal'
   `, [torneoId, categoriaId]);
@@ -713,14 +713,14 @@ async function verificarYGenerarBracket(torneoId, categoriaId) {
   if (parseInt(semisQ.rows[0].count) > 0) return; // Ya se generó el bracket
 
   // Obtener posiciones finales
-  const posicionesQ = await db.query(
+  const posicionesQ = await pool.query(
     'SELECT * FROM posiciones_torneo WHERE torneo_id = $1 AND categoria_id = $2 ORDER BY grupo, posicion',
     [torneoId, categoriaId]
   );
 
   // Obtener slots libres para el bracket
-  const torneoQ = await db.query('SELECT * FROM torneos WHERE id = $1', [torneoId]);
-  const slotsUsadosQ = await db.query(
+  const torneoQ = await pool.query('SELECT * FROM torneos WHERE id = $1', [torneoId]);
+  const slotsUsadosQ = await pool.query(
     "SELECT fecha, hora_inicio, cancha FROM partidos_torneo WHERE torneo_id = $1",
     [torneoId]
   );
@@ -729,7 +729,7 @@ async function verificarYGenerarBracket(torneoId, categoriaId) {
   const todosSlots = generarSlots(torneoQ.rows[0]);
   const slotsLibres = todosSlots.filter(s => !slotsUsados.has(`${s.fecha}-${s.hora_inicio}-${s.cancha}`));
 
-  const categoriaQ = await db.query('SELECT * FROM categorias_torneo WHERE id = $1', [categoriaId]);
+  const categoriaQ = await pool.query('SELECT * FROM categorias_torneo WHERE id = $1', [categoriaId]);
 
   const bracketPartidos = generarBracket(
     torneoQ.rows[0],
@@ -739,7 +739,7 @@ async function verificarYGenerarBracket(torneoId, categoriaId) {
   );
 
   for (const p of bracketPartidos) {
-    await db.query(`
+    await pool.query(`
       INSERT INTO partidos_torneo
         (torneo_id, categoria_id, fase, ronda, pareja1_id, pareja2_id,
          cancha, fecha, hora_inicio, hora_fin, estado)
@@ -759,18 +759,18 @@ async function verificarYGenerarBracket(torneoId, categoriaId) {
 
 async function actualizarBracket(torneoId, categoriaId, semifinalId, ganadorId) {
   // Determinar si es SF1 o SF2 y actualizar Final y 3er puesto
-  const semisQ = await db.query(`
+  const semisQ = await pool.query(`
     SELECT * FROM partidos_torneo
     WHERE torneo_id = $1 AND categoria_id = $2 AND fase = 'semifinal'
     ORDER BY id
   `, [torneoId, categoriaId]);
 
-  const finalQ = await db.query(`
+  const finalQ = await pool.query(`
     SELECT * FROM partidos_torneo
     WHERE torneo_id = $1 AND categoria_id = $2 AND fase = 'final'
   `, [torneoId, categoriaId]);
 
-  const tercerQ = await db.query(`
+  const tercerQ = await pool.query(`
     SELECT * FROM partidos_torneo
     WHERE torneo_id = $1 AND categoria_id = $2 AND fase = 'tercer_puesto'
   `, [torneoId, categoriaId]);
@@ -785,20 +785,20 @@ async function actualizarBracket(torneoId, categoriaId, semifinalId, ganadorId) 
   const esSF1 = semisQ.rows[0].id === parseInt(semifinalId);
 
   if (esSF1) {
-    await db.query(
+    await pool.query(
       'UPDATE partidos_torneo SET pareja1_id = $1 WHERE id = $2',
       [ganadorId, finalQ.rows[0].id]
     );
-    await db.query(
+    await pool.query(
       'UPDATE partidos_torneo SET pareja1_id = $1 WHERE id = $2',
       [perdedorId, tercerQ.rows[0].id]
     );
   } else {
-    await db.query(
+    await pool.query(
       'UPDATE partidos_torneo SET pareja2_id = $1 WHERE id = $2',
       [ganadorId, finalQ.rows[0].id]
     );
-    await db.query(
+    await pool.query(
       'UPDATE partidos_torneo SET pareja2_id = $1 WHERE id = $2',
       [perdedorId, tercerQ.rows[0].id]
     );
@@ -818,7 +818,7 @@ async function enviarFixturePorEmail(torneoId, categorias, partidos) {
 
       if (!pareja.jugador1_id) continue;
 
-      const emailsQ = await db.query(
+      const emailsQ = await pool.query(
         'SELECT email, nombre FROM usuarios WHERE id = ANY($1)',
         [[pareja.jugador1_id, pareja.jugador2_id].filter(Boolean)]
       );
@@ -836,7 +836,7 @@ async function enviarFixturePorEmail(torneoId, categorias, partidos) {
 }
 
 async function enviarEmailResultado(partido, resultado) {
-  const parejasQ = await db.query(`
+  const parejasQ = await pool.query(`
     SELECT pt.*, u1.email AS email1, u1.nombre AS nombre1,
            u2.email AS email2, u2.nombre AS nombre2
     FROM parejas_torneo pt
@@ -845,7 +845,7 @@ async function enviarEmailResultado(partido, resultado) {
     WHERE pt.id = ANY($1)
   `, [[partido.pareja1_id, partido.pareja2_id].filter(Boolean)]);
 
-  const ganadorQ = await db.query(
+  const ganadorQ = await pool.query(
     'SELECT nombre_pareja FROM parejas_torneo WHERE id = $1',
     [resultado.ganador_id]
   );
@@ -864,15 +864,15 @@ async function enviarEmailResultado(partido, resultado) {
 }
 
 async function notificarClasificados(torneoId, categoriaId, posiciones) {
-  const torneoQ = await db.query('SELECT nombre FROM torneos WHERE id = $1', [torneoId]);
-  const catQ = await db.query('SELECT nombre FROM categorias_torneo WHERE id = $1', [categoriaId]);
+  const torneoQ = await pool.query('SELECT nombre FROM torneos WHERE id = $1', [torneoId]);
+  const catQ = await pool.query('SELECT nombre FROM categorias_torneo WHERE id = $1', [categoriaId]);
 
   const top2Grupo1 = posiciones.filter(p => p.grupo === 1 && p.posicion <= 2);
   const top2Grupo2 = posiciones.filter(p => p.grupo === 2 && p.posicion <= 2);
   const clasificados = [...top2Grupo1, ...top2Grupo2];
 
   for (const pos of clasificados) {
-    const pareja = await db.query(`
+    const pareja = await pool.query(`
       SELECT pt.*, u1.email AS email1, u2.email AS email2
       FROM parejas_torneo pt
       JOIN usuarios u1 ON u1.id = pt.jugador1_id
