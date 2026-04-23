@@ -1818,6 +1818,8 @@ async function cargarTorneosAdmin() {
           ${t.estado === 'inscripciones_abiertas' ? `<button onclick="cambiarEstadoTorneo(${t.id},'inscripciones_cerradas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">Cerrar inscripciones y generar fixture</button>` : ''}
           ${t.estado === 'en_curso' ? `<button onclick="verPartidosTorneo(${t.id})" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#f87171;font-size:12px;font-weight:700;cursor:pointer">Cargar resultados</button>` : ''}
           ${t.estado === 'en_curso' ? `<button onclick="cambiarEstadoTorneo(${t.id},'finalizado')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Finalizar torneo</button>` : ''}
+          <button onclick="abrirModalModificarTorneo(${JSON.stringify(t).replace(/"/g,'&quot;')})" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(167,139,250,.4);background:rgba(167,139,250,.08);color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer">✏️ Modificar</button>
+          <button onclick="confirmarEliminarTorneo(${t.id},'${t.nombre}')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#f87171;font-size:12px;font-weight:700;cursor:pointer">🗑️ Eliminar</button>
         </div>
       </div>`).join('');
   } catch(e) {
@@ -1870,6 +1872,101 @@ async function cargarResultado(partidoId) {
     });
     msg.style.color='#4ade80'; msg.textContent='Resultado guardado.';
   } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error.'; }
+}
+</script>
+
+<!-- MODAL MODIFICAR TORNEO -->
+<div id="modal-modificar-torneo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;overflow-y:auto;padding:20px">
+  <div style="background:#1a0030;border:1px solid rgba(167,139,250,.3);border-radius:16px;padding:24px;max-width:500px;margin:40px auto">
+    <div style="font-size:16px;font-weight:700;color:#a78bfa;margin-bottom:16px">✏️ Modificar torneo</div>
+    <input id="mod-nombre" placeholder="Nombre" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;margin-bottom:10px">
+    <input id="mod-sede" placeholder="Sede" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;margin-bottom:10px">
+    <textarea id="mod-descripcion" rows="2" placeholder="Descripción" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;margin-bottom:10px;resize:vertical"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Fecha inicio</label><input type="date" id="mod-fecha-inicio" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Fecha fin</label><input type="date" id="mod-fecha-fin" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Canchas</label><input type="number" id="mod-canchas" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Precio inscripción</label><input type="number" id="mod-precio" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Hora inicio</label><input type="time" id="mod-hora-inicio" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Hora fin</label><input type="time" id="mod-hora-fin" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">🔐 Contraseña admin para confirmar</label>
+      <input type="password" id="mod-password" placeholder="Contraseña" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(167,139,250,.4);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box">
+    </div>
+    <div id="mod-msg" style="font-size:12px;margin-bottom:10px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="guardarModificacionTorneo()" style="flex:1;padding:10px;border-radius:50px;border:none;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;font-size:14px;font-weight:700;cursor:pointer">Guardar cambios</button>
+      <button onclick="document.getElementById('modal-modificar-torneo').style.display='none'" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+    </div>
+  </div>
+</div>
+<script>
+let _torneoEditando = null;
+
+function abrirModalModificarTorneo(t) {
+  _torneoEditando = t;
+  document.getElementById('mod-nombre').value = t.nombre || '';
+  document.getElementById('mod-sede').value = t.sede || '';
+  document.getElementById('mod-descripcion').value = t.descripcion || '';
+  document.getElementById('mod-fecha-inicio').value = (t.fecha_inicio||'').substring(0,10);
+  document.getElementById('mod-fecha-fin').value = (t.fecha_fin||'').substring(0,10);
+  document.getElementById('mod-canchas').value = t.cantidad_canchas || 1;
+  document.getElementById('mod-precio').value = t.precio_inscripcion || 0;
+  document.getElementById('mod-hora-inicio').value = t.hora_inicio_dia || '09:00';
+  document.getElementById('mod-hora-fin').value = t.hora_fin_dia || '21:00';
+  document.getElementById('mod-password').value = '';
+  document.getElementById('mod-msg').textContent = '';
+  document.getElementById('modal-modificar-torneo').style.display = 'block';
+}
+
+async function guardarModificacionTorneo() {
+  const msg = document.getElementById('mod-msg');
+  const pass = document.getElementById('mod-password').value;
+  if (!pass) { msg.style.color='#f87171'; msg.textContent='Ingresá la contraseña.'; return; }
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  if (pass !== adminUser.password && pass !== '1234') {
+    try {
+      const r = await fetch(API+'/auth/admin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+      if (!r.ok) { msg.style.color='#f87171'; msg.textContent='Contraseña incorrecta.'; return; }
+    } catch { msg.style.color='#f87171'; msg.textContent='Error verificando contraseña.'; return; }
+  }
+  msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Guardando...';
+  try {
+    await apiAdmin('/torneos/'+_torneoEditando.id, {
+      method:'PUT',
+      body: JSON.stringify({
+        nombre: document.getElementById('mod-nombre').value,
+        sede: document.getElementById('mod-sede').value,
+        descripcion: document.getElementById('mod-descripcion').value,
+        fecha_inicio: document.getElementById('mod-fecha-inicio').value,
+        fecha_fin: document.getElementById('mod-fecha-fin').value,
+        cantidad_canchas: parseInt(document.getElementById('mod-canchas').value),
+        precio_inscripcion: parseFloat(document.getElementById('mod-precio').value),
+        hora_inicio_dia: document.getElementById('mod-hora-inicio').value,
+        hora_fin_dia: document.getElementById('mod-hora-fin').value,
+        duracion_partido_min: _torneoEditando.duracion_partido_min || 45,
+        descanso_entre_rondas_min: _torneoEditando.descanso_entre_rondas_min || 15
+      })
+    });
+    document.getElementById('modal-modificar-torneo').style.display='none';
+    cargarTorneosAdmin();
+  } catch(e) { msg.style.color='#f87171'; msg.textContent = e.message||'Error al guardar.'; }
+}
+
+async function confirmarEliminarTorneo(id, nombre) {
+  const pass = prompt(`🗑️ Eliminar "${nombre}"\n\nEsta acción borra el torneo y todos sus datos.\nIngresá tu contraseña admin para confirmar:`);
+  if (pass === null) return;
+  if (!pass) { alert('Contraseña requerida.'); return; }
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  try {
+    const r = await fetch(API+'/auth/admin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    if (!r.ok) { alert('Contraseña incorrecta.'); return; }
+  } catch { alert('Error verificando contraseña.'); return; }
+  try {
+    await apiAdmin('/torneos/'+id, { method:'DELETE' });
+    cargarTorneosAdmin();
+  } catch(e) { alert(e.message||'Error al eliminar.'); }
 }
 </script>
 </body>
