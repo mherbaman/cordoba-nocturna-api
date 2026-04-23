@@ -492,7 +492,7 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
 
     let updateData = {
       estado: 'jugado',
-      cargado_por: req.admin.id,
+      cargado_por: null,
       cargado_en: new Date()
     };
 
