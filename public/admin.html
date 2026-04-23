@@ -1801,8 +1801,8 @@ async function cargarTorneosAdmin() {
   try {
     const torneos = await apiAdmin('/torneos/admin/lista');
     if (!torneos.length) { el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">No hay torneos creados.</p>'; return; }
-    const estadoLabel = { borrador:'Borrador', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' };
-    const estadoColor = { borrador:'rgba(255,255,255,.3)', inscripciones_abiertas:'#4ade80', inscripciones_cerradas:'#fbbf24', en_curso:'#f87171', finalizado:'rgba(255,255,255,.3)' };
+    const estadoLabel = { borrador:'Borrador', proximamente:'Próximamente', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' };
+    const estadoColor = { borrador:'rgba(255,255,255,.3)', proximamente:'#a78bfa', inscripciones_abiertas:'#4ade80', inscripciones_cerradas:'#fbbf24', en_curso:'#f87171', finalizado:'rgba(255,255,255,.3)' };
     el.innerHTML = torneos.map(t => `
       <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:16px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
@@ -1814,7 +1814,7 @@ async function cargarTorneosAdmin() {
           <span style="font-size:11px;font-weight:700;color:${estadoColor[t.estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[t.estado]||'#fff'};white-space:nowrap">${estadoLabel[t.estado]||t.estado}</span>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          ${t.estado === 'borrador' ? `<button onclick="cambiarEstadoTorneo(${t.id},'inscripciones_abiertas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">Abrir inscripciones</button>` : ''}
+          ${t.estado === 'borrador' || t.estado === 'proximamente' ? `<button onclick="cambiarEstadoTorneo(${t.id},'inscripciones_abiertas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">Abrir inscripciones</button>` : ''}
           ${t.estado === 'inscripciones_abiertas' ? `<button onclick="cambiarEstadoTorneo(${t.id},'inscripciones_cerradas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">Cerrar inscripciones y generar fixture</button>` : ''}
           ${t.estado === 'en_curso' ? `<button onclick="verPartidosTorneo(${t.id})" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#f87171;font-size:12px;font-weight:700;cursor:pointer">Cargar resultados</button>` : ''}
           ${t.estado === 'en_curso' ? `<button onclick="cambiarEstadoTorneo(${t.id},'finalizado')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Finalizar torneo</button>` : ''}
