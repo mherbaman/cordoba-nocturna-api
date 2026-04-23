@@ -418,6 +418,37 @@ router.post('/', authAdmin, async (req, res) => {
   }
 });
 
+// PUT /torneos/:id — modificar torneo
+router.put('/:id', authAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, descripcion, sede, fecha_inicio, fecha_fin, cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min, hora_inicio_dia, hora_fin_dia, precio_inscripcion } = req.body;
+    const { rows } = await pool.query(`
+      UPDATE torneos SET nombre=$1, descripcion=$2, sede=$3, fecha_inicio=$4, fecha_fin=$5,
+        cantidad_canchas=$6, duracion_partido_min=$7, descanso_entre_rondas_min=$8,
+        hora_inicio_dia=$9, hora_fin_dia=$10, precio_inscripcion=$11
+      WHERE id=$12 RETURNING *
+    `, [nombre, descripcion, sede, fecha_inicio, fecha_fin, cantidad_canchas||1, duracion_partido_min||45, descanso_entre_rondas_min||15, hora_inicio_dia||'09:00', hora_fin_dia||'21:00', precio_inscripcion||0, id]);
+    if (!rows.length) return res.status(404).json({ error: 'Torneo no encontrado' });
+    res.json({ ok: true, torneo: rows[0] });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error al modificar torneo' }); }
+});
+
+// DELETE /torneos/:id — eliminar torneo
+router.delete('/:id', authAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM parejas_torneo WHERE torneo_id=$1', [id]);
+    await pool.query('DELETE FROM categorias_torneo WHERE torneo_id=$1', [id]);
+    await pool.query('DELETE FROM partidos_torneo WHERE torneo_id=$1', [id]);
+    await pool.query('DELETE FROM posiciones_torneo WHERE torneo_id=$1', [id]);
+    await pool.query('DELETE FROM delegados_torneo WHERE torneo_id=$1', [id]);
+    const { rows } = await pool.query('DELETE FROM torneos WHERE id=$1 RETURNING id', [id]);
+    if (!rows.length) return res.status(404).json({ error: 'Torneo no encontrado' });
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error al eliminar torneo' }); }
+});
+
 // PUT /torneos/:id/estado — cambiar estado
 router.put('/:id/estado', authAdmin, async (req, res) => {
   try {
