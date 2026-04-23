@@ -1860,7 +1860,7 @@ async function verPartidosTorneo(torneoId) {
       <div style="background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:12px;margin-bottom:8px">
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">${p.fase.toUpperCase()} · Gr.${p.grupo||'-'} R.${p.ronda||'-'} · C.${p.cancha}</div>
         <div style="font-size:13px;color:#fff;margin-bottom:4px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
-        <div style="font-size:12px;color:#4ade80;margin-bottom:8px">Resultado actual: ${p.resultado_pareja1||'?'} / ${p.resultado_pareja2||'?'}${p.tiebreak_pareja1 != null ? ' · TB: '+p.tiebreak_pareja1+'-'+p.tiebreak_pareja2 : ''}</div>
+        <div style="font-size:12px;color:#4ade80;margin-bottom:8px">Resultado actual: ${p.resultado_pareja1||'?'} / ${p.resultado_pareja2||'?'}${p.tiebreak_pareja1 != null ? ' &nbsp;·&nbsp; Tiebreak: '+p.tiebreak_pareja1+'-'+p.tiebreak_pareja2 : ''}</div>
         <button onclick="document.getElementById('mod-form-${p.id}').style.display='block'" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">✏️ Modificar</button>
         <div id="mod-form-${p.id}" style="display:none;margin-top:10px">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
@@ -1874,6 +1874,10 @@ async function verPartidosTorneo(torneoId) {
             <span style="color:rgba(255,255,255,.3)">-</span>
             <input id="mod-tb2-${p.id}" type="number" placeholder="5" value="${p.tiebreak_pareja2!=null?p.tiebreak_pareja2:''}" min="0" max="99" style="width:60px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
             <button onclick="modificarResultado(${p.id})" style="padding:6px 12px;border-radius:8px;border:none;background:#16a34a;color:#fff;font-size:12px;font-weight:700;cursor:pointer">GUARDAR</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.3);white-space:nowrap">🔐 Contraseña admin:</span>
+            <input id="mod-pass-${p.id}" type="password" placeholder="Contraseña" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(239,68,68,.3);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
           </div>
           <div id="mod-msg-${p.id}" style="font-size:12px;margin-top:4px"></div>
         </div>
@@ -1924,8 +1928,16 @@ async function modificarResultado(partidoId) {
   const r2 = document.getElementById('mod-res2-' + partidoId).value.trim();
   const tb1 = document.getElementById('mod-tb1-' + partidoId)?.value.trim() || '';
   const tb2 = document.getElementById('mod-tb2-' + partidoId)?.value.trim() || '';
+  const pass = document.getElementById('mod-pass-' + partidoId)?.value.trim() || '';
   const msg = document.getElementById('mod-msg-' + partidoId);
   if (!r1 || !r2) { msg.style.color='#f87171'; msg.textContent='Ingresa los dos resultados.'; return; }
+  if (!pass) { msg.style.color='#f87171'; msg.textContent='Ingresá la contraseña admin.'; return; }
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Verificando contraseña...';
+  try {
+    const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    if (!r.ok) { msg.style.color='#f87171'; msg.textContent='Contraseña incorrecta.'; return; }
+  } catch { msg.style.color='#f87171'; msg.textContent='Error verificando contraseña.'; return; }
   msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Guardando...';
   try {
     const body = { resultado_pareja1: r1, resultado_pareja2: r2 };
