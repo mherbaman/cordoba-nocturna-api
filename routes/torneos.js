@@ -644,6 +644,17 @@ async function generarFixtureCompleto(torneoId) {
   }
 
   const partidos = generarFixture(torneo, categorias);
+  // Asignar numero_grupo a cada pareja
+  for (const p of partidos) {
+    if (p.fase !== "grupos") continue;
+    await pool.query("UPDATE parejas_torneo SET numero_grupo=$1 WHERE id=$2", [p.grupo, p.pareja1_id]);
+    await pool.query("UPDATE parejas_torneo SET numero_grupo=$1 WHERE id=$2", [p.grupo, p.pareja2_id]);
+  }
+  // Recargar parejas con numero_grupo actualizado
+  for (const cat of categorias) {
+    const parejasQ = await pool.query("SELECT * FROM parejas_torneo WHERE categoria_id = $1 AND estado = 'confirmada'", [cat.id]);
+    cat.parejas = parejasQ.rows;
+  }
 
   // Insertar todos los partidos
   for (const p of partidos) {
