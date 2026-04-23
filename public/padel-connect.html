@@ -2989,7 +2989,7 @@ async function cargarTorneos() {
     el.innerHTML = torneos.map(t => {
       const estadoColor = t.estado === 'inscripciones_abiertas' ? '#4ade80' : t.estado === 'en_curso' ? '#fbbf24' : 'rgba(255,255,255,.4)';
       const estadoLabel = { borrador:'Próximamente', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' }[t.estado] || t.estado;
-      const fecha = new Date(t.fecha_inicio).toLocaleDateString('es-AR', {day:'numeric', month:'long'});
+      const fecha = new Date(t.fecha_inicio.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {day:'numeric', month:'long'});
       return `<div onclick="abrirTorneo(${t.id})" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(239,68,68,.5)'" onmouseout="this.style.borderColor='rgba(239,68,68,.2)'">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
           <div style="font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:1px;color:#f87171">${t.nombre}</div>
@@ -3039,8 +3039,8 @@ function renderTorneoInfo() {
   const t = torneoActual.torneo;
   const cats = torneoActual.categorias || [];
   const estadoLabel = { borrador:'Próximamente', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' }[t.estado] || t.estado;
-  const fechaI = new Date(t.fecha_inicio).toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
-  const fechaF = new Date(t.fecha_fin).toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  const fechaI = new Date(t.fecha_inicio.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  const fechaF = new Date(t.fecha_fin.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
   const token = localStorage.getItem('cl_token');
 
   document.getElementById('torneo-tab-content').innerHTML = `
@@ -3121,7 +3121,7 @@ function renderFixture() {
         pRonda.forEach(p => {
           const jugado = p.estado === 'jugado' || p.estado === 'walkover';
           const hora = p.hora_inicio ? p.hora_inicio.slice(0,5) : '';
-          const fecha = p.fecha ? new Date(p.fecha).toLocaleDateString('es-AR', {day:'numeric',month:'short'}) : '';
+          const fecha = p.fecha ? new Date(String(p.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {day:'numeric',month:'short'}) : '';
           html += `<div style="background:rgba(255,255,255,.03);border:1px solid ${jugado ? 'rgba(74,222,128,.2)' : 'rgba(255,255,255,.08)'};border-radius:10px;padding:10px 12px;margin-bottom:6px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
               <span style="font-size:11px;color:rgba(255,255,255,.3)">Cancha ${p.cancha} · ${fecha} ${hora}</span>
