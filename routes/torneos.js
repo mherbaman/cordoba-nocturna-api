@@ -614,7 +614,7 @@ router.put('/partidos/:id/resultado', authAdmin, async (req, res) => {
       ganadorId, id
     ]);
 
-    await calcularPosiciones(partido.torneo_id, partido.categoria_id);
+    await recalcularPosiciones(partido.torneo_id, partido.categoria_id, partido.grupo);
 
     res.json({ ok: true, ganador_id: ganadorId });
   } catch (err) {
