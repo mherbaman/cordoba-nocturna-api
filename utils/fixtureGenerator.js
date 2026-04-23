@@ -405,35 +405,38 @@ function calcularPosiciones(parejas, partidos) {
  * Parsea un resultado de tipo "6-3 6-4" o "6-3 4-6 7-5"
  * y devuelve { sets, games } para cada pareja.
  */
-function parsearResultado(resultado1, resultado2) {
+function parsearResultado(resultado1, resultado2, tiebreak1 = null, tiebreak2 = null) {
   if (!resultado1 || !resultado2) return null;
-
   const sets1 = resultado1.trim().split(' ');
   const sets2 = resultado2.trim().split(' ');
-
   if (sets1.length !== sets2.length) return null;
-
   let setsGanados1 = 0, setsGanados2 = 0;
   let totalGames1 = 0, totalGames2 = 0;
-
   for (let i = 0; i < sets1.length; i++) {
     const g1 = parseInt(sets1[i]);
     const g2 = parseInt(sets2[i]);
     if (isNaN(g1) || isNaN(g2)) return null;
-
     totalGames1 += g1;
     totalGames2 += g2;
-
     if (g1 > g2) setsGanados1++;
     else setsGanados2++;
   }
-
+  let ganador = null;
+  if (setsGanados1 > setsGanados2) ganador = 1;
+  else if (setsGanados2 > setsGanados1) ganador = 2;
+  else if (tiebreak1 !== null && tiebreak2 !== null) {
+    const tb1 = parseInt(tiebreak1);
+    const tb2 = parseInt(tiebreak2);
+    if (!isNaN(tb1) && !isNaN(tb2)) ganador = tb1 > tb2 ? 1 : tb2 > tb1 ? 2 : null;
+  }
   return {
     sets_pareja1: setsGanados1,
     sets_pareja2: setsGanados2,
     games_pareja1: totalGames1,
     games_pareja2: totalGames2,
-    ganador: setsGanados1 > setsGanados2 ? 1 : setsGanados2 > setsGanados1 ? 2 : null
+    tiebreak_pareja1: tiebreak1 !== null ? parseInt(tiebreak1) : null,
+    tiebreak_pareja2: tiebreak2 !== null ? parseInt(tiebreak2) : null,
+    ganador
   };
 }
 
