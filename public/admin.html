@@ -1897,6 +1897,7 @@ async function verPartidosTorneo(torneoId) {
         </div>
         <div id="msg-${p.id}" style="font-size:12px;margin-top:4px"></div>
       </div>`).join('');
+    content.innerHTML += htmlJugados;
   } catch(e) { content.innerHTML = '<p style="color:#f87171;text-align:center;padding:20px">Error al cargar partidos.</p>'; }
 }
 
