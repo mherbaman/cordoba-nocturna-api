@@ -896,9 +896,21 @@ async function actualizarBracket(torneoId, categoriaId, semifinalId, ganadorId) 
 // ============================================================
 
 async function enviarFixturePorEmail(torneoId, categorias, partidos) {
+  // Enriquecer partidos con nombres de parejas
+  const idsSet = new Set();
+  partidos.forEach(p => { if (p.pareja1_id) idsSet.add(p.pareja1_id); if (p.pareja2_id) idsSet.add(p.pareja2_id); });
+  const ids = [...idsSet];
+  const nombresQ = ids.length > 0 ? await pool.query('SELECT id, nombre_pareja FROM parejas_torneo WHERE id = ANY($1)', [ids]) : { rows: [] };
+  const nombresMap = {};
+  nombresQ.rows.forEach(r => { nombresMap[r.id] = r.nombre_pareja; });
+  const partidosEnriquecidos = partidos.map(p => ({
+    ...p,
+    pareja1_nombre: nombresMap[p.pareja1_id] || null,
+    pareja2_nombre: nombresMap[p.pareja2_id] || null,
+  }));
   for (const cat of categorias) {
     for (const pareja of cat.parejas) {
-      const partidosDeLaPareja = partidos.filter(
+      const partidosDeLaPareja = partidosEnriquecidos.filter(
         p => p.pareja1_id === pareja.id || p.pareja2_id === pareja.id
       );
 
@@ -1032,13 +1044,15 @@ function emailFixture(pareja, categoria, partidos, usuarioNombre) {
     const diaLabel = fechaObj ? diasSemana[fechaObj.getDay()] : '';
     const mesesLabel = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
     const fechaFormateada = fechaStr ? `${diaLabel} ${parseInt(dia)} ${mesesLabel[parseInt(mes)]}` : 'A confirmar';
-    const hora = p.hora_inicio ? String(p.hora_inicio).substring(0, 5) : '-';
+    const hora = p.hora_inicio ? String(p.hora_inicio).substring(0, 5) : null;
+    const horaLabel = hora ? `${hora}hs` : 'A confirmar';
+    const canchaLabel = p.cancha ? `C.${p.cancha}` : 'A confirmar';
     const rival = p.pareja1_id === pareja.id ? (p.pareja2_nombre || 'Por definir') : (p.pareja1_nombre || 'Por definir');
     return `<tr style="border-bottom:1px solid #eee;${i%2===0?'background:#fafafa':''}">
       <td style="padding:10px 8px;font-weight:700;color:#666">${i + 1}</td>
       <td style="padding:10px 8px"><strong>${fechaFormateada}</strong></td>
-      <td style="padding:10px 8px">${hora}hs</td>
-      <td style="padding:10px 8px;text-align:center">C.${p.cancha}</td>
+      <td style="padding:10px 8px">${horaLabel}</td>
+      <td style="padding:10px 8px;text-align:center">${canchaLabel}</td>
       <td style="padding:10px 8px;color:#1a1a2e;font-weight:600">vs ${rival}</td>
     </tr>`;
   }).join('');
