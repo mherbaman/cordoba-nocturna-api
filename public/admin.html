@@ -1901,6 +1901,18 @@ async function cargarResultado(partidoId) {
 </div>
 <script>let _torneoEliminando = null;</script>
 
+
+<!-- MODAL CARGAR RESULTADO -->
+<div id="modal-resultado" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="background:#1a0030;border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:24px;max-width:600px;width:100%;margin:40px auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:16px;font-weight:700;color:#f87171">🎾 Cargar resultados</div>
+      <button onclick="document.getElementById('modal-resultado').style.display='none'" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div id="modal-resultado-content"></div>
+  </div>
+</div>
+
 <!-- MODAL MODIFICAR TORNEO -->
 <div id="modal-modificar-torneo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;overflow-y:auto;padding:20px">
   <div style="background:#1a0030;border:1px solid rgba(167,139,250,.3);border-radius:16px;padding:24px;max-width:500px;margin:40px auto">
