@@ -358,16 +358,20 @@ function calcularPosiciones(parejas, partidos) {
     p1.partidos_jugados++;
     p2.partidos_jugados++;
 
-    if (partido.ganador_id === partido.pareja1_id) {
+    const esEmpate = !partido.ganador_id && partido.sets_pareja1 === partido.sets_pareja2;
+    if (esEmpate) {
+      p1.puntos += 1;
+      p2.puntos += 1;
+    } else if (partido.ganador_id === partido.pareja1_id) {
       p1.partidos_ganados++;
       p2.partidos_perdidos++;
-      p1.puntos += 2;
-      p2.puntos += esWalkover ? 0 : 1;
+      p1.puntos += 3;
+      p2.puntos += esWalkover ? 0 : 0;
     } else {
       p2.partidos_ganados++;
       p1.partidos_perdidos++;
-      p2.puntos += 2;
-      p1.puntos += esWalkover ? 0 : 1;
+      p2.puntos += 3;
+      p1.puntos += esWalkover ? 0 : 0;
     }
 
     p1.sets_favor += partido.sets_pareja1 || 0;
@@ -429,7 +433,7 @@ function parsearResultado(resultado1, resultado2) {
     sets_pareja2: setsGanados2,
     games_pareja1: totalGames1,
     games_pareja2: totalGames2,
-    ganador: setsGanados1 > setsGanados2 ? 1 : 2
+    ganador: setsGanados1 > setsGanados2 ? 1 : setsGanados2 > setsGanados1 ? 2 : null
   };
 }
 
