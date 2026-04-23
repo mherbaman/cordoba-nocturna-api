@@ -55,6 +55,23 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /torneos/admin/lista — todos los torneos para el admin
+router.get('/admin/lista', authAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT t.*,
+        (SELECT COUNT(*) FROM categorias_torneo WHERE torneo_id = t.id) AS total_categorias,
+        (SELECT COUNT(*) FROM parejas_torneo WHERE torneo_id = t.id AND estado = 'confirmada') AS total_parejas
+      FROM torneos t
+      ORDER BY t.creado_en DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener torneos' });
+  }
+});
+
 // GET /torneos/:id — detalle, posiciones y bracket
 router.get('/:id', async (req, res) => {
   try {
@@ -509,22 +526,7 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
   }
 });
 
-// GET /torneos/admin/lista — todos los torneos para el admin
-router.get('/admin/lista', authAdmin, async (req, res) => {
-  try {
-    const { rows } = await db.query(`
-      SELECT t.*,
-        (SELECT COUNT(*) FROM categorias_torneo WHERE torneo_id = t.id) AS total_categorias,
-        (SELECT COUNT(*) FROM parejas_torneo WHERE torneo_id = t.id AND estado = 'confirmada') AS total_parejas
-      FROM torneos t
-      ORDER BY t.creado_en DESC
-    `);
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener torneos' });
-  }
-});
+
 
 // ============================================================
 // DELEGADO (authUsuario + verificar que sea delegado)
