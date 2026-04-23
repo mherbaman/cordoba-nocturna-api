@@ -481,7 +481,7 @@ router.put('/:id/estado', authAdmin, async (req, res) => {
 router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { resultado_pareja1, resultado_pareja2, walkover_ganador_id } = req.body;
+    const { resultado_pareja1, resultado_pareja2, walkover_ganador_id, tiebreak_pareja1, tiebreak_pareja2 } = req.body;
 
     const partidoQ = await pool.query(
       'SELECT * FROM partidos_torneo WHERE id = $1',
@@ -501,13 +501,15 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
       updateData.estado = 'walkover';
       updateData.ganador_id = walkover_ganador_id;
     } else {
-      const parsed = parsearResultado(resultado_pareja1, resultado_pareja2);
+      const parsed = parsearResultado(resultado_pareja1, resultado_pareja2, tiebreak_pareja1, tiebreak_pareja2);
       if (!parsed) return res.status(400).json({ error: 'Formato de resultado inválido. Ej: "6-3 6-4"' });
 
       updateData.resultado_pareja1 = resultado_pareja1;
       updateData.resultado_pareja2 = resultado_pareja2;
       updateData.sets_pareja1 = parsed.sets_pareja1;
       updateData.sets_pareja2 = parsed.sets_pareja2;
+      updateData.tiebreak_pareja1 = parsed.tiebreak_pareja1 ?? null;
+      updateData.tiebreak_pareja2 = parsed.tiebreak_pareja2 ?? null;
       updateData.games_pareja1 = parsed.games_pareja1;
       updateData.games_pareja2 = parsed.games_pareja2;
       updateData.ganador_id = parsed.ganador === 1 ? partido.pareja1_id : partido.pareja2_id;
@@ -518,8 +520,9 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
         estado = $1, resultado_pareja1 = $2, resultado_pareja2 = $3,
         sets_pareja1 = $4, sets_pareja2 = $5,
         games_pareja1 = $6, games_pareja2 = $7,
-        ganador_id = $8, cargado_por = $9, cargado_en = $10
-      WHERE id = $11
+        ganador_id = $8, cargado_por = $9, cargado_en = $10,
+        tiebreak_pareja1 = $11, tiebreak_pareja2 = $12
+      WHERE id = $13
     `, [
       updateData.estado,
       updateData.resultado_pareja1 || null,
@@ -531,6 +534,8 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
       updateData.ganador_id,
       updateData.cargado_por,
       updateData.cargado_en,
+      updateData.tiebreak_pareja1 ?? null,
+      updateData.tiebreak_pareja2 ?? null,
       id
     ]);
 
@@ -578,6 +583,45 @@ const authDelegado = async (req, res, next) => {
   }
 };
 
+
+// PUT /torneos/partidos/:id/resultado — modificar resultado ya cargado (agrega tiebreak)
+router.put('/partidos/:id/resultado', authAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { resultado_pareja1, resultado_pareja2, tiebreak_pareja1, tiebreak_pareja2 } = req.body;
+  try {
+    const partidoQ = await pool.query('SELECT * FROM partidos_torneo WHERE id = $1', [id]);
+    if (!partidoQ.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
+    const partido = partidoQ.rows[0];
+
+    const parsed = parsearResultado(resultado_pareja1, resultado_pareja2, tiebreak_pareja1, tiebreak_pareja2);
+    if (!parsed) return res.status(400).json({ error: 'Formato inválido. Ej: "6-3 6-4" con tiebreak opcional' });
+
+    const ganadorId = parsed.ganador === 1 ? partido.pareja1_id : parsed.ganador === 2 ? partido.pareja2_id : partido.ganador_id;
+
+    await pool.query(`
+      UPDATE partidos_torneo SET
+        resultado_pareja1 = $1, resultado_pareja2 = $2,
+        sets_pareja1 = $3, sets_pareja2 = $4,
+        games_pareja1 = $5, games_pareja2 = $6,
+        tiebreak_pareja1 = $7, tiebreak_pareja2 = $8,
+        ganador_id = $9
+      WHERE id = $10
+    `, [
+      resultado_pareja1, resultado_pareja2,
+      parsed.sets_pareja1, parsed.sets_pareja2,
+      parsed.games_pareja1, parsed.games_pareja2,
+      parsed.tiebreak_pareja1, parsed.tiebreak_pareja2,
+      ganadorId, id
+    ]);
+
+    await calcularPosiciones(partido.torneo_id, partido.categoria_id);
+
+    res.json({ ok: true, ganador_id: ganadorId });
+  } catch (err) {
+    console.error('Error modificar resultado:', err);
+    res.status(500).json({ error: 'Error al modificar resultado' });
+  }
+});
 // POST /torneos/delegado/resultado — mismo que admin pero para delegados
 router.post('/delegado/resultado/:id', authUsuario, authDelegado, async (req, res) => {
   req.admin = { id: req.usuario.id }; // adaptar para reutilizar lógica

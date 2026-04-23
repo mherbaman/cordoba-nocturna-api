@@ -1852,17 +1852,48 @@ async function verPartidosTorneo(torneoId) {
   modal.style.display = 'flex';
   try {
     const data = await apiAdmin('/torneos/' + torneoId);
-    const pendientes = (data.partidos || []).filter(p => p.estado === 'pendiente' || p.estado === 'en_curso');
-    if (!pendientes.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos pendientes.</p>'; return; }
+    const todos = data.partidos || [];
+    const pendientes = todos.filter(p => p.estado === 'pendiente' || p.estado === 'en_curso');
+    const jugados = todos.filter(p => p.estado === 'jugado' || p.estado === 'walkover');
+    if (!pendientes.length && !jugados.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos.</p>'; return; }
+    const htmlJugados = jugados.length ? `<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;margin-top:16px;font-weight:700;letter-spacing:1px">PARTIDOS JUGADOS — MODIFICAR RESULTADO</div>` + jugados.map(p => `
+      <div style="background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">${p.fase.toUpperCase()} · Gr.${p.grupo||'-'} R.${p.ronda||'-'} · C.${p.cancha}</div>
+        <div style="font-size:13px;color:#fff;margin-bottom:4px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
+        <div style="font-size:12px;color:#4ade80;margin-bottom:8px">Resultado actual: ${p.resultado_pareja1||'?'} / ${p.resultado_pareja2||'?'}${p.tiebreak_pareja1 != null ? ' · TB: '+p.tiebreak_pareja1+'-'+p.tiebreak_pareja2 : ''}</div>
+        <button onclick="document.getElementById('mod-form-${p.id}').style.display='block'" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">✏️ Modificar</button>
+        <div id="mod-form-${p.id}" style="display:none;margin-top:10px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+            <input id="mod-res1-${p.id}" type="text" placeholder="6-3 6-4" value="${p.resultado_pareja1||''}" style="flex:1;min-width:80px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+            <span style="color:rgba(255,255,255,.3)">vs</span>
+            <input id="mod-res2-${p.id}" type="text" placeholder="3-6 4-6" value="${p.resultado_pareja2||''}" style="flex:1;min-width:80px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.3);white-space:nowrap">Tiebreak:</span>
+            <input id="mod-tb1-${p.id}" type="number" placeholder="10" value="${p.tiebreak_pareja1!=null?p.tiebreak_pareja1:''}" min="0" max="99" style="width:60px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
+            <span style="color:rgba(255,255,255,.3)">-</span>
+            <input id="mod-tb2-${p.id}" type="number" placeholder="5" value="${p.tiebreak_pareja2!=null?p.tiebreak_pareja2:''}" min="0" max="99" style="width:60px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
+            <button onclick="modificarResultado(${p.id})" style="padding:6px 12px;border-radius:8px;border:none;background:#16a34a;color:#fff;font-size:12px;font-weight:700;cursor:pointer">GUARDAR</button>
+          </div>
+          <div id="mod-msg-${p.id}" style="font-size:12px;margin-top:4px"></div>
+        </div>
+      </div>`).join('') : '';
+    if (!pendientes.length) { content.innerHTML = htmlJugados || '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos pendientes.</p>'; return; }
     content.innerHTML = pendientes.map(p => `
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:8px">
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:6px">${p.fase.toUpperCase()} · Grupo ${p.grupo||'-'} Ronda ${p.ronda||'-'} · Cancha ${p.cancha} · ${p.fecha||''} ${(p.hora_inicio||'').slice(0,5)}</div>
         <div style="font-size:13px;color:#fff;margin-bottom:10px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="res1-${p.id}" type="text" placeholder="6-3 6-4" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="res1-${p.id}" type="text" placeholder="6-3 6-4" style="flex:1;min-width:80px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
           <span style="color:rgba(255,255,255,.3)">vs</span>
-          <input id="res2-${p.id}" type="text" placeholder="3-6 4-6" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+          <input id="res2-${p.id}" type="text" placeholder="3-6 4-6" style="flex:1;min-width:80px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
           <button onclick="cargarResultado(${p.id})" style="padding:6px 12px;border-radius:8px;border:none;background:#dc2626;color:#fff;font-size:12px;font-weight:700;cursor:pointer">OK</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+          <span style="font-size:11px;color:rgba(255,255,255,.3);white-space:nowrap">Tiebreak (si empatan sets):</span>
+          <input id="tb1-${p.id}" type="number" placeholder="10" min="0" max="99" style="width:60px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
+          <span style="color:rgba(255,255,255,.3)">-</span>
+          <input id="tb2-${p.id}" type="number" placeholder="5" min="0" max="99" style="width:60px;padding:6px 8px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
         </div>
         <div id="msg-${p.id}" style="font-size:12px;margin-top:4px"></div>
       </div>`).join('');
@@ -1872,14 +1903,37 @@ async function verPartidosTorneo(torneoId) {
 async function cargarResultado(partidoId) {
   const r1 = document.getElementById('res1-' + partidoId).value.trim();
   const r2 = document.getElementById('res2-' + partidoId).value.trim();
+  const tb1 = document.getElementById('tb1-' + partidoId)?.value.trim() || '';
+  const tb2 = document.getElementById('tb2-' + partidoId)?.value.trim() || '';
   const msg = document.getElementById('msg-' + partidoId);
   if (!r1 || !r2) { msg.style.color='#f87171'; msg.textContent='Ingresa los dos resultados.'; return; }
   msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Guardando...';
   try {
+    const body = { resultado_pareja1: r1, resultado_pareja2: r2 };
+    if (tb1 !== '' && tb2 !== '') { body.tiebreak_pareja1 = parseInt(tb1); body.tiebreak_pareja2 = parseInt(tb2); }
     await apiAdmin('/torneos/partidos/' + partidoId + '/resultado', {
-      method: 'POST', body: JSON.stringify({ resultado_pareja1: r1, resultado_pareja2: r2 })
+      method: 'POST', body: JSON.stringify(body)
     });
-    msg.style.color='#4ade80'; msg.textContent='Resultado guardado.';
+    msg.style.color='#4ade80'; msg.textContent='✅ Resultado guardado.';
+  } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error.'; }
+}
+
+async function modificarResultado(partidoId) {
+  const r1 = document.getElementById('mod-res1-' + partidoId).value.trim();
+  const r2 = document.getElementById('mod-res2-' + partidoId).value.trim();
+  const tb1 = document.getElementById('mod-tb1-' + partidoId)?.value.trim() || '';
+  const tb2 = document.getElementById('mod-tb2-' + partidoId)?.value.trim() || '';
+  const msg = document.getElementById('mod-msg-' + partidoId);
+  if (!r1 || !r2) { msg.style.color='#f87171'; msg.textContent='Ingresa los dos resultados.'; return; }
+  msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Guardando...';
+  try {
+    const body = { resultado_pareja1: r1, resultado_pareja2: r2 };
+    if (tb1 !== '' && tb2 !== '') { body.tiebreak_pareja1 = parseInt(tb1); body.tiebreak_pareja2 = parseInt(tb2); }
+    await apiAdmin('/torneos/partidos/' + partidoId + '/resultado', {
+      method: 'PUT', body: JSON.stringify(body)
+    });
+    msg.style.color='#4ade80'; msg.textContent='✅ Resultado modificado.';
+    setTimeout(() => { document.getElementById('mod-form-' + partidoId).style.display = 'none'; }, 1500);
   } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error.'; }
 }
 </script>
