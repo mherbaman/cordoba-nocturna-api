@@ -89,7 +89,7 @@ function generarSlots(torneo) {
   const slots = [];
   const duracionTotal = torneo.duracion_partido_min + torneo.descanso_entre_rondas_min; // 60 min
 
-  const fechas = getFechasEnRango(torneo.fecha_inicio, torneo.fecha_fin);
+  const fechas = getFechasEnRango(String(torneo.fecha_inicio).substring(0,10), String(torneo.fecha_fin).substring(0,10));
 
   for (const fecha of fechas) {
     // Generar bloques horarios para el día
