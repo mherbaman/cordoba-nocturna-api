@@ -205,6 +205,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
       <button class="nav-item" onclick="navTo('reportes',this)"><span class="icon">📊</span> Reportes</button>
       <button class="nav-item" onclick="navTo('partidos-pub',this)"><span class="icon">⚡</span> Partidos</button>
       <button class="nav-item" onclick="navTo('profesores',this)"><span class="icon">🎾</span> Profesores</button>
+      <button class="nav-item" onclick="navTo('torneos',this)"><span class="icon">🏆</span> Torneos</button>
       <div class="sidebar-footer">
         <button class="logout-nav" onclick="doAdminLogout()">🚪 Cerrar sesión</button>
       </div>
@@ -558,6 +559,55 @@ tr:hover td { background:rgba(255,255,255,.02); }
         </div>
         <div id="admin-profesores-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
       </div>
+      <!-- TORNEOS -->
+      <div class="page" id="page-torneos">
+        <div class="page-title">TORNEOS 🏆</div>
+        <div class="page-sub">Creá y gestioná los torneos del circuito CórdobaLux.</div>
+        <button onclick="mostrarFormTorneo()" style="margin-bottom:20px;padding:10px 20px;border-radius:50px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#f87171;font-size:13px;font-weight:700;cursor:pointer">+ Nuevo torneo</button>
+        <div id="form-torneo" style="display:none;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:16px">Nuevo torneo</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label><input id="t-nombre" type="text" placeholder="Amateur Cordoba 1" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Sede</label><input id="t-sede" type="text" placeholder="Club Cordoba Racket" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Fecha inicio</label><input id="t-fecha-inicio" type="date" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Fecha fin</label><input id="t-fecha-fin" type="date" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Canchas disponibles</label><input id="t-canchas" type="number" value="4" min="1" max="20" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Precio inscripcion ($)</label><input id="t-precio" type="number" value="0" min="0" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Hora inicio</label><input id="t-hora-inicio" type="time" value="09:00" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Hora fin</label><input id="t-hora-fin" type="time" value="21:00" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+          </div>
+          <div style="margin-bottom:12px"><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripcion</label><textarea id="t-descripcion" rows="2" placeholder="Info del torneo..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea></div>
+          <div style="margin-bottom:16px">
+            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Categorias</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="8va Masculino|8va|masculino"> 8va Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="8va Femenino|8va|femenino"> 8va Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="7ma Masculino|7ma|masculino"> 7ma Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="7ma Femenino|7ma|femenino"> 7ma Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="6ta Masculino|6ta|masculino"> 6ta Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="6ta Femenino|6ta|femenino"> 6ta Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="5ta Masculino|5ta|masculino"> 5ta Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="5ta Femenino|5ta|femenino"> 5ta Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="4ta Masculino|4ta|masculino"> 4ta Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="4ta Femenino|4ta|femenino"> 4ta Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="3ra Masculino|3ra|masculino"> 3ra Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="3ra Femenino|3ra|femenino"> 3ra Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="2da Masculino|2da|masculino"> 2da Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="2da Femenino|2da|femenino"> 2da Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="1ra Masculino|1ra|masculino"> 1ra Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="1ra Femenino|1ra|femenino"> 1ra Fem</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="Veteranos 45+ Masculino|veteranos|masculino"> Vet 45+ Masc</label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="Veteranos 45+ Femenino|veteranos|femenino"> Vet 45+ Fem</label>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button onclick="crearTorneo()" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#dc2626,#f87171);color:#fff;font-size:14px;font-weight:700;cursor:pointer">CREAR TORNEO</button>
+            <button onclick="document.getElementById('form-torneo').style.display='none'" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+          </div>
+          <div id="torneo-form-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+        <div id="admin-torneos-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
+      </div>
     </div>
   </div>
 </div>
@@ -655,6 +705,7 @@ function navTo(page, btn) {
   if (page === 'promo-principal') cargarPromoPrincipal();
   if (page === 'partidos-pub') cargarPartidosPubAdmin();
   if (page === 'profesores') cargarProfesoresAdmin('pendiente');
+  if (page === 'torneos') cargarTorneosAdmin();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
@@ -1695,6 +1746,130 @@ async function eliminarPartidoPub(id) {
   if (!confirm('Eliminar este partido?')) return;
   try { await apiAdmin('/padel/partidos-publicos/'+id,{method:'DELETE'}); cargarPartidosPubAdmin(); }
   catch(e) { alert(e.message); }
+}
+
+// ─── TORNEOS ──────────────────────────────────────────────────────────
+function mostrarFormTorneo() {
+  const f = document.getElementById('form-torneo');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function crearTorneo() {
+  const msg = document.getElementById('torneo-form-msg');
+  const nombre = document.getElementById('t-nombre').value.trim();
+  const sede = document.getElementById('t-sede').value.trim();
+  const fechaInicio = document.getElementById('t-fecha-inicio').value;
+  const fechaFin = document.getElementById('t-fecha-fin').value;
+  const canchas = document.getElementById('t-canchas').value;
+  const precio = document.getElementById('t-precio').value;
+  const horaInicio = document.getElementById('t-hora-inicio').value;
+  const horaFin = document.getElementById('t-hora-fin').value;
+  const descripcion = document.getElementById('t-descripcion').value.trim();
+
+  if (!nombre || !fechaInicio || !fechaFin) {
+    msg.style.color = '#f87171'; msg.textContent = 'Completá nombre y fechas.'; return;
+  }
+
+  const cats = [...document.querySelectorAll('.cat-check:checked')].map(c => {
+    const [nombre, nivel, genero] = c.value.split('|');
+    return { nombre, nivel, genero, cupo_max: 16 };
+  });
+
+  msg.style.color = 'rgba(255,255,255,.5)'; msg.textContent = 'Creando torneo...';
+
+  try {
+    const data = await apiAdmin('/torneos', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre, sede, fecha_inicio: fechaInicio, fecha_fin: fechaFin,
+        cantidad_canchas: parseInt(canchas), precio_inscripcion: parseFloat(precio),
+        hora_inicio_dia: horaInicio, hora_fin_dia: horaFin,
+        descripcion, categorias: cats
+      })
+    });
+    msg.style.color = '#4ade80';
+    msg.textContent = `Torneo creado. ${data.slots_disponibles} slots disponibles.`;
+    setTimeout(() => { document.getElementById('form-torneo').style.display = 'none'; cargarTorneosAdmin(); }, 2000);
+  } catch(e) {
+    msg.style.color = '#f87171'; msg.textContent = e.message || 'Error al crear torneo.';
+  }
+}
+
+async function cargarTorneosAdmin() {
+  const el = document.getElementById('admin-torneos-list');
+  el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>';
+  try {
+    const torneos = await apiAdmin('/torneos/admin/lista');
+    if (!torneos.length) { el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">No hay torneos creados.</p>'; return; }
+    const estadoLabel = { borrador:'Borrador', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' };
+    const estadoColor = { borrador:'rgba(255,255,255,.3)', inscripciones_abiertas:'#4ade80', inscripciones_cerradas:'#fbbf24', en_curso:'#f87171', finalizado:'rgba(255,255,255,.3)' };
+    el.innerHTML = torneos.map(t => `
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-size:16px;font-weight:600;color:#fff">${t.nombre}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${t.sede || ''} · ${new Date(t.fecha_inicio).toLocaleDateString('es-AR')} · ${t.cantidad_canchas} canchas</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">${t.total_categorias} categorias · ${t.total_parejas} parejas inscriptas</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor[t.estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[t.estado]||'#fff'};white-space:nowrap">${estadoLabel[t.estado]||t.estado}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${t.estado === 'borrador' ? `<button onclick="cambiarEstadoTorneo(${t.id},'inscripciones_abiertas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">Abrir inscripciones</button>` : ''}
+          ${t.estado === 'inscripciones_abiertas' ? `<button onclick="cambiarEstadoTorneo(${t.id},'inscripciones_cerradas')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">Cerrar inscripciones y generar fixture</button>` : ''}
+          ${t.estado === 'en_curso' ? `<button onclick="verPartidosTorneo(${t.id})" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.08);color:#f87171;font-size:12px;font-weight:700;cursor:pointer">Cargar resultados</button>` : ''}
+          ${t.estado === 'en_curso' ? `<button onclick="cambiarEstadoTorneo(${t.id},'finalizado')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">Finalizar torneo</button>` : ''}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<p style="color:#f87171;font-size:13px;text-align:center;padding:20px">Error al cargar torneos.</p>';
+  }
+}
+
+async function cambiarEstadoTorneo(id, estado) {
+  const msgs = { inscripciones_abiertas:'Abrir inscripciones?', inscripciones_cerradas:'Cerrar inscripciones y generar fixture automatico? Esta accion no se puede deshacer.', finalizado:'Finalizar el torneo?' };
+  if (!confirm(msgs[estado] || 'Confirmar cambio de estado?')) return;
+  try {
+    await apiAdmin('/torneos/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado }) });
+    cargarTorneosAdmin();
+  } catch(e) { alert(e.message); }
+}
+
+async function verPartidosTorneo(torneoId) {
+  const modal = document.getElementById('modal-resultado');
+  const content = document.getElementById('modal-resultado-content');
+  content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Cargando partidos...</p>';
+  modal.style.display = 'flex';
+  try {
+    const data = await apiAdmin('/torneos/' + torneoId);
+    const pendientes = (data.partidos || []).filter(p => p.estado === 'pendiente' || p.estado === 'en_curso');
+    if (!pendientes.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos pendientes.</p>'; return; }
+    content.innerHTML = pendientes.map(p => `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:8px">
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:6px">${p.fase.toUpperCase()} · Grupo ${p.grupo||'-'} Ronda ${p.ronda||'-'} · Cancha ${p.cancha} · ${p.fecha||''} ${(p.hora_inicio||'').slice(0,5)}</div>
+        <div style="font-size:13px;color:#fff;margin-bottom:10px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="res1-${p.id}" type="text" placeholder="6-3 6-4" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+          <span style="color:rgba(255,255,255,.3)">vs</span>
+          <input id="res2-${p.id}" type="text" placeholder="3-6 4-6" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+          <button onclick="cargarResultado(${p.id})" style="padding:6px 12px;border-radius:8px;border:none;background:#dc2626;color:#fff;font-size:12px;font-weight:700;cursor:pointer">OK</button>
+        </div>
+        <div id="msg-${p.id}" style="font-size:12px;margin-top:4px"></div>
+      </div>`).join('');
+  } catch(e) { content.innerHTML = '<p style="color:#f87171;text-align:center;padding:20px">Error al cargar partidos.</p>'; }
+}
+
+async function cargarResultado(partidoId) {
+  const r1 = document.getElementById('res1-' + partidoId).value.trim();
+  const r2 = document.getElementById('res2-' + partidoId).value.trim();
+  const msg = document.getElementById('msg-' + partidoId);
+  if (!r1 || !r2) { msg.style.color='#f87171'; msg.textContent='Ingresa los dos resultados.'; return; }
+  msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Guardando...';
+  try {
+    await apiAdmin('/torneos/partidos/' + partidoId + '/resultado', {
+      method: 'POST', body: JSON.stringify({ resultado_pareja1: r1, resultado_pareja2: r2 })
+    });
+    msg.style.color='#4ade80'; msg.textContent='Resultado guardado.';
+  } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error.'; }
 }
 </script>
 </body>
