@@ -1025,37 +1025,49 @@ function emailParejaConfirmada(pareja) {
 
 function emailFixture(pareja, categoria, partidos, usuarioNombre) {
   const filaPartidos = partidos.map((p, i) => {
-    const fecha = new Date(p.fecha).toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
-    return `<tr style="border-bottom:1px solid #eee">
-      <td style="padding:10px 8px">${i + 1}</td>
-      <td style="padding:10px 8px">${fecha}</td>
-      <td style="padding:10px 8px">${p.hora_inicio}</td>
-      <td style="padding:10px 8px;text-align:center">Cancha ${p.cancha}</td>
+    const fechaStr = p.fecha ? String(p.fecha).substring(0, 10) : '';
+    const [anio, mes, dia] = fechaStr ? fechaStr.split('-') : ['','',''];
+    const diasSemana = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const fechaObj = fechaStr ? new Date(fechaStr + 'T12:00:00') : null;
+    const diaLabel = fechaObj ? diasSemana[fechaObj.getDay()] : '';
+    const mesesLabel = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    const fechaFormateada = fechaStr ? `${diaLabel} ${parseInt(dia)} ${mesesLabel[parseInt(mes)]}` : 'A confirmar';
+    const hora = p.hora_inicio ? String(p.hora_inicio).substring(0, 5) : '-';
+    const rival = p.pareja1_id === pareja.id ? (p.pareja2_nombre || 'Por definir') : (p.pareja1_nombre || 'Por definir');
+    return `<tr style="border-bottom:1px solid #eee;${i%2===0?'background:#fafafa':''}">
+      <td style="padding:10px 8px;font-weight:700;color:#666">${i + 1}</td>
+      <td style="padding:10px 8px"><strong>${fechaFormateada}</strong></td>
+      <td style="padding:10px 8px">${hora}hs</td>
+      <td style="padding:10px 8px;text-align:center">C.${p.cancha}</td>
+      <td style="padding:10px 8px;color:#1a1a2e;font-weight:600">vs ${rival}</td>
     </tr>`;
   }).join('');
-
   return `
   <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">
     <div style="background:#1a1a2e;padding:24px;text-align:center">
       <h1 style="color:#fff;margin:0;font-size:22px">🎾 PadelConnect</h1>
+      <p style="color:rgba(255,255,255,.7);margin:8px 0 0;font-size:14px">Fixture de Torneo</p>
     </div>
     <div style="padding:32px 24px">
-      <h2>Tu fixture está listo, ${usuarioNombre}!</h2>
-      <p>Pareja: <strong>${pareja.nombre_pareja || 'Tu pareja'}</strong> — ${categoria.nombre}</p>
+      <h2 style="margin:0 0 8px">Tu fixture está listo, ${usuarioNombre}!</h2>
+      <p style="color:#666;margin:0 0 20px">Pareja: <strong style="color:#333">${pareja.nombre_pareja || 'Tu pareja'}</strong> — ${categoria.nombre}</p>
       <p>Tenés <strong>${partidos.length} partidos garantizados</strong> en la fase de grupos:</p>
-      <table style="width:100%;border-collapse:collapse;font-size:14px">
-        <thead><tr style="background:#f0f0f0">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:12px">
+        <thead><tr style="background:#1a1a2e;color:#fff">
           <th style="padding:10px 8px;text-align:left">#</th>
           <th style="padding:10px 8px;text-align:left">Fecha</th>
           <th style="padding:10px 8px;text-align:left">Hora</th>
           <th style="padding:10px 8px;text-align:center">Cancha</th>
+          <th style="padding:10px 8px;text-align:left">Rival</th>
         </tr></thead>
         <tbody>${filaPartidos}</tbody>
       </table>
-      <p style="margin-top:20px;font-size:13px;color:#666">
-        El rival de cada partido se muestra en tiempo real en la app.<br>
-        Seguí el torneo en <a href="${APP_URL}/padel-connect.html">cordobalux.com</a>
-      </p>
+      <div style="margin-top:24px;padding:16px;background:#f0fdf4;border-left:4px solid #22c55e;border-radius:4px">
+        <p style="margin:0;font-size:13px;color:#15803d">
+          📱 Seguí el fixture y la tabla de posiciones en tiempo real en la app:<br>
+          <a href="${APP_URL}/padel-connect.html" style="color:#15803d;font-weight:700">cordobalux.com → Torneos</a>
+        </p>
+      </div>
     </div>
   </div>`;
 }
