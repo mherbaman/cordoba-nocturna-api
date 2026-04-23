@@ -7,7 +7,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const { Resend } = require('resend');
 const { authAdmin, authUsuario } = require('../middleware/auth');
-const db = require('../database');
+const { pool } = require('../database');
 const {
   generarFixture,
   generarBracket,
