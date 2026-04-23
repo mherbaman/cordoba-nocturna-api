@@ -381,7 +381,7 @@ router.post('/', authAdmin, async (req, res) => {
         (nombre, descripcion, sede, fecha_inicio, fecha_fin,
          cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min,
          hora_inicio_dia, hora_fin_dia, precio_inscripcion, estado)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'borrador')
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'proximamente')
       RETURNING *
     `, [
       nombre, descripcion, sede,
@@ -424,7 +424,7 @@ router.put('/:id/estado', authAdmin, async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body;
 
-    const estadosValidos = ['borrador', 'inscripciones_abiertas', 'inscripciones_cerradas', 'en_curso', 'finalizado'];
+    const estadosValidos = ['borrador', 'proximamente', 'inscripciones_abiertas', 'inscripciones_cerradas', 'en_curso', 'finalizado'];
     if (!estadosValidos.includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
