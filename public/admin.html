@@ -1927,7 +1927,7 @@ async function guardarModificacionTorneo() {
   const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
   if (pass !== adminUser.password && pass !== '1234') {
     try {
-      const r = await fetch(API+'/auth/admin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+      const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
       if (!r.ok) { msg.style.color='#f87171'; msg.textContent='Contraseña incorrecta.'; return; }
     } catch { msg.style.color='#f87171'; msg.textContent='Error verificando contraseña.'; return; }
   }
@@ -1960,7 +1960,7 @@ async function confirmarEliminarTorneo(id, nombre) {
   if (!pass) { alert('Contraseña requerida.'); return; }
   const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
   try {
-    const r = await fetch(API+'/auth/admin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
     if (!r.ok) { alert('Contraseña incorrecta.'); return; }
   } catch { alert('Error verificando contraseña.'); return; }
   try {
