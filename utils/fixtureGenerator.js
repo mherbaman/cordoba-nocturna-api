@@ -48,12 +48,8 @@ function generarFixture(torneo, categorias) {
         const enfrentamientos = rondas[rondaNum - 1];
 
         for (const enfrentamiento of enfrentamientos) {
-          if (slotIndex >= slots.length) {
-            console.error('Sin slots disponibles — agregar más canchas u horarios');
-            break;
-          }
-
-          const slot = slots[slotIndex++];
+          const slot = slotIndex < slots.length ? slots[slotIndex++] : null;
+          if (!slot) console.warn('Sin slot para partido — se genera sin horario asignado');
 
           partidos.push({
             torneo_id: torneo.id,
@@ -63,10 +59,10 @@ function generarFixture(torneo, categorias) {
             ronda: rondaNum,
             pareja1_id: enfrentamiento[0].id,
             pareja2_id: enfrentamiento[1].id,
-            cancha: slot.cancha,
-            fecha: slot.fecha,
-            hora_inicio: slot.hora_inicio,
-            hora_fin: slot.hora_fin,
+            cancha: slot ? slot.cancha : null,
+            fecha: slot ? slot.fecha : null,
+            hora_inicio: slot ? slot.hora_inicio : null,
+            hora_fin: slot ? slot.hora_fin : null,
             estado: 'pendiente'
           });
         }
