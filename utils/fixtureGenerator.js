@@ -446,12 +446,12 @@ function parsearResultado(resultado1, resultado2, tiebreak1 = null, tiebreak2 = 
 
 function getFechasEnRango(fechaInicio, fechaFin) {
   const fechas = [];
-  const inicio = new Date(fechaInicio);
-  const fin = new Date(fechaFin);
+  const inicio = new Date(fechaInicio + 'T12:00:00');
+  const fin = new Date(fechaFin + 'T12:00:00');
   const actual = new Date(inicio);
 
   while (actual <= fin) {
-    fechas.push(actual.toISOString().split('T')[0]);
+    const y=actual.getFullYear(),m=String(actual.getMonth()+1).padStart(2,'0'),d=String(actual.getDate()).padStart(2,'0'); fechas.push(`${y}-${m}-${d}`);
     actual.setDate(actual.getDate() + 1);
   }
 
