@@ -3048,7 +3048,7 @@ function renderTorneoInfo() {
       <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${fechaI}${t.fecha_fin !== t.fecha_inicio ? ' → ' + fechaF : ''}</div>
       ${t.sede ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📍 ${t.sede}</div>` : ''}
       <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">🎾 ${t.cantidad_canchas} canchas · Partidos de ${t.duracion_partido_min} min</div>
-      ${t.precio_inscripcion > 0 ? `<div style="color:#fbbf24;font-size:13px;font-weight:700;margin-top:6px">💰 $${t.precio_inscripcion} por pareja</div>` : '<div style="color:#4ade80;font-size:13px;font-weight:700;margin-top:6px">✅ Inscripción gratuita</div>'}
+      ${t.precio_inscripcion > 0 ? `<div style="color:#fbbf24;font-size:13px;font-weight:700;margin-top:6px">💰 $ ${Number(t.precio_inscripcion).toLocaleString('es-AR',{maximumFractionDigits:0})} por pareja</div>` : '<div style="color:#4ade80;font-size:13px;font-weight:700;margin-top:6px">✅ Inscripción gratuita</div>'}
     </div>
     ${t.descripcion ? `<p style="color:rgba(255,255,255,.6);font-size:13px;line-height:1.6;margin-bottom:14px">${t.descripcion}</p>` : ''}
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:10px;letter-spacing:1px">CATEGORÍAS</div>
