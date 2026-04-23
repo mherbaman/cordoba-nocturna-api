@@ -28,7 +28,7 @@ const APP_URL = 'https://cordobalux.com';
 router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT t.*,
+      SELECT t.*, to_char(t.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio, to_char(t.fecha_fin, 'YYYY-MM-DD') AS fecha_fin,
         json_agg(
           json_build_object(
             'id', ct.id,
@@ -59,7 +59,7 @@ router.get('/', async (req, res) => {
 router.get('/admin/lista', authAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT t.*,
+      SELECT t.*, to_char(t.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio, to_char(t.fecha_fin, 'YYYY-MM-DD') AS fecha_fin,
         (SELECT COUNT(*) FROM categorias_torneo WHERE torneo_id = t.id) AS total_categorias,
         (SELECT COUNT(*) FROM parejas_torneo WHERE torneo_id = t.id AND estado = 'confirmada') AS total_parejas
       FROM torneos t
@@ -77,7 +77,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const torneo = await pool.query('SELECT * FROM torneos WHERE id = $1', [id]);
+    const torneo = await pool.query("SELECT *, to_char(fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio, to_char(fecha_fin, 'YYYY-MM-DD') AS fecha_fin FROM torneos WHERE id = $1", [id]);
     if (!torneo.rows[0]) return res.status(404).json({ error: 'Torneo no encontrado' });
 
     const categorias = await pool.query(`
