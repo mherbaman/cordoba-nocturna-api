@@ -1817,7 +1817,7 @@ async function cargarTorneosAdmin() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div>
             <div style="font-size:16px;font-weight:600;color:#fff">${t.nombre}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${t.sede || ''} · ${new Date(t.fecha_inicio).toLocaleDateString('es-AR')} · ${t.cantidad_canchas} canchas</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${t.sede || ''} · ${new Date(t.fecha_inicio.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR')} · ${t.cantidad_canchas} canchas</div>
             <div style="font-size:12px;color:rgba(255,255,255,.4)">${t.total_categorias} categorias · ${t.total_parejas} parejas inscriptas</div>
           </div>
           <span style="font-size:11px;font-weight:700;color:${estadoColor[t.estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[t.estado]||'#fff'};white-space:nowrap">${estadoLabel[t.estado]||t.estado}</span>
