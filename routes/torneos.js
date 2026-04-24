@@ -550,6 +550,12 @@ router.post('/partidos/:id/resultado', authAdmin, async (req, res) => {
     // Actualizar bracket si es semifinal
     if (partido.fase === 'semifinal') {
       await actualizarBracket(partido.torneo_id, partido.categoria_id, id, updateData.ganador_id);
+      await notificarClasificadoFinal(partido.torneo_id, partido.categoria_id, updateData.ganador_id);
+    }
+    // Notificar campeón si es final
+    if (partido.fase === 'final' && updateData.ganador_id) {
+      await notificarCampeon(partido.torneo_id, partido.categoria_id, updateData.ganador_id);
+      await pool.query("UPDATE torneos SET estado = 'finalizado' WHERE id = $1", [partido.torneo_id]);
     }
 
     // Enviar email de resultado a ambas parejas
@@ -889,6 +895,68 @@ async function actualizarBracket(torneoId, categoriaId, semifinalId, ganadorId) 
       [perdedorId, tercerQ.rows[0].id]
     );
   }
+}
+
+async function notificarClasificadoFinal(torneoId, categoriaId, ganadorId) {
+  try {
+    const torneoQ = await pool.query('SELECT nombre FROM torneos WHERE id = $1', [torneoId]);
+    const catQ = await pool.query('SELECT nombre FROM categorias_torneo WHERE id = $1', [categoriaId]);
+    const pareja = await pool.query(`
+      SELECT pt.*, u1.email AS email1, u1.nombre AS nombre1, u2.email AS email2, u2.nombre AS nombre2
+      FROM parejas_torneo pt
+      JOIN usuarios u1 ON u1.id = pt.jugador1_id
+      LEFT JOIN usuarios u2 ON u2.id = pt.jugador2_id
+      WHERE pt.id = $1
+    `, [ganadorId]);
+    if (!pareja.rows[0]) return;
+    const p = pareja.rows[0];
+    const torneoNombre = torneoQ.rows[0]?.nombre;
+    const catNombre = catQ.rows[0]?.nombre;
+    for (const email of [p.email1, p.email2].filter(Boolean)) {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject: `🎾 ¡Clasificaste a la Final! — ${catNombre}`,
+        html: `<div style="font-family:sans-serif;max-width:500px;margin:auto;padding:24px">
+          <h2 style="color:#f87171">🎾 ¡Clasificaste a la Final!</h2>
+          <p>¡Felicitaciones <strong>${p.nombre_pareja}</strong>!</p>
+          <p>Ganaron su semifinal y clasificaron a la <strong>Final</strong> del torneo <strong>${torneoNombre}</strong> en la categoría <strong>${catNombre}</strong>.</p>
+          <p>¡Buena suerte en la final!</p>
+        </div>`
+      }).catch(err => console.error('Error email final:', err));
+    }
+  } catch(e) { console.error('notificarClasificadoFinal error:', e); }
+}
+
+async function notificarCampeon(torneoId, categoriaId, ganadorId) {
+  try {
+    const torneoQ = await pool.query('SELECT nombre FROM torneos WHERE id = $1', [torneoId]);
+    const catQ = await pool.query('SELECT nombre FROM categorias_torneo WHERE id = $1', [categoriaId]);
+    const pareja = await pool.query(`
+      SELECT pt.*, u1.email AS email1, u2.email AS email2
+      FROM parejas_torneo pt
+      JOIN usuarios u1 ON u1.id = pt.jugador1_id
+      LEFT JOIN usuarios u2 ON u2.id = pt.jugador2_id
+      WHERE pt.id = $1
+    `, [ganadorId]);
+    if (!pareja.rows[0]) return;
+    const p = pareja.rows[0];
+    const torneoNombre = torneoQ.rows[0]?.nombre;
+    const catNombre = catQ.rows[0]?.nombre;
+    for (const email of [p.email1, p.email2].filter(Boolean)) {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: email,
+        subject: `🏆 ¡Campeones del torneo ${torneoNombre}!`,
+        html: `<div style="font-family:sans-serif;max-width:500px;margin:auto;padding:24px;text-align:center">
+          <h1 style="color:#fbbf24">🏆 ¡CAMPEONES!</h1>
+          <h2>${p.nombre_pareja}</h2>
+          <p>¡Felicitaciones! Ganaron el torneo <strong>${torneoNombre}</strong> en la categoría <strong>${catNombre}</strong>.</p>
+          <p style="font-size:18px">¡Son los campeones! 🎉🥇</p>
+        </div>`
+      }).catch(err => console.error('Error email campeón:', err));
+    }
+  } catch(e) { console.error('notificarCampeon error:', e); }
 }
 
 // ============================================================
