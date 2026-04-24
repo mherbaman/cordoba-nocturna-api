@@ -131,8 +131,14 @@ function generarBloques(horaInicio, horaFin, duracionMin, descansoMin) {
   const bloques = [];
   const duracionTotal = duracionMin + descansoMin;
 
-  let [hIni, mIni] = horaInicio.split(':').map(Number);
-  const [hFin, mFin] = horaFin.split(':').map(Number);
+  // Normalizar: soporta "09:00", "09:00:00", objeto Date, etc.
+  const normalizarHora = (h) => {
+    const str = String(h).substring(0, 5); // toma solo "HH:MM"
+    return str;
+  };
+
+  let [hIni, mIni] = normalizarHora(horaInicio).split(':').map(Number);
+  const [hFin, mFin] = normalizarHora(horaFin).split(':').map(Number);
 
   const minFin = hFin * 60 + mFin;
   let minActual = hIni * 60 + mIni;
