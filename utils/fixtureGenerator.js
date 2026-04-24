@@ -212,16 +212,21 @@ function dividirEnGrupos(parejas) {
   // Mezclar aleatoriamente (sorteo)
   const mezcladas = shuffleArray([...parejas]);
 
-  if (mezcladas.length <= 8) {
-    return [mezcladas];
-  }
+  const n = mezcladas.length;
 
-  // Dividir en 2 grupos lo más equilibrados posible
-  const mitad = Math.ceil(mezcladas.length / 2);
-  return [
-    mezcladas.slice(0, mitad),
-    mezcladas.slice(mitad)
-  ];
+  // Determinar cantidad óptima de grupos (máximo 10 parejas por grupo)
+  // Mínimo 4 parejas por grupo para que tenga sentido
+  let numGrupos = 1;
+  if (n > 10) numGrupos = 2;
+  if (n > 20) numGrupos = 3;
+  if (n > 30) numGrupos = 4;
+
+  if (numGrupos === 1) return [mezcladas];
+
+  // Dividir en grupos lo más equilibrados posible
+  const grupos = Array.from({ length: numGrupos }, () => []);
+  mezcladas.forEach((p, i) => grupos[i % numGrupos].push(p));
+  return grupos;
 }
 
 /**
