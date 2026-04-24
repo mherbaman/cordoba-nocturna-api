@@ -438,10 +438,10 @@ router.put('/:id', authAdmin, async (req, res) => {
 router.delete('/:id', authAdmin, async (req, res) => {
   try {
     const { id } = req.params;
+    await pool.query('DELETE FROM posiciones_torneo WHERE torneo_id=$1', [id]);
+    await pool.query('DELETE FROM partidos_torneo WHERE torneo_id=$1', [id]);
     await pool.query('DELETE FROM parejas_torneo WHERE torneo_id=$1', [id]);
     await pool.query('DELETE FROM categorias_torneo WHERE torneo_id=$1', [id]);
-    await pool.query('DELETE FROM partidos_torneo WHERE torneo_id=$1', [id]);
-    await pool.query('DELETE FROM posiciones_torneo WHERE torneo_id=$1', [id]);
     await pool.query('DELETE FROM delegados_torneo WHERE torneo_id=$1', [id]);
     const { rows } = await pool.query('DELETE FROM torneos WHERE id=$1 RETURNING id', [id]);
     if (!rows.length) return res.status(404).json({ error: 'Torneo no encontrado' });
