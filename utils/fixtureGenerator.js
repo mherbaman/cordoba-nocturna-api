@@ -214,14 +214,11 @@ function dividirEnGrupos(parejas) {
 
   const n = mezcladas.length;
 
-  // Determinar cantidad óptima de grupos (máximo 10 parejas por grupo)
-  // Mínimo 4 parejas por grupo para que tenga sentido
-  let numGrupos = 1;
-  if (n > 10) numGrupos = 2;
+  // Siempre dividir en 2 grupos para que exista bracket (semis, final)
+  // Mínimo 4 parejas por grupo
+  let numGrupos = 2;
   if (n > 20) numGrupos = 3;
   if (n > 30) numGrupos = 4;
-
-  if (numGrupos === 1) return [mezcladas];
 
   // Dividir en grupos lo más equilibrados posible
   const grupos = Array.from({ length: numGrupos }, () => []);
