@@ -1018,12 +1018,27 @@ async function enviarEmailResultado(partido, resultado) {
   const ganadorNombre = ganadorQ.rows[0]?.nombre_pareja || '';
 
   for (const pareja of parejasQ.rows) {
+    const proximoQ = await pool.query(`
+      SELECT pt.*,
+        p1.nombre_pareja AS pareja1_nombre,
+        p2.nombre_pareja AS pareja2_nombre
+      FROM partidos_torneo pt
+      JOIN parejas_torneo p1 ON p1.id = pt.pareja1_id
+      JOIN parejas_torneo p2 ON p2.id = pt.pareja2_id
+      WHERE pt.torneo_id = $1
+        AND pt.estado = 'pendiente'
+        AND (pt.pareja1_id = $2 OR pt.pareja2_id = $2)
+      ORDER BY pt.fecha ASC, pt.hora_inicio ASC
+      LIMIT 1
+    `, [partido.torneo_id, pareja.id]);
+    const proximo = proximoQ.rows[0] || null;
+
     for (const email of [pareja.email1, pareja.email2].filter(Boolean)) {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: email,
         subject: `Resultado: ${partido.resultado_pareja1 || 'W/O'} — Cancha ${partido.cancha}`,
-        html: emailResultado(partido, resultado, ganadorNombre)
+        html: emailResultado(partido, resultado, ganadorNombre, pareja, proximo)
       }).catch(err => console.error(`Error email resultado:`, err));
     }
   }
@@ -1154,8 +1169,16 @@ function emailFixture(pareja, categoria, partidos, usuarioNombre) {
   </div>`;
 }
 
-function emailResultado(partido, resultado, ganadorNombre) {
+function emailResultado(partido, resultado, ganadorNombre, pareja, proximo) {
   const esWalkover = resultado.estado === 'walkover';
+  const proximoHtml = proximo ? `
+    <div style="background:#e8f5e9;border-radius:8px;padding:20px;margin-top:20px">
+      <h3 style="margin:0 0 10px;color:#2e7d32">📅 Tu próximo partido</h3>
+      <p style="margin:4px 0"><strong>Rival:</strong> ${proximo.pareja1_id === pareja?.id ? proximo.pareja2_nombre : proximo.pareja1_nombre}</p>
+      <p style="margin:4px 0"><strong>Cancha:</strong> ${proximo.cancha || 'Por confirmar'}</p>
+      <p style="margin:4px 0"><strong>Hora:</strong> ${proximo.hora_inicio || 'Por confirmar'}</p>
+      <p style="margin:4px 0"><strong>Ronda:</strong> ${proximo.ronda}</p>
+    </div>` : '<p style="margin-top:16px;color:#999;font-size:13px">No tenés más partidos pendientes.</p>';
   return `
   <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">
     <div style="background:#1a1a2e;padding:24px;text-align:center">
@@ -1168,6 +1191,7 @@ function emailResultado(partido, resultado, ganadorNombre) {
         <p style="margin:8px 0 0;color:#666">Ganador: <strong>${ganadorNombre}</strong></p>
         <p style="margin:4px 0 0;color:#999;font-size:13px">Cancha ${partido.cancha} — Ronda ${partido.ronda}</p>
       </div>
+      ${proximoHtml}
       <p style="margin-top:20px;text-align:center">
         <a href="${APP_URL}/padel-connect.html" style="color:#e63946">Ver tabla de posiciones →</a>
       </p>
