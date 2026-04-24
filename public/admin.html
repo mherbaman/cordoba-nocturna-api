@@ -1804,7 +1804,16 @@ async function crearTorneo() {
   }
 }
 
+let adminTorneosInterval = null;
+let adminPartidosInterval = null;
+let adminTorneoIdActivo = null;
+
 async function cargarTorneosAdmin() {
+  // Limpiar interval de partidos si estaba activo
+  if (adminPartidosInterval) { clearInterval(adminPartidosInterval); adminPartidosInterval = null; }
+  // Auto-refresh cada 20s
+  if (adminTorneosInterval) clearInterval(adminTorneosInterval);
+  adminTorneosInterval = setInterval(() => cargarTorneosAdminSilencioso(), 20000);
   const el = document.getElementById('admin-torneos-list');
   el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>';
   try {
@@ -1845,11 +1854,28 @@ async function cambiarEstadoTorneo(id, estado) {
   } catch(e) { alert(e.message); }
 }
 
+async function cargarTorneosAdminSilencioso() {
+  try {
+    const data = await apiAdmin('/torneos');
+    const lista = document.getElementById('lista-torneos-admin');
+    if (lista) {
+      // Re-renderizar solo si el modal de partidos no esta abierto
+      const modal = document.getElementById('modal-resultado');
+      if (modal && modal.style.display === 'flex') return;
+      cargarTorneosAdmin();
+    }
+  } catch(e) { /* silencioso */ }
+}
+
 async function verPartidosTorneo(torneoId) {
   const modal = document.getElementById('modal-resultado');
   const content = document.getElementById('modal-resultado-content');
   content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Cargando partidos...</p>';
   modal.style.display = 'flex';
+  adminTorneoIdActivo = torneoId;
+  // Auto-refresh cada 20s en la vista de partidos
+  if (adminPartidosInterval) clearInterval(adminPartidosInterval);
+  adminPartidosInterval = setInterval(() => verPartidosTorneo(adminTorneoIdActivo), 20000);
   try {
     const data = await apiAdmin('/torneos/' + torneoId);
     const todos = data.partidos || [];
@@ -1974,7 +2000,7 @@ async function modificarResultado(partidoId) {
   <div style="background:#1a0030;border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:24px;max-width:600px;width:100%;margin:40px auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div style="font-size:16px;font-weight:700;color:#f87171">🎾 Cargar resultados</div>
-      <button onclick="document.getElementById('modal-resultado').style.display='none'" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer">✕</button>
+      <button onclick="if(adminPartidosInterval){clearInterval(adminPartidosInterval);adminPartidosInterval=null;}document.getElementById('modal-resultado').style.display='none'" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer">✕</button>
     </div>
     <div id="modal-resultado-content"></div>
   </div>

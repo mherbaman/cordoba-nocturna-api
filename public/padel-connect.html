@@ -418,13 +418,13 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .home-logo { font-family:'Bebas Neue',cursive; font-size:32px; letter-spacing:2px; }
 .home-logo span { color:var(--green); }
 .home-subtitle { color:var(--muted); font-size:13px; margin-top:6px; }
-.home-cards { width:100%; max-width:420px; padding:28px 20px 0; display:flex; flex-direction:column; gap:14px; }
-.home-card { border-radius:20px; padding:26px 22px; cursor:pointer; transition:all .2s; border:1.5px solid; position:relative; overflow:hidden; }
+.home-cards { width:100%; max-width:420px; padding:16px 20px 0; display:flex; flex-direction:column; gap:8px; }
+.home-card { border-radius:16px; padding:14px 18px; cursor:pointer; transition:all .2s; border:1.5px solid; position:relative; overflow:hidden; }
 .home-card:hover { transform:translateY(-2px); }
-.home-card-icon { font-size:42px; margin-bottom:10px; display:block; }
-.home-card-title { font-family:'Bebas Neue',cursive; font-size:24px; letter-spacing:1px; margin-bottom:5px; }
-.home-card-desc { font-size:13px; line-height:1.5; opacity:.75; }
-.home-card-arrow { position:absolute; bottom:20px; right:22px; font-size:22px; opacity:.4; }
+.home-card-icon { font-size:28px; margin-bottom:4px; display:block; }
+.home-card-title { font-family:'Bebas Neue',cursive; font-size:20px; letter-spacing:1px; margin-bottom:2px; }
+.home-card-desc { font-size:12px; line-height:1.4; opacity:.75; }
+.home-card-arrow { position:absolute; bottom:14px; right:18px; font-size:18px; opacity:.4; }
 .home-card-perfil { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.3); }
 .home-card-perfil:hover { background:rgba(34,197,94,.14); border-color:var(--green); }
 .home-card-partidos { background:rgba(255,193,7,.06); border-color:rgba(255,193,7,.25); }
@@ -578,7 +578,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 <!-- TORNEO DETALLE -->
 <div class="screen" id="torneo-detalle-screen" style="justify-content:flex-start;padding:0">
   <div class="pp-header" style="border-bottom:1px solid rgba(239,68,68,.2)">
-    <button class="back-btn" onclick="showScreen('torneos-screen');cargarTorneos()" style="font-size:22px">←</button>
+    <button class="back-btn" onclick="if(torneoRefreshInterval){clearInterval(torneoRefreshInterval);torneoRefreshInterval=null;}showScreen('torneos-screen');cargarTorneos()" style="font-size:22px">←</button>
     <div class="pp-title" style="color:#f87171" id="torneo-detalle-titulo">Torneo</div>
   </div>
   <div style="width:100%;max-width:420px;padding:16px 18px;overflow-y:auto">
@@ -3007,6 +3007,8 @@ async function cargarTorneos() {
   }
 }
 
+let torneoRefreshInterval = null;
+
 async function abrirTorneo(id) {
   showScreen('torneo-detalle-screen');
   document.getElementById('torneo-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div>';
@@ -3018,6 +3020,20 @@ async function abrirTorneo(id) {
   } catch(e) {
     document.getElementById('torneo-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Error al cargar torneo.</div>';
   }
+  // Auto-refresh cada 20 segundos sin salir del tab
+  if (torneoRefreshInterval) clearInterval(torneoRefreshInterval);
+  torneoRefreshInterval = setInterval(async () => {
+    if (!torneoActual || !torneoActual.torneo) return;
+    try {
+      const res = await fetch(`https://api.cordobalux.com/torneos/${torneoActual.torneo.id}`);
+      torneoActual = await res.json();
+      // Re-renderizar el tab activo silenciosamente
+      if (torneoTabActual === 'posiciones') renderPosiciones();
+      else if (torneoTabActual === 'fixture') renderFixture();
+      else if (torneoTabActual === 'bracket') renderBracket();
+      else if (torneoTabActual === 'info') renderTorneoInfo();
+    } catch(e) { /* silencioso */ }
+  }, 20000);
 }
 
 function switchTorneoTab(tab, btn) {
