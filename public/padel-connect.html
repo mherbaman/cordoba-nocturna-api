@@ -3085,7 +3085,7 @@ function renderPosiciones() {
         </div>
         ${posGrupo.map((p, i) => `
         <div style="display:grid;grid-template-columns:24px 1fr 32px 32px 32px 32px;gap:4px;padding:8px 10px;border-top:1px solid rgba(255,255,255,.05);${i < 2 ? 'background:rgba(239,68,68,.04)' : ''}">
-          <span style="color:${i < 2 ? '#f87171' : 'rgba(255,255,255,.3)'};font-weight:700;font-size:12px">${p.posicion}</span>
+          <span style="color:${i < 2 ? '#f87171' : 'rgba(255,255,255,.3)'};font-weight:700;font-size:12px">${p.posicion ?? i + 1}</span>
           <span style="color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre_pareja || p.jugador1_nombre + ' / ' + (p.jugador2_nombre||'?')}</span>
           <span style="text-align:center;color:rgba(255,255,255,.5);font-size:12px">${p.partidos_jugados}</span>
           <span style="text-align:center;color:rgba(255,255,255,.5);font-size:12px">${p.partidos_ganados}</span>
