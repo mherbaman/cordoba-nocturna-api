@@ -43,6 +43,9 @@ router.post('/registro', async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    // Registrar app de origen
+    const appOrigen = app_origen || 'cordoba';
+    await pool.query(`INSERT INTO usuarios_apps (usuario_id, app) VALUES ($1, $2) ON CONFLICT (usuario_id, app) DO NOTHING`, [usuario.id, appOrigen]);
     res.status(201).json({ usuario, token });
 
   } catch (err) {
@@ -75,6 +78,11 @@ router.post('/login', async (req, res) => {
 
     // Actualizar último login
     await pool.query('UPDATE usuarios SET ultimo_login = NOW() WHERE id = $1', [usuario.id]);
+    // Registrar app si viene en el body
+    const { app: appLogin } = req.body;
+    if (appLogin) {
+      await pool.query(`INSERT INTO usuarios_apps (usuario_id, app) VALUES ($1, $2) ON CONFLICT (usuario_id, app) DO NOTHING`, [usuario.id, appLogin]);
+    }
 
     const token = jwt.sign(
       { id: usuario.id, nombre: usuario.nombre },
@@ -89,7 +97,10 @@ router.post('/login', async (req, res) => {
         email: usuario.email,
         foto_url: usuario.foto_url,
         vibe: usuario.vibe,
-        edad: usuario.edad
+        edad: usuario.edad,
+        apellido: usuario.apellido,
+        telefono: usuario.telefono,
+        app_origen: usuario.app_origen
       },
       token
     });

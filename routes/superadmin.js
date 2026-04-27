@@ -241,8 +241,11 @@ router.get('/sesiones-negocio/:id', async (req, res) => {
 router.get('/usuarios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, nombre, apellido, email, foto_url, vibe, edad, telefono, app_origen, creado_en, ultimo_login, activo
-      FROM usuarios ORDER BY creado_en DESC LIMIT 100
+      SELECT u.id, u.nombre, u.apellido, u.email, u.foto_url, u.vibe, u.edad, u.telefono, u.app_origen, u.creado_en, u.ultimo_login, u.activo,
+        COALESCE(json_agg(ua.app ORDER BY ua.primera_vez) FILTER (WHERE ua.app IS NOT NULL), '[]') as apps
+      FROM usuarios u
+      LEFT JOIN usuarios_apps ua ON ua.usuario_id = u.id
+      GROUP BY u.id ORDER BY u.creado_en DESC LIMIT 100
     `);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
