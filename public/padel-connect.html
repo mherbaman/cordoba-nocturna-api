@@ -850,6 +850,11 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div class="swipe-tab" onclick="switchTab('ranking',this)">🏆 Ranking</div>
     <div class="swipe-tab" onclick="switchTab('partidos',this)">⚡ Partidos</div>
     <div class="swipe-tab" onclick="switchTab('misreservas',this)">📋 Mis turnos</div>
+    <div class="swipe-tab" onclick="switchTab('misinscripciones',this)">🏆 Mis inscripciones</div>
+  </div>
+  <!-- TAB MIS INSCRIPCIONES -->
+  <div class="tab-content" id="tab-misinscripciones" style="padding:16px;overflow-y:auto">
+    <div id="mis-inscripciones-list"><div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div></div>
   </div>
   <!-- TAB JUGAR -->
   <div class="tab-content active" id="tab-jugar">
@@ -2026,6 +2031,7 @@ function switchTab(tab, btn) {
   if(tab==='ranking') cargarRanking();
   if(tab==='partidos') cargarPartidos();
   if(tab==='misreservas') cargarMisReservas();
+  if(tab==='misinscripciones') cargarMisInscripciones();
 }
 
 // ── CANCHAS JUGADOR ───────────────────────────────────────────────────
@@ -3889,6 +3895,50 @@ async function guardarDatosObligatorios() {
     }
   } catch(e) {
     errEl.textContent = e.message || 'Error al guardar'; errEl.style.display='block';
+  }
+}
+
+// ── MIS INSCRIPCIONES ─────────────────────────────────────────────────
+async function cargarMisInscripciones() {
+  const el = document.getElementById('mis-inscripciones-list');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div class="loader"></div></div>';
+  try {
+    const data = await api('/torneos/mis-inscripciones');
+    if (!data.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🎾</div>No tenés inscripciones en torneos aún.</div>';
+      return;
+    }
+    const estadoColor = { proximamente:'#a78bfa', inscripciones_abiertas:'#4ade80', inscripciones_cerradas:'#fbbf24', en_curso:'#fb923c', finalizado:'rgba(255,255,255,.3)' };
+    const estadoLabel = { proximamente:'Próximamente', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' };
+    const parejaEstado = { pendiente:'⏳ Pendiente confirmación', confirmada:'✅ Confirmada', rechazada:'❌ Rechazada' };
+    el.innerHTML = data.map(p => {
+      const fechaInicio = p.fecha_inicio ? new Date(p.fecha_inicio.substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'}) : '';
+      const esSolo = !p.jugador2_nombre;
+      const esJugador1 = p.jugador1_id === usuario?.id;
+      const compañero = esJugador1 ? p.jugador2_nombre : p.jugador1_nombre;
+      const compañeroFoto = esJugador1 ? p.jugador2_foto : p.jugador1_foto;
+      return `
+      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#fff">${p.torneo_nombre}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${p.sede||''} · ${fechaInicio}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">${p.categoria_nombre}</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor[p.torneo_estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[p.torneo_estado]||'rgba(255,255,255,.2)'};white-space:nowrap">${estadoLabel[p.torneo_estado]||p.torneo_estado}</span>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px">
+          ${compañeroFoto ? `<img src="${compañeroFoto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : `<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🎾</div>`}
+          <div>
+            <div style="font-size:13px;color:#fff">${esSolo ? 'Buscando compañero...' : compañero}</div>
+            <div style="font-size:11px;color:${p.estado==='confirmada'?'#4ade80':p.estado==='pendiente'?'#fbbf24':'#f87171'}">${parejaEstado[p.estado]||p.estado}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#f87171">Error al cargar inscripciones</div>';
   }
 }
 </script>
