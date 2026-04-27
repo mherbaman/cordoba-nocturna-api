@@ -620,6 +620,39 @@ tr:hover td { background:rgba(255,255,255,.02); }
       </div>
     </div>
   </div>
+      <!-- SUPER 8 AMERICANO -->
+      <div class="page" id="page-americanos">
+        <div class="page-title">SUPER 8 AMERICANO 🎾</div>
+        <div class="page-sub">Creá y gestioná los eventos americanos de CórdobaLux.</div>
+        <button onclick="mostrarFormAmericano()" style="margin-bottom:20px;padding:10px 20px;border-radius:50px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.1);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer">+ Nuevo Americano</button>
+        <div id="form-americano" style="display:none;background:rgba(99,102,241,.05);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:16px">Nuevo Super 8 Americano</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label><input id="am-nombre" type="text" placeholder="Americano Abril 2026" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Sede</label><input id="am-sede" type="text" placeholder="Club Córdoba Racket" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Fecha</label><input id="am-fecha" type="date" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Hora inicio</label><input id="am-hora" type="time" value="09:00" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Canchas</label><input id="am-canchas" type="number" value="2" min="1" max="10" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Precio inscripcion ($)</label><input id="am-precio" type="number" value="0" min="0" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Duración partido (min)</label><input id="am-duracion" type="number" value="20" min="10" max="60" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descanso entre rondas (min)</label><input id="am-descanso" type="number" value="5" min="0" max="30" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Formato</label>
+            <select id="am-formato" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
+              <option value="mejor_de_7">Mejor de 7 games (se juegan los 7, suma puntos)</option>
+              <option value="set">1 Set (primero en llegar a 6)</option>
+            </select>
+          </div>
+          <div style="margin-bottom:12px"><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripcion</label><textarea id="am-descripcion" rows="2" placeholder="Info del americano..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea></div>
+          <div style="display:flex;gap:10px">
+            <button onclick="crearAmericano()" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#4f46e5,#a5b4fc);color:#fff;font-size:14px;font-weight:700;cursor:pointer">CREAR AMERICANO</button>
+            <button onclick="document.getElementById('form-americano').style.display='none'" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+          </div>
+          <div id="am-form-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+        <div id="admin-americanos-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
+      </div>
 </div>
 
 <!-- MODAL -->
