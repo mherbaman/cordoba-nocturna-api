@@ -60,7 +60,7 @@ app.use('/superadmin',  require('./routes/superadmin'));
 app.use('/sponsors',    require('./routes/sponsors'));
 app.use('/padel',     require('./routes/padel'));
 app.use('/torneos',   require('./routes/torneos'));
-app.use('/torneos',   require('./routes/torneos'));
+app.use('/americanos', require('./routes/americanos'));
 
 // ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
@@ -97,4 +97,3 @@ async function arrancar() {
 }
 
 arrancar();
-app.use('/torneos',   require('./routes/torneos'));
