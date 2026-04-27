@@ -436,6 +436,9 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .home-card-torneos { background:rgba(239,68,68,.08); border-color:rgba(239,68,68,.3); }
 .home-card-torneos:hover { background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.6); }
 .home-card-torneos .home-card-title { color:#f87171; }
+.home-card-americano { background:rgba(234,179,8,.08); border-color:rgba(234,179,8,.3); }
+.home-card-americano:hover { background:rgba(234,179,8,.14); border-color:rgba(234,179,8,.6); }
+.home-card-americano .home-card-title { color:#fbbf24; }
 
 /* PRÓXIMOS PARTIDOS */
 #proximos-partidos { justify-content:flex-start; padding:0; }
@@ -552,7 +555,13 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <p class="home-card-desc">Encontrá profesores disponibles y reservá tu clase de pádel.</p>
       <span class="home-card-arrow">→</span>
     </div>
-    <div class="home-card home-card-torneos" onclick="irATorneos()">
+    
+      <div class="home-card home-card-americano" onclick="irAAmericanos()">
+        <div class="home-card-emoji">🎾</div>
+        <div class="home-card-title">Super 8 Americano</div>
+        <div class="home-card-sub">Formato round-robin · 8 jugadores · Ranking ELO</div>
+      </div>
+      <div class="home-card home-card-torneos" onclick="irATorneos()">
       <span class="home-card-icon">🏆</span>
       <div class="home-card-title">Torneos</div>
       <p class="home-card-desc">Inscribite, seguí el fixture y la tabla de posiciones en tiempo real.</p>
@@ -604,6 +613,44 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 </div>
 
+<!-- AMERICANOS LISTA -->
+<div class="screen" id="americanos-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header" style="border-bottom:1px solid rgba(234,179,8,.2)">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div class="pp-title" style="color:#fbbf24">Super 8 <span style="color:#fff">Americano</span></div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:16px 18px;overflow-y:auto">
+    <div id="americanos-lista">
+      <div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div>
+    </div>
+  </div>
+</div>
+<!-- AMERICANO DETALLE -->
+<div class="screen" id="americano-detalle-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header" style="border-bottom:1px solid rgba(234,179,8,.2)">
+    <button class="back-btn" onclick="if(americanoRefreshInterval){clearInterval(americanoRefreshInterval);americanoRefreshInterval=null;}showScreen('americanos-screen');cargarAmericanos()" style="font-size:22px">←</button>
+    <div class="pp-title" style="color:#fbbf24" id="americano-detalle-titulo">Super 8</div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:16px 18px;overflow-y:auto">
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button onclick="switchAmericanoTab('info',this)" id="atab-info" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(234,179,8,.4);background:rgba(234,179,8,.15);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">INFO</button>
+      <button onclick="switchAmericanoTab('posiciones',this)" id="atab-posiciones" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">POSICIONES</button>
+      <button onclick="switchAmericanoTab('fixture',this)" id="atab-fixture" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">FIXTURE</button>
+    </div>
+    <div id="americano-tab-content">
+      <div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div>
+    </div>
+  </div>
+</div>
+<!-- MODAL INSCRIPCION AMERICANO -->
+<div id="modal-inscripcion-americano" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#1a1500;border:1px solid rgba(234,179,8,.3);border-radius:20px;padding:24px;width:100%;max-width:380px">
+    <h3 style="color:#fbbf24;margin:0 0 16px;font-size:18px">🎾 Inscribirse al americano</h3>
+    <p style="color:rgba(255,255,255,.6);font-size:13px;margin-bottom:20px">¿Confirmás tu inscripción? Te vamos a enviar el fixture por email cuando estén todos los jugadores.</p>
+    <button onclick="confirmarInscripcionAmericano()" style="width:100%;padding:12px;border-radius:50px;border:none;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:10px">CONFIRMAR INSCRIPCIÓN</button>
+    <button onclick="document.getElementById('modal-inscripcion-americano').style.display='none'" style="width:100%;padding:10px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer">Cancelar</button>
+  </div>
+</div>
 <!-- CLASES PARTICULARES -->
 <div class="screen" id="clases-screen" style="justify-content:flex-start;padding:0">
   <div class="pp-header">
@@ -3064,6 +3111,211 @@ async function cargarTorneos() {
     }).join('');
   } catch(e) {
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Error al cargar torneos.</div>';
+  }
+}
+
+let americanoActual = null;
+let americanoTabActual = 'info';
+let americanoRefreshInterval = null;
+
+function irAAmericanos() {
+  showScreen('americanos-screen');
+  cargarAmericanos();
+}
+
+async function cargarAmericanos() {
+  const el = document.getElementById('americanos-lista');
+  try {
+    const res = await fetch('https://api.cordobalux.com/americanos');
+    const data = await res.json();
+    if (!data.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay americanos disponibles por el momento.</div>';
+      return;
+    }
+    const estadoLabel = { proximamente:'Próximamente', abierto:'Inscripciones abiertas', cerrado:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' };
+    const estadoColor = { proximamente:'rgba(255,255,255,.4)', abierto:'#4ade80', cerrado:'#f87171', en_curso:'#fbbf24', finalizado:'rgba(255,255,255,.3)' };
+    el.innerHTML = data.map(a => {
+      const fecha = new Date(a.fecha.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+      const hora = a.hora_inicio ? a.hora_inicio.slice(0,5) : '';
+      const label = estadoLabel[a.estado] || a.estado;
+      const color = estadoColor[a.estado] || '#fff';
+      return `<div onclick="abrirAmericano(${a.id})" style="background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.2);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(234,179,8,.5)'" onmouseout="this.style.borderColor='rgba(234,179,8,.2)'">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-size:16px;font-weight:700;color:#fff">${a.nombre}</div>
+          <span style="font-size:11px;font-weight:700;color:${color};background:rgba(255,255,255,.05);padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px">${label}</span>
+        </div>
+        ${a.categoria ? `<div style="font-size:11px;color:#fbbf24;margin-bottom:6px;font-weight:700">🎯 ${a.categoria}</div>` : ''}
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px">📅 ${fecha} · ${hora}</div>
+        ${a.sede ? `<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:4px">📍 ${a.sede}</div>` : ''}
+        <div style="font-size:12px;color:rgba(255,255,255,.4)">👤 ${a.inscriptos}/${a.max_jugadores} jugadores</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+
+async function abrirAmericano(id) {
+  showScreen('americano-detalle-screen');
+  document.getElementById('americano-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div>';
+  try {
+    const res = await fetch(`https://api.cordobalux.com/americanos/${id}`);
+    americanoActual = await res.json();
+    document.getElementById('americano-detalle-titulo').textContent = americanoActual.nombre;
+    switchAmericanoTab('info', document.getElementById('atab-info'));
+  } catch(e) {
+    document.getElementById('americano-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Error al cargar.</div>';
+  }
+  if (americanoRefreshInterval) clearInterval(americanoRefreshInterval);
+  americanoRefreshInterval = setInterval(async () => {
+    if (!americanoActual) return;
+    try {
+      const res = await fetch(`https://api.cordobalux.com/americanos/${americanoActual.id}`);
+      americanoActual = await res.json();
+      if (americanoTabActual === 'posiciones') renderAmericanoPosiciones();
+      else if (americanoTabActual === 'fixture') renderAmericanoFixture();
+      else renderAmericanoInfo();
+    } catch(e) {}
+  }, 20000);
+}
+
+function switchAmericanoTab(tab, btn) {
+  americanoTabActual = tab;
+  ['atab-info','atab-posiciones','atab-fixture'].forEach(id => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.style.background = 'transparent';
+    b.style.borderColor = 'rgba(255,255,255,.1)';
+    b.style.color = 'rgba(255,255,255,.5)';
+  });
+  if (btn) {
+    btn.style.background = 'rgba(234,179,8,.15)';
+    btn.style.borderColor = 'rgba(234,179,8,.4)';
+    btn.style.color = '#fbbf24';
+  }
+  if (!americanoActual) return;
+  if (tab === 'info') renderAmericanoInfo();
+  else if (tab === 'posiciones') renderAmericanoPosiciones();
+  else if (tab === 'fixture') renderAmericanoFixture();
+}
+
+function renderAmericanoInfo() {
+  const a = americanoActual;
+  const token = localStorage.getItem('cl_token');
+  const fecha = new Date(a.fecha.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+  const hora = a.hora_inicio ? a.hora_inicio.slice(0,5) : '';
+  const formatoLabel = a.formato === 'mejor_de_7' ? 'Mejor de 7 games' : 'Set a 6';
+  const jugadores = a.jugadores || [];
+  const puedeInscribirse = a.estado === 'abierto' && token && jugadores.length < a.max_jugadores;
+
+  document.getElementById('americano-tab-content').innerHTML = `
+    <div style="background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.2);border-radius:14px;padding:16px;margin-bottom:14px">
+      ${a.categoria ? `<div style="color:#fbbf24;font-size:12px;font-weight:700;margin-bottom:6px">🎯 Categoría: ${a.categoria}</div>` : ''}
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${fecha} · ${hora}</div>
+      ${a.sede ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📍 ${a.sede}</div>` : ''}
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">🎾 ${a.cantidad_canchas} canchas · ${a.duracion_partido_min} min por partido · ${formatoLabel}</div>
+      <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">👤 ${jugadores.length}/${a.max_jugadores} jugadores inscriptos</div>
+      ${Number(a.precio_inscripcion) > 0 ? `<div style="color:#fbbf24;font-size:13px;font-weight:700;margin-top:6px">💰 $ ${Number(a.precio_inscripcion).toLocaleString('es-AR',{maximumFractionDigits:0})}</div>` : '<div style="color:#4ade80;font-size:13px;font-weight:700;margin-top:6px">✅ Inscripción gratuita</div>'}
+    </div>
+    ${a.descripcion ? `<p style="color:rgba(255,255,255,.6);font-size:13px;line-height:1.6;margin-bottom:14px">${a.descripcion}</p>` : ''}
+    ${puedeInscribirse ? `<button onclick="abrirModalInscripcionAmericano()" style="width:100%;padding:13px;border-radius:50px;border:none;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:16px">INSCRIBIRME</button>` : ''}
+    ${jugadores.length ? `
+    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:10px;letter-spacing:1px">JUGADORES INSCRIPTOS</div>
+    ${jugadores.map((j, i) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;margin-bottom:6px">
+        <span style="color:rgba(255,255,255,.3);font-size:12px;width:20px">${i+1}</span>
+        <span style="color:#fff;font-size:13px;flex:1">${j.nombre}</span>
+        <span style="color:rgba(255,255,255,.3);font-size:11px">ELO ${j.ranking_puntos || 1000}</span>
+      </div>`).join('')}` : ''}
+  `;
+}
+
+function renderAmericanoPosiciones() {
+  const posiciones = americanoActual.posiciones || [];
+  if (!posiciones.length) {
+    document.getElementById('americano-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Las posiciones estarán disponibles cuando comience el americano.</div>';
+    return;
+  }
+  const sorted = [...posiciones].sort((a,b) => a.posicion - b.posicion);
+  const medals = ['🥇','🥈','🥉'];
+  let html = `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:32px 1fr 36px 36px 36px;gap:4px;padding:8px 12px;background:rgba(255,255,255,.05);font-size:10px;color:rgba(255,255,255,.4);font-weight:700">
+      <span>#</span><span>Jugador</span><span style="text-align:center">GF</span><span style="text-align:center">GC</span><span style="text-align:center">DIF</span>
+    </div>
+    ${sorted.map((p, i) => `
+    <div style="display:grid;grid-template-columns:32px 1fr 36px 36px 36px;gap:4px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.05);${i < 3 ? 'background:rgba(234,179,8,.04)' : ''}">
+      <span style="font-size:14px">${medals[i] || p.posicion}</span>
+      <span style="color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre}</span>
+      <span style="text-align:center;color:#4ade80;font-size:13px;font-weight:700">${p.games_favor}</span>
+      <span style="text-align:center;color:#f87171;font-size:13px">${p.games_contra}</span>
+      <span style="text-align:center;color:${p.diferencia >= 0 ? '#fbbf24' : '#f87171'};font-size:13px;font-weight:700">${p.diferencia > 0 ? '+' : ''}${p.diferencia}</span>
+    </div>`).join('')}
+  </div>`;
+  document.getElementById('americano-tab-content').innerHTML = html;
+}
+
+function renderAmericanoFixture() {
+  const partidos = americanoActual.partidos || [];
+  if (!partidos.length) {
+    document.getElementById('americano-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">El fixture estará disponible cuando se genere el americano.</div>';
+    return;
+  }
+  let html = '';
+  const rondas = [...new Set(partidos.map(p => p.ronda))].sort((a,b) => a-b);
+  for (const ronda of rondas) {
+    const pRonda = partidos.filter(p => p.ronda === ronda);
+    html += `<div style="font-size:12px;color:rgba(255,255,255,.4);margin:14px 0 8px;font-weight:700;letter-spacing:1px">RONDA ${ronda}</div>`;
+    pRonda.forEach(p => {
+      const jugado = p.estado === 'jugado';
+      const hora = p.hora_inicio ? p.hora_inicio.slice(0,5) : '';
+      html += `<div style="background:rgba(255,255,255,.03);border:1px solid ${jugado ? 'rgba(74,222,128,.2)' : 'rgba(234,179,8,.12)'};border-radius:10px;padding:10px 12px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:11px;color:rgba(255,255,255,.3)">Cancha ${p.cancha}${hora ? ' · ' + hora : ''}</span>
+          ${jugado ? `<span style="font-size:11px;color:#4ade80;font-weight:700">${p.resultado_local}-${p.resultado_visita}</span>` : '<span style="font-size:10px;color:rgba(255,255,255,.3)">Pendiente</span>'}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:13px;color:#fff;flex:1">${p.jugador1_nombre || '?'} / ${p.jugador2_nombre || '?'}</div>
+          <span style="color:rgba(255,255,255,.3);font-size:12px;margin:0 8px">vs</span>
+          <div style="font-size:13px;color:#fff;flex:1;text-align:right">${p.jugador3_nombre || '?'} / ${p.jugador4_nombre || '?'}</div>
+        </div>
+      </div>`;
+    });
+  }
+  document.getElementById('americano-tab-content').innerHTML = html;
+}
+
+function abrirModalInscripcionAmericano() {
+  document.getElementById('modal-inscripcion-americano').style.display = 'flex';
+}
+
+async function confirmarInscripcionAmericano() {
+  const token = localStorage.getItem('cl_token');
+  if (!token) return;
+  const btn = document.querySelector('#modal-inscripcion-americano button');
+  btn.textContent = 'Inscribiendo...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`https://api.cordobalux.com/americanos/${americanoActual.id}/inscribir`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('modal-inscripcion-americano').style.display = 'none';
+      const r2 = await fetch(`https://api.cordobalux.com/americanos/${americanoActual.id}`);
+      americanoActual = await r2.json();
+      switchAmericanoTab('info', document.getElementById('atab-info'));
+      alert('✅ ¡Inscripción confirmada! Te avisamos por email cuando se genere el fixture.');
+    } else {
+      alert(data.error || 'Error al inscribirse');
+      btn.textContent = 'CONFIRMAR INSCRIPCIÓN';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Error de conexión');
+    btn.textContent = 'CONFIRMAR INSCRIPCIÓN';
+    btn.disabled = false;
   }
 }
 
