@@ -261,13 +261,13 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas,
-            duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion } = req.body;
+            duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, categoria } = req.body;
     if (!nombre || !fecha) return res.status(400).json({ error: 'Nombre y fecha son obligatorios' });
     const r = await pool.query(
-      'INSERT INTO americanos (nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, estado) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+      'INSERT INTO americanos (nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, estado, categoria) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
       [nombre, descripcion||null, sede||null, fecha, hora_inicio||'09:00',
        cantidad_canchas||2, duracion_partido_min||20, descanso_entre_rondas_min||5,
-       formato||'mejor_de_7', precio_inscripcion||0, 'proximamente']
+       formato||'mejor_de_7', precio_inscripcion||0, 'proximamente', categoria||null]
     );
     res.json(r.rows[0]);
   } catch(err) { console.error('POST /americanos:', err); res.status(500).json({ error: err.message }); }
@@ -298,7 +298,19 @@ router.delete('/:id', async (req, res) => {
 router.post('/:id/inscribir', async (req, res) => {
   try {
     const { id } = req.params;
-    const { usuario_id, nombre, email } = req.body;
+    // Autenticacion por token
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Debes iniciar sesion para inscribirte' });
+    let usuario_id;
+    try {
+      const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET);
+      usuario_id = decoded.id || decoded.usuario_id;
+    } catch(e) { return res.status(401).json({ error: 'Token invalido' }); }
+    // Datos del usuario
+    const uRes = await pool.query('SELECT id, nombre, email FROM usuarios WHERE id = $1', [usuario_id]);
+    if (!uRes.rows.length) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const { nombre, email } = uRes.rows[0];
+    // Validaciones del americano
     const am = await pool.query('SELECT * FROM americanos WHERE id = $1', [id]);
     if (!am.rows.length) return res.status(404).json({ error: 'No encontrado' });
     if (am.rows[0].estado !== 'abierto') return res.status(400).json({ error: 'Las inscripciones estan cerradas' });
@@ -307,15 +319,17 @@ router.post('/:id/inscribir', async (req, res) => {
     );
     if (parseInt(cnt.rows[0].count) >= am.rows[0].max_jugadores)
       return res.status(400).json({ error: 'El americano ya esta completo' });
-    await pool.query(
-      'INSERT INTO americanos_jugadores (americano_id, usuario_id, nombre, email, estado) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (americano_id, usuario_id) DO NOTHING',
+    // Insertar
+    const ins = await pool.query(
+      'INSERT INTO americanos_jugadores (americano_id, usuario_id, nombre, email, estado) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (americano_id, usuario_id) DO NOTHING RETURNING id',
       [id, usuario_id, nombre, email, 'confirmado']
     );
+    if (!ins.rows.length) return res.status(400).json({ error: 'Ya estas inscripto en este americano' });
     await pool.query(
       'INSERT INTO americanos_posiciones (americano_id, usuario_id, nombre) VALUES ($1,$2,$3) ON CONFLICT (americano_id, usuario_id) DO NOTHING',
       [id, usuario_id, nombre]
     );
-    res.json({ ok: true });
+    res.json({ ok: true, mensaje: 'Inscripcion confirmada' });
   } catch(err) { console.error('POST inscribir:', err); res.status(500).json({ error: err.message }); }
 });
 
