@@ -122,12 +122,14 @@ router.put('/perfil', authUsuario, async (req, res) => {
     const result = await pool.query(`
       UPDATE usuarios 
       SET nombre = COALESCE($1, nombre),
-          foto_url = COALESCE($2, foto_url),
-          vibe = COALESCE($3, vibe),
-          edad = COALESCE($4, edad)
-      WHERE id = $5
-      RETURNING id, nombre, email, foto_url, vibe, edad
-    `, [nombre, foto_url, vibe, edad, req.usuario.id]);
+          apellido = COALESCE($2, apellido),
+          foto_url = COALESCE($3, foto_url),
+          vibe = COALESCE($4, vibe),
+          edad = COALESCE($5, edad),
+          telefono = COALESCE($6, telefono)
+      WHERE id = $7
+      RETURNING id, nombre, apellido, email, telefono, foto_url, vibe, edad, app_origen
+    `, [nombre, apellido, foto_url, vibe, edad, telefono, req.usuario.id]);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Error interno del servidor' });
