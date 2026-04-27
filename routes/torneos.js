@@ -73,6 +73,30 @@ router.get('/admin/lista', authAdmin, async (req, res) => {
 });
 
 // GET /torneos/:id — detalle, posiciones y bracket
+// GET /torneos/mis-inscripciones — parejas del usuario logueado
+router.get('/mis-inscripciones', authUsuario, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT pt.*,
+        t.nombre AS torneo_nombre, t.fecha_inicio, t.fecha_fin, t.sede, t.estado AS torneo_estado,
+        ct.nombre AS categoria_nombre,
+        u1.nombre AS jugador1_nombre, u1.foto_url AS jugador1_foto,
+        u2.nombre AS jugador2_nombre, u2.foto_url AS jugador2_foto
+      FROM parejas_torneo pt
+      JOIN torneos t ON t.id = pt.torneo_id
+      JOIN categorias_torneo ct ON ct.id = pt.categoria_id
+      JOIN usuarios u1 ON u1.id = pt.jugador1_id
+      LEFT JOIN usuarios u2 ON u2.id = pt.jugador2_id
+      WHERE (pt.jugador1_id = $1 OR pt.jugador2_id = $1)
+        AND pt.estado NOT IN ('rechazada', 'eliminada')
+      ORDER BY t.fecha_inicio DESC
+    `, [req.usuario.id]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener inscripciones' });
+  }
+});
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -325,29 +349,7 @@ router.post('/inscribir', authUsuario, async (req, res) => {
   }
 });
 
-// GET /torneos/mis-inscripciones — parejas del usuario logueado
-router.get('/mis-inscripciones', authUsuario, async (req, res) => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT pt.*,
-        t.nombre AS torneo_nombre, t.fecha_inicio, t.fecha_fin, t.sede, t.estado AS torneo_estado,
-        ct.nombre AS categoria_nombre,
-        u1.nombre AS jugador1_nombre, u1.foto_url AS jugador1_foto,
-        u2.nombre AS jugador2_nombre, u2.foto_url AS jugador2_foto
-      FROM parejas_torneo pt
-      JOIN torneos t ON t.id = pt.torneo_id
-      JOIN categorias_torneo ct ON ct.id = pt.categoria_id
-      JOIN usuarios u1 ON u1.id = pt.jugador1_id
-      LEFT JOIN usuarios u2 ON u2.id = pt.jugador2_id
-      WHERE (pt.jugador1_id = $1 OR pt.jugador2_id = $1)
-        AND pt.estado NOT IN ('rechazada', 'eliminada')
-      ORDER BY t.fecha_inicio DESC
-    `, [req.usuario.id]);
 
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener inscripciones' });
   }
 });
 
