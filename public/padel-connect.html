@@ -733,6 +733,16 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div style="font-family:'Bebas Neue',cursive;font-size:36px;letter-spacing:1px;margin-bottom:4px">Tu perfil <span style="color:var(--green)">padelero</span></div>
     <p style="color:var(--muted);font-size:14px;margin-bottom:28px">Completá estos datos para encontrar rivales de tu nivel.</p>
     <div class="error-msg" id="padel-error"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div>
+        <label class="field-label">Apellido *</label>
+        <input class="input-field" id="padel-apellido" type="text" placeholder="Tu apellido" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Teléfono *</label>
+        <input class="input-field" id="padel-telefono" type="tel" placeholder="3516001234" style="margin:0">
+      </div>
+    </div>
     <label class="field-label">Tu categoría</label>
     <div class="nivel-grid" id="nivel-grid">
       <button class="nivel-btn" onclick="selectNivel(this,'octava')">8va categoría</button>
@@ -922,6 +932,17 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <div style="margin-bottom:14px">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Edad</div>
       <input id="modal-edad" type="number" min="18" max="99" class="input-field" style="margin:0" placeholder="Tu edad">
+    </div>
+    <!-- APELLIDO Y TELEFONO -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Apellido</div>
+        <input id="modal-apellido-perfil" type="text" class="input-field" style="margin:0" placeholder="Tu apellido">
+      </div>
+      <div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Teléfono</div>
+        <input id="modal-telefono-perfil" type="tel" class="input-field" style="margin:0" placeholder="3516001234">
+      </div>
     </div>
     <!-- NIVEL -->
     <div style="margin-bottom:14px">
@@ -1528,6 +1549,10 @@ async function openProfile(){
   else{bigImg.style.display='none';bigEmoji.style.display='block';}
   document.getElementById('modal-name-input').value = usuario.nombre||'';
   document.getElementById('modal-edad').value = usuario.edad||'';
+  const apPerfilEl = document.getElementById('modal-apellido-perfil');
+  const telPerfilEl = document.getElementById('modal-telefono-perfil');
+  if(apPerfilEl) apPerfilEl.value = usuario.apellido||'';
+  if(telPerfilEl) telPerfilEl.value = usuario.telefono||'';
   // Stats
   document.getElementById('s-visto').textContent=perfilIdx;
   document.getElementById('s-likes').textContent=matchesList.length;
@@ -1881,6 +1906,11 @@ async function verificarPerfilPadel() {
 }
 
 async function cargarZonasPadel() {
+  // Pre-cargar apellido y telefono si ya existen
+  const apEl = document.getElementById('padel-apellido');
+  const telEl = document.getElementById('padel-telefono');
+  if(apEl && usuario?.apellido) apEl.value = usuario.apellido;
+  if(telEl && usuario?.telefono) telEl.value = usuario.telefono;
   try {
     const negocios = await fetch(API+'/negocios/sesiones-activas').then(r=>r.json()).catch(()=>[]);
     // Zonas fijas de Córdoba como fallback
@@ -1906,10 +1936,21 @@ async function guardarPerfilPadel() {
   const zona = zonaSelect === 'Otra zona'
     ? document.getElementById('padel-zona-custom')?.value.trim()
     : zonaSelect;
+  const apellido = document.getElementById('padel-apellido')?.value.trim();
+  const telefono = document.getElementById('padel-telefono')?.value.trim();
   const errEl = document.getElementById('padel-error');
+  if (!apellido) { errEl.textContent='Ingresá tu apellido'; errEl.style.display='block'; return; }
+  if (!telefono) { errEl.textContent='Ingresá tu teléfono'; errEl.style.display='block'; return; }
   if (!nivelSeleccionado) { errEl.textContent='Seleccioná tu categoría'; errEl.style.display='block'; return; }
   if (!zona) { errEl.textContent='Seleccioná tu zona'; errEl.style.display='block'; return; }
   errEl.style.display='none';
+  // Guardar apellido y telefono en el perfil del usuario
+  try {
+    const upd = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ apellido, telefono }) });
+    usuario.apellido = upd.apellido;
+    usuario.telefono = upd.telefono;
+    localStorage.setItem('cl_usuario', JSON.stringify(usuario));
+  } catch(e) {}
   showLoader('Guardando perfil...');
   try {
     await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
@@ -2683,17 +2724,24 @@ async function cambiarPassword() {
 async function guardarPerfilCompleto() {
   const nombre = document.getElementById('modal-name-input')?.value.trim();
   const edad = parseInt(document.getElementById('modal-edad')?.value) || null;
+  const apellido = document.getElementById('modal-apellido-perfil')?.value.trim() || null;
+  const telefono = document.getElementById('modal-telefono-perfil')?.value.trim() || null;
   if (!nombre) { alert('Ingresá tu nombre'); return; }
   if (!nivelModal) { alert('Seleccioná tu categoría'); return; }
   if (zonasModal.length === 0) { alert('Seleccioná al menos una zona'); return; }
   showLoader('Guardando...');
   try {
     // Actualizar usuario general
-    await api('/auth/perfil', { method:'PUT', body:JSON.stringify({
+    const updUsuario = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({
       nombre,
+      apellido,
+      telefono,
       edad,
       vibe: selectedVibes.join(', ') || usuario.vibe
     })});
+    usuario.apellido = updUsuario.apellido;
+    usuario.telefono = updUsuario.telefono;
+    clSetUsuario(usuario);
     // Actualizar perfil padel
     await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
       usuario_id: usuario.id,
