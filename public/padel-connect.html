@@ -1070,7 +1070,9 @@ window.onload=function(){
     // Verificar y cargar perfil padel antes de mostrar la app
     verificarPerfilPadel().then(async tienePerfil => {
       hideLoader();
-      if(!tienePerfil){
+      if(tienePerfil === 'incompleto'){
+        mostrarModalPerfilIncompleto();
+      } else if(!tienePerfil){
         await cargarZonasPadel();
         showScreen('perfil-padel');
       } else {
@@ -1140,7 +1142,7 @@ async function doRegister(){
   if(pw.length<6){errEl.textContent='Mínimo 6 caracteres';errEl.style.display='block';return;}
   showLoader('Creando tu perfil...');
   try{
-    const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null})});
+    const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null,app_origen:'padel'})});
     token=d.token;usuario=d.usuario;
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
@@ -1167,6 +1169,7 @@ async function doLogin(){
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
     const tienePerfil = await verificarPerfilPadel();
+    if(tienePerfil === 'incompleto'){ mostrarModalPerfilIncompleto(); return; }
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
     await cargarJugadoresPadel();
     mostrarHome();
@@ -1862,6 +1865,15 @@ function selectNivel(btn, nivel) {
 async function verificarPerfilPadel() {
   if (!usuario) return false;
   try {
+    // Chequear datos completos del usuario
+    const perfUsuario = await api('/auth/perfil');
+    usuario.apellido = perfUsuario.apellido;
+    usuario.telefono = perfUsuario.telefono;
+    usuario.app_origen = perfUsuario.app_origen;
+    // Si falta apellido o telefono, mostrar modal y retornar 'incompleto'
+    if (!perfUsuario.apellido || !perfUsuario.telefono) {
+      return 'incompleto';
+    }
     const data = await api(`/padel/jugadores/mi-perfil?usuario_id=${usuario.id}`);
     if (data.tiene_perfil) { perfilPadel = data.perfil; return true; }
     return false;
