@@ -203,7 +203,7 @@ async function enviarFixturePorEmail(americano_id) {
       [americano_id, 'confirmado']
     );
     const partidosRes = await pool.query(
-      'SELECT ap.*, TRIM(u1a.nombre || COALESCE(' ' || u1a.apellido, '')) as nombre_1a, TRIM(u1b.nombre || COALESCE(' ' || u1b.apellido, '')) as nombre_1b, TRIM(u2a.nombre || COALESCE(' ' || u2a.apellido, '')) as nombre_2a, TRIM(u2b.nombre || COALESCE(' ' || u2b.apellido, '')) as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha',
+      `SELECT ap.*, TRIM(u1a.nombre || COALESCE(' ' || u1a.apellido, '')) as nombre_1a, TRIM(u1b.nombre || COALESCE(' ' || u1b.apellido, '')) as nombre_1b, TRIM(u2a.nombre || COALESCE(' ' || u2a.apellido, '')) as nombre_2a, TRIM(u2b.nombre || COALESCE(' ' || u2b.apellido, '')) as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha`,
       [americano_id]
     );
     for (const jug of jugRes.rows) {
@@ -246,7 +246,7 @@ router.get('/:id', async (req, res) => {
       [id]
     );
     const partidos = await pool.query(
-      'SELECT ap.*, TRIM(u1a.nombre || COALESCE(' ' || u1a.apellido, '')) as nombre_1a, TRIM(u1b.nombre || COALESCE(' ' || u1b.apellido, '')) as nombre_1b, TRIM(u2a.nombre || COALESCE(' ' || u2a.apellido, '')) as nombre_2a, TRIM(u2b.nombre || COALESCE(' ' || u2b.apellido, '')) as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha',
+      `SELECT ap.*, TRIM(u1a.nombre || COALESCE(' ' || u1a.apellido, '')) as nombre_1a, TRIM(u1b.nombre || COALESCE(' ' || u1b.apellido, '')) as nombre_1b, TRIM(u2a.nombre || COALESCE(' ' || u2a.apellido, '')) as nombre_2a, TRIM(u2b.nombre || COALESCE(' ' || u2b.apellido, '')) as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha`,
       [id]
     );
     const posiciones = await pool.query(
@@ -385,7 +385,7 @@ router.put('/partidos/:pid/resultado', async (req, res) => {
     const { games_pareja1, games_pareja2 } = req.body;
     const g1 = parseInt(games_pareja1), g2 = parseInt(games_pareja2);
     const pRes = await pool.query(
-      'SELECT ap.*, TRIM(u1a.nombre || COALESCE(' ' || u1a.apellido, '')) as nombre_1a, TRIM(u1b.nombre || COALESCE(' ' || u1b.apellido, '')) as nombre_1b, TRIM(u2a.nombre || COALESCE(' ' || u2a.apellido, '')) as nombre_2a, TRIM(u2b.nombre || COALESCE(' ' || u2b.apellido, '')) as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.id = $1',
+      `SELECT ap.*, TRIM(u1a.nombre || COALESCE(' ' || u1a.apellido, '')) as nombre_1a, TRIM(u1b.nombre || COALESCE(' ' || u1b.apellido, '')) as nombre_1b, TRIM(u2a.nombre || COALESCE(' ' || u2a.apellido, '')) as nombre_2a, TRIM(u2b.nombre || COALESCE(' ' || u2b.apellido, '')) as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.id = $1`,
       [pid]
     );
     if (!pRes.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
