@@ -6,6 +6,7 @@ const router = express.Router();
 const { pool } = require('../database');
 const { Resend } = require('resend');
 const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
+const FROM_EMAIL = 'PadelConnect <partidos@send.cordobalux.com>';
 const APP_URL = process.env.APP_URL || 'https://cordobalux.com';
 
 // ── Fixture americano 8 jugadores ─────────────────────────────────────
@@ -212,7 +213,7 @@ async function enviarFixturePorEmail(americano_id) {
         p.jugador2a_id === jug.usuario_id || p.jugador2b_id === jug.usuario_id
       );
       await resend.emails.send({
-        from: 'PadelConnect <noreply@cordobalux.com>',
+        from: FROM_EMAIL,
         to: jug.email,
         subject: 'Tu fixture - ' + americano.nombre,
         html: emailFixtureAmericano(jug, americano, misPartidos)
@@ -411,7 +412,7 @@ router.put('/partidos/:pid/resultado', async (req, res) => {
         [partido.americano_id, uid]
       );
       await resend.emails.send({
-        from: 'PadelConnect <noreply@cordobalux.com>',
+        from: FROM_EMAIL,
         to: eRes.rows[0].email,
         subject: 'Resultado Ronda ' + partido.ronda + ' - ' + americano.nombre,
         html: emailResultadoAmericano({ usuario_id: uid, nombre: nombres[uid] }, partido, proxRes.rows[0]||null)
@@ -431,7 +432,7 @@ router.put('/partidos/:pid/resultado', async (req, res) => {
       );
       for (const p of posRes.rows) {
         await resend.emails.send({
-          from: 'PadelConnect <noreply@cordobalux.com>',
+          from: FROM_EMAIL,
           to: p.email,
           subject: (p.posicion===1?'Campeon!':p.posicion===2?'Subcampeon!':'3er puesto!') + ' - ' + americano.nombre,
           html: emailCampeonAmericano(p, americano, p.posicion)
