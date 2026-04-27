@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
 const { Resend } = require('resend');
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
 const APP_URL = process.env.APP_URL || 'https://cordobalux.com';
 
 // ── Fixture americano 8 jugadores ─────────────────────────────────────
@@ -242,7 +242,7 @@ router.get('/:id', async (req, res) => {
     const a = await pool.query('SELECT * FROM americanos WHERE id = $1', [id]);
     if (!a.rows.length) return res.status(404).json({ error: 'No encontrado' });
     const jugadores = await pool.query(
-      `SELECT aj.*, u.email, u.apellido, COALESCE(jp.ranking_puntos, 1000) as ranking_puntos, COALESCE(jp.nivel, 'sin nivel') as categoria_jugador FROM americanos_jugadores aj JOIN usuarios u ON u.id = aj.usuario_id LEFT JOIN jugadores_padel jp ON jp.usuario_id = aj.usuario_id WHERE aj.americano_id = $1 ORDER BY aj.creado_en`,
+      `SELECT aj.*, u.email, COALESCE(jp.ranking_puntos, 1000) as ranking_puntos, COALESCE(jp.nivel, 'sin nivel') as categoria_jugador FROM americanos_jugadores aj JOIN usuarios u ON u.id = aj.usuario_id LEFT JOIN jugadores_padel jp ON jp.usuario_id = aj.usuario_id WHERE aj.americano_id = $1 ORDER BY aj.creado_en`,
       [id]
     );
     const partidos = await pool.query(
