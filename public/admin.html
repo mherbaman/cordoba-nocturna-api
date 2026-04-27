@@ -206,6 +206,7 @@ tr:hover td { background:rgba(255,255,255,.02); }
       <button class="nav-item" onclick="navTo('partidos-pub',this)"><span class="icon">⚡</span> Partidos</button>
       <button class="nav-item" onclick="navTo('profesores',this)"><span class="icon">🎾</span> Profesores</button>
       <button class="nav-item" onclick="navTo('torneos',this)"><span class="icon">🏆</span> Torneos</button>
+      <button class="nav-item" onclick="navTo('americanos',this)"><span class="icon">🎾</span> Super 8 Americano</button>
       <div class="sidebar-footer">
         <button class="logout-nav" onclick="doAdminLogout()">🚪 Cerrar sesión</button>
       </div>
@@ -715,6 +716,7 @@ function navTo(page, btn) {
   if (page === 'partidos-pub') cargarPartidosPubAdmin();
   if (page === 'profesores') cargarProfesoresAdmin('pendiente');
   if (page === 'torneos') cargarTorneosAdmin();
+  if (page === 'americanos') cargarAmericanosAdmin();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
@@ -2109,6 +2111,226 @@ async function ejecutarEliminarTorneo() {
     cargarTorneosAdmin();
   } catch(e) { msg.style.color='#f87171'; msg.textContent = e.message||'Error al eliminar.'; }
 }
+
+// ─── SUPER 8 AMERICANO ────────────────────────────────────────────────
+function mostrarFormAmericano() {
+  const f = document.getElementById('form-americano');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function crearAmericano() {
+  const msg = document.getElementById('am-form-msg');
+  const nombre = document.getElementById('am-nombre').value.trim();
+  const fecha = document.getElementById('am-fecha').value;
+  if (!nombre || !fecha) { msg.style.color='#f87171'; msg.textContent='Nombre y fecha son obligatorios.'; return; }
+  msg.style.color='rgba(255,255,255,.5)'; msg.textContent='Creando...';
+  try {
+    await apiAdmin('/americanos', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre,
+        sede: document.getElementById('am-sede').value.trim(),
+        fecha,
+        hora_inicio: document.getElementById('am-hora').value,
+        cantidad_canchas: parseInt(document.getElementById('am-canchas').value),
+        precio_inscripcion: parseFloat(document.getElementById('am-precio').value) || 0,
+        duracion_partido_min: parseInt(document.getElementById('am-duracion').value),
+        descanso_entre_rondas_min: parseInt(document.getElementById('am-descanso').value),
+        formato: document.getElementById('am-formato').value,
+        descripcion: document.getElementById('am-descripcion').value.trim(),
+      })
+    });
+    msg.style.color='#4ade80'; msg.textContent='Americano creado ✓';
+    setTimeout(() => { document.getElementById('form-americano').style.display='none'; cargarAmericanosAdmin(); }, 1500);
+  } catch(e) { msg.style.color='#f87171'; msg.textContent = e.message || 'Error al crear.'; }
+}
+
+let adminAmericanosInterval = null;
+let americanoActivo = null;
+
+async function cargarAmericanosAdmin() {
+  const el = document.getElementById('admin-americanos-list');
+  if (!el) return;
+  if (adminAmericanosInterval) clearInterval(adminAmericanosInterval);
+  try {
+    const list = await apiAdmin('/americanos');
+    if (!list.length) { el.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">No hay americanos creados.</p>'; return; }
+    el.innerHTML = list.map(a => {
+      const estadoColor = a.estado==='abierto'?'#4ade80':a.estado==='en_curso'?'#fbbf24':a.estado==='finalizado'?'#94a3b8':'#a5b4fc';
+      const precio = a.precio_inscripcion > 0 ? '$ '+Number(a.precio_inscripcion).toLocaleString('es-AR') : 'Gratis';
+      const formato = a.formato==='mejor_de_7'?'Mejor de 7':'1 Set';
+      return `<div style="background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#a5b4fc">${a.nombre}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${a.hora_inicio?a.hora_inicio.substring(0,5):''}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">${formato} · ${a.duracion_partido_min}min · Descanso ${a.descanso_entre_rondas_min}min · ${precio}</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor};background:rgba(255,255,255,.05);padding:3px 10px;border-radius:20px">${a.estado.toUpperCase()}</span>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px">
+          Inscriptos: <strong style="color:#a5b4fc">${a.inscriptos}/8</strong>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="verAmericano(${a.id})" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.1);color:#a5b4fc;font-size:12px;cursor:pointer">👁 Ver detalle</button>
+          ${a.estado==='abierto'&&parseInt(a.inscriptos)===8?`<button onclick="generarFixtureAmericano(${a.id})" style="padding:6px 14px;border-radius:20px;border:none;background:linear-gradient(135deg,#4f46e5,#a5b4fc);color:#fff;font-size:12px;font-weight:700;cursor:pointer">⚡ Generar Fixture</button>`:''}
+          <button onclick="eliminarAmericano(${a.id},'${a.nombre}')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.07);color:#f87171;font-size:12px;cursor:pointer">🗑 Eliminar</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML='<p style="color:#f87171;font-size:13px;text-align:center;padding:20px">Error al cargar.</p>'; }
+  adminAmericanosInterval = setInterval(cargarAmericanosAdmin, 20000);
+}
+
+async function verAmericano(id) {
+  americanoActivo = id;
+  const el = document.getElementById('admin-americanos-list');
+  el.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando detalle...</p>';
+  try {
+    const a = await apiAdmin('/americanos/'+id);
+    const formato = a.formato==='mejor_de_7'?'Mejor de 7 games':'1 Set';
+
+    // Jugadores
+    const jugadoresHtml = `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:10px">JUGADORES INSCRIPTOS (${a.jugadores.length}/8)</div>
+        ${a.jugadores.map((j,i) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+            <span style="font-size:13px;color:#fff">${i+1}. ${j.nombre}</span>
+            ${a.estado==='abierto'?`<button onclick="desinscribirJugador(${id},'${j.usuario_id}')" style="padding:3px 10px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:transparent;color:#f87171;font-size:11px;cursor:pointer">✕ Quitar</button>`:''}
+          </div>`).join('')}
+        ${a.estado==='abierto'?`
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <input id="am-buscar-uid" placeholder="UUID del usuario" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+          <button onclick="inscribirJugadorAdmin(${id})" style="padding:6px 14px;border-radius:20px;border:none;background:linear-gradient(135deg,#4f46e5,#a5b4fc);color:#fff;font-size:12px;cursor:pointer">+ Inscribir</button>
+        </div>`:''}
+      </div>`;
+
+    // Posiciones
+    const posHtml = a.posiciones.length ? `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:10px">POSICIONES</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <tr style="color:rgba(255,255,255,.4)">
+            <td style="padding:4px 6px">#</td>
+            <td style="padding:4px 6px">Jugador</td>
+            <td style="padding:4px 6px;text-align:center">PJ</td>
+            <td style="padding:4px 6px;text-align:center">PG</td>
+            <td style="padding:4px 6px;text-align:center">GF</td>
+            <td style="padding:4px 6px;text-align:center">GC</td>
+            <td style="padding:4px 6px;text-align:center">DIF</td>
+          </tr>
+          ${a.posiciones.map((p,i) => `
+          <tr style="border-top:1px solid rgba(255,255,255,.05);color:${i===0?'#fbbf24':'#fff'}">
+            <td style="padding:5px 6px;font-weight:700">${i+1}</td>
+            <td style="padding:5px 6px">${p.nombre}</td>
+            <td style="padding:5px 6px;text-align:center">${p.partidos_jugados}</td>
+            <td style="padding:5px 6px;text-align:center">${p.partidos_ganados}</td>
+            <td style="padding:5px 6px;text-align:center">${p.games_favor}</td>
+            <td style="padding:5px 6px;text-align:center">${p.games_contra}</td>
+            <td style="padding:5px 6px;text-align:center;color:${p.diferencia>=0?'#4ade80':'#f87171'}">${p.diferencia>=0?'+':''}${p.diferencia}</td>
+          </tr>`).join('')}
+        </table>
+      </div>` : '';
+
+    // Partidos por ronda
+    const rondasMap = {};
+    for (const p of a.partidos) {
+      if (!rondasMap[p.ronda]) rondasMap[p.ronda] = [];
+      rondasMap[p.ronda].push(p);
+    }
+    const partidosHtml = Object.keys(rondasMap).length ? `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:10px">PARTIDOS POR RONDA</div>
+        ${Object.entries(rondasMap).map(([ronda, partidos]) => `
+          <div style="margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:6px">RONDA ${ronda}</div>
+            ${partidos.map(p => `
+              <div style="background:rgba(99,102,241,.07);border-radius:10px;padding:10px;margin-bottom:6px">
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Cancha ${p.cancha} · ${p.hora_inicio?p.hora_inicio.substring(0,5):''} - ${p.hora_fin?p.hora_fin.substring(0,5):''}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:#fff">${p.nombre_1a||''} / ${p.nombre_1b||''}</span>
+                  <span style="font-size:13px;font-weight:700;color:${p.estado==='jugado'?'#4ade80':'rgba(255,255,255,.3)'}">
+                    ${p.estado==='jugado'?`${p.games_pareja1} - ${p.games_pareja2}`:'vs'}
+                  </span>
+                  <span style="font-size:12px;color:#fff">${p.nombre_2a||''} / ${p.nombre_2b||''}</span>
+                </div>
+                ${p.estado==='pendiente'&&a.estado!=='abierto'?`
+                <div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+                  <input id="g1-${p.id}" type="number" min="0" max="7" placeholder="G1" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                  <span style="color:rgba(255,255,255,.4)">-</span>
+                  <input id="g2-${p.id}" type="number" min="0" max="7" placeholder="G2" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                  <button onclick="cargarResultadoAmericano(${p.id},${id})" style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#4f46e5,#a5b4fc);color:#fff;font-size:11px;cursor:pointer">✓ Cargar</button>
+                </div>`:''}
+              </div>`).join('')}
+          </div>`).join('')}
+      </div>` : '';
+
+    el.innerHTML = `
+      <button onclick="cargarAmericanosAdmin()" style="margin-bottom:14px;padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">← Volver</button>
+      <div style="font-size:16px;font-weight:700;color:#a5b4fc;margin-bottom:4px">${a.nombre}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${formato}</div>
+      ${jugadoresHtml}
+      ${posHtml}
+      ${partidosHtml}
+    `;
+  } catch(e) { el.innerHTML='<p style="color:#f87171;font-size:13px">Error: '+e.message+'</p>'; }
+}
+
+async function inscribirJugadorAdmin(americanoId) {
+  const uid = document.getElementById('am-buscar-uid').value.trim();
+  if (!uid) return alert('Ingresá el UUID del usuario');
+  try {
+    // Buscar datos del usuario
+    const users = await apiAdmin('/superadmin/usuarios');
+    const user = users.find(u => u.id === uid);
+    if (!user) return alert('Usuario no encontrado');
+    await apiAdmin('/americanos/'+americanoId+'/inscribir', {
+      method: 'POST',
+      body: JSON.stringify({ usuario_id: uid, nombre: user.nombre, email: user.email })
+    });
+    verAmericano(americanoId);
+  } catch(e) { alert(e.message || 'Error al inscribir'); }
+}
+
+async function desinscribirJugador(americanoId, uid) {
+  if (!confirm('¿Quitar este jugador?')) return;
+  try {
+    await apiAdmin('/americanos/'+americanoId+'/jugadores/'+uid, { method: 'DELETE' });
+    verAmericano(americanoId);
+  } catch(e) { alert(e.message || 'Error'); }
+}
+
+async function generarFixtureAmericano(id) {
+  if (!confirm('¿Generar el fixture? Esto inicia el americano.')) return;
+  try {
+    const r = await apiAdmin('/americanos/'+id+'/generar-fixture', { method: 'POST' });
+    alert(`Fixture generado: ${r.rondas} rondas, ${r.partidos} partidos ✓`);
+    verAmericano(id);
+  } catch(e) { alert(e.message || 'Error al generar fixture'); }
+}
+
+async function cargarResultadoAmericano(partidoId, americanoId) {
+  const g1 = document.getElementById('g1-'+partidoId)?.value;
+  const g2 = document.getElementById('g2-'+partidoId)?.value;
+  if (g1 === '' || g2 === '') return alert('Ingresá los games de ambas parejas');
+  try {
+    await apiAdmin('/americanos/partidos/'+partidoId+'/resultado', {
+      method: 'PUT',
+      body: JSON.stringify({ games_pareja1: parseInt(g1), games_pareja2: parseInt(g2) })
+    });
+    verAmericano(americanoId);
+  } catch(e) { alert(e.message || 'Error al cargar resultado'); }
+}
+
+async function eliminarAmericano(id, nombre) {
+  if (!confirm('¿Eliminar "'+nombre+'"? Esta acción no se puede deshacer.')) return;
+  try {
+    await apiAdmin('/americanos/'+id, { method: 'DELETE' });
+    cargarAmericanosAdmin();
+  } catch(e) { alert(e.message || 'Error al eliminar'); }
+}
+
 </script>
 </body>
 </html>
