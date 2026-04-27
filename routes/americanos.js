@@ -5,7 +5,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
 const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const APP_URL = process.env.APP_URL || 'https://cordobalux.com';
 
 // ── Fixture americano 8 jugadores ─────────────────────────────────────
