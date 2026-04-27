@@ -1232,7 +1232,7 @@ async function doLogin(){
   errEl.style.display='none';
   showLoader('Iniciando sesión...');
   try{
-    const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password})});
+    const data=await api('/auth/login',{method:'POST',body:JSON.stringify({email,password,app:'padel'})});
     token=data.token;usuario=data.usuario;
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
