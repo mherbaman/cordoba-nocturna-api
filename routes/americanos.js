@@ -1,28 +1,15 @@
 // ================================================
 //   CÓRDOBA NOCTURNA — Super 8 Americano
-//   Routes: /americanos
 // ================================================
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY);
+const APP_URL = process.env.APP_URL || 'https://cordobalux.com';
 
-// ── Helpers ──────────────────────────────────────────────────────────
-
-function formatPrecio(n) {
-  if (!n) return '$ 0';
-  return '$ ' + Number(n).toLocaleString('es-AR');
-}
-
-// Algoritmo de fixture americano para 8 jugadores
-// Devuelve 7 rondas, cada ronda tiene 2 partidos de 4 jugadores
+// ── Fixture americano 8 jugadores ─────────────────────────────────────
 function generarFixtureAmericano(jugadores) {
-  // jugadores: array de 8 objetos {usuario_id, nombre}
-  // Algoritmo de rotación estándar para americano
-  const n = jugadores.length; // 8
-  const rondas = [];
-
-  // Tabla fija de combinaciones para 8 jugadores americano
-  // Cada ronda: [ [a,b vs c,d], [e,f vs g,h] ]
   const combinaciones = [
     [[0,1],[2,3],[4,5],[6,7]],
     [[0,2],[1,3],[4,6],[5,7]],
@@ -32,9 +19,9 @@ function generarFixtureAmericano(jugadores) {
     [[0,6],[1,7],[2,4],[3,5]],
     [[0,7],[1,6],[2,5],[3,4]],
   ];
-
+  const rondas = [];
   for (let r = 0; r < 7; r++) {
-    const [p1, p2, p3, p4] = combinaciones[r];
+    const [p1,p2,p3,p4] = combinaciones[r];
     rondas.push([
       { pareja1: [jugadores[p1[0]], jugadores[p1[1]]], pareja2: [jugadores[p2[0]], jugadores[p2[1]]] },
       { pareja1: [jugadores[p3[0]], jugadores[p3[1]]], pareja2: [jugadores[p4[0]], jugadores[p4[1]]] },
@@ -43,60 +30,36 @@ function generarFixtureAmericano(jugadores) {
   return rondas;
 }
 
-function calcularHorarios(horaInicio, duracionMin, descansoMin, ronda, cancha) {
-  // ronda 0-based, cancha 0-based
-  // Todas las canchas juegan en paralelo, así que solo depende de la ronda
+function calcularHorarios(horaInicio, duracionMin, descansoMin, ronda) {
   const totalMinPorRonda = duracionMin + descansoMin;
   const offsetMin = ronda * totalMinPorRonda;
-  const [h, m] = horaInicio.substring(0, 5).split(':').map(Number);
+  const [h, m] = horaInicio.substring(0,5).split(':').map(Number);
   const inicioMin = h * 60 + m + offsetMin;
   const finMin = inicioMin + duracionMin;
-  const toTime = (mins) => {
-    const hh = String(Math.floor(mins / 60)).padStart(2, '0');
-    const mm = String(mins % 60).padStart(2, '0');
-    return `${hh}:${mm}`;
-  };
+  const toTime = (mins) => `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
   return { hora_inicio: toTime(inicioMin), hora_fin: toTime(finMin) };
 }
 
-async function recalcularPosiciones(americano_id, client) {
-  const db = client || pool;
-
-  // Traer todos los jugadores inscriptos
-  const jugRes = await db.query(
+async function recalcularPosiciones(americano_id) {
+  const jugRes = await pool.query(
     'SELECT usuario_id, nombre FROM americanos_jugadores WHERE americano_id = $1',
     [americano_id]
   );
-
-  // Inicializar stats
   const stats = {};
   for (const j of jugRes.rows) {
-    stats[j.usuario_id] = {
-      usuario_id: j.usuario_id,
-      nombre: j.nombre,
-      partidos_jugados: 0,
-      partidos_ganados: 0,
-      partidos_perdidos: 0,
-      games_favor: 0,
-      games_contra: 0,
-      diferencia: 0,
-    };
+    stats[j.usuario_id] = { usuario_id: j.usuario_id, nombre: j.nombre,
+      partidos_jugados:0, partidos_ganados:0, partidos_perdidos:0,
+      games_favor:0, games_contra:0 };
   }
-
-  // Traer todos los partidos jugados
-  const pRes = await db.query(
-    `SELECT * FROM americanos_partidos WHERE americano_id = $1 AND estado = 'jugado'`,
+  const pRes = await pool.query(
+    "SELECT * FROM americanos_partidos WHERE americano_id = $1 AND estado = 'jugado'",
     [americano_id]
   );
-
   for (const p of pRes.rows) {
-    const g1 = p.games_pareja1;
-    const g2 = p.games_pareja2;
+    const g1 = p.games_pareja1, g2 = p.games_pareja2;
     const pareja1 = [p.jugador1a_id, p.jugador1b_id];
     const pareja2 = [p.jugador2a_id, p.jugador2b_id];
-    const gano1 = g1 > g2;
-    const gano2 = g2 > g1;
-
+    const gano1 = g1 > g2, gano2 = g2 > g1;
     for (const uid of pareja1) {
       if (!stats[uid]) continue;
       stats[uid].partidos_jugados++;
@@ -114,21 +77,16 @@ async function recalcularPosiciones(americano_id, client) {
       else if (gano1) stats[uid].partidos_perdidos++;
     }
   }
-
-  // Calcular diferencia y ordenar
   const ranking = Object.values(stats).map(s => ({
-    ...s,
-    diferencia: s.games_favor - s.games_contra,
-  })).sort((a, b) => {
+    ...s, diferencia: s.games_favor - s.games_contra
+  })).sort((a,b) => {
     if (b.games_favor !== a.games_favor) return b.games_favor - a.games_favor;
-    if (b.diferencia !== a.diferencia) return b.diferencia - a.diferencia;
+    if ((b.games_favor-b.games_contra) !== (a.games_favor-a.games_contra)) return (b.games_favor-b.games_contra) - (a.games_favor-a.games_contra);
     return a.games_contra - b.games_contra;
   });
-
-  // Upsert posiciones
   for (let i = 0; i < ranking.length; i++) {
     const s = ranking[i];
-    await db.query(`
+    await pool.query(`
       INSERT INTO americanos_posiciones
         (americano_id, usuario_id, nombre, partidos_jugados, partidos_ganados, partidos_perdidos,
          games_favor, games_contra, diferencia, posicion, actualizado_en)
@@ -137,320 +95,336 @@ async function recalcularPosiciones(americano_id, client) {
         nombre=$3, partidos_jugados=$4, partidos_ganados=$5, partidos_perdidos=$6,
         games_favor=$7, games_contra=$8, diferencia=$9, posicion=$10, actualizado_en=now()
     `, [americano_id, s.usuario_id, s.nombre, s.partidos_jugados, s.partidos_ganados,
-        s.partidos_perdidos, s.games_favor, s.games_contra, s.diferencia, i + 1]);
+        s.partidos_perdidos, s.games_favor, s.games_contra, s.games_favor-s.games_contra, i+1]);
   }
 }
 
 async function actualizarELO(americano_id) {
-  // Al finalizar el americano, actualizar ELO por posición
   const pos = await pool.query(
     'SELECT usuario_id, posicion FROM americanos_posiciones WHERE americano_id = $1 ORDER BY posicion',
     [americano_id]
   );
-  const total = pos.rows.length;
   for (const p of pos.rows) {
-    let bonus = 0;
-    if (p.posicion === 1) bonus = 30;
-    else if (p.posicion === 2) bonus = 15;
-    else if (p.posicion === 3) bonus = 5;
-    else bonus = -10;
-    await pool.query(`
-      UPDATE jugadores_padel
-      SET ranking_puntos = GREATEST(COALESCE(ranking_puntos, 1000) + $1, 0),
-          actualizado_en = now()
-      WHERE usuario_id = $2
-    `, [bonus, p.usuario_id]);
+    const bonus = p.posicion === 1 ? 30 : p.posicion === 2 ? 15 : p.posicion === 3 ? 5 : -10;
+    await pool.query(
+      'UPDATE jugadores_padel SET ranking_puntos = GREATEST(COALESCE(ranking_puntos,1000)+$1,0), actualizado_en=now() WHERE usuario_id=$2',
+      [bonus, p.usuario_id]
+    );
   }
 }
 
-async function enviarEmailPartido(partido, americano, ronda) {
-  // Placeholder — misma lógica que torneos
-  // Se implementa en siguiente fase
+function emailFixtureAmericano(jugador, americano, partidos) {
+  const formato = americano.formato === 'mejor_de_7' ? 'Mejor de 7 games' : '1 Set';
+  const filas = partidos.map((p, i) => {
+    const hora = p.hora_inicio ? String(p.hora_inicio).substring(0,5) + 'hs' : 'A confirmar';
+    const cancha = p.cancha ? 'C.' + p.cancha : 'A confirmar';
+    const esP1 = p.jugador1a_id === jugador.usuario_id || p.jugador1b_id === jugador.usuario_id;
+    const compas = esP1
+      ? [p.nombre_1a, p.nombre_1b].filter(n => n && n !== jugador.nombre).join(' / ')
+      : [p.nombre_2a, p.nombre_2b].filter(n => n && n !== jugador.nombre).join(' / ');
+    const rivales = esP1
+      ? (p.nombre_2a || '') + ' / ' + (p.nombre_2b || '')
+      : (p.nombre_1a || '') + ' / ' + (p.nombre_1b || '');
+    return '<tr style="border-bottom:1px solid #eee;' + (i%2===0?'background:#fafafa':'') + '">' +
+      '<td style="padding:10px 8px;font-weight:700;color:#666">R' + p.ronda + '</td>' +
+      '<td style="padding:10px 8px">' + hora + '</td>' +
+      '<td style="padding:10px 8px;text-align:center">' + cancha + '</td>' +
+      '<td style="padding:10px 8px;color:#666">' + (compas || 'compañero') + '</td>' +
+      '<td style="padding:10px 8px;color:#1a1a2e;font-weight:600">vs ' + rivales + '</td>' +
+      '</tr>';
+  }).join('');
+  return '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">' +
+    '<div style="background:#1a1a2e;padding:24px;text-align:center">' +
+    '<h1 style="color:#fff;margin:0;font-size:22px">Padel Connect</h1>' +
+    '<p style="color:rgba(255,255,255,.7);margin:8px 0 0;font-size:14px">Super 8 Americano</p></div>' +
+    '<div style="padding:32px 24px">' +
+    '<h2>Tu fixture esta listo, ' + jugador.nombre + '!</h2>' +
+    '<p style="color:#666"><strong>' + americano.nombre + '</strong> - ' + (americano.sede||'') + ' - ' + String(americano.fecha).substring(0,10) + ' - ' + formato + '</p>' +
+    '<p>Jugas <strong>' + partidos.length + ' partidos</strong> en el dia:</p>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:12px">' +
+    '<thead><tr style="background:#1a1a2e;color:#fff">' +
+    '<th style="padding:10px 8px;text-align:left">Ronda</th>' +
+    '<th style="padding:10px 8px;text-align:left">Hora</th>' +
+    '<th style="padding:10px 8px;text-align:center">Cancha</th>' +
+    '<th style="padding:10px 8px;text-align:left">Companero</th>' +
+    '<th style="padding:10px 8px;text-align:left">Rivales</th>' +
+    '</tr></thead><tbody>' + filas + '</tbody></table>' +
+    '<div style="margin-top:24px;padding:16px;background:#f0fdf4;border-left:4px solid #22c55e;border-radius:4px">' +
+    '<p style="margin:0;font-size:13px;color:#15803d">Segui el ranking en la app: ' +
+    '<a href="' + APP_URL + '/padel-connect.html" style="color:#15803d;font-weight:700">cordobalux.com</a></p></div>' +
+    '</div></div>';
 }
 
-// ── GET /americanos — listar todos ───────────────────────────────────
+function emailResultadoAmericano(jugador, partido, proximo) {
+  const esP1 = partido.jugador1a_id === jugador.usuario_id || partido.jugador1b_id === jugador.usuario_id;
+  const misGames = esP1 ? partido.games_pareja1 : partido.games_pareja2;
+  const gano = esP1 ? partido.games_pareja1 > partido.games_pareja2 : partido.games_pareja2 > partido.games_pareja1;
+  const proximoHtml = proximo
+    ? '<div style="background:#e8f5e9;border-radius:8px;padding:20px;margin-top:20px">' +
+      '<h3 style="margin:0 0 10px;color:#2e7d32">Tu proximo partido</h3>' +
+      '<p style="margin:4px 0"><strong>Ronda:</strong> ' + proximo.ronda + '</p>' +
+      '<p style="margin:4px 0"><strong>Hora:</strong> ' + (proximo.hora_inicio ? String(proximo.hora_inicio).substring(0,5)+'hs' : 'A confirmar') + '</p>' +
+      '<p style="margin:4px 0"><strong>Cancha:</strong> ' + (proximo.cancha || 'A confirmar') + '</p></div>'
+    : '<p style="margin-top:16px;color:#999;font-size:13px">No tenes mas partidos pendientes.</p>';
+  return '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">' +
+    '<div style="background:#1a1a2e;padding:24px;text-align:center">' +
+    '<h1 style="color:#fff;margin:0;font-size:22px">Padel Connect</h1></div>' +
+    '<div style="padding:32px 24px">' +
+    '<h2>Resultado Ronda ' + partido.ronda + '</h2>' +
+    '<div style="background:#f5f5f5;border-radius:8px;padding:20px;text-align:center">' +
+    '<p style="font-size:28px;font-weight:bold;margin:0">' + partido.games_pareja1 + ' - ' + partido.games_pareja2 + '</p>' +
+    '<p style="margin:8px 0 0;color:' + (gano?'#15803d':'#dc2626') + ';font-weight:700">' + (gano?'Ganaste!':'Perdiste') + ' - ' + misGames + ' games a favor</p></div>' +
+    proximoHtml +
+    '<p style="margin-top:20px;text-align:center"><a href="' + APP_URL + '/padel-connect.html" style="color:#4f46e5">Ver ranking</a></p>' +
+    '</div></div>';
+}
+
+function emailCampeonAmericano(jugador, americano, posicion) {
+  const emojis = ['', '🥇','🥈','🥉'];
+  const textos = ['', 'Campeon!', 'Subcampeon!', 'Tercer puesto!'];
+  return '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">' +
+    '<div style="background:#1a1a2e;padding:24px;text-align:center">' +
+    '<h1 style="color:#fff;margin:0;font-size:22px">Padel Connect</h1></div>' +
+    '<div style="padding:32px 24px;text-align:center">' +
+    '<div style="font-size:64px">' + (emojis[posicion]||'🏅') + '</div>' +
+    '<h2>' + (textos[posicion]||posicion+'° puesto') + '</h2>' +
+    '<p><strong>' + jugador.nombre + '</strong> termino <strong>' + posicion + '</strong> en ' + americano.nombre + '</p>' +
+    '<p style="color:#666">Tu ranking ELO fue actualizado.</p>' +
+    '<a href="' + APP_URL + '/padel-connect.html" style="display:inline-block;background:#4f46e5;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px">Ver ranking</a>' +
+    '</div></div>';
+}
+
+async function enviarFixturePorEmail(americano_id) {
+  try {
+    const amRes = await pool.query('SELECT * FROM americanos WHERE id = $1', [americano_id]);
+    const americano = amRes.rows[0];
+    const jugRes = await pool.query(
+      'SELECT aj.usuario_id, aj.nombre, u.email FROM americanos_jugadores aj JOIN usuarios u ON u.id = aj.usuario_id WHERE aj.americano_id = $1 AND aj.estado = $2',
+      [americano_id, 'confirmado']
+    );
+    const partidosRes = await pool.query(
+      'SELECT ap.*, u1a.nombre as nombre_1a, u1b.nombre as nombre_1b, u2a.nombre as nombre_2a, u2b.nombre as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha',
+      [americano_id]
+    );
+    for (const jug of jugRes.rows) {
+      const misPartidos = partidosRes.rows.filter(p =>
+        p.jugador1a_id === jug.usuario_id || p.jugador1b_id === jug.usuario_id ||
+        p.jugador2a_id === jug.usuario_id || p.jugador2b_id === jug.usuario_id
+      );
+      await resend.emails.send({
+        from: 'PadelConnect <noreply@cordobalux.com>',
+        to: jug.email,
+        subject: 'Tu fixture - ' + americano.nombre,
+        html: emailFixtureAmericano(jug, americano, misPartidos)
+      });
+    }
+    console.log('Emails fixture americano enviados: ' + americano_id);
+  } catch(e) {
+    console.error('Error emails fixture americano:', e.message);
+  }
+}
+
+// ── GET /americanos ───────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const r = await pool.query(`
-      SELECT a.*,
-        (SELECT COUNT(*) FROM americanos_jugadores aj WHERE aj.americano_id = a.id AND aj.estado = 'confirmado') AS inscriptos
-      FROM americanos a
-      ORDER BY a.fecha DESC, a.creado_en DESC
-    `);
+    const r = await pool.query(
+      'SELECT a.*, (SELECT COUNT(*) FROM americanos_jugadores aj WHERE aj.americano_id = a.id AND aj.estado = $1) AS inscriptos FROM americanos a ORDER BY a.fecha DESC, a.creado_en DESC',
+      ['confirmado']
+    );
     res.json(r.rows);
-  } catch (err) {
-    console.error('GET /americanos:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('GET /americanos:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── GET /americanos/:id — detalle ────────────────────────────────────
+// ── GET /americanos/:id ───────────────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const a = await pool.query('SELECT * FROM americanos WHERE id = $1', [id]);
     if (!a.rows.length) return res.status(404).json({ error: 'No encontrado' });
-
     const jugadores = await pool.query(
       'SELECT aj.*, u.email FROM americanos_jugadores aj JOIN usuarios u ON u.id = aj.usuario_id WHERE aj.americano_id = $1 ORDER BY aj.creado_en',
       [id]
     );
     const partidos = await pool.query(
-      `SELECT ap.*,
-        u1a.nombre as nombre_1a, u1b.nombre as nombre_1b,
-        u2a.nombre as nombre_2a, u2b.nombre as nombre_2b
-       FROM americanos_partidos ap
-       LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id
-       LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id
-       LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id
-       LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id
-       WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha`,
+      'SELECT ap.*, u1a.nombre as nombre_1a, u1b.nombre as nombre_1b, u2a.nombre as nombre_2a, u2b.nombre as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.americano_id = $1 ORDER BY ap.ronda, ap.cancha',
       [id]
     );
     const posiciones = await pool.query(
       'SELECT * FROM americanos_posiciones WHERE americano_id = $1 ORDER BY posicion',
       [id]
     );
-
-    res.json({
-      ...a.rows[0],
-      jugadores: jugadores.rows,
-      partidos: partidos.rows,
-      posiciones: posiciones.rows,
-    });
-  } catch (err) {
-    console.error('GET /americanos/:id:', err);
-    res.status(500).json({ error: err.message });
-  }
+    res.json({ ...a.rows[0], jugadores: jugadores.rows, partidos: partidos.rows, posiciones: posiciones.rows });
+  } catch(err) { console.error('GET /americanos/:id:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── POST /americanos — crear ─────────────────────────────────────────
+// ── POST /americanos ──────────────────────────────────────────────────
 router.post('/', async (req, res) => {
   try {
-    const {
-      nombre, descripcion, sede, fecha, hora_inicio,
-      cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min,
-      formato, precio_inscripcion
-    } = req.body;
-
+    const { nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas,
+            duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion } = req.body;
     if (!nombre || !fecha) return res.status(400).json({ error: 'Nombre y fecha son obligatorios' });
-
-    const r = await pool.query(`
-      INSERT INTO americanos
-        (nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas,
-         duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, estado)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'abierto')
-      RETURNING *
-    `, [nombre, descripcion || null, sede || null, fecha,
-        hora_inicio || '09:00', cantidad_canchas || 2,
-        duracion_partido_min || 20, descanso_entre_rondas_min || 5,
-        formato || 'mejor_de_7', precio_inscripcion || 0]);
-
+    const r = await pool.query(
+      'INSERT INTO americanos (nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, estado) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *',
+      [nombre, descripcion||null, sede||null, fecha, hora_inicio||'09:00',
+       cantidad_canchas||2, duracion_partido_min||20, descanso_entre_rondas_min||5,
+       formato||'mejor_de_7', precio_inscripcion||0, 'proximamente']
+    );
     res.json(r.rows[0]);
-  } catch (err) {
-    console.error('POST /americanos:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('POST /americanos:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── PUT /americanos/:id — modificar ──────────────────────────────────
-router.put('/:id', async (req, res) => {
+// ── PUT /americanos/:id/estado ────────────────────────────────────────
+router.put('/:id/estado', async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      nombre, descripcion, sede, fecha, hora_inicio,
-      cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min,
-      formato, precio_inscripcion, estado
-    } = req.body;
-
-    const r = await pool.query(`
-      UPDATE americanos SET
-        nombre=$1, descripcion=$2, sede=$3, fecha=$4, hora_inicio=$5,
-        cantidad_canchas=$6, duracion_partido_min=$7, descanso_entre_rondas_min=$8,
-        formato=$9, precio_inscripcion=$10, estado=$11, actualizado_en=now()
-      WHERE id=$12 RETURNING *
-    `, [nombre, descripcion, sede, fecha, hora_inicio,
-        cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min,
-        formato, precio_inscripcion, estado, id]);
-
+    const { estado } = req.body;
+    const r = await pool.query(
+      'UPDATE americanos SET estado=$1, actualizado_en=now() WHERE id=$2 RETURNING *',
+      [estado, id]
+    );
     res.json(r.rows[0]);
-  } catch (err) {
-    console.error('PUT /americanos/:id:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('PUT estado:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── DELETE /americanos/:id — eliminar ────────────────────────────────
+// ── DELETE /americanos/:id ────────────────────────────────────────────
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    // CASCADE elimina posiciones, partidos y jugadores automáticamente
-    await pool.query('DELETE FROM americanos WHERE id = $1', [id]);
+    await pool.query('DELETE FROM americanos WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
-  } catch (err) {
-    console.error('DELETE /americanos/:id:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('DELETE /americanos/:id:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── POST /americanos/:id/inscribir — inscribir jugador ───────────────
+// ── POST /americanos/:id/inscribir ────────────────────────────────────
 router.post('/:id/inscribir', async (req, res) => {
   try {
     const { id } = req.params;
     const { usuario_id, nombre, email } = req.body;
-
     const am = await pool.query('SELECT * FROM americanos WHERE id = $1', [id]);
-    if (!am.rows.length) return res.status(404).json({ error: 'Americano no encontrado' });
-    if (am.rows[0].estado !== 'abierto') return res.status(400).json({ error: 'Las inscripciones están cerradas' });
-
-    const inscriptos = await pool.query(
-      "SELECT COUNT(*) FROM americanos_jugadores WHERE americano_id = $1 AND estado = 'confirmado'",
-      [id]
+    if (!am.rows.length) return res.status(404).json({ error: 'No encontrado' });
+    if (am.rows[0].estado !== 'abierto') return res.status(400).json({ error: 'Las inscripciones estan cerradas' });
+    const cnt = await pool.query(
+      'SELECT COUNT(*) FROM americanos_jugadores WHERE americano_id=$1 AND estado=$2', [id,'confirmado']
     );
-    if (parseInt(inscriptos.rows[0].count) >= am.rows[0].max_jugadores) {
-      return res.status(400).json({ error: 'El americano ya está completo' });
-    }
-
-    const r = await pool.query(`
-      INSERT INTO americanos_jugadores (americano_id, usuario_id, nombre, email, estado)
-      VALUES ($1,$2,$3,$4,'confirmado')
-      ON CONFLICT (americano_id, usuario_id) DO NOTHING
-      RETURNING *
-    `, [id, usuario_id, nombre, email]);
-
-    // Inicializar posición
-    await pool.query(`
-      INSERT INTO americanos_posiciones (americano_id, usuario_id, nombre)
-      VALUES ($1,$2,$3)
-      ON CONFLICT (americano_id, usuario_id) DO NOTHING
-    `, [id, usuario_id, nombre]);
-
-    res.json({ ok: true, jugador: r.rows[0] });
-  } catch (err) {
-    console.error('POST /americanos/:id/inscribir:', err);
-    res.status(500).json({ error: err.message });
-  }
+    if (parseInt(cnt.rows[0].count) >= am.rows[0].max_jugadores)
+      return res.status(400).json({ error: 'El americano ya esta completo' });
+    await pool.query(
+      'INSERT INTO americanos_jugadores (americano_id, usuario_id, nombre, email, estado) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (americano_id, usuario_id) DO NOTHING',
+      [id, usuario_id, nombre, email, 'confirmado']
+    );
+    await pool.query(
+      'INSERT INTO americanos_posiciones (americano_id, usuario_id, nombre) VALUES ($1,$2,$3) ON CONFLICT (americano_id, usuario_id) DO NOTHING',
+      [id, usuario_id, nombre]
+    );
+    res.json({ ok: true });
+  } catch(err) { console.error('POST inscribir:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── DELETE /americanos/:id/jugadores/:uid — desinscribir ─────────────
+// ── DELETE /americanos/:id/jugadores/:uid ─────────────────────────────
 router.delete('/:id/jugadores/:uid', async (req, res) => {
   try {
     const { id, uid } = req.params;
     await pool.query('DELETE FROM americanos_jugadores WHERE americano_id=$1 AND usuario_id=$2', [id, uid]);
     await pool.query('DELETE FROM americanos_posiciones WHERE americano_id=$1 AND usuario_id=$2', [id, uid]);
     res.json({ ok: true });
-  } catch (err) {
-    console.error('DELETE jugador:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('DELETE jugador:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── POST /americanos/:id/generar-fixture — genera todas las rondas ───
+// ── POST /americanos/:id/generar-fixture ──────────────────────────────
 router.post('/:id/generar-fixture', async (req, res) => {
   try {
     const { id } = req.params;
-
     const am = await pool.query('SELECT * FROM americanos WHERE id = $1', [id]);
     if (!am.rows.length) return res.status(404).json({ error: 'No encontrado' });
     const a = am.rows[0];
-
     const jugRes = await pool.query(
-      "SELECT usuario_id, nombre FROM americanos_jugadores WHERE americano_id = $1 AND estado = 'confirmado' ORDER BY creado_en",
-      [id]
+      'SELECT usuario_id, nombre FROM americanos_jugadores WHERE americano_id=$1 AND estado=$2 ORDER BY creado_en',
+      [id, 'confirmado']
     );
-    if (jugRes.rows.length !== 8) {
-      return res.status(400).json({ error: `Se necesitan exactamente 8 jugadores. Hay ${jugRes.rows.length}.` });
-    }
-
-    // Borrar fixture anterior si existe
+    if (jugRes.rows.length !== 8)
+      return res.status(400).json({ error: 'Se necesitan exactamente 8 jugadores. Hay ' + jugRes.rows.length + '.' });
     await pool.query('DELETE FROM americanos_partidos WHERE americano_id = $1', [id]);
-
-    const jugadores = jugRes.rows;
-    const rondas = generarFixtureAmericano(jugadores);
-    const horaInicio = a.hora_inicio.substring(0, 5);
-    const duracion = a.duracion_partido_min;
-    const descanso = a.descanso_entre_rondas_min;
-
+    const rondas = generarFixtureAmericano(jugRes.rows);
+    const horaInicio = a.hora_inicio.substring(0,5);
     for (let r = 0; r < rondas.length; r++) {
-      const partidos = rondas[r]; // 2 partidos en paralelo
-      for (let c = 0; c < partidos.length; c++) {
-        const p = partidos[c];
-        const horario = calcularHorarios(horaInicio, duracion, descanso, r, c);
-        await pool.query(`
-          INSERT INTO americanos_partidos
-            (americano_id, ronda, jugador1a_id, jugador1b_id, jugador2a_id, jugador2b_id,
-             cancha, hora_inicio, hora_fin)
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-        `, [
-          id, r + 1,
-          p.pareja1[0].usuario_id, p.pareja1[1].usuario_id,
-          p.pareja2[0].usuario_id, p.pareja2[1].usuario_id,
-          c + 1, horario.hora_inicio, horario.hora_fin
-        ]);
+      for (let c = 0; c < rondas[r].length; c++) {
+        const p = rondas[r][c];
+        const horario = calcularHorarios(horaInicio, a.duracion_partido_min, a.descanso_entre_rondas_min, r);
+        await pool.query(
+          'INSERT INTO americanos_partidos (americano_id, ronda, jugador1a_id, jugador1b_id, jugador2a_id, jugador2b_id, cancha, hora_inicio, hora_fin) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+          [id, r+1, p.pareja1[0].usuario_id, p.pareja1[1].usuario_id,
+           p.pareja2[0].usuario_id, p.pareja2[1].usuario_id,
+           c+1, horario.hora_inicio, horario.hora_fin]
+        );
       }
     }
-
-    // Cambiar estado a 'en_curso'
     await pool.query("UPDATE americanos SET estado='en_curso', actualizado_en=now() WHERE id=$1", [id]);
-
+    await enviarFixturePorEmail(id);
     res.json({ ok: true, rondas: rondas.length, partidos: rondas.length * 2 });
-  } catch (err) {
-    console.error('POST generar-fixture:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('POST generar-fixture:', err); res.status(500).json({ error: err.message }); }
 });
 
-// ── PUT /americanos/partidos/:pid/resultado — cargar resultado ────────
+// ── PUT /americanos/partidos/:pid/resultado ───────────────────────────
 router.put('/partidos/:pid/resultado', async (req, res) => {
   try {
     const { pid } = req.params;
     const { games_pareja1, games_pareja2 } = req.body;
-
-    const g1 = parseInt(games_pareja1);
-    const g2 = parseInt(games_pareja2);
-
-    // Validar formato según tipo
-    const pRes = await pool.query('SELECT * FROM americanos_partidos WHERE id = $1', [pid]);
+    const g1 = parseInt(games_pareja1), g2 = parseInt(games_pareja2);
+    const pRes = await pool.query(
+      'SELECT ap.*, u1a.nombre as nombre_1a, u1b.nombre as nombre_1b, u2a.nombre as nombre_2a, u2b.nombre as nombre_2b FROM americanos_partidos ap LEFT JOIN usuarios u1a ON u1a.id = ap.jugador1a_id LEFT JOIN usuarios u1b ON u1b.id = ap.jugador1b_id LEFT JOIN usuarios u2a ON u2a.id = ap.jugador2a_id LEFT JOIN usuarios u2b ON u2b.id = ap.jugador2b_id WHERE ap.id = $1',
+      [pid]
+    );
     if (!pRes.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
     const partido = pRes.rows[0];
-
-    const amRes = await pool.query('SELECT formato FROM americanos WHERE id = $1', [partido.americano_id]);
-    const formato = amRes.rows[0]?.formato;
-
-    if (formato === 'mejor_de_7' && g1 + g2 !== 7) {
+    const amRes = await pool.query('SELECT * FROM americanos WHERE id = $1', [partido.americano_id]);
+    const americano = amRes.rows[0];
+    if (americano.formato === 'mejor_de_7' && g1 + g2 !== 7)
       return res.status(400).json({ error: 'En formato mejor de 7, los games deben sumar 7' });
-    }
-    if (formato === 'set' && (g1 < 0 || g2 < 0)) {
-      return res.status(400).json({ error: 'Games inválidos' });
-    }
-
-    await pool.query(`
-      UPDATE americanos_partidos SET
-        games_pareja1=$1, games_pareja2=$2, estado='jugado', cargado_en=now()
-      WHERE id=$3
-    `, [g1, g2, pid]);
-
-    // Recalcular posiciones
+    await pool.query(
+      "UPDATE americanos_partidos SET games_pareja1=$1, games_pareja2=$2, estado='jugado', cargado_en=now() WHERE id=$3",
+      [g1, g2, pid]
+    );
     await recalcularPosiciones(partido.americano_id);
-
-    // Verificar si todos los partidos están jugados → finalizar
+    // Email resultado a cada jugador
+    const uids = [partido.jugador1a_id, partido.jugador1b_id, partido.jugador2a_id, partido.jugador2b_id].filter(Boolean);
+    const nombres = { [partido.jugador1a_id]: partido.nombre_1a, [partido.jugador1b_id]: partido.nombre_1b,
+                      [partido.jugador2a_id]: partido.nombre_2a, [partido.jugador2b_id]: partido.nombre_2b };
+    for (const uid of uids) {
+      const eRes = await pool.query('SELECT email FROM usuarios WHERE id = $1', [uid]);
+      if (!eRes.rows.length) continue;
+      const proxRes = await pool.query(
+        "SELECT * FROM americanos_partidos WHERE americano_id=$1 AND estado='pendiente' AND (jugador1a_id=$2 OR jugador1b_id=$2 OR jugador2a_id=$2 OR jugador2b_id=$2) ORDER BY ronda LIMIT 1",
+        [partido.americano_id, uid]
+      );
+      await resend.emails.send({
+        from: 'PadelConnect <noreply@cordobalux.com>',
+        to: eRes.rows[0].email,
+        subject: 'Resultado Ronda ' + partido.ronda + ' - ' + americano.nombre,
+        html: emailResultadoAmericano({ usuario_id: uid, nombre: nombres[uid] }, partido, proxRes.rows[0]||null)
+      });
+    }
+    // Verificar si termino
     const pendRes = await pool.query(
       "SELECT COUNT(*) FROM americanos_partidos WHERE americano_id=$1 AND estado='pendiente'",
       [partido.americano_id]
     );
     if (parseInt(pendRes.rows[0].count) === 0) {
-      await pool.query(
-        "UPDATE americanos SET estado='finalizado', actualizado_en=now() WHERE id=$1",
+      await pool.query("UPDATE americanos SET estado='finalizado', actualizado_en=now() WHERE id=$1", [partido.americano_id]);
+      await actualizarELO(partido.americano_id);
+      const posRes = await pool.query(
+        'SELECT ap.posicion, aj.usuario_id, aj.nombre, u.email FROM americanos_posiciones ap JOIN americanos_jugadores aj ON aj.usuario_id=ap.usuario_id AND aj.americano_id=ap.americano_id JOIN usuarios u ON u.id=aj.usuario_id WHERE ap.americano_id=$1 AND ap.posicion<=3 ORDER BY ap.posicion',
         [partido.americano_id]
       );
-      await actualizarELO(partido.americano_id);
+      for (const p of posRes.rows) {
+        await resend.emails.send({
+          from: 'PadelConnect <noreply@cordobalux.com>',
+          to: p.email,
+          subject: (p.posicion===1?'Campeon!':p.posicion===2?'Subcampeon!':'3er puesto!') + ' - ' + americano.nombre,
+          html: emailCampeonAmericano(p, americano, p.posicion)
+        });
+      }
     }
-
     res.json({ ok: true });
-  } catch (err) {
-    console.error('PUT resultado:', err);
-    res.status(500).json({ error: err.message });
-  }
+  } catch(err) { console.error('PUT resultado:', err); res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;

@@ -241,7 +241,7 @@ router.get('/sesiones-negocio/:id', async (req, res) => {
 router.get('/usuarios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, nombre, email, foto_url, vibe, edad, telefono, creado_en, ultimo_login, activo
+      SELECT id, nombre, apellido, email, foto_url, vibe, edad, telefono, app_origen, creado_en, ultimo_login, activo
       FROM usuarios ORDER BY creado_en DESC LIMIT 100
     `);
     res.json(result.rows);

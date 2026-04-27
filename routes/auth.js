@@ -13,7 +13,7 @@ const { authUsuario } = require('../middleware/auth');
 // ── POST /auth/registro ──────────────────────────────────────────────
 // El usuario se registra por primera vez
 router.post('/registro', async (req, res) => {
-  const { nombre, email, telefono, password, foto_url, vibe, edad } = req.body;
+  const { nombre, apellido, email, telefono, password, foto_url, vibe, edad, app_origen } = req.body;
 
   if (!nombre || !password) {
     return res.status(400).json({ error: 'Nombre y contraseña son requeridos' });
@@ -31,9 +31,9 @@ router.post('/registro', async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(`
-      INSERT INTO usuarios (nombre, email, telefono, password_hash, foto_url, vibe, edad)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, nombre, email, foto_url, vibe, edad, creado_en
+      INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, foto_url, vibe, edad, app_origen)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING id, nombre, apellido, email, foto_url, vibe, edad, telefono, app_origen, creado_en
     `, [nombre, email, telefono, password_hash, foto_url, vibe, edad]);
 
     const usuario = result.rows[0];
@@ -105,7 +105,7 @@ router.post('/login', async (req, res) => {
 router.get('/perfil', authUsuario, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, nombre, email, foto_url, vibe, edad, creado_en FROM usuarios WHERE id = $1',
+      'SELECT id, nombre, apellido, email, telefono, foto_url, vibe, edad, app_origen, creado_en FROM usuarios WHERE id = $1',
       [req.usuario.id]
     );
     res.json(result.rows[0]);
@@ -117,7 +117,7 @@ router.get('/perfil', authUsuario, async (req, res) => {
 // ── PUT /auth/perfil ─────────────────────────────────────────────────
 // Actualizar mi perfil (nombre, foto, vibe)
 router.put('/perfil', authUsuario, async (req, res) => {
-  const { nombre, foto_url, vibe, edad } = req.body;
+  const { nombre, apellido, foto_url, vibe, edad, telefono } = req.body;
   try {
     const result = await pool.query(`
       UPDATE usuarios 
