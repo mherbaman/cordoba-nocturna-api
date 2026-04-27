@@ -3918,23 +3918,34 @@ async function cargarMisInscripciones() {
       const esJugador1 = p.jugador1_id === usuario?.id;
       const compañero = esJugador1 ? p.jugador2_nombre : p.jugador1_nombre;
       const compañeroFoto = esJugador1 ? p.jugador2_foto : p.jugador1_foto;
+      const esAmericano = p.tipo === 'americano';
+      const borderColor = esAmericano ? 'rgba(99,102,241,.3)' : 'rgba(239,68,68,.2)';
+      const bgColor = esAmericano ? 'rgba(99,102,241,.05)' : 'rgba(239,68,68,.05)';
       return `
-      <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;padding:16px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div>
-            <div style="font-size:15px;font-weight:700;color:#fff">${p.torneo_nombre}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+              <div style="font-size:15px;font-weight:700;color:#fff">${p.torneo_nombre}</div>
+              ${esAmericano ? '<span style="font-size:10px;font-weight:700;background:rgba(99,102,241,.2);color:#a5b4fc;padding:2px 8px;border-radius:50px">SUPER 8</span>' : ''}
+            </div>
             <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${p.sede||''} · ${fechaInicio}</div>
             <div style="font-size:12px;color:rgba(255,255,255,.4)">${p.categoria_nombre}</div>
           </div>
           <span style="font-size:11px;font-weight:700;color:${estadoColor[p.torneo_estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[p.torneo_estado]||'rgba(255,255,255,.2)'};white-space:nowrap">${estadoLabel[p.torneo_estado]||p.torneo_estado}</span>
         </div>
+        ${esAmericano ? `
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:18px">🎾</div>
+          <div style="font-size:13px;color:#fff">Inscripto como jugador individual</div>
+        </div>` : `
         <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px">
           ${compañeroFoto ? `<img src="${compañeroFoto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : `<div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🎾</div>`}
           <div>
             <div style="font-size:13px;color:#fff">${esSolo ? 'Buscando compañero...' : compañero}</div>
             <div style="font-size:11px;color:${p.estado==='confirmada'?'#4ade80':p.estado==='pendiente'?'#fbbf24':'#f87171'}">${parejaEstado[p.estado]||p.estado}</div>
           </div>
-        </div>
+        </div>`}
       </div>`;
     }).join('');
   } catch(e) {
