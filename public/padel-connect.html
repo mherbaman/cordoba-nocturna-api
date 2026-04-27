@@ -3520,6 +3520,77 @@ async function registrarPush() {
     console.warn('Push no disponible:', e.message);
   }
 }
+
+// ── MODAL PERFIL INCOMPLETO ───────────────────────────────────────────
+function mostrarModalPerfilIncompleto() {
+  let modal = document.getElementById('modal-perfil-incompleto');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-perfil-incompleto';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML = `
+      <div style="background:#0d1f0d;border:1px solid rgba(34,197,94,.35);border-radius:20px;padding:28px;max-width:420px;width:100%">
+        <div style="font-size:28px;margin-bottom:8px;text-align:center">🎾</div>
+        <div style="font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:1px;text-align:center;margin-bottom:8px">COMPLETÁ TU PERFIL</div>
+        <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:14px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.7);text-align:center;line-height:1.6">
+          Necesitamos tu <strong style="color:#4ade80">apellido y teléfono</strong> para el<br>
+          <strong style="color:#4ade80">Ranking, los Torneos y Campeonatos</strong><br>
+          y para las <strong style="color:#4ade80">notificaciones en tiempo real</strong> 📲
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Apellido *</label>
+          <input id="modal-apellido" type="text" placeholder="Tu apellido"
+            style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(34,197,94,.25);background:rgba(255,255,255,.04);color:#fff;font-size:15px;box-sizing:border-box;outline:none;font-family:'DM Sans',sans-serif">
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Teléfono *</label>
+          <input id="modal-telefono" type="tel" placeholder="Ej: 3516001234"
+            style="width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid rgba(34,197,94,.25);background:rgba(255,255,255,.04);color:#fff;font-size:15px;box-sizing:border-box;outline:none;font-family:'DM Sans',sans-serif">
+        </div>
+        <div id="modal-perfil-error" style="color:#f87171;font-size:13px;margin-bottom:12px;display:none"></div>
+        <button onclick="guardarDatosObligatorios()"
+          style="width:100%;padding:14px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+          GUARDAR Y CONTINUAR →
+        </button>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  // Pre-cargar valores si ya existen
+  const apEl = document.getElementById('modal-apellido');
+  const telEl = document.getElementById('modal-telefono');
+  if(apEl && usuario?.apellido) apEl.value = usuario.apellido;
+  if(telEl && usuario?.telefono) telEl.value = usuario.telefono;
+  modal.style.display = 'flex';
+}
+
+async function guardarDatosObligatorios() {
+  const apellido = document.getElementById('modal-apellido')?.value.trim();
+  const telefono = document.getElementById('modal-telefono')?.value.trim();
+  const errEl = document.getElementById('modal-perfil-error');
+  if (!apellido) { errEl.textContent='Ingresá tu apellido'; errEl.style.display='block'; return; }
+  if (!telefono) { errEl.textContent='Ingresá tu teléfono'; errEl.style.display='block'; return; }
+  errEl.style.display = 'none';
+  try {
+    const data = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ apellido, telefono }) });
+    usuario.apellido = data.apellido;
+    usuario.telefono = data.telefono;
+    localStorage.setItem('cl_usuario', JSON.stringify(usuario));
+    document.getElementById('modal-perfil-incompleto').style.display = 'none';
+    showLoader('Cargando...');
+    const data2 = await api(`/padel/jugadores/mi-perfil?usuario_id=${usuario.id}`);
+    hideLoader();
+    if (data2.tiene_perfil) {
+      perfilPadel = data2.perfil;
+      await cargarJugadoresPadel();
+      mostrarHome();
+    } else {
+      await cargarZonasPadel();
+      showScreen('perfil-padel');
+    }
+  } catch(e) {
+    errEl.textContent = e.message || 'Error al guardar'; errEl.style.display='block';
+  }
+}
 </script>
 
 </body>
