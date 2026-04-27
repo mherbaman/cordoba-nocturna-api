@@ -73,15 +73,17 @@ router.get('/admin/lista', authAdmin, async (req, res) => {
 });
 
 // GET /torneos/:id — detalle, posiciones y bracket
-// GET /torneos/mis-inscripciones — parejas del usuario logueado
+// GET /torneos/mis-inscripciones — parejas del usuario logueado + americanos
 router.get('/mis-inscripciones', authUsuario, async (req, res) => {
   try {
-    const { rows } = await pool.query(`
-      SELECT pt.*,
-        t.nombre AS torneo_nombre, t.fecha_inicio, t.fecha_fin, t.sede, t.estado AS torneo_estado,
+    // Torneos regulares
+    const torneos = await pool.query(`
+      SELECT pt.id, pt.estado, pt.jugador1_id, pt.jugador2_id,
+        t.nombre AS torneo_nombre, t.fecha_inicio, t.sede, t.estado AS torneo_estado,
         ct.nombre AS categoria_nombre,
         u1.nombre AS jugador1_nombre, u1.foto_url AS jugador1_foto,
-        u2.nombre AS jugador2_nombre, u2.foto_url AS jugador2_foto
+        u2.nombre AS jugador2_nombre, u2.foto_url AS jugador2_foto,
+        'torneo' AS tipo
       FROM parejas_torneo pt
       JOIN torneos t ON t.id = pt.torneo_id
       JOIN categorias_torneo ct ON ct.id = pt.categoria_id
@@ -91,7 +93,23 @@ router.get('/mis-inscripciones', authUsuario, async (req, res) => {
         AND pt.estado NOT IN ('rechazada', 'eliminada')
       ORDER BY t.fecha_inicio DESC
     `, [req.usuario.id]);
-    res.json(rows);
+
+    // Americanos
+    const americanos = await pool.query(`
+      SELECT aj.id, aj.estado, aj.usuario_id,
+        a.nombre AS torneo_nombre, a.fecha AS fecha_inicio, a.sede, a.estado AS torneo_estado,
+        'Super 8 Americano' AS categoria_nombre,
+        null AS jugador1_id, null AS jugador2_id,
+        null AS jugador1_nombre, null AS jugador1_foto,
+        null AS jugador2_nombre, null AS jugador2_foto,
+        'americano' AS tipo
+      FROM americanos_jugadores aj
+      JOIN americanos a ON a.id = aj.americano_id
+      WHERE aj.usuario_id = $1
+      ORDER BY a.fecha DESC
+    `, [req.usuario.id]);
+
+    res.json([...torneos.rows, ...americanos.rows]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener inscripciones' });
