@@ -1,0 +1,24 @@
+{
+  "name": "PadelConnect — CórdobaLux",
+  "short_name": "PadelConnect",
+  "description": "Encontrá rivales, reservá canchas y jugá torneos",
+  "start_url": "/padel-connect.html",
+  "display": "standalone",
+  "background_color": "#030d06",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/padel-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/padel-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
