@@ -3280,7 +3280,7 @@ function renderAmericanoFixture() {
       html += `<div style="background:rgba(255,255,255,.03);border:1px solid ${jugado ? 'rgba(74,222,128,.2)' : 'rgba(234,179,8,.12)'};border-radius:10px;padding:10px 12px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <span style="font-size:11px;color:rgba(255,255,255,.3)">Cancha ${p.cancha}${hora ? ' · ' + hora : ''}</span>
-          ${jugado ? `<span style="font-size:11px;color:#4ade80;font-weight:700">${p.resultado_local}-${p.resultado_visita}</span>` : '<span style="font-size:10px;color:rgba(255,255,255,.3)">Pendiente</span>'}
+          ${jugado ? `<span style="font-size:11px;color:#4ade80;font-weight:700">${p.games_pareja1}-${p.games_pareja2}</span>` : '<span style="font-size:10px;color:rgba(255,255,255,.3)">Pendiente</span>'}
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-size:13px;color:#fff;flex:1">${p.nombre_1a || '?'} / ${p.nombre_1b || '?'}</div>
@@ -3310,7 +3310,8 @@ function renderAmericanoBracket() {
     const gan1 = jugado && p.games_pareja1 > p.games_pareja2;
     const gan2 = jugado && p.games_pareja2 > p.games_pareja1;
     return `<div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:14px;margin-bottom:10px">
-      <div style="font-size:10px;color:#a78bfa;font-weight:700;margin-bottom:10px;letter-spacing:1px">${titulo}</div>
+      <div style="font-size:10px;color:#a78bfa;font-weight:700;margin-bottom:6px;letter-spacing:1px">${titulo}</div>
+      ${p.cancha || p.hora_inicio ? `<div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:8px">${p.cancha ? 'Cancha '+p.cancha : ''}${p.hora_inicio ? ' · '+p.hora_inicio.slice(0,5) : ''}</div>` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="flex:1">
           <div style="font-size:13px;color:${gan1?'#4ade80':'#fff'};font-weight:${gan1?'700':'400'};margin-bottom:6px">${nom1}</div>
