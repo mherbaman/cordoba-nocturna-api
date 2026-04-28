@@ -656,6 +656,26 @@ router.post('/delegado/resultado/:id', authUsuario, authDelegado, async (req, re
   );
 });
 
+
+// GET /torneos/delegado/mis-torneos — torneos asignados al delegado
+router.get('/delegado/mis-torneos', authUsuario, authDelegado, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT t.id, t.nombre, t.sede, t.estado,
+        to_char(t.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio,
+        to_char(t.fecha_fin, 'YYYY-MM-DD') AS fecha_fin,
+        t.cantidad_canchas
+      FROM delegados_torneo dt
+      JOIN torneos t ON t.id = dt.torneo_id
+      WHERE dt.usuario_id = $1 AND dt.activo = true
+      ORDER BY t.fecha_inicio DESC
+    `, [req.usuario.id]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener torneos' });
+  }
+});
 // GET /torneos/delegado/partidos-hoy — partidos del día para cargar
 router.get('/delegado/partidos-hoy', authUsuario, authDelegado, async (req, res) => {
   try {
