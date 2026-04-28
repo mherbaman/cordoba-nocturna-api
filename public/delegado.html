@@ -248,15 +248,22 @@ async function verPartidosTorneo(torneoId) {
   const el = document.getElementById('torneos-list');
   el.innerHTML = '<div class="loader"></div>';
   try {
-    const partidos = await apiDel('/torneos/delegado/partidos-hoy?torneo_id='+torneoId);
-    const pendientes = partidos.filter(p => p.estado !== 'jugado' && p.estado !== 'walkover');
-    if (!pendientes.length) {
-      el.innerHTML = '<div class="empty"><div class="icon">✅</div>No hay partidos pendientes para hoy.<br><br><button onclick="cargarTorneosDelegado()" style="background:rgba(255,255,255,.08);border:none;color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;cursor:pointer">← Volver</button></div>';
+    const data = await apiDel('/torneos/'+torneoId);
+    const todos = data.partidos || [];
+    const pendientes = todos.filter(p => p.estado === 'pendiente' || p.estado === 'en_curso');
+    const jugados = todos.filter(p => p.estado === 'jugado' || p.estado === 'walkover');
+    if (!pendientes.length && !jugados.length) {
+      el.innerHTML = '<div class="empty"><div class="icon">🎾</div>No hay partidos en este torneo.<br><br><button onclick="cargarTorneosDelegado()" style="background:rgba(255,255,255,.08);border:none;color:#fff;padding:8px 20px;border-radius:50px;font-size:13px;cursor:pointer">← Volver</button></div>';
       return;
     }
-    el.innerHTML = `
-      <button onclick="cargarTorneosDelegado()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:7px 16px;border-radius:50px;font-size:12px;cursor:pointer;margin-bottom:14px">← Volver</button>
-      ${pendientes.map(p => renderPartido(p)).join('')}`;
+    const backBtn = `<button onclick="cargarTorneosDelegado()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:7px 16px;border-radius:50px;font-size:12px;cursor:pointer;margin-bottom:14px">← Volver</button>`;
+    const pendientesHtml = pendientes.length ? `
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:700">PENDIENTES (${pendientes.length})</div>
+      ${pendientes.map(p => renderPartido(p)).join('')}` : '';
+    const jugadosHtml = jugados.length ? `
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:16px 0 8px;font-weight:700">JUGADOS (${jugados.length})</div>
+      ${jugados.map(p => renderPartido(p)).join('')}` : '';
+    el.innerHTML = backBtn + pendientesHtml + jugadosHtml;
   } catch(e) {
     el.innerHTML = `<div class="empty"><div class="icon">⚠️</div>${e.message}</div>`;
   }
