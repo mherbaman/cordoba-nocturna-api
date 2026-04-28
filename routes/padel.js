@@ -55,7 +55,7 @@ router.get('/jugadores', async (req, res) => {
         j.foto_url, j.descripcion, j.ranking_puntos,
         j.partidos_jugados, j.victorias,
         ROUND(j.promedio_resenas::numeric, 1) AS promedio_resenas,
-        j.total_resenas, u.edad, u.vibe
+        j.total_resenas, u.edad, u.vibe, u.apellido, u.email
       FROM jugadores_padel j
       LEFT JOIN usuarios u ON u.id = j.usuario_id
       ${where}
