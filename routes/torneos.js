@@ -156,11 +156,22 @@ router.get('/:id', async (req, res) => {
       ORDER BY par.categoria_id, par.fase, par.grupo, par.ronda, par.cancha
     `, [id]);
 
+    const parejas = await pool.query(`
+      SELECT pt.id, pt.nombre_pareja, pt.estado, pt.categoria_id,
+        u1.nombre || ' ' || COALESCE(u1.apellido,'') AS jugador1_nombre, u1.foto_url AS jugador1_foto,
+        u2.nombre || ' ' || COALESCE(u2.apellido,'') AS jugador2_nombre, u2.foto_url AS jugador2_foto
+      FROM parejas_torneo pt
+      JOIN usuarios u1 ON u1.id = pt.jugador1_id
+      LEFT JOIN usuarios u2 ON u2.id = pt.jugador2_id
+      WHERE pt.torneo_id = $1 AND pt.estado = 'confirmada'
+      ORDER BY pt.categoria_id, pt.id
+    `, [id]);
     res.json({
       torneo: torneo.rows[0],
       categorias: categorias.rows,
       posiciones: posiciones.rows,
-      partidos: partidos.rows
+      partidos: partidos.rows,
+      parejas: parejas.rows
     });
   } catch (err) {
     console.error(err);
