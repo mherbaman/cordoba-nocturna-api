@@ -4,6 +4,13 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫂</text></svg>"><text y=%22.9em%22 font-size=%2290%22>🫂</text></svg>">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="manifest" href="/manifest-cordoba.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CórdobaConnect">
+<meta name="theme-color" content="#ff2d78">
+<link rel="apple-touch-icon" href="/icons/cordoba-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CórdobaConnect">
@@ -308,6 +315,14 @@ body {
 .logout-btn { width:100%;background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);color:rgba(255,45,120,.8);padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:10px; }
 .profile-close-btn { width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer; }
 </style>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+</script>
 </head>
 <body>
 
