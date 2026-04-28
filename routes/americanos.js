@@ -160,6 +160,12 @@ function emailResultadoAmericano(jugador, partido, proximo) {
   const esP1 = partido.jugador1a_id === jugador.usuario_id || partido.jugador1b_id === jugador.usuario_id;
   const misGames = esP1 ? partido.games_pareja1 : partido.games_pareja2;
   const gano = esP1 ? partido.games_pareja1 > partido.games_pareja2 : partido.games_pareja2 > partido.games_pareja1;
+  const rival = esP1
+    ? [partido.nombre_2a, partido.nombre_2b].filter(Boolean).join(' / ')
+    : [partido.nombre_1a, partido.nombre_1b].filter(Boolean).join(' / ');
+  const compas = esP1
+    ? [partido.nombre_1a, partido.nombre_1b].filter(n => n && n !== jugador.nombre).join(' / ')
+    : [partido.nombre_2a, partido.nombre_2b].filter(n => n && n !== jugador.nombre).join(' / ');
   const proximoHtml = proximo
     ? '<div style="background:#e8f5e9;border-radius:8px;padding:20px;margin-top:20px">' +
       '<h3 style="margin:0 0 10px;color:#2e7d32">Tu proximo partido</h3>' +
@@ -171,10 +177,12 @@ function emailResultadoAmericano(jugador, partido, proximo) {
     '<div style="background:#1a1a2e;padding:24px;text-align:center">' +
     '<h1 style="color:#fff;margin:0;font-size:22px">Padel Connect</h1></div>' +
     '<div style="padding:32px 24px">' +
-    '<h2>Resultado Ronda ' + partido.ronda + '</h2>' +
+    '<h2>Resultado ' + (partido.fase==='semifinal'?'Semifinal':partido.fase==='final'?'Final':partido.fase==='tercer_puesto'?'3er Puesto':'Ronda '+partido.ronda) + '</h2>' +
+    '<p style="color:#666;margin-bottom:16px">Hola <strong>' + jugador.nombre + '</strong>' + (compas?' · Compañero: <strong>'+compas+'</strong>':'') + '</p>' +
     '<div style="background:#f5f5f5;border-radius:8px;padding:20px;text-align:center">' +
+    '<p style="color:#666;font-size:13px;margin:0 0 8px">vs <strong>' + rival + '</strong></p>' +
     '<p style="font-size:28px;font-weight:bold;margin:0">' + partido.games_pareja1 + ' - ' + partido.games_pareja2 + '</p>' +
-    '<p style="margin:8px 0 0;color:' + (gano?'#15803d':'#dc2626') + ';font-weight:700">' + (gano?'Ganaste!':'Perdiste') + ' - ' + misGames + ' games a favor</p></div>' +
+    '<p style="margin:8px 0 0;color:' + (gano?'#15803d':'#dc2626') + ';font-weight:700">' + (gano?'Ganaste! 🎉':'Perdiste') + ' - ' + misGames + ' games a favor</p></div>' +
     proximoHtml +
     '<p style="margin-top:20px;text-align:center"><a href="' + APP_URL + '/padel-connect.html" style="color:#4f46e5">Ver ranking</a></p>' +
     '</div></div>';
@@ -414,7 +422,7 @@ router.put('/partidos/:pid/resultado', async (req, res) => {
       await resend.emails.send({
         from: FROM_EMAIL,
         to: eRes.rows[0].email,
-        subject: 'Resultado Ronda ' + partido.ronda + ' - ' + americano.nombre,
+        subject: (partido.fase === 'semifinal' ? 'Semifinal' : partido.fase === 'final' ? 'Final' : partido.fase === 'tercer_puesto' ? '3er Puesto' : 'Ronda ' + partido.ronda) + ' - ' + americano.nombre,
         html: emailResultadoAmericano({ usuario_id: uid, nombre: nombres[uid] }, partido, proxRes.rows[0]||null)
       });
     }
