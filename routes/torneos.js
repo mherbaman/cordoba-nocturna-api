@@ -157,7 +157,7 @@ router.get('/:id', async (req, res) => {
     `, [id]);
 
     const parejas = await pool.query(`
-      SELECT pt.id, pt.nombre_pareja, pt.estado, pt.categoria_id,
+      SELECT pt.id, pt.nombre_pareja, pt.estado, pt.categoria_id, pt.jugador1_id, pt.jugador2_id,
         u1.nombre || ' ' || COALESCE(u1.apellido,'') AS jugador1_nombre, u1.foto_url AS jugador1_foto,
         u2.nombre || ' ' || COALESCE(u2.apellido,'') AS jugador2_nombre, u2.foto_url AS jugador2_foto
       FROM parejas_torneo pt
