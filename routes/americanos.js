@@ -418,25 +418,70 @@ router.put('/partidos/:pid/resultado', async (req, res) => {
         html: emailResultadoAmericano({ usuario_id: uid, nombre: nombres[uid] }, partido, proxRes.rows[0]||null)
       });
     }
-    // Verificar si termino
+    // Verificar si termino la fase actual
     const pendRes = await pool.query(
-      "SELECT COUNT(*) FROM americanos_partidos WHERE americano_id=$1 AND estado='pendiente'",
-      [partido.americano_id]
+      "SELECT COUNT(*) FROM americanos_partidos WHERE americano_id=$1 AND estado='pendiente' AND fase=$2",
+      [partido.americano_id, partido.fase]
     );
-    if (parseInt(pendRes.rows[0].count) === 0) {
-      await pool.query("UPDATE americanos SET estado='finalizado', actualizado_en=now() WHERE id=$1", [partido.americano_id]);
-      await actualizarELO(partido.americano_id);
-      const posRes = await pool.query(
-        'SELECT ap.posicion, aj.usuario_id, aj.nombre, u.email FROM americanos_posiciones ap JOIN americanos_jugadores aj ON aj.usuario_id=ap.usuario_id AND aj.americano_id=ap.americano_id JOIN usuarios u ON u.id=aj.usuario_id WHERE ap.americano_id=$1 AND ap.posicion<=3 ORDER BY ap.posicion',
+    const pendientes = parseInt(pendRes.rows[0].count);
+
+    if (pendientes === 0 && partido.fase === 'americano') {
+      // Termino la fase americana → generar bracket con top 4
+      await recalcularPosiciones(partido.americano_id);
+      const top4Res = await pool.query(
+        'SELECT ap.usuario_id, ap.nombre FROM americanos_posiciones ap WHERE ap.americano_id=$1 ORDER BY ap.posicion ASC LIMIT 4',
         [partido.americano_id]
       );
-      for (const p of posRes.rows) {
-        await resend.emails.send({
-          from: FROM_EMAIL,
-          to: p.email,
-          subject: (p.posicion===1?'Campeon!':p.posicion===2?'Subcampeon!':'3er puesto!') + ' - ' + americano.nombre,
-          html: emailCampeonAmericano(p, americano, p.posicion)
-        });
+      if (top4Res.rows.length === 4) {
+        const [p1, p2, p3, p4] = top4Res.rows;
+        // Semi 1: 1° vs 4°, Semi 2: 2° vs 3°
+        // Ronda 8 = semis, Ronda 9 = final + 3er puesto
+        await pool.query(
+          "INSERT INTO americanos_partidos (americano_id, jugador1a_id, jugador1b_id, jugador2a_id, jugador2b_id, cancha, ronda, fase, estado) VALUES ($1,$2,NULL,$3,NULL,1,8,'semifinal','pendiente'), ($1,$4,NULL,$5,NULL,2,8,'semifinal','pendiente')",
+          [partido.americano_id, p1.usuario_id, p4.usuario_id, p2.usuario_id, p3.usuario_id]
+        );
+        await pool.query("UPDATE americanos SET estado='bracket', actualizado_en=now() WHERE id=$1", [partido.americano_id]);
+        console.log('Bracket generado para americano ' + partido.americano_id);
+      }
+    } else if (pendientes === 0 && partido.fase === 'semifinal') {
+      // Termino semis → generar final y 3er puesto
+      const semisRes = await pool.query(
+        "SELECT * FROM americanos_partidos WHERE americano_id=$1 AND fase='semifinal' ORDER BY cancha",
+        [partido.americano_id]
+      );
+      const semi1 = semisRes.rows[0];
+      const semi2 = semisRes.rows[1];
+      // Ganadores van a la final, perdedores al 3er puesto
+      const ganS1 = semi1.games_pareja1 > semi1.games_pareja2 ? semi1.jugador1a_id : semi1.jugador2a_id;
+      const perS1 = semi1.games_pareja1 > semi1.games_pareja2 ? semi1.jugador2a_id : semi1.jugador1a_id;
+      const ganS2 = semi2.games_pareja1 > semi2.games_pareja2 ? semi2.jugador1a_id : semi2.jugador2a_id;
+      const perS2 = semi2.games_pareja1 > semi2.games_pareja2 ? semi2.jugador2a_id : semi2.jugador1a_id;
+      await pool.query(
+        "INSERT INTO americanos_partidos (americano_id, jugador1a_id, jugador2a_id, cancha, ronda, fase, estado) VALUES ($1,$2,$3,1,9,'final','pendiente'), ($1,$4,$5,2,9,'tercer_puesto','pendiente')",
+        [partido.americano_id, ganS1, ganS2, perS1, perS2]
+      );
+    } else if (pendientes === 0 && (partido.fase === 'final' || partido.fase === 'tercer_puesto')) {
+      // Verificar si tanto final como 3er puesto estan jugados
+      const brackPend = await pool.query(
+        "SELECT COUNT(*) FROM americanos_partidos WHERE americano_id=$1 AND fase IN ('final','tercer_puesto') AND estado='pendiente'",
+        [partido.americano_id]
+      );
+      if (parseInt(brackPend.rows[0].count) === 0) {
+        // Todo terminado → actualizar ELO y enviar emails campeones
+        await pool.query("UPDATE americanos SET estado='finalizado', actualizado_en=now() WHERE id=$1", [partido.americano_id]);
+        await actualizarELO(partido.americano_id);
+        const posRes = await pool.query(
+          'SELECT ap.posicion, aj.usuario_id, aj.nombre, u.email FROM americanos_posiciones ap JOIN americanos_jugadores aj ON aj.usuario_id=ap.usuario_id AND aj.americano_id=ap.americano_id JOIN usuarios u ON u.id=aj.usuario_id WHERE ap.americano_id=$1 AND ap.posicion<=3 ORDER BY ap.posicion',
+          [partido.americano_id]
+        );
+        for (const p of posRes.rows) {
+          await resend.emails.send({
+            from: FROM_EMAIL,
+            to: p.email,
+            subject: (p.posicion===1?'Campeon!':p.posicion===2?'Subcampeon!':'3er puesto!') + ' - ' + americano.nombre,
+            html: emailCampeonAmericano(p, americano, p.posicion)
+          });
+        }
       }
     }
     res.json({ ok: true });
