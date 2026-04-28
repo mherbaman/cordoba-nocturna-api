@@ -2224,6 +2224,7 @@ async function cargarAmericanosAdmin() {
 
 async function verAmericano(id) {
   americanoActivo = id;
+  if (adminAmericanosInterval) { clearInterval(adminAmericanosInterval); adminAmericanosInterval = null; }
   const el = document.getElementById('admin-americanos-list');
   el.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando detalle...</p>';
   try {
