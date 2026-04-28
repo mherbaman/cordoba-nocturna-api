@@ -2296,11 +2296,23 @@ async function verAmericano(id) {
                   </span>
                   <span style="font-size:12px;color:#fff">${p.nombre_2a||''} / ${p.nombre_2b||''}</span>
                 </div>
+                ${p.estado==='jugado'?`
+                <div style="margin-top:6px">
+                  <button onclick="document.getElementById('mod-am-${p.id}').style.display=document.getElementById('mod-am-${p.id}').style.display==='none'?'flex':'none'" style="padding:3px 10px;border-radius:20px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06);color:#fbbf24;font-size:10px;cursor:pointer">✏️ Modificar</button>
+                  <div id="mod-am-${p.id}" style="display:none;margin-top:6px;gap:6px;align-items:center;flex-wrap:wrap">
+                    <input id="mg1-${p.id}" type="number" min="0" max="7" placeholder="G1" value="${p.games_pareja1}" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                    <span style="color:rgba(255,255,255,.4)">-</span>
+                    <input id="mg2-${p.id}" type="number" min="0" max="7" placeholder="G2" value="${p.games_pareja2}" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                    <input id="mpass-${p.id}" type="password" placeholder="🔐 Pass" style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                    <button onclick="modificarResultadoAmericano(${p.id},${id})" style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;font-size:11px;font-weight:700;cursor:pointer">✓ Guardar</button>
+                  </div>
+                </div>`:''} 
                 ${p.estado==='pendiente'&&a.estado!=='abierto'?`
                 <div style="margin-top:8px;display:flex;gap:6px;align-items:center">
                   <input id="g1-${p.id}" type="number" min="0" max="7" placeholder="G1" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
                   <span style="color:rgba(255,255,255,.4)">-</span>
                   <input id="g2-${p.id}" type="number" min="0" max="7" placeholder="G2" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                  <input id="pass-${p.id}" type="password" placeholder="🔐 Pass" style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
                   <button onclick="cargarResultadoAmericano(${p.id},${id})" style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#4f46e5,#a5b4fc);color:#fff;font-size:11px;cursor:pointer">✓ Cargar</button>
                 </div>`:''}
               </div>`).join('')}
@@ -2354,7 +2366,14 @@ async function generarFixtureAmericano(id) {
 async function cargarResultadoAmericano(partidoId, americanoId) {
   const g1 = document.getElementById('g1-'+partidoId)?.value;
   const g2 = document.getElementById('g2-'+partidoId)?.value;
+  const pass = document.getElementById('pass-'+partidoId)?.value.trim();
   if (g1 === '' || g2 === '') return alert('Ingresá los games de ambas parejas');
+  if (!pass) return alert('Ingresá la contraseña admin');
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  try {
+    const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    if (!r.ok) return alert('Contraseña incorrecta');
+  } catch { return alert('Error verificando contraseña'); }
   try {
     await apiAdmin('/americanos/partidos/'+partidoId+'/resultado', {
       method: 'PUT',
@@ -2362,6 +2381,26 @@ async function cargarResultadoAmericano(partidoId, americanoId) {
     });
     verAmericano(americanoId);
   } catch(e) { alert(e.message || 'Error al cargar resultado'); }
+}
+
+async function modificarResultadoAmericano(partidoId, americanoId) {
+  const g1 = document.getElementById('mg1-'+partidoId)?.value;
+  const g2 = document.getElementById('mg2-'+partidoId)?.value;
+  const pass = document.getElementById('mpass-'+partidoId)?.value.trim();
+  if (g1 === '' || g2 === '') return alert('Ingresá los games de ambas parejas');
+  if (!pass) return alert('Ingresá la contraseña admin');
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  try {
+    const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    if (!r.ok) return alert('Contraseña incorrecta');
+  } catch { return alert('Error verificando contraseña'); }
+  try {
+    await apiAdmin('/americanos/partidos/'+partidoId+'/resultado', {
+      method: 'PUT',
+      body: JSON.stringify({ games_pareja1: parseInt(g1), games_pareja2: parseInt(g2) })
+    });
+    verAmericano(americanoId);
+  } catch(e) { alert(e.message || 'Error al modificar resultado'); }
 }
 
 async function cambiarEstadoAmericano(id, estado) {
