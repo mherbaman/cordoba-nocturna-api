@@ -1921,7 +1921,27 @@ async function verPartidosTorneo(torneoId) {
     const todos = data.partidos || [];
     const pendientes = todos.filter(p => p.estado === 'pendiente' || p.estado === 'en_curso');
     const jugados = todos.filter(p => p.estado === 'jugado' || p.estado === 'walkover');
-    if (!pendientes.length && !jugados.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos.</p>'; return; }
+    // Parejas por categoria
+    const parejas = data.parejas || [];
+    const categorias = data.categorias || [];
+    let parejasHtml = '';
+    if (parejas.length) {
+      parejasHtml = '<div style="margin-bottom:16px">';
+      parejasHtml += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;font-weight:700;letter-spacing:1px">PAREJAS INSCRIPTAS</div>';
+      for (const cat of categorias) {
+        const pCat = parejas.filter(p => p.categoria_id === cat.id);
+        if (!pCat.length) continue;
+        parejasHtml += `<div style="font-size:12px;color:#a5b4fc;font-weight:700;margin:10px 0 6px">${cat.nombre} (${pCat.length}/${cat.cupo_max})</div>`;
+        parejasHtml += pCat.map((p,i) => `
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:4px">
+            <span style="color:rgba(255,255,255,.3);font-size:11px">${i+1}</span>
+            <span style="color:#fff;font-size:12px;flex:1">${p.nombre_pareja || p.jugador1_nombre + ' / ' + (p.jugador2_nombre||'?')}</span>
+          </div>`).join('');
+      }
+      parejasHtml += '</div><hr style="border-color:rgba(255,255,255,.08);margin-bottom:16px">';
+    }
+
+    if (!pendientes.length && !jugados.length) { content.innerHTML = parejasHtml + '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos.</p>'; return; }
     const htmlJugados = jugados.length ? `<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;margin-top:16px;font-weight:700;letter-spacing:1px">PARTIDOS JUGADOS — MODIFICAR RESULTADO</div>` + jugados.map(p => `
       <div style="background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:12px;margin-bottom:8px">
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">${p.fase.toUpperCase()} · Gr.${p.grupo||'-'} R.${p.ronda||'-'} · C.${p.cancha}</div>
@@ -1949,7 +1969,7 @@ async function verPartidosTorneo(torneoId) {
         </div>
       </div>`).join('') : '';
     if (!pendientes.length) { content.innerHTML = htmlJugados || '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos pendientes.</p>'; return; }
-    content.innerHTML = pendientes.map(p => `
+    content.innerHTML = parejasHtml + pendientes.map(p => `
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:8px">
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:6px">${p.fase.toUpperCase()} · Grupo ${p.grupo||'-'} Ronda ${p.ronda||'-'} · Cancha ${p.cancha} · ${p.fecha||''} ${(p.hora_inicio||'').slice(0,5)}</div>
         <div style="font-size:13px;color:#fff;margin-bottom:10px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
