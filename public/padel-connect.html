@@ -3947,6 +3947,27 @@ async function guardarDatosObligatorios() {
 }
 
 // ── MIS INSCRIPCIONES ─────────────────────────────────────────────────
+async function responderInvitacion(token, accion) {
+  const msg = accion === 'aceptar' ? '¿Aceptás la invitación para jugar este torneo?' : '¿Rechazás la invitación?';
+  if (!confirm(msg)) return;
+  try {
+    const res = await fetch('https://api.cordobalux.com/torneos/confirmar/' + token, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(accion === 'aceptar' ? '✅ ¡Invitación aceptada! Ya están inscriptos.' : '❌ Invitación rechazada.');
+      cargarMisInscripciones();
+    } else {
+      alert(data.error || 'Error al procesar');
+    }
+  } catch(e) {
+    alert('Error de conexión');
+  }
+}
+
 async function cargarMisInscripciones() {
   const el = document.getElementById('mis-inscripciones-list');
   if (!el) return;
@@ -3993,7 +4014,12 @@ async function cargarMisInscripciones() {
             <div style="font-size:13px;color:#fff">${esSolo ? 'Buscando compañero...' : compañero}</div>
             <div style="font-size:11px;color:${p.estado==='confirmada'?'#4ade80':p.estado==='pendiente'?'#fbbf24':'#f87171'}">${parejaEstado[p.estado]||p.estado}</div>
           </div>
-        </div>`}
+        </div>
+        ${p.estado==='pendiente' && !esJugador1 && p.token_invitacion ? `
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="responderInvitacion('${p.token_invitacion}','aceptar')" style="flex:1;padding:8px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff;font-size:12px;font-weight:700;cursor:pointer">✅ Aceptar</button>
+          <button onclick="responderInvitacion('${p.token_invitacion}','rechazar')" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(239,68,68,.4);background:transparent;color:#f87171;font-size:12px;font-weight:700;cursor:pointer">❌ Rechazar</button>
+        </div>` : ''}`}
       </div>`;
     }).join('');
   } catch(e) {
