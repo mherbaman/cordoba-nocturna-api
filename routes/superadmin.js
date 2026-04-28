@@ -388,4 +388,77 @@ router.get('/reportes-negocio', async (req, res) => {
   }
 });
 
+
+// ── DELEGADOS TORNEOS ─────────────────────────────────────────────────
+router.get('/torneos/:id/delegados', authSuperAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT dt.id, dt.activo, u.id as usuario_id, u.nombre, u.email, u.foto_url
+      FROM delegados_torneo dt
+      JOIN usuarios u ON u.id = dt.usuario_id
+      WHERE dt.torneo_id = $1
+      ORDER BY dt.creado_en DESC
+    `, [req.params.id]);
+    res.json(rows);
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+router.post('/torneos/:id/delegados', authSuperAdmin, async (req, res) => {
+  const { usuario_id } = req.body;
+  if (!usuario_id) return res.status(400).json({ error: 'usuario_id requerido' });
+  try {
+    await pool.query(
+      'INSERT INTO delegados_torneo (usuario_id, torneo_id) VALUES ($1, $2) ON CONFLICT (usuario_id, torneo_id) DO UPDATE SET activo = true',
+      [usuario_id, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+router.delete('/torneos/:id/delegados/:usuario_id', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM delegados_torneo WHERE torneo_id = $1 AND usuario_id = $2',
+      [req.params.id, req.params.usuario_id]
+    );
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+// ── DELEGADOS AMERICANOS ──────────────────────────────────────────────
+router.get('/americanos/:id/delegados', authSuperAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT da.id, da.activo, u.id as usuario_id, u.nombre, u.email, u.foto_url
+      FROM delegados_americano da
+      JOIN usuarios u ON u.id = da.usuario_id
+      WHERE da.americano_id = $1
+      ORDER BY da.creado_en DESC
+    `, [req.params.id]);
+    res.json(rows);
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+router.post('/americanos/:id/delegados', authSuperAdmin, async (req, res) => {
+  const { usuario_id } = req.body;
+  if (!usuario_id) return res.status(400).json({ error: 'usuario_id requerido' });
+  try {
+    await pool.query(
+      'INSERT INTO delegados_americano (usuario_id, americano_id) VALUES ($1, $2) ON CONFLICT (usuario_id, americano_id) DO UPDATE SET activo = true',
+      [usuario_id, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+router.delete('/americanos/:id/delegados/:usuario_id', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query(
+      'DELETE FROM delegados_americano WHERE americano_id = $1 AND usuario_id = $2',
+      [req.params.id, req.params.usuario_id]
+    );
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
 module.exports = router;
