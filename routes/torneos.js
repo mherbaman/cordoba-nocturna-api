@@ -83,7 +83,7 @@ router.get('/mis-inscripciones', authUsuario, async (req, res) => {
         ct.nombre AS categoria_nombre,
         u1.nombre AS jugador1_nombre, u1.foto_url AS jugador1_foto,
         u2.nombre AS jugador2_nombre, u2.foto_url AS jugador2_foto,
-        'torneo' AS tipo
+        'torneo' AS tipo, pt.token_invitacion
       FROM parejas_torneo pt
       JOIN torneos t ON t.id = pt.torneo_id
       JOIN categorias_torneo ct ON ct.id = pt.categoria_id
