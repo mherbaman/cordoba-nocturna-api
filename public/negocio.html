@@ -173,17 +173,17 @@ let negocioData = null;
 
 // Mapeo de tipo → app
 const APP_MAP = {
-  disco:'index.html', bar:'index.html', pub:'index.html',
-  restaurante:'index.html', baile:'index.html',
+  disco:'cordoba-connect.html', bar:'cordoba-connect.html', pub:'cordoba-connect.html',
+  restaurante:'cordoba-connect.html', baile:'cordoba-connect.html',
   casamiento:'fiesta-connect.html', cumple18:'fiesta-connect.html',
   corporativo:'fiesta-connect.html', privado:'fiesta-connect.html',
-  sunset:'index.html', playa:'index.html', terraza:'index.html',
-  gimnasio:'index.html', crossfit:'index.html', yoga:'index.html',
+  sunset:'cordoba-connect.html', playa:'cordoba-connect.html', terraza:'cordoba-connect.html',
+  gimnasio:'cordoba-connect.html', crossfit:'cordoba-connect.html', yoga:'cordoba-connect.html',
   padel:'padel-connect.html', cancha:'padel-connect.html',
-  festival:'index.html', feria:'index.html', recital:'index.html'
+  festival:'cordoba-connect.html', feria:'cordoba-connect.html', recital:'cordoba-connect.html'
 };
 const APP_NAMES = {
-  'index.html':'Córdoba Nocturna',
+  'cordoba-connect.html':'Córdoba Nocturna',
   'fiesta-connect.html':'Fiesta Connect'
 };
 
@@ -437,7 +437,7 @@ function mostrarApp() {
   document.getElementById('top-tipo').textContent   = negocioData.tipo;
 
   // App badge
-  const appFile = APP_MAP[negocioData.tipo] || 'index.html';
+  const appFile = APP_MAP[negocioData.tipo] || 'cordoba-connect.html';
   const appNombre = APP_NAMES[appFile] || 'Córdoba Nocturna';
   document.getElementById('top-app-badge').textContent = '📱 ' + appNombre;
   document.getElementById('app-info-nombre').textContent = appNombre;
@@ -593,7 +593,7 @@ function copiarQR(codigo) {
 }
 
 function compartirQR(codigo, negocio) {
-  const appFile  = APP_MAP[negocioData.tipo] || 'index.html';
+  const appFile  = APP_MAP[negocioData.tipo] || 'cordoba-connect.html';
   const appUrl   = `https://api.cordobalux.com/${appFile}`;
   const msg = encodeURIComponent(`🌙 Esta noche en ${negocio} usamos FiestaConnect!\n\nEntrá acá: ${appUrl}\nY usá el código: *${codigo}*\n\n¡Te esperamos! 🥂`);
   window.open(`https://wa.me/?text=${msg}`, '_blank');

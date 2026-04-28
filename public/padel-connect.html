@@ -1913,7 +1913,7 @@ async function cargarEventosActivos(){
       html += nocturna.slice(0,3).map(s=>{
         const emojiMap={disco:'🎧',bar:'🍺',pub:'🎸',restaurante:'🍽️',casamiento:'💍',sunset:'🌅',gimnasio:'💪',festival:'🎪'};
         const emoji=emojiMap[s.tipo]||'🌙';
-        return`<div class="evento-card" style="opacity:.75;border-color:rgba(255,45,120,.15)" onclick="window.open('https://cordobalux.com/index.html')">
+        return`<div class="evento-card" style="opacity:.75;border-color:rgba(255,45,120,.15)" onclick="window.open('https://cordobalux.com/cordoba-connect.html')">
           <div class="evento-img" style="background:linear-gradient(135deg,rgba(255,45,120,.2),rgba(124,58,237,.15))">${emoji}</div>
           <div class="evento-info">
             <div class="evento-nombre">${s.nombre}</div>
