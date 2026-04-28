@@ -2,7 +2,7 @@
   "name": "CórdobaConnect — CórdobaLux",
   "short_name": "CórdobaConnect",
   "description": "La app nocturna de Córdoba",
-  "start_url": "/cconnect",
+  "start_url": "/cconnect/",
   "display": "standalone",
   "background_color": "#07000f",
   "theme_color": "#ff2d78",
@@ -21,5 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "scope": "/"
+  "scope": "/cconnect/"
 }

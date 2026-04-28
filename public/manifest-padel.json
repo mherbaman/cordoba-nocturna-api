@@ -2,7 +2,7 @@
   "name": "PadelConnect — CórdobaLux",
   "short_name": "PadelConnect",
   "description": "Encontrá rivales, reservá canchas y jugá torneos",
-  "start_url": "/padel",
+  "start_url": "/padel/",
   "display": "standalone",
   "background_color": "#030d06",
   "theme_color": "#22c55e",
@@ -21,5 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "scope": "/"
+  "scope": "/padel/"
 }
