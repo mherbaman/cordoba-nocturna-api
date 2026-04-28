@@ -221,23 +221,19 @@ async function cargarTorneosDelegado() {
   const el = document.getElementById('torneos-list');
   el.innerHTML = '<div class="loader"></div>';
   try {
-    const torneos = await apiDel('/torneos');
-    // Filtrar solo los torneos donde el usuario es delegado
-    const misDelegaciones = await apiDel('/torneos/delegado/partidos-hoy');
-    const torneoIds = [...new Set(misDelegaciones.map(p => p.torneo_id))];
-    const misTorneos = torneos.filter(t => torneoIds.includes(t.id) || t.estado === 'en_curso');
+    const misTorneos = await apiDel('/torneos/delegado/mis-torneos');
     if (!misTorneos.length) {
       el.innerHTML = '<div class="empty"><div class="icon">🏆</div>No tenés torneos asignados.</div>';
       return;
     }
-    const estadoColor = { en_curso:'#fb923c', inscripciones_abiertas:'#4ade80', finalizado:'rgba(255,255,255,.3)', proximamente:'#a78bfa' };
-    const estadoLabel = { en_curso:'En curso', inscripciones_abiertas:'Inscripciones abiertas', finalizado:'Finalizado', proximamente:'Próximamente' };
+    const estadoColor = { en_curso:'#fb923c', inscripciones_abiertas:'#4ade80', inscripciones_cerradas:'#fbbf24', finalizado:'rgba(255,255,255,.3)', proximamente:'#a78bfa' };
+    const estadoLabel = { en_curso:'En curso', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', finalizado:'Finalizado', proximamente:'Próximamente' };
     el.innerHTML = misTorneos.map(t => `
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
           <div>
             <div style="font-size:15px;font-weight:700">${t.nombre}</div>
-            <div style="font-size:12px;color:var(--muted)">${t.sede||''}</div>
+            <div style="font-size:12px;color:var(--muted)">${t.sede||''} · ${t.fecha_inicio||''}</div>
           </div>
           <span style="font-size:11px;font-weight:700;color:${estadoColor[t.estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[t.estado]||'rgba(255,255,255,.2)'}">${estadoLabel[t.estado]||t.estado}</span>
         </div>
