@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymConnect — CordobaLux</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#22c55e;--green2:#16a34a;--gold:#c9a84c;--dark:#050a06;--card:#0a110a;--text:#fff;--muted:rgba(255,255,255,.5);--border:rgba(34,197,94,.15)}
+html{scroll-behavior:smooth}
+body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--text);overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:.025;pointer-events:none;z-index:999}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes slideLeft{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(34,197,94,.2)}50%{box-shadow:0 0 50px rgba(34,197,94,.5)}}
+
+.fade-up{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(5,10,6,.75);border-bottom:1px solid var(--border);transition:all .3s}
+.nav-logo{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:1px;text-decoration:none;color:#fff}
+.nav-logo span{color:var(--green)}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+.nav-links a:hover{color:#fff}
+.nav-cta{background:linear-gradient(135deg,var(--green2),var(--green));color:#fff;padding:10px 22px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;transition:all .2s}
+.nav-cta:hover{transform:scale(1.04);box-shadow:0 0 24px rgba(34,197,94,.4)}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 24px 80px;text-align:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(100px);animation:pulse 6s ease-in-out infinite}
+.o1{width:500px;height:500px;background:rgba(34,197,94,.07);top:-150px;left:-150px}
+.o2{width:400px;height:400px;background:rgba(34,197,94,.05);bottom:-100px;right:-100px;animation-delay:3s}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);padding:7px 16px;border-radius:50px;font-size:11px;color:var(--green);font-weight:700;margin-bottom:24px;animation:fadeUp .8s ease forwards;letter-spacing:1px;text-transform:uppercase}
+.hero-h1{font-family:'Bebas Neue',cursive;font-size:clamp(56px,12vw,120px);line-height:.9;letter-spacing:1px;margin-bottom:8px;animation:fadeUp .8s .1s ease forwards;opacity:0}
+.hero-h1 .gym{color:#fff}
+.hero-h1 .connect{color:var(--green);background:linear-gradient(135deg,var(--green2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 4s linear infinite}
+.hero-sub{font-size:clamp(15px,2.2vw,19px);color:var(--muted);max-width:560px;margin:12px auto 40px;line-height:1.7;font-weight:300;animation:fadeUp .8s .2s ease forwards;opacity:0}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp .8s .3s ease forwards;opacity:0}
+.btn-green{background:linear-gradient(135deg,var(--green2),var(--green));color:#fff;padding:16px 36px;border-radius:50px;font-size:14px;font-weight:700;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:8px;animation:glow 3s ease infinite}
+.btn-green:hover{transform:scale(1.04);box-shadow:0 0 40px rgba(34,197,94,.5)}
+.btn-outline{border:1px solid rgba(34,197,94,.3);color:rgba(34,197,94,.7);padding:16px 36px;border-radius:50px;font-size:14px;font-weight:600;text-decoration:none;transition:all .3s}
+.btn-outline:hover{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.05)}
+
+/* TICKER */
+.ticker{overflow:hidden;padding:18px 0;background:rgba(34,197,94,.03);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.ticker-track{display:flex;gap:48px;animation:slideLeft 25s linear infinite;white-space:nowrap}
+.ti{font-family:'Bebas Neue',cursive;font-size:16px;color:rgba(34,197,94,.25);display:flex;align-items:center;gap:20px;letter-spacing:2px}
+.ti span{color:var(--green);opacity:.5}
+
+section{padding:90px 24px}
+.container{max-width:1060px;margin:0 auto}
+.section-tag{display:inline-block;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--green);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:50px;margin-bottom:16px}
+.section-title{font-family:'Bebas Neue',cursive;font-size:clamp(36px,5.5vw,60px);letter-spacing:.5px;line-height:1;margin-bottom:14px}
+.section-title span{color:var(--green)}
+.section-sub{color:var(--muted);font-size:15px;line-height:1.8;max-width:540px;font-weight:300}
+
+/* COMO FUNCIONA */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:52px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:28px 24px;transition:all .3s;text-align:center}
+.step:hover{border-color:rgba(34,197,94,.35);transform:translateY(-3px)}
+.step-num{font-family:'Bebas Neue',cursive;font-size:56px;color:rgba(34,197,94,.1);line-height:1;margin-bottom:4px}
+.step-icon{font-size:32px;margin-bottom:12px;display:block;animation:float 3s ease-in-out infinite}
+.step:nth-child(2) .step-icon{animation-delay:.5s}
+.step:nth-child(3) .step-icon{animation-delay:1s}
+.step:nth-child(4) .step-icon{animation-delay:1.5s}
+.step-title{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:.5px;margin-bottom:8px}
+.step-desc{color:var(--muted);font-size:13px;line-height:1.7}
+
+/* DATOS */
+.datos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:52px}
+.dato-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;text-align:center;transition:all .3s}
+.dato-card:hover{border-color:rgba(34,197,94,.35);transform:translateY(-3px)}
+.dato-icon{font-size:32px;margin-bottom:10px}
+.dato-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.dato-desc{color:var(--muted);font-size:11px;line-height:1.5}
+
+/* STATS */
+.stats-bar{background:linear-gradient(135deg,rgba(34,197,94,.07),rgba(34,197,94,.03));border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:40px 24px}
+.stats-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat-item .num{font-family:'Bebas Neue',cursive;font-size:52px;background:linear-gradient(135deg,var(--green2),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.stat-item .lbl{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* PLAN PREVIEW */
+.plan-preview{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:24px;margin-top:52px;max-width:600px;margin-left:auto;margin-right:auto}
+.pp-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.pp-icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pp-title{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:.5px}
+.pp-sub{color:var(--muted);font-size:12px;margin-top:1px}
+.semana-tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.semana-tab{padding:6px 14px;border-radius:50px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:12px;font-weight:600;cursor:default;white-space:nowrap}
+.semana-tab.active{background:rgba(34,197,94,.15);border-color:var(--green);color:#fff}
+.dia-preview{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.dia-preview:last-child{border-bottom:none}
+.dp-num{width:28px;height:28px;border-radius:50%;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green);flex-shrink:0}
+.dp-nombre{font-size:13px;font-weight:600;flex:1}
+.dp-tipo{font-size:11px;color:var(--muted)}
+.dp-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:50px}
+.dp-ent{background:rgba(34,197,94,.12);color:var(--green)}
+.dp-des{background:rgba(255,255,255,.06);color:var(--muted)}
+
+/* PARA GYMS */
+.gyms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:52px}
+.gym-card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:32px 28px;transition:all .3s}
+.gym-card:hover{border-color:rgba(34,197,94,.3);transform:translateY(-4px)}
+.gc-icon{font-size:40px;margin-bottom:16px}
+.gc-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:.5px;margin-bottom:8px}
+.gc-desc{color:var(--muted);font-size:13px;line-height:1.7}
+
+/* PRECIO */
+.precio-box{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(34,197,94,.04));border:1px solid rgba(34,197,94,.25);border-radius:24px;padding:48px;text-align:center;max-width:560px;margin:52px auto 0}
+.pb-tag{display:inline-block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);font-size:11px;font-weight:700;padding:4px 14px;border-radius:50px;margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
+.pb-amount{font-family:'Bebas Neue',cursive;font-size:80px;color:var(--green);line-height:1}
+.pb-period{color:var(--muted);font-size:14px;margin-bottom:8px}
+.pb-desc{color:var(--muted);font-size:14px;line-height:1.7;max-width:400px;margin:12px auto 28px}
+.pb-features{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:32px;text-align:left}
+.pbf{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:rgba(255,255,255,.75)}
+.pbf::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+
+/* TESTIMONIALS */
+.test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:52px}
+.test-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px}
+.tc-q{font-size:28px;color:var(--green);margin-bottom:10px;line-height:1}
+.tc-text{font-size:14px;color:rgba(255,255,255,.8);line-height:1.7;font-style:italic;margin-bottom:16px}
+.tc-author{display:flex;align-items:center;gap:10px}
+.tc-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--green2),var(--green));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tc-name{font-weight:700;font-size:13px}
+.tc-role{color:var(--muted);font-size:11px;margin-top:1px}
+
+/* FAQ */
+.faq-list{margin-top:44px;max-width:680px;margin-left:auto;margin-right:auto;display:flex;flex-direction:column;gap:10px}
+.faq-item{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s}
+.faq-item:hover{border-color:rgba(34,197,94,.25)}
+.faq-q{padding:17px 20px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.faq-q::after{content:'＋';font-size:18px;color:var(--green);flex-shrink:0;transition:transform .3s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{display:none;padding:0 20px 16px;color:var(--muted);font-size:13px;line-height:1.8}
+.faq-item.open .faq-a{display:block}
+
+/* CTA */
+.cta-final{text-align:center;padding:100px 24px;position:relative;overflow:hidden}
+.cta-final::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(34,197,94,.06),transparent)}
+.cta-icon{font-size:60px;margin-bottom:20px;display:block;animation:float 3s ease-in-out infinite}
+.cta-title{font-family:'Bebas Neue',cursive;font-size:clamp(40px,7vw,72px);letter-spacing:.5px;line-height:1;margin-bottom:14px}
+.cta-title span{color:var(--green)}
+.cta-sub{color:var(--muted);font-size:16px;line-height:1.7;max-width:480px;margin:0 auto 40px}
+.btn-wa{background:#25d366;color:#fff;padding:16px 36px;border-radius:50px;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-wa:hover{transform:scale(1.04);box-shadow:0 0 36px rgba(37,211,102,.4)}
+
+footer{background:var(--card);border-top:1px solid var(--border);padding:44px 24px 28px}
+.footer-inner{max-width:1060px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;margin-bottom:32px}
+.fl-brand{font-family:'Bebas Neue',cursive;font-size:26px;letter-spacing:1px;margin-bottom:8px}
+.fl-brand span{color:var(--green)}
+.fl-desc{color:var(--muted);font-size:13px;line-height:1.7;font-weight:300}
+.fc-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;color:rgba(34,197,94,.4)}
+.fc-link{display:block;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:8px;transition:color .2s}
+.fc-link:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.footer-bottom p{color:rgba(255,255,255,.18);font-size:12px}
+
+@media(max-width:768px){
+  .nav-links{display:none}
+  .stats-inner{grid-template-columns:repeat(2,1fr)}
+  .footer-top{grid-template-columns:1fr}
+  .pb-features{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="#" class="nav-logo">GYM<span>CONNECT</span></a>
+  <div class="nav-links">
+    <a href="#como">Cómo funciona</a>
+    <a href="#precio">Precios</a>
+    <a href="#gyms">Para gyms</a>
+    <a href="#contacto">Contacto</a>
+  </div>
+  <a href="https://wa.me/543512291554?text=Quiero%20info%20de%20GymConnect" class="nav-cta" target="_blank">Contactar →</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-orb o1"></div>
+    <div class="hero-orb o2"></div>
+  </div>
+  <div class="hero-tag">💪 Disponible ahora en Córdoba</div>
+  <h1 class="hero-h1">
+    <div class="gym">GYM</div>
+    <div class="connect">CONNECT</div>
+  </h1>
+  <p class="hero-sub">Tu entrenador personal con inteligencia artificial. Un plan de 30 días personalizado, diseñado específicamente para vos, en segundos.</p>
+  <div class="hero-ctas">
+    <a href="https://api.cordobalux.com/gym-connect.html" class="btn-green" target="_blank">💪 Probar gratis</a>
+    <a href="#precio" class="btn-outline">Ver planes para gyms</a>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item fade-up"><div class="num">30</div><div class="lbl">Días de plan</div></div>
+    <div class="stat-item fade-up" style="transition-delay:.1s"><div class="num">IA</div><div class="lbl">Personalizado</div></div>
+    <div class="stat-item fade-up" style="transition-delay:.2s"><div class="num">4</div><div class="lbl">Semanas progresivas</div></div>
+    <div class="stat-item fade-up" style="transition-delay:.3s"><div class="num">∞</div><div class="lbl">Planes posibles</div></div>
+  </div>
+</div>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <div class="ti">GYMCONNECT <span>✦</span></div>
+    <div class="ti">PLANES CON IA <span>✦</span></div>
+    <div class="ti">30 DÍAS <span>✦</span></div>
+    <div class="ti">PERSONALIZADO <span>✦</span></div>
+    <div class="ti">CORDOBALUX <span>✦</span></div>
+    <div class="ti">GYMCONNECT <span>✦</span></div>
+    <div class="ti">PLANES CON IA <span>✦</span></div>
+    <div class="ti">30 DÍAS <span>✦</span></div>
+    <div class="ti">PERSONALIZADO <span>✦</span></div>
+    <div class="ti">CORDOBALUX <span>✦</span></div>
+  </div>
+</div>
+
+<section id="como">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Cómo funciona</span>
+      <h2 class="section-title">DE CERO A <span>PLAN</span><br>EN 2 MINUTOS</h2>
+      <p class="section-sub">Completás tu perfil, la IA analiza tus datos y genera un plan completamente personalizado. Sin genéricos.</p>
+    </div>
+    <div class="steps">
+      <div class="step fade-up">
+        <div class="step-num">01</div>
+        <span class="step-icon">📋</span>
+        <div class="step-title">Cargás tu perfil</div>
+        <p class="step-desc">Edad, peso, altura, objetivo, nivel y días disponibles. Más lesiones si tenés.</p>
+      </div>
+      <div class="step fade-up" style="transition-delay:.1s">
+        <div class="step-num">02</div>
+        <span class="step-icon">🤖</span>
+        <div class="step-title">La IA diseña tu plan</div>
+        <p class="step-desc">Claude analiza tu perfil completo y crea un programa de 4 semanas progresivas único para vos.</p>
+      </div>
+      <div class="step fade-up" style="transition-delay:.2s">
+        <div class="step-num">03</div>
+        <span class="step-icon">💪</span>
+        <div class="step-title">Entrenás día a día</div>
+        <p class="step-desc">Cada día ves tus ejercicios con series, repeticiones y descansos. Marcás lo completado.</p>
+      </div>
+      <div class="step fade-up" style="transition-delay:.3s">
+        <div class="step-num">04</div>
+        <span class="step-icon">📊</span>
+        <div class="step-title">Seguís tu progreso</div>
+        <p class="step-desc">Visualizás semana a semana cuánto avanzaste y desbloqueás logros.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:linear-gradient(180deg,var(--dark),rgba(34,197,94,.03),var(--dark))">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Tu perfil completo</span>
+      <h2 class="section-title">LA IA LO <span>SABE TODO</span><br>SOBRE VOS</h2>
+      <p class="section-sub" style="margin:0 auto">Cuanto más información, más personalizado el plan. Nada de ejercicios genéricos.</p>
+    </div>
+    <div class="datos-grid">
+      <div class="dato-card fade-up"><div class="dato-icon">📏</div><div class="dato-title">Físico</div><div class="dato-desc">Edad, peso y altura para calcular intensidad ideal</div></div>
+      <div class="dato-card fade-up" style="transition-delay:.1s"><div class="dato-icon">🎯</div><div class="dato-title">Objetivo</div><div class="dato-desc">Bajar peso, ganar músculo, tonificar o resistencia</div></div>
+      <div class="dato-card fade-up" style="transition-delay:.15s"><div class="dato-icon">⚡</div><div class="dato-title">Nivel</div><div class="dato-desc">Principiante, intermedio o avanzado — la progresión cambia</div></div>
+      <div class="dato-card fade-up" style="transition-delay:.2s"><div class="dato-icon">📅</div><div class="dato-title">Disponibilidad</div><div class="dato-desc">De 2 a 6 días por semana adaptado a tu rutina</div></div>
+      <div class="dato-card fade-up" style="transition-delay:.25s"><div class="dato-icon">🦴</div><div class="dato-title">Lesiones</div><div class="dato-desc">Rodilla, espalda, hombro — los ejercicios que dañen se evitan</div></div>
+    </div>
+
+    <!-- PLAN PREVIEW -->
+    <div class="plan-preview fade-up">
+      <div class="pp-header">
+        <div class="pp-icon">🤖</div>
+        <div>
+          <div class="pp-title">Plan de Juan, 28 años · Ganar músculo</div>
+          <div class="pp-sub">Nivel intermedio · 4 días/semana · Sin lesiones</div>
+        </div>
+      </div>
+      <div class="semana-tabs">
+        <div class="semana-tab active">Semana 1</div>
+        <div class="semana-tab">Semana 2</div>
+        <div class="semana-tab">Semana 3</div>
+        <div class="semana-tab">Semana 4</div>
+      </div>
+      <div class="dia-preview"><div class="dp-num">1</div><div><div class="dp-nombre">Pecho y Tríceps</div><div class="dp-tipo">45 min · 6 ejercicios</div></div><span class="dp-badge dp-ent">Entrenamiento</span></div>
+      <div class="dia-preview"><div class="dp-num">2</div><div><div class="dp-nombre">Espalda y Bíceps</div><div class="dp-tipo">50 min · 6 ejercicios</div></div><span class="dp-badge dp-ent">Entrenamiento</span></div>
+      <div class="dia-preview"><div class="dp-num">3</div><div><div class="dp-nombre">Descanso activo</div><div class="dp-tipo">Recuperación</div></div><span class="dp-badge dp-des">Descanso</span></div>
+      <div class="dia-preview"><div class="dp-num">4</div><div><div class="dp-nombre">Piernas y Glúteos</div><div class="dp-tipo">55 min · 7 ejercicios</div></div><span class="dp-badge dp-ent">Entrenamiento</span></div>
+      <div class="dia-preview"><div class="dp-num">5</div><div><div class="dp-nombre">Hombros y Core</div><div class="dp-tipo">40 min · 5 ejercicios</div></div><span class="dp-badge dp-ent">Entrenamiento</span></div>
+      <div class="dia-preview"><div class="dp-num">6</div><div><div class="dp-nombre">Descanso</div><div class="dp-tipo">Recuperación total</div></div><span class="dp-badge dp-des">Descanso</span></div>
+      <div class="dia-preview"><div class="dp-num">7</div><div><div class="dp-nombre">Descanso</div><div class="dp-tipo">Recuperación total</div></div><span class="dp-badge dp-des">Descanso</span></div>
+      <div style="text-align:center;margin-top:16px;color:var(--muted);font-size:12px;font-style:italic">* Este es un ejemplo. Tu plan será único según tu perfil.</div>
+    </div>
+  </div>
+</section>
+
+<section id="gyms">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Para gimnasios</span>
+      <h2 class="section-title">EL DIFERENCIAL<br>QUE TE <span>FALTABA</span></h2>
+      <p class="section-sub">Ofrecé GymConnect a tus socios como servicio incluido. Ellos entrenan mejor, vos retenés más.</p>
+    </div>
+    <div class="gyms-grid">
+      <div class="gym-card fade-up">
+        <div class="gc-icon">🏆</div>
+        <div class="gc-title">Diferencial competitivo</div>
+        <p class="gc-desc">Ningún otro gym de Córdoba ofrece planes personalizados con IA incluidos. Vas a ser el primero.</p>
+      </div>
+      <div class="gym-card fade-up" style="transition-delay:.1s">
+        <div class="gc-icon">💰</div>
+        <div class="gc-title">Mejor retención</div>
+        <p class="gc-desc">Los socios que tienen un plan definido se quedan. Sin plan, en 3 meses se van. Con GymConnect, se quedan.</p>
+      </div>
+      <div class="gym-card fade-up" style="transition-delay:.2s">
+        <div class="gc-icon">🤖</div>
+        <div class="gc-title">Sin trabajo extra</div>
+        <p class="gc-desc">La IA hace el trabajo. No necesitás contratar más instructores ni gastar tiempo creando rutinas.</p>
+      </div>
+      <div class="gym-card fade-up" style="transition-delay:.3s">
+        <div class="gc-icon">📲</div>
+        <div class="gc-title">Sin instalaciones</div>
+        <p class="gc-desc">Los socios acceden desde su celular. Sin apps que descargar, sin equipos especiales.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="precio">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Precio para gyms</span>
+      <h2 class="section-title">UN SOLO <span>PRECIO</span><br>SOCIOS ILIMITADOS</h2>
+    </div>
+    <div class="precio-box fade-up">
+      <div class="pb-tag">✓ Primer mes gratis</div>
+      <div class="pb-amount">60</div>
+      <div class="pb-period">USD / mes · socios ilimitados</div>
+      <p class="pb-desc">Un solo pago mensual. Todos tus socios acceden a planes personalizados con IA sin costo adicional.</p>
+      <div class="pb-features">
+        <div class="pbf">Socios ilimitados</div>
+        <div class="pbf">Planes generados por IA</div>
+        <div class="pbf">4 semanas progresivas</div>
+        <div class="pbf">Seguimiento de progreso</div>
+        <div class="pbf">Evita lesiones automáticamente</div>
+        <div class="pbf">Sin app que instalar</div>
+        <div class="pbf">Primer mes gratis</div>
+        <div class="pbf">Sin contrato de permanencia</div>
+      </div>
+      <a href="https://wa.me/543512291554?text=Quiero%20GymConnect%20para%20mi%20gym" class="btn-green" target="_blank" style="display:inline-flex;width:100%;max-width:340px;justify-content:center">💪 Quiero GymConnect →</a>
+    </div>
+    <div class="fade-up" style="text-align:center;margin-top:20px;color:var(--muted);font-size:13px">
+      ¿También querés CordobaConnect para el bar/área social del gym? <a href="https://wa.me/543512291554" style="color:var(--green);text-decoration:none">Consultanos el combo →</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Lo que dicen</span>
+      <h2 class="section-title">RESULTADOS <span>REALES</span></h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card fade-up">
+        <div class="tc-q">"</div>
+        <p class="tc-text">Nunca tuve un plan de entrenamiento propio. Siempre hacía lo mismo y no avanzaba. Con GymConnect en 4 semanas noté diferencia real.</p>
+        <div class="tc-author"><div class="tc-av">💪</div><div><div class="tc-name">Martín L.</div><div class="tc-role">Socio · Gym intermedio</div></div></div>
+      </div>
+      <div class="test-card fade-up" style="transition-delay:.1s">
+        <div class="tc-q">"</div>
+        <p class="tc-text">Lo que más me gustó es que evitó los ejercicios de rodilla porque tengo menisco. Nunca tuve eso en cuenta antes.</p>
+        <div class="tc-author"><div class="tc-av">🏋️</div><div><div class="tc-name">Carolina M.</div><div class="tc-role">Socia · Objetivo tonificar</div></div></div>
+      </div>
+      <div class="test-card fade-up" style="transition-delay:.2s">
+        <div class="tc-q">"</div>
+        <p class="tc-text">Como dueño del gym fue la mejor inversión. Mis socios ahora tienen un motivo para venir todos los días a completar su rutina.</p>
+        <div class="tc-author"><div class="tc-av">🏢</div><div><div class="tc-name">Roberto F.</div><div class="tc-role">Dueño · GymFit Córdoba</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Preguntas frecuentes</span>
+      <h2 class="section-title">TODO LO QUE<br><span>NECESITÁS</span> SABER</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿La IA reemplaza al instructor del gym?</div><div class="faq-a">No, lo complementa. GymConnect crea el plan base personalizado, pero el instructor sigue siendo clave para corregir la técnica y motivar al socio en persona. Es una herramienta extra, no un reemplazo.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cuántos socios pueden usar GymConnect?</div><div class="faq-a">Ilimitados. El precio es por gym, no por socio. Todos tus socios pueden crear su plan personalizado sin costo adicional.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Qué tan bueno es el plan que genera la IA?</div><div class="faq-a">Está basado en Claude, la IA de Anthropic — uno de los modelos más avanzados del mundo. Genera planes que tienen en cuenta el objetivo, nivel, días disponibles y lesiones del usuario con progresión real semana a semana.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Los datos de los socios son míos?</div><div class="faq-a">Los datos se guardan localmente en el celular de cada socio. Ni el gym ni CordobaLux almacenan los datos de salud de los usuarios en servidores.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Puedo combinar GymConnect con CordobaConnect?</div><div class="faq-a">Sí! Si tu gym tiene un área social, bar o espacio de encuentro, podés activar CordobaConnect para que tus socios también se conecten entre sí. Consultanos el combo.</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final" id="contacto">
+  <div class="container">
+    <span class="cta-icon">💪</span>
+    <h2 class="cta-title">¿TU GYM CON<br><span>IA INCLUIDA?</span></h2>
+    <p class="cta-sub">Primer mes gratis. Sin contrato. La herramienta de retención más poderosa que puede tener un gym hoy.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="https://wa.me/543512291554?text=Quiero%20GymConnect%20para%20mi%20gym" class="btn-wa" target="_blank">💬 Hablar por WhatsApp</a>
+      <a href="https://api.cordobalux.com/gym-connect.html" class="btn-outline" target="_blank">💪 Probar la app</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="fl-brand">GYM<span>CONNECT</span></div>
+        <p class="fl-desc">Tu entrenador personal con IA. Un producto de CordobaLux — Luxury Social Connections.</p>
+      </div>
+      <div>
+        <div class="fc-title">CordobaLux</div>
+        <a href="https://api.cordobalux.com/cordoba-connect.html" class="fc-link">Ver todas las apps</a>
+        <a href="https://api.cordobalux.com/cordoba-connect.html" class="fc-link">CordobaConnect</a>
+        <a href="https://api.cordobalux.com/fiesta-connect.html" class="fc-link">FiestaConnect</a>
+      </div>
+      <div>
+        <div class="fc-title">Contacto</div>
+        <a href="https://wa.me/543512291554" class="fc-link">WhatsApp</a>
+        <a href="mailto:hola@cordobalux.com" class="fc-link">hola@cordobalux.com</a>
+        <a href="https://api.cordobalux.com/politicas.html" class="fc-link">Privacidad</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 CordobaLux · GymConnect · Córdoba, Argentina</p>
+      <p>💪 Luxury Social Connections</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+function toggleFaq(el){const item=el.parentElement,wasOpen=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));if(!wasOpen)item.classList.add('open')}
+window.addEventListener('scroll',()=>{document.getElementById('nav').style.background=window.scrollY>50?'rgba(5,10,6,.96)':'rgba(5,10,6,.75)'});
+</script>
+</body>
+</html>

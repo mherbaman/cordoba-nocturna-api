@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎉</text></svg>">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiesta Connect — La app que conecta tus invitados</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#c9a84c;--gold2:#e8c97a;--rose:#e8728a;--dark:#0d0a06;--card:#16120a;--text:#fff;--muted:rgba(255,255,255,.5);--border:rgba(201,168,76,.2)}
+html{scroll-behavior:smooth}
+body{background:var(--dark);font-family:'DM Sans',sans-serif;color:var(--text);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.5}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes glow{0%,100%{box-shadow:0 0 30px rgba(201,168,76,.25)}50%{box-shadow:0 0 60px rgba(201,168,76,.6)}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes slideLeft{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
+
+.fade-up{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);background:rgba(13,10,6,.75);border-bottom:1px solid rgba(201,168,76,.1);transition:all .3s}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#fff;text-decoration:none}
+.nav-logo em{color:var(--gold);font-style:italic}
+.nav-links{display:flex;gap:24px;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
+.nav-links a:hover{color:#fff}
+.nav-cta{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--dark);padding:10px 22px;border-radius:50px;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s}
+.nav-cta:hover{transform:scale(1.04);box-shadow:0 0 24px rgba(201,168,76,.4)}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:110px 24px 80px;text-align:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:pulse 5s ease-in-out infinite}
+.o1{width:500px;height:500px;background:radial-gradient(circle,rgba(201,168,76,.15),transparent 70%);top:-150px;left:-150px}
+.o2{width:400px;height:400px;background:radial-gradient(circle,rgba(232,114,138,.12),transparent 70%);bottom:-100px;right:-100px;animation-delay:2s}
+.o3{width:300px;height:300px;background:radial-gradient(circle,rgba(201,168,76,.1),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:4s}
+.sparkle-field{position:absolute;inset:0}
+.sp{position:absolute;width:6px;height:6px;background:var(--gold);clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);animation:sparkle 4s ease-in-out infinite;opacity:0}
+
+.hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);padding:7px 16px;border-radius:50px;font-size:12px;color:var(--gold);font-weight:600;margin-bottom:24px;animation:fadeUp .8s ease forwards;letter-spacing:.5px;text-transform:uppercase}
+.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,11vw,110px);font-weight:700;line-height:.95;letter-spacing:-1px;margin-bottom:10px;animation:fadeUp .8s .1s ease forwards;opacity:0}
+.hero-h1 em{font-style:italic;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:shimmer 4s linear infinite}
+.hero-sub{font-size:clamp(15px,2.2vw,20px);color:var(--muted);max-width:580px;margin:0 auto 44px;line-height:1.7;font-weight:300;animation:fadeUp .8s .2s ease forwards;opacity:0;font-style:italic;font-family:'Cormorant Garamond',serif}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp .8s .3s ease forwards;opacity:0}
+.btn-hero-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--dark);padding:17px 38px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .3s;animation:glow 3s ease infinite}
+.btn-hero-gold:hover{transform:scale(1.04);box-shadow:0 0 50px rgba(201,168,76,.6)}
+.btn-hero-outline{background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.3);color:#fff;padding:17px 38px;border-radius:50px;font-size:15px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .3s}
+.btn-hero-outline:hover{background:rgba(201,168,76,.08);border-color:var(--gold)}
+
+.hero-events{display:flex;justify-content:center;gap:12px;margin-top:48px;flex-wrap:wrap;animation:fadeUp .8s .4s ease forwards;opacity:0}
+.event-pill{background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:50px;padding:10px 20px;display:flex;align-items:center;gap:8px;font-size:14px}
+.event-pill .icon{font-size:20px}
+.event-pill .name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600}
+.event-pill .desc{color:var(--muted);font-size:12px;margin-top:1px;font-style:italic}
+
+/* STATS */
+.stats-bar{background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(232,114,138,.05));border-top:1px solid rgba(201,168,76,.15);border-bottom:1px solid rgba(201,168,76,.15);padding:40px 24px}
+.stats-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat-item .num{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;font-style:italic}
+.stat-item .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+/* TICKER */
+.ticker{overflow:hidden;padding:18px 0;background:rgba(201,168,76,.04);border-top:1px solid rgba(201,168,76,.1);border-bottom:1px solid rgba(201,168,76,.1)}
+.ticker-track{display:flex;gap:48px;animation:slideLeft 25s linear infinite;white-space:nowrap}
+.ticker-item{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:rgba(255,255,255,.2);display:flex;align-items:center;gap:16px}
+.ticker-item span{color:var(--gold)}
+
+section{padding:90px 24px}
+.container{max-width:1080px;margin:0 auto}
+.section-tag{display:inline-block;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:50px;margin-bottom:18px;font-family:'DM Sans',sans-serif}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5.5vw,60px);font-weight:700;line-height:1.05;margin-bottom:14px}
+.section-title em{font-style:italic;color:var(--gold)}
+.section-sub{color:var(--muted);font-size:16px;line-height:1.8;max-width:560px;font-style:italic;font-family:'Cormorant Garamond',serif}
+
+/* PARA QUIEN */
+.events-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-top:52px}
+.event-card{border-radius:24px;padding:36px 30px;transition:all .3s;position:relative;overflow:hidden}
+.event-card:hover{transform:translateY(-5px)}
+.ec-bodas{background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(232,114,138,.06));border:1px solid rgba(201,168,76,.25)}
+.ec-quince{background:linear-gradient(135deg,rgba(168,85,247,.12),rgba(201,168,76,.06));border:1px solid rgba(168,85,247,.25)}
+.ec-corp{background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(201,168,76,.05));border:1px solid rgba(14,165,233,.2)}
+.ec-privado{background:linear-gradient(135deg,rgba(232,114,138,.12),rgba(201,168,76,.06));border:1px solid rgba(232,114,138,.25)}
+.ec-icon{font-size:44px;margin-bottom:18px;display:block;animation:float 3s ease-in-out infinite}
+.event-card:nth-child(2) .ec-icon{animation-delay:.4s}
+.event-card:nth-child(3) .ec-icon{animation-delay:.8s}
+.event-card:nth-child(4) .ec-icon{animation-delay:1.2s}
+.ec-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;margin-bottom:10px}
+.ec-sub{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:20px;font-style:italic}
+.ec-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.ec-list li{font-size:13px;color:rgba(255,255,255,.75);display:flex;align-items:flex-start;gap:8px}
+.ec-list li::before{content:'✦';color:var(--gold);flex-shrink:0;font-size:10px;margin-top:3px}
+
+/* COMO FUNCIONA */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:52px;position:relative}
+.step{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:22px;padding:28px 24px;transition:all .3s}
+.step:hover{border-color:rgba(201,168,76,.3);transform:translateY(-3px)}
+.step-num{font-family:'Cormorant Garamond',serif;font-size:60px;font-style:italic;color:rgba(201,168,76,.12);line-height:1;margin-bottom:6px}
+.step-icon{font-size:32px;margin-bottom:12px}
+.step-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;margin-bottom:7px}
+.step-desc{color:var(--muted);font-size:13px;line-height:1.7}
+
+/* PRECIOS */
+.price-box{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(232,114,138,.05));border:1px solid rgba(201,168,76,.25);border-radius:28px;padding:48px;text-align:center;max-width:600px;margin:52px auto 0;position:relative;overflow:hidden}
+.price-box::before{content:'';position:absolute;inset:-1px;background:linear-gradient(135deg,rgba(201,168,76,.2),rgba(232,114,138,.1),rgba(201,168,76,.2));border-radius:28px;z-index:-1;filter:blur(20px)}
+.price-event{font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic;color:var(--muted);margin-bottom:8px}
+.price-amount{font-family:'Cormorant Garamond',serif;font-size:clamp(56px,10vw,96px);font-weight:700;font-style:italic;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.price-desc{color:var(--muted);font-size:15px;margin:12px 0 32px;line-height:1.6;font-style:italic;font-family:'Cormorant Garamond',serif}
+.price-includes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:36px;text-align:left}
+.pi{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:rgba(255,255,255,.8)}
+.pi::before{content:'✦';color:var(--gold);flex-shrink:0;font-size:10px;margin-top:3px}
+.price-tag{display:inline-block;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.25);color:#22c55e;font-size:12px;font-weight:700;padding:5px 14px;border-radius:50px;margin-bottom:24px}
+
+/* EXTRAS */
+.extras-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:40px}
+.extra-card{background:var(--card);border:1px solid rgba(201,168,76,.12);border-radius:20px;padding:28px;transition:all .3s}
+.extra-card:hover{border-color:rgba(201,168,76,.25);transform:translateY(-3px)}
+.extra-icon{font-size:36px;margin-bottom:14px}
+.extra-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:6px}
+.extra-price{color:var(--gold);font-size:14px;font-weight:600;margin-bottom:10px;font-family:'Cormorant Garamond',serif;font-style:italic}
+.extra-desc{color:var(--muted);font-size:13px;line-height:1.6}
+
+/* TESTIMONIALS */
+.testimonials{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:52px}
+.t{background:var(--card);border:1px solid rgba(201,168,76,.12);border-radius:20px;padding:26px}
+.t-quote{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);margin-bottom:10px;line-height:1;font-style:italic}
+.t-text{font-size:14px;color:rgba(255,255,255,.8);line-height:1.7;font-style:italic;margin-bottom:18px;font-family:'Cormorant Garamond',serif;font-size:15px}
+.t-author{display:flex;align-items:center;gap:10px}
+.t-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--rose));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid rgba(201,168,76,.3)}
+.t-name{font-weight:700;font-size:14px}
+.t-role{color:var(--muted);font-size:11px;margin-top:1px;font-style:italic}
+
+/* FAQ */
+.faq-list{margin-top:44px;max-width:680px;margin-left:auto;margin-right:auto;display:flex;flex-direction:column;gap:12px}
+.faq-item{background:var(--card);border:1px solid rgba(201,168,76,.1);border-radius:14px;overflow:hidden;transition:border-color .2s}
+.faq-item:hover{border-color:rgba(201,168,76,.2)}
+.faq-q{padding:18px 22px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;font-family:'Cormorant Garamond',serif;font-size:17px}
+.faq-q::after{content:'✦';font-size:14px;color:var(--gold);flex-shrink:0;transition:transform .3s}
+.faq-item.open .faq-q::after{transform:rotate(180deg)}
+.faq-a{display:none;padding:0 22px 18px;color:var(--muted);font-size:14px;line-height:1.8;font-style:italic;font-family:'Cormorant Garamond',serif;font-size:15px}
+.faq-item.open .faq-a{display:block}
+
+/* CTA */
+.cta-final{text-align:center;padding:100px 24px;position:relative;overflow:hidden}
+.cta-final::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(201,168,76,.08) 0%,transparent 70%)}
+.cta-icon{font-size:64px;margin-bottom:20px;animation:float 3s ease-in-out infinite;display:block}
+.cta-title{font-family:'Cormorant Garamond',serif;font-size:clamp(40px,7vw,72px);font-weight:700;line-height:1;margin-bottom:14px}
+.cta-title em{font-style:italic;color:var(--gold)}
+.cta-sub{color:var(--muted);font-size:17px;line-height:1.7;max-width:500px;margin:0 auto 40px;font-style:italic;font-family:'Cormorant Garamond',serif}
+.btn-cta-wa{background:#25d366;color:#fff;padding:17px 38px;border-radius:50px;font-size:15px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
+.btn-cta-wa:hover{transform:scale(1.04);box-shadow:0 0 36px rgba(37,211,102,.4)}
+
+footer{background:var(--card);border-top:1px solid rgba(201,168,76,.1);padding:44px 24px 28px}
+.footer-inner{max-width:1080px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;margin-bottom:36px}
+.footer-brand .logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;margin-bottom:10px}
+.footer-brand .logo em{color:var(--gold);font-style:italic}
+.footer-brand p{color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:16px;font-style:italic}
+.footer-col h4{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;color:rgba(255,255,255,.35)}
+.footer-col a{display:block;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:9px;transition:color .2s}
+.footer-col a:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.05);padding-top:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.footer-bottom p{color:rgba(255,255,255,.2);font-size:12px}
+
+@media(max-width:768px){
+  .nav-links{display:none}
+  .stats-inner{grid-template-columns:repeat(2,1fr)}
+  .price-includes{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Fiesta<em>Connect</em></a>
+  <div class="nav-links">
+    <a href="#eventos">Eventos</a>
+    <a href="#precio">Precios</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contacto">Contacto</a>
+  </div>
+  <a href="https://wa.me/543512291554?text=Hola!%20Quiero%20info%20sobre%20FiestaConnect%20para%20mi%20evento" class="nav-cta" target="_blank">Cotizar evento →</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg">
+    <div class="hero-orb o1"></div>
+    <div class="hero-orb o2"></div>
+    <div class="hero-orb o3"></div>
+    <div class="sparkle-field" id="sparkle-field"></div>
+  </div>
+  <div class="hero-tag">✦ Disponible para tu próximo evento</div>
+  <h1 class="hero-h1">TU FIESTA<br>QUE <em>Conecta</em></h1>
+  <p class="hero-sub">La app que hace que tus invitados se conozcan entre sí — en tiempo real, esa misma noche. Una experiencia que nadie va a olvidar.</p>
+  <div class="hero-ctas">
+    <a href="#precio" class="btn-hero-gold">Ver precio por evento 🥂</a>
+    <a href="https://api.cordobalux.com/fiesta-connect.html" class="btn-hero-outline" target="_blank">Ver la app 📱</a>
+  </div>
+  <div class="hero-events">
+    <div class="event-pill"><span class="icon">💍</span><div><div class="name">Casamientos</div><div class="desc">La noche que une</div></div></div>
+    <div class="event-pill"><span class="icon">🎂</span><div><div class="name">18 años</div><div class="desc">A celebrar en grande</div></div></div>
+    <div class="event-pill"><span class="icon">🤝</span><div><div class="name">Corporativos</div><div class="desc">Networking real</div></div></div>
+    <div class="event-pill"><span class="icon">🎉</span><div><div class="name">Privados</div><div class="desc">Tu fiesta, tu app</div></div></div>
+  </div>
+</section>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item fade-up"><div class="num">60s</div><div class="lbl">para registrarse</div></div>
+    <div class="stat-item fade-up" style="transition-delay:.1s"><div class="num">50%</div><div class="lbl">de invitados participan</div></div>
+    <div class="stat-item fade-up" style="transition-delay:.2s"><div class="num">8d</div><div class="lbl">para seguir conectados</div></div>
+    <div class="stat-item fade-up" style="transition-delay:.3s"><div class="num">∞</div><div class="lbl">recuerdos generados</div></div>
+  </div>
+</div>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <div class="ticker-item">FIESTA CONNECT <span>✦</span></div>
+    <div class="ticker-item">CASAMIENTOS <span>✦</span></div>
+    <div class="ticker-item">CUMPLEAÑOS 18 <span>✦</span></div>
+    <div class="ticker-item">EVENTOS CORPORATIVOS <span>✦</span></div>
+    <div class="ticker-item">FIESTAS PRIVADAS <span>✦</span></div>
+    <div class="ticker-item">CONEXIONES REALES <span>✦</span></div>
+    <div class="ticker-item">FIESTA CONNECT <span>✦</span></div>
+    <div class="ticker-item">CASAMIENTOS <span>✦</span></div>
+    <div class="ticker-item">CUMPLEAÑOS 18 <span>✦</span></div>
+    <div class="ticker-item">EVENTOS CORPORATIVOS <span>✦</span></div>
+    <div class="ticker-item">FIESTAS PRIVADAS <span>✦</span></div>
+    <div class="ticker-item">CONEXIONES REALES <span>✦</span></div>
+  </div>
+</div>
+
+<section id="eventos">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-tag">Para cada celebración</span>
+      <h2 class="section-title">CADA EVENTO TIENE<br>SU <em>Magia</em></h2>
+      <p class="section-sub">FiestaConnect se adapta a cada tipo de evento con mensajes, vibes y experiencias pensadas para ese momento único.</p>
+    </div>
+    <div class="events-grid">
+      <div class="event-card ec-bodas fade-up">
+        <span class="ec-icon">💍</span>
+        <div class="ec-title">Casamientos</div>
+        <p class="ec-sub">El día más especial merece que todos los invitados se sientan parte de algo único — no solo espectadores.</p>
+        <ul class="ec-list">
+          <li>Los invitados se conectan durante la recepción</li>
+          <li>Matches entre amigos de ambas familias</li>
+          <li>Recuerdos que duran más allá de la noche</li>
+          <li>El regalo perfecto para los novios: una comunidad</li>
+        </ul>
+      </div>
+      <div class="event-card ec-quince fade-up" style="transition-delay:.1s">
+        <span class="ec-icon">🎂</span>
+        <div class="ec-title">Cumpleaños de 18</div>
+        <p class="ec-sub">La noche que marca el paso a la adultez. Que se recuerde por las conexiones que generó, no solo por la torta.</p>
+        <ul class="ec-list">
+          <li>Los amigos se mezclan de forma natural</li>
+          <li>Matches entre invitados que no se conocían</li>
+          <li>Recuerdos que duran más allá de la noche</li>
+          <li>El/la festejado/a con su propia comunidad</li>
+        </ul>
+      </div>
+      <div class="event-card ec-corp fade-up" style="transition-delay:.2s">
+        <span class="ec-icon">🤝</span>
+        <div class="ec-title">Corporativos</div>
+        <p class="ec-sub">El networking que siempre prometiste que iba a pasar de verdad. Sin tarjetas, sin incomodidades.</p>
+        <ul class="ec-list">
+          <li>Participantes se conectan antes del cóctel</li>
+          <li>Matches por intereses y área profesional</li>
+          <li>Base de datos de asistentes exportable</li>
+          <li>Medición de engagement del evento</li>
+        </ul>
+      </div>
+      <div class="event-card ec-privado fade-up" style="transition-delay:.3s">
+        <span class="ec-icon">🎉</span>
+        <div class="ec-title">Fiestas privadas</div>
+        <p class="ec-sub">Tu fiesta, tus reglas. Dale a tus invitados algo que no esperaban — y que van a hablar por semanas.</p>
+        <ul class="ec-list">
+          <li>Experiencia única que diferencia tu evento</li>
+          <li>Los invitados se mezclan naturalmente</li>
+          <li>Sorpresa garantizada para todos</li>
+          <li>Fácil de activar: un código y listo</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:linear-gradient(180deg,var(--dark),rgba(201,168,76,.04),var(--dark))">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Cómo funciona</span>
+      <h2 class="section-title">TAN <em>Simple</em><br>COMO DEBE SER</h2>
+    </div>
+    <div class="steps">
+      <div class="step fade-up">
+        <div class="step-num">01</div>
+        <div class="step-icon">📲</div>
+        <div class="step-title">Contratás el evento</div>
+        <div class="step-desc">Nos contactás, definimos los detalles y te enviamos el código QR único de tu evento en 24 horas.</div>
+      </div>
+      <div class="step fade-up" style="transition-delay:.1s">
+        <div class="step-num">02</div>
+        <div class="step-icon">🏳️</div>
+        <div class="step-title">Colocás el QR</div>
+        <div class="step-desc">Imprimís o mostrás el código QR en la entrada. Los invitados lo escanean con el celular.</div>
+      </div>
+      <div class="step fade-up" style="transition-delay:.2s">
+        <div class="step-num">03</div>
+        <div class="step-icon">💍</div>
+        <div class="step-title">La magia sucede</div>
+        <div class="step-desc">Los invitados crean su perfil, ven quién está, dan likes y si hay match mutuo chatean en tiempo real.</div>
+      </div>
+      <div class="step fade-up" style="transition-delay:.3s">
+        <div class="step-num">04</div>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Vos tenés los datos</div>
+        <div class="step-desc">Al día siguiente recibís el reporte completo: quién vino, cuántos matches, qué edad tenían.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="precio">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Precio por evento</span>
+      <h2 class="section-title">UN PRECIO<br><em>Justo</em></h2>
+      <p class="section-sub" style="margin:0 auto">Sin suscripciones. Sin contratos. Pagás por evento y listo.</p>
+    </div>
+    <div class="price-box fade-up">
+      <div class="price-tag">✓ Sin suscripción mensual</div>
+      <div class="price-event">Precio por evento</div>
+      <div class="price-amount">USD 80</div>
+      <p class="price-desc">Una sola noche. Un solo pago. Una experiencia que nadie olvida.</p>
+      <div class="price-includes">
+        <div class="pi">App activa por 24 horas</div>
+        <div class="pi">Código QR exclusivo</div>
+        <div class="pi">Matches y chat ilimitados</div>
+        <div class="pi">Panel para el organizador</div>
+        <div class="pi">Reporte de asistentes</div>
+        <div class="pi">Soporte en tiempo real</div>
+        <div class="pi">Hasta 500 invitados</div>
+        <div class="pi">Sin marca de agua</div>
+      </div>
+      <a href="https://wa.me/543512291554?text=Quiero%20contratar%20FiestaConnect%20para%20mi%20evento" class="btn-hero-gold" target="_blank" style="display:inline-flex;max-width:340px;width:100%;justify-content:center">Contratar para mi evento 🥂</a>
+    </div>
+
+    <div class="fade-up" style="text-align:center;margin-top:52px">
+      <span class="section-tag">Extras opcionales</span>
+      <h2 class="section-title">HACÉ TU EVENTO<br><em>Inolvidable</em></h2>
+    </div>
+    <div class="extras-grid">
+      <div class="extra-card fade-up">
+        <div class="extra-icon">👗</div>
+        <div class="extra-title">Operativo con promotoras</div>
+        <div class="extra-price">+ USD 150 por noche</div>
+        <div class="extra-desc">Dos promotoras capacitadas que registran a los invitados en la entrada y animan la participación.</div>
+      </div>
+      <div class="extra-card fade-up" style="transition-delay:.1s">
+        <div class="extra-icon">🏳️</div>
+        <div class="extra-title">Estandarte personalizado</div>
+        <div class="extra-price">+ USD 40 por evento</div>
+        <div class="extra-desc">Banner impreso de 2m con los nombres de los novios/festejado y el QR. Un recuerdo físico del evento.</div>
+      </div>
+      <div class="extra-card fade-up" style="transition-delay:.2s">
+        <div class="extra-icon">🎨</div>
+        <div class="extra-title">Branding personalizado</div>
+        <div class="extra-price">+ USD 30 por evento</div>
+        <div class="extra-desc">La app con los colores y nombre del evento. En vez de "FiestaConnect" aparece "La Boda de Ana & Luis".</div>
+      </div>
+      <div class="extra-card fade-up" style="transition-delay:.3s">
+        <div class="extra-icon">📊</div>
+        <div class="extra-title">Reporte premium</div>
+        <div class="extra-price">+ USD 20 por evento</div>
+        <div class="extra-desc">Reporte detallado con gráficos, fotos de perfil y análisis completo de la noche. PDF entregado en 24 horas.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:linear-gradient(180deg,var(--dark),rgba(232,114,138,.04),var(--dark))">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Lo que dicen</span>
+      <h2 class="section-title">EXPERIENCIAS<br><em>Reales</em></h2>
+    </div>
+    <div class="testimonials">
+      <div class="t fade-up">
+        <div class="t-quote">"</div>
+        <p class="t-text">En el casamiento de mi hija lo usamos y fue un éxito total. Los invitados no paraban de hablar de la app toda la noche. Tres parejas se conocieron ahí.</p>
+        <div class="t-author"><div class="t-av">👩</div><div><div class="t-name">María Elena R.</div><div class="t-role">Madre de la novia · Casamiento</div></div></div>
+      </div>
+      <div class="t fade-up" style="transition-delay:.1s">
+        <div class="t-quote">"</div>
+        <p class="t-text">Para mis 15 años quería algo diferente. FiestaConnect fue la sorpresa de la noche — todos mis amigos se engancharon y seguimos hablando semanas después.</p>
+        <div class="t-author"><div class="t-av">👸</div><div><div class="t-name">Valentina M.</div><div class="t-role">Festejada · 15 años</div></div></div>
+      </div>
+      <div class="t fade-up" style="transition-delay:.2s">
+        <div class="t-quote">"</div>
+        <p class="t-text">Para nuestra convención de empresa fue perfecto. El networking que siempre fue forzado y awkward se volvió natural y divertido. Lo vamos a usar en todos los eventos.</p>
+        <div class="t-author"><div class="t-av">👔</div><div><div class="t-name">Rodrigo V.</div><div class="t-role">RRHH · Evento corporativo</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="container">
+    <div class="fade-up" style="text-align:center">
+      <span class="section-tag">Preguntas frecuentes</span>
+      <h2 class="section-title">TODO LO QUE<br><em>Necesitás</em> SABER</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Con cuánta anticipación hay que contratar?</div><div class="faq-a">Idealmente 48 horas antes. En casos urgentes podemos activar el evento en menos de 24 horas.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Cuántos invitados puede manejar?</div><div class="faq-a">El plan estándar incluye hasta 500 invitados simultáneos. Para eventos más grandes consultanos — podemos escalar sin problema.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Necesitan instalar algo?</div><div class="faq-a">No. Los invitados acceden desde el navegador del celular — no hay app que descargar. Solo escanean el QR y listo.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Para qué edad es FiestaConnect?</div><div class="faq-a">FiestaConnect es exclusivamente para eventos de mayores de 18 años. Todos los usuarios deben confirmar su mayoría de edad al ingresar. No operamos eventos con menores de 18 años.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Los datos de mis invitados son míos?</div><div class="faq-a">Sí. Como organizador del evento recibís el reporte completo. Los datos son confidenciales y no los compartimos con terceros.</div></div>
+      <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">¿Puedo personalizar la app con el nombre del evento?</div><div class="faq-a">Sí, con el extra de branding personalizado (+USD 30) la app aparece con el nombre de tu evento. "La Boda de Ana & Luis" o "Los 15 de Valentina".</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final" id="contacto">
+  <span class="cta-icon">🥂</span>
+  <h2 class="cta-title">¿TU PRÓXIMO<br>EVENTO CON <em>Magia</em>?</h2>
+  <p class="cta-sub">Contratás en minutos, lo activamos antes del evento y tus invitados viven algo que nunca van a olvidar.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+    <a href="https://wa.me/543512291554?text=Hola!%20Quiero%20contratar%20FiestaConnect%20para%20mi%20evento" class="btn-cta-wa" target="_blank">💬 Contratar por WhatsApp</a>
+    <a href="mailto:hola@fiestaconnect.com.ar" class="btn-hero-outline">✉️ Escribir por email</a>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="logo">Fiesta<em>Connect</em></div>
+        <p>La app que hace que tus invitados se conozcan entre sí — en tiempo real, esa misma noche.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Producto</h4>
+        <a href="#eventos">Tipos de eventos</a>
+        <a href="#precio">Precios</a>
+        <a href="https://api.cordobalux.com/fiesta-connect.html">Ver la app</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="https://api.cordobalux.com/politicas.html">Política de privacidad</a>
+        <a href="https://api.cordobalux.com/politicas.html">Términos de uso</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contacto</h4>
+        <a href="https://wa.me/543512291554">WhatsApp</a>
+        <a href="mailto:hola@fiestaconnect.com.ar">Email</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 FiestaConnect · Un producto de Córdoba Nocturna · Solo para mayores de 18 años</p>
+      <p>🥂 Córdoba, Argentina</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Sparkles
+(function(){const f=document.getElementById('sparkle-field');if(!f)return;for(let i=0;i<16;i++){const s=document.createElement('div');s.className='sp';s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*4}s;animation-duration:${3+Math.random()*3}s;width:${4+Math.random()*6}px;height:${4+Math.random()*6}px`;f.appendChild(s)}})();
+
+// Scroll reveal
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}})},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-up').forEach(el=>observer.observe(el));
+
+// FAQ
+function toggleFaq(el){const item=el.parentElement,wasOpen=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));if(!wasOpen)item.classList.add('open')}
+
+// Nav
+window.addEventListener('scroll',()=>{document.querySelector('nav').style.background=window.scrollY>50?'rgba(13,10,6,.96)':'rgba(13,10,6,.75)'});
+</script>
+</body>
+</html>
