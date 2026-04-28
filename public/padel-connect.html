@@ -3434,14 +3434,27 @@ function renderTorneoInfo() {
     </div>
     ${t.descripcion ? `<p style="color:rgba(255,255,255,.6);font-size:13px;line-height:1.6;margin-bottom:14px">${t.descripcion}</p>` : ''}
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:10px;letter-spacing:1px">CATEGORÍAS</div>
-    ${cats.map(c => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-bottom:8px">
-        <span style="color:#fff;font-size:13px">${c.nombre}</span>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="color:rgba(255,255,255,.4);font-size:12px">${c.inscriptos}/${c.cupo_max}</span>
-          ${t.estado === 'inscripciones_abiertas' && token ? `<button onclick="abrirModalInscripcion(${c.id},'${c.nombre}')" style="padding:5px 12px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">INSCRIBIRSE</button>` : ''}
+    ${cats.map(c => {
+      const parejasCat = (torneoActual.parejas||[]).filter(p => p.categoria_id === c.id);
+      return `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-bottom:8px;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px">
+          <span style="color:#fff;font-size:13px">${c.nombre}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="color:rgba(255,255,255,.4);font-size:12px">${c.inscriptos}/${c.cupo_max}</span>
+            ${t.estado === 'inscripciones_abiertas' && token ? `<button onclick="abrirModalInscripcion(${c.id},'${c.nombre}')" style="padding:5px 12px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#f87171;font-size:11px;font-weight:700;cursor:pointer">INSCRIBIRSE</button>` : ''}
+          </div>
         </div>
-      </div>`).join('')}
+        ${parejasCat.length ? `
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding:8px 14px">
+          ${parejasCat.map((p,i) => `
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;${i>0?'border-top:1px solid rgba(255,255,255,.04)':''}}">
+            <span style="color:rgba(255,255,255,.3);font-size:11px;width:18px">${i+1}</span>
+            <span style="color:#fff;font-size:12px">${p.nombre_pareja || p.jugador1_nombre + ' / ' + (p.jugador2_nombre||'?')}</span>
+          </div>`).join('')}
+        </div>` : ''}
+      </div>`;
+    }).join('')}
   `;
 }
 
