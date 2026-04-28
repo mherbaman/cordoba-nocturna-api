@@ -636,6 +636,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <button onclick="switchAmericanoTab('info',this)" id="atab-info" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(234,179,8,.4);background:rgba(234,179,8,.15);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">INFO</button>
       <button onclick="switchAmericanoTab('posiciones',this)" id="atab-posiciones" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">POSICIONES</button>
       <button onclick="switchAmericanoTab('fixture',this)" id="atab-fixture" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">FIXTURE</button>
+      <button onclick="switchAmericanoTab('bracket',this)" id="atab-bracket" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">BRACKET</button>
     </div>
     <div id="americano-tab-content">
       <div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div>
@@ -3138,8 +3139,8 @@ async function cargarAmericanos() {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay americanos disponibles por el momento.</div>';
       return;
     }
-    const estadoLabel = { proximamente:'Próximamente', abierto:'Inscripciones abiertas', cerrado:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' };
-    const estadoColor = { proximamente:'rgba(255,255,255,.4)', abierto:'#4ade80', cerrado:'#f87171', en_curso:'#fbbf24', finalizado:'rgba(255,255,255,.3)' };
+    const estadoLabel = { proximamente:'Próximamente', abierto:'Inscripciones abiertas', cerrado:'Inscripciones cerradas', en_curso:'En curso', bracket:'Fase final 🏆', finalizado:'Finalizado' };
+    const estadoColor = { proximamente:'rgba(255,255,255,.4)', abierto:'#4ade80', cerrado:'#f87171', en_curso:'#fbbf24', bracket:'#a78bfa', finalizado:'rgba(255,255,255,.3)' };
     el.innerHTML = data.map(a => {
       const fecha = new Date(a.fecha.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
       const hora = a.hora_inicio ? a.hora_inicio.slice(0,5) : '';
@@ -3180,6 +3181,7 @@ async function abrirAmericano(id) {
       americanoActual = await res.json();
       if (americanoTabActual === 'posiciones') renderAmericanoPosiciones();
       else if (americanoTabActual === 'fixture') renderAmericanoFixture();
+      else if (americanoTabActual === 'bracket') renderAmericanoBracket();
       else renderAmericanoInfo();
     } catch(e) {}
   }, 20000);
@@ -3187,7 +3189,7 @@ async function abrirAmericano(id) {
 
 function switchAmericanoTab(tab, btn) {
   americanoTabActual = tab;
-  ['atab-info','atab-posiciones','atab-fixture'].forEach(id => {
+  ['atab-info','atab-posiciones','atab-fixture','atab-bracket'].forEach(id => {
     const b = document.getElementById(id);
     if (!b) return;
     b.style.background = 'transparent';
@@ -3203,6 +3205,7 @@ function switchAmericanoTab(tab, btn) {
   if (tab === 'info') renderAmericanoInfo();
   else if (tab === 'posiciones') renderAmericanoPosiciones();
   else if (tab === 'fixture') renderAmericanoFixture();
+  else if (tab === 'bracket') renderAmericanoBracket();
 }
 
 function renderAmericanoInfo() {
@@ -3288,6 +3291,44 @@ function renderAmericanoFixture() {
     });
   }
   document.getElementById('americano-tab-content').innerHTML = html;
+}
+
+function renderAmericanoBracket() {
+  const partidos = americanoActual.partidos || [];
+  const semis = partidos.filter(p => p.fase === 'semifinal');
+  const final = partidos.find(p => p.fase === 'final');
+  const tercero = partidos.find(p => p.fase === 'tercer_puesto');
+  if (!semis.length) {
+    document.getElementById('americano-tab-content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">El bracket estará disponible al terminar las 7 rondas.</div>';
+    return;
+  }
+  const renderPartido = (p, titulo) => {
+    if (!p) return '';
+    const jugado = p.estado === 'jugado';
+    const nom1 = p.nombre_1a || 'Por definir';
+    const nom2 = p.nombre_2a || 'Por definir';
+    const gan1 = jugado && p.games_pareja1 > p.games_pareja2;
+    const gan2 = jugado && p.games_pareja2 > p.games_pareja1;
+    return `<div style="background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:12px;padding:14px;margin-bottom:10px">
+      <div style="font-size:10px;color:#a78bfa;font-weight:700;margin-bottom:10px;letter-spacing:1px">${titulo}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="flex:1">
+          <div style="font-size:13px;color:${gan1?'#4ade80':'#fff'};font-weight:${gan1?'700':'400'};margin-bottom:6px">${nom1}</div>
+          <div style="font-size:13px;color:${gan2?'#4ade80':'#fff'};font-weight:${gan2?'700':'400'}">${nom2}</div>
+        </div>
+        ${jugado ? `<div style="text-align:right;margin-left:12px">
+          <div style="font-size:16px;font-weight:700;color:#fff">${p.games_pareja1}</div>
+          <div style="font-size:16px;font-weight:700;color:#fff">${p.games_pareja2}</div>
+        </div>` : '<span style="font-size:11px;color:rgba(255,255,255,.3);margin-left:12px">Pendiente</span>'}
+      </div>
+    </div>`;
+  };
+  document.getElementById('americano-tab-content').innerHTML =
+    renderPartido(semis[0], 'SEMIFINAL 1') +
+    renderPartido(semis[1], 'SEMIFINAL 2') +
+    (final || tercero ? '<div style="height:1px;background:rgba(167,139,250,.15);margin:8px 0 16px"></div>' : '') +
+    renderPartido(final, '🏆 FINAL') +
+    renderPartido(tercero, '🥉 3ER PUESTO');
 }
 
 function abrirModalInscripcionAmericano() {
