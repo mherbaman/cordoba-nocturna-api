@@ -1911,7 +1911,7 @@ async function cargarTorneosAdminSilencioso() {
 async function verPartidosTorneo(torneoId) {
   const modal = document.getElementById('modal-resultado');
   const content = document.getElementById('modal-resultado-content');
-  content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Cargando partidos...</p>';
+  content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Cargando...</p>';
   modal.style.display = 'flex';
   adminTorneoIdActivo = torneoId;
   // Auto-refresh cada 20s en la vista de partidos
@@ -1923,6 +1923,12 @@ async function verPartidosTorneo(torneoId) {
     const pendientes = todos.filter(p => p.estado === 'pendiente' || p.estado === 'en_curso');
     const jugados = todos.filter(p => p.estado === 'jugado' || p.estado === 'walkover');
     // Parejas por categoria
+    // Cambiar titulo segun estado
+    const tituloEl = document.getElementById('modal-resultado-titulo');
+    if (tituloEl) {
+      const sinPartidos = ['borrador','proximamente','inscripciones_abiertas','inscripciones_cerradas'].includes(data.torneo?.estado);
+      tituloEl.textContent = sinPartidos ? '👥 Inscriptos' : '🎾 Cargar resultados';
+    }
     const parejas = data.parejas || [];
     const categorias = data.categorias || [];
     let parejasHtml = '';
@@ -2060,7 +2066,7 @@ async function modificarResultado(partidoId) {
 <div id="modal-resultado" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
   <div style="background:#1a0030;border:1px solid rgba(239,68,68,.3);border-radius:16px;padding:24px;max-width:600px;width:100%;margin:40px auto">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div style="font-size:16px;font-weight:700;color:#f87171">🎾 Cargar resultados</div>
+      <div id="modal-resultado-titulo" style="font-size:16px;font-weight:700;color:#f87171">🎾 Cargar resultados</div>
       <button onclick="if(adminPartidosInterval){clearInterval(adminPartidosInterval);adminPartidosInterval=null;}document.getElementById('modal-resultado').style.display='none'" style="background:transparent;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer">✕</button>
     </div>
     <div id="modal-resultado-content"></div>
