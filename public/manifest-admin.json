@@ -2,7 +2,7 @@
   "name": "Admin — CórdobaLux",
   "short_name": "CórdobaAdmin",
   "description": "Panel de administración CórdobaLux",
-  "start_url": "/admin.html",
+  "start_url": "/admin",
   "display": "standalone",
   "background_color": "#07000f",
   "theme_color": "#ff2d78",
@@ -20,5 +20,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "scope": "/"
 }
