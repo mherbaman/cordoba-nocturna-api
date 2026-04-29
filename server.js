@@ -79,6 +79,16 @@ app.get('/cconnect/sw.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'sw-cconnect.js'));
 });
 
+// ── Redirects URLs viejas → nuevas ──────────────────────────────────
+app.get('/padel-connect.html', (req, res) => {
+  res.redirect(301, '/padel/');
+});
+app.get('/cordoba-connect.html', (req, res) => {
+  res.redirect(301, '/cconnect/');
+});
+app.get('/admin.html', (req, res) => {
+  res.redirect(301, '/admin/');
+});
 // ── Rutas carpeta → HTML ──────────────────────────────────────────────
 app.get('/padel/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
