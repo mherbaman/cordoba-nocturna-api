@@ -319,7 +319,7 @@ body {
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/cconnect/sw.js', {scope: '/cconnect/'}).catch(()=>{});
   });
 }
 </script>

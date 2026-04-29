@@ -68,8 +68,29 @@ app.get('/', (req, res) => {
 });
 
 // ── Panel admin ──────────────────────────────────────────────────────
+// ── Service Workers por scope ────────────────────────────────────────
+app.get('/padel/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sw-padel.js'));
+});
+app.get('/admin/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sw-admin.js'));
+});
+app.get('/cconnect/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'sw-cconnect.js'));
+});
+
+// ── Rutas carpeta → HTML ──────────────────────────────────────────────
+app.get('/padel/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
+});
+app.get('/admin/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/cconnect/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'cordoba-connect.html'));
 });
 
 // ── Arrancar ─────────────────────────────────────────────────────────

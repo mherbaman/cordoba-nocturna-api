@@ -480,7 +480,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/padel/sw.js', {scope: '/padel/'}).catch(()=>{});
   });
 }
 </script>
@@ -3937,7 +3937,7 @@ async function desinscribirsePartido(partidoId) {
 async function registrarPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js');
+    const reg = await navigator.serviceWorker.register('/padel/sw.js', {scope: '/padel/'});
     const permiso = await Notification.requestPermission();
     if (permiso !== 'granted') return;
     const VAPID_PUBLIC = 'BBC-BM0lWegmCr3e5ROgYJne9T_OtJDmUFPReuJkAUR83TOE90VmdVXLFBGZGde6VdFo5Ru53jziQPtQ_hZcd4Q';
