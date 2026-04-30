@@ -678,12 +678,24 @@ function filtrarClases(estado) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎾</div>No hay clases ${estado === 'todas' ? '' : 'con estado '+estado}</div>`;
     return;
   }
-  el.innerHTML = filtradas.map(c => {
-    const hi = String(c.hora_inicio).substring(0,5);
-    const hf = String(c.hora_fin).substring(0,5);
-    const fechaLabel = c.fecha ? new Date(String(c.fecha).substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
-    const estadoClass = 'estado-'+c.estado;
-    return `
+  // Agrupar por fecha
+  const porFecha = {};
+  filtradas.forEach(c => {
+    const fechaKey = c.fecha ? String(c.fecha).substring(0,10) : 'sin-fecha';
+    if (!porFecha[fechaKey]) porFecha[fechaKey] = [];
+    porFecha[fechaKey].push(c);
+  });
+  let htmlClases = '';
+  Object.entries(porFecha).sort(([a],[b]) => a.localeCompare(b)).forEach(([fechaKey, clasesDia]) => {
+    const fechaLabel = fechaKey !== 'sin-fecha'
+      ? new Date(fechaKey + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'}).toUpperCase()
+      : 'SIN FECHA';
+    htmlClases += `<div style="font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;margin:16px 0 8px">${fechaLabel}</div>`;
+    htmlClases += clasesDia.map(c => {
+      const hi = String(c.hora_inicio).substring(0,5);
+      const hf = String(c.hora_fin).substring(0,5);
+      const estadoClass = 'estado-'+c.estado;
+      return `
       <div class="reserva-card">
         <div class="alumno-av">${c.alumno_foto ? `<img src="${c.alumno_foto}">` : '👤'}</div>
         <div style="flex:1;min-width:0">
@@ -691,7 +703,7 @@ function filtrarClases(estado) {
             <span style="font-weight:700;font-size:15px">${c.alumno_nombre}</span>
             <span class="estado-badge ${estadoClass}">${c.estado}</span>
           </div>
-          <div style="color:var(--muted);font-size:13px">📅 ${fechaLabel} · 🕐 ${hi} - ${hf}</div>
+          <div style="color:var(--muted);font-size:13px">🕐 ${hi} - ${hf}</div>
           ${c.zona ? `<div style="color:rgba(255,255,255,.4);font-size:12px;margin-top:2px">📍 ${c.zona}</div>` : ''}
           ${c.precio_cobrado ? `<div style="color:var(--green);font-size:12px;font-weight:600;margin-top:2px">💰 $${c.precio_cobrado}</div>` : ''}
           ${c.notas ? `<div style="color:var(--muted);font-size:12px;margin-top:4px;font-style:italic">"${c.notas}"</div>` : ''}
@@ -700,10 +712,12 @@ function filtrarClases(estado) {
           ${c.estado === 'pendiente' ? `
             <button onclick="responderClase('${c.id}','confirmada')" class="btn-sm success">✅</button>
             <button onclick="responderClase('${c.id}','cancelada')" class="btn-sm danger">❌</button>` : ''}
-          ${c.alumno_tel ? `<button onclick="window.open('https://wa.me/'+('${c.alumno_tel}'.replace(/\\D/g,'')))" class="btn-sm wa">💬</button>` : ''}
+          ${c.alumno_tel ? `<button onclick="window.open('https://wa.me/'+('${c.alumno_tel}'.replace(/\D/g,'')))" class="btn-sm wa">💬</button>` : ''}
         </div>
       </div>`;
-  }).join('');
+    }).join('');
+  });
+  el.innerHTML = htmlClases;
 }
 
 async function responderClase(id, estado) {
