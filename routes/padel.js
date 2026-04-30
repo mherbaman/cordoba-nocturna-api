@@ -1515,7 +1515,7 @@ router.get('/clases/mis-clases', authUsuario, async (req, res) => {
       SELECT r.*, u.nombre AS alumno_nombre, u.foto_url AS alumno_foto, u.telefono AS alumno_tel
       FROM reservas_clase r
       JOIN usuarios u ON u.id = r.alumno_id
-      WHERE r.profesor_id = $1
+      WHERE r.profesor_id = $1 AND r.fecha >= CURRENT_DATE AND r.estado != 'cancelada'
       ORDER BY r.fecha ASC, r.hora_inicio ASC
     `, [p.rows[0].id]);
     res.json(result.rows);
