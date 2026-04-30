@@ -1471,6 +1471,12 @@ router.post('/clases/reservar', authUsuario, async (req, res) => {
         [disponibilidad_id, fecha]
       );
       if (parseInt(ocupado.rows[0].total) >= cuposMax) return res.status(409).json({ error: 'No hay cupos disponibles para este turno' });
+      // Verificar que el alumno no este ya inscripto
+      const yaInscripto = await pool.query(
+        "SELECT id FROM reservas_clase WHERE disponibilidad_id = $1 AND fecha = $2 AND alumno_id = $3 AND estado != 'cancelada'",
+        [disponibilidad_id, fecha, alumno_id]
+      );
+      if (yaInscripto.rows.length) return res.status(409).json({ error: 'Ya estás inscripto en esta clase' });
     }
     const p = await pool.query('SELECT precio_hora, whatsapp FROM profesores_padel WHERE id = $1', [profesor_id]);
     const precio = p.rows[0]?.precio_hora || null;
