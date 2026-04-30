@@ -3706,8 +3706,9 @@ async function cargarClases() {
       p.disponibilidad.forEach(d => {
         let diaKey, diaLabel;
         if (d.fecha_especifica) {
-          const fecha = new Date(d.fecha_especifica + 'T12:00:00');
-          diaKey = d.fecha_especifica;
+          const fechaStr = String(d.fecha_especifica).substring(0,10);
+          const fecha = new Date(fechaStr + 'T12:00:00');
+          diaKey = fechaStr;
           diaLabel = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
         } else if (d.dia_semana !== null && d.dia_semana !== undefined) {
           diaKey = 'sem_' + d.dia_semana;
