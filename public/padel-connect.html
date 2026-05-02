@@ -850,6 +850,34 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 </div>
 
 <!-- SWIPE -->
+<!-- CANCHAS -->
+<div class="screen" id="canchas-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">🏟️ <span>Canchas</span></div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+    <div class="home-card home-card-canchas" onclick="mostrarReservarCancha()">
+      <span class="home-card-icon">📅</span>
+      <div class="home-card-title">Reservar Cancha</div>
+      <p class="home-card-desc">Encontrá canchas disponibles y reservá tu turno.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card" style="background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.3)">
+      <span class="home-card-icon">🏘️</span>
+      <div class="home-card-title" style="color:#a78bfa">Clubes</div>
+      <p class="home-card-desc">Explorá los clubes disponibles en tu zona.</p>
+      <span class="home-card-arrow" style="opacity:.2">→</span>
+      <div style="position:absolute;top:12px;right:12px;font-size:10px;color:rgba(255,255,255,.3);font-weight:700">PRÓXIMAMENTE</div>
+    </div>
+  </div>
+  <div id="canchas-list-section" style="width:100%;display:none;flex:1;overflow-y:auto">
+    <div style="padding:8px 20px 4px;display:flex;align-items:center;gap:8px">
+      <button onclick="ocultarReservarCancha()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer">← Volver</button>
+    </div>
+    <div id="canchas-jugador-list-2" style="padding:8px 0 40px"></div>
+  </div>
+</div>
 <div class="screen" id="swipe" style="padding:0">
   <div class="swipe-header">
     <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:20px;opacity:.7;padding:0 8px 0 0">←</button>
@@ -3116,11 +3144,40 @@ function irAJugar() {
   }, 100);
 }
 function irACanchas() {
-  showScreen('swipe');
-  setTimeout(() => {
-    const tabs = document.querySelectorAll('.swipe-tab');
-    switchTab('canchas', tabs[1]);
-  }, 100);
+  showScreen('canchas-screen');
+}
+function mostrarReservarCancha() {
+  document.getElementById('canchas-list-section').style.display = 'flex';
+  document.getElementById('canchas-list-section').style.flexDirection = 'column';
+  cargarCanchasJugador2();
+}
+function ocultarReservarCancha() {
+  document.getElementById('canchas-list-section').style.display = 'none';
+}
+async function cargarCanchasJugador2() {
+  const el = document.getElementById('canchas-jugador-list-2');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const canchas = await api('/padel/canchas');
+    if (!canchas.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
+      return;
+    }
+    const porNegocio = {};
+    canchas.forEach(c => {
+      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
+      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
+      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
+    });
+    el.innerHTML = Object.values(porNegocio).map(c => `
+      <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
+        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
+        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
+        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
+      </div>`).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
 }
 function irAMiActividad() {
   showScreen('swipe');
