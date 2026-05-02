@@ -3106,15 +3106,24 @@ function irAMiPerfil() {
 // TORNEOS
 function irAJugar() {
   showScreen('swipe');
-  setTimeout(() => switchTab('jugar', document.querySelector('.swipe-tab')), 100);
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('.swipe-tab');
+    switchTab('jugar', tabs[0]);
+  }, 100);
 }
 function irACanchas() {
   showScreen('swipe');
-  setTimeout(() => switchTab('canchas', document.querySelector('.swipe-tab[data-tab="canchas"]')), 100);
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('.swipe-tab');
+    switchTab('canchas', tabs[1]);
+  }, 100);
 }
 function irAMiActividad() {
   showScreen('swipe');
-  setTimeout(() => switchTab('misreservas', document.querySelector('.swipe-tab[data-tab="misreservas"]')), 100);
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('.swipe-tab');
+    switchTab('misreservas', tabs[4]);
+  }, 100);
 }
 // ============================================================
 let torneoActual = null;
