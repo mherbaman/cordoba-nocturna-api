@@ -850,6 +850,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 <!-- SWIPE -->
 <div class="screen" id="swipe" style="padding:0">
   <div class="swipe-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:20px;opacity:.7;padding:0 8px 0 0">←</button>
     <button class="profile-btn" id="profile-header-btn" onclick="openProfile()">
       <span id="profile-btn-emoji">👤</span>
       <img id="profile-btn-img" src="" alt="">
