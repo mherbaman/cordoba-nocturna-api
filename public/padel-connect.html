@@ -1029,15 +1029,11 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
   <div class="swipe-tabs" id="swipe-tabs">
     <div class="swipe-tab active" onclick="switchTab('jugar',this)">🎾 Jugar</div>
-    <div class="swipe-tab" onclick="switchTab('canchas',this)">🏟️ Canchas</div>
-    <div class="swipe-tab" onclick="switchTab('ranking',this)">🏆 Ranking</div>
-    <div class="swipe-tab" onclick="switchTab('partidos',this)">⚡ Partidos</div>
-    <div class="swipe-tab" onclick="switchTab('misreservas',this)">📋 Mis turnos</div>
-    <div class="swipe-tab" onclick="switchTab('misinscripciones',this)">🏆 Mis inscripciones</div>
+    <div class="swipe-tab" onclick="switchTab('falta1',this)">🔥 Falta 1</div>
+    <div class="swipe-tab" onclick="switchTab('partidos',this)">⚡ Mis Partidos</div>
+    <div class="swipe-tab" onclick="switchTab('proximospartidos',this)">📍 Próximos</div>
   </div>
   <!-- TAB MIS INSCRIPCIONES -->
-  <div class="tab-content" id="tab-misinscripciones" style="padding:16px;overflow-y:auto">
-  </div>
   <!-- TAB JUGAR -->
   <div class="tab-content active" id="tab-jugar">
     <div style="padding:12px 16px 0;width:100%;max-width:420px;margin:0 auto">
@@ -1049,43 +1045,45 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div><!-- fin tab-jugar -->
 
   <!-- TAB CANCHAS -->
-  <div class="tab-content" id="tab-canchas">
-    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted)">Reservá una cancha cerca tuyo</div>
-    <div id="canchas-jugador-list" style="padding:8px 0 40px"></div>
-  </div>
 
   <!-- TAB MIS RESERVAS -->
   <div class="tab-content" id="tab-partidos">
     <div style="padding:16px">
       <button onclick="abrirCrearPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">⚡ Crear partido</button>
     </div>
+    <div id="partidos-list" style="padding:0 16px 16px"><p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando partidos...</p></div>
+  </div>
+
+  <!-- TAB FALTA 1 -->
+  <div class="tab-content" id="tab-falta1" style="flex:1;overflow-y:auto">
+    <div id="falta1-list" style="padding:12px 16px 80px"></div>
+  </div>
+
+  <!-- TAB PROXIMOS PARTIDOS -->
+  <div class="tab-content" id="tab-proximospartidos" style="flex:1;overflow-y:auto">
+    <div class="pp-filtros" style="padding:12px 16px 0">
+      <select class="pp-filtro" id="pp-filtro-zona-2" onchange="cargarProximosSwipe()" style="color-scheme:dark;background:#030d06;flex:1">
+        <option value="">📍 Todas las zonas</option>
+        <option value="Centro">Centro</option>
+        <option value="Nueva Córdoba">Nueva Córdoba</option>
+        <option value="Güemes">Güemes</option>
+        <option value="Alberdi">Alberdi</option>
+        <option value="General Paz">General Paz</option>
+        <option value="Cerro de las Rosas">Cerro de las Rosas</option>
+        <option value="Villa Allende">Villa Allende</option>
+        <option value="Arguello">Arguello</option>
+      </select>
+    </div>
+    <div id="proximos-swipe-list" style="padding:8px 16px 80px"></div>
+  </div>
     <div id="partidos-list" style="padding:0 16px 16px">
       <p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando partidos...</p>
     </div>
   </div>
 
-  <div class="tab-content" id="tab-misreservas">
-    <div style="padding:14px 18px 8px;display:flex;gap:8px">
-      <button onclick="switchMisReservasTab('canchas',this)" id="btn-mis-canchas" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.15);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">🏟️ Canchas</button>
-      <button onclick="switchMisReservasTab('clases',this)" id="btn-mis-clases" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">🎓 Clases</button>
-    </div>
   </div>
 
   <!-- TAB RANKING -->
-  <div class="tab-content" id="tab-ranking">
-    <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap">
-      <select id="ranking-nivel-filter" class="input-field" style="flex:1;margin:0;font-size:13px;background:#030d06;color:#fff" onchange="cargarRanking()">
-        <option value="">Todos los niveles</option>
-        <option value="octava">8va categoría</option>
-        <option value="septima">7ma categoría</option>
-        <option value="sexta">6ta categoría</option>
-        <option value="quinta">5ta categoría</option>
-        <option value="cuarta">4ta categoría</option>
-        <option value="tercera">3ra categoría</option>
-        <option value="segunda">2da categoría</option>
-        <option value="primera">1ra categoría</option>
-      </select>
-    </div>
     <div id="ranking-list"></div>
   </div>
 
@@ -2201,17 +2199,64 @@ async function guardarPerfilPadel() {
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────
+async function cargarFalta1Swipe() {
+  const el = document.getElementById('falta1-list');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const partidos = await api('/padel/partidos-publicos');
+    const falta1 = partidos.filter(p => p.cupos - (p.inscriptos||[]).length === 1);
+    if (!falta1.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🔥</div>No hay partidos que necesiten un jugador ahora.</div>';
+      return;
+    }
+    el.innerHTML = falta1.map(p => renderPartidoPublicoCard(p)).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+async function cargarProximosSwipe() {
+  const el = document.getElementById('proximos-swipe-list');
+  if (!el) return;
+  const zona = document.getElementById('pp-filtro-zona-2')?.value || '';
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    let url = '/padel/partidos-publicos';
+    if (zona) url += '?zona=' + encodeURIComponent(zona);
+    const partidos = await api(url);
+    if (!partidos.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay partidos próximos.</div>';
+      return;
+    }
+    el.innerHTML = partidos.map(p => renderPartidoPublicoCard(p)).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+function renderPartidoPublicoCard(p) {
+  const inscriptos = p.inscriptos || [];
+  const libres = p.cupos - inscriptos.length;
+  const fecha = new Date(String(p.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short'});
+  const yaInscripto = usuario && inscriptos.some(i => i.usuario_id === usuario.id);
+  return `<div class="partido-pub-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;color:#fbbf24">${p.zona} · ${p.categoria||''}</div>
+      <span style="font-size:11px;font-weight:700;color:${libres===1?'#f87171':'#4ade80'};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;border:1px solid ${libres===1?'rgba(248,113,113,.4)':'rgba(74,222,128,.4)'}">${libres} lugar${libres===1?'':'es'}</span>
+    </div>
+    <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${fecha} · ${p.hora||''}</div>
+    ${p.lugar ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">📍 ${p.lugar}</div>` : ''}
+    ${!yaInscripto && libres > 0 ? `<button onclick="inscribirsePartidoPublico('${p.id}')" style="width:100%;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">🎾 Unirme</button>` : yaInscripto ? `<div style="text-align:center;color:#4ade80;font-size:13px;font-weight:700">✓ Ya estás inscripto</div>` : `<div style="text-align:center;color:rgba(255,255,255,.3);font-size:12px">Partido completo</div>`}
+  </div>`;
+}
 function switchTab(tab, btn) {
   document.querySelectorAll('.swipe-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   if(btn) btn.classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='jugar') { cargarJugadoresPadel(); poblarZonas(); }
-  if(tab==='canchas') cargarCanchasJugador();
-  if(tab==='ranking') cargarRanking();
+  if(tab==='falta1') cargarFalta1Swipe();
   if(tab==='partidos') cargarPartidos();
-  if(tab==='misreservas') cargarMisReservas();
-  if(tab==='misinscripciones') cargarMisInscripciones();
+  if(tab==='proximospartidos') cargarProximosSwipe();
 }
 
 // ── CANCHAS JUGADOR ───────────────────────────────────────────────────
