@@ -1878,3 +1878,53 @@ router.post('/disponibilidad/masiva', authAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error interno' });
   }
 });
+
+// ============================================================
+// JUGADORES FAVORITOS
+// ============================================================
+
+// GET /padel/favoritos — mis jugadores favoritos
+router.get('/favoritos', authUsuario, async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT jf.jugador_usuario_id, u.nombre, u.foto_url, jp.nivel, jp.zona, jp.ranking_puntos
+      FROM jugadores_favoritos jf
+      JOIN usuarios u ON u.id = jf.jugador_usuario_id
+      LEFT JOIN jugadores_padel jp ON jp.usuario_id = jf.jugador_usuario_id
+      WHERE jf.usuario_id = $1
+      ORDER BY jf.creado_en DESC
+    `, [req.usuario.id]);
+    res.json(rows);
+  } catch (err) {
+    console.error('GET /padel/favoritos:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// POST /padel/favoritos/:jugador_usuario_id — agregar favorito
+router.post('/favoritos/:jugador_usuario_id', authUsuario, async (req, res) => {
+  try {
+    await pool.query(`
+      INSERT INTO jugadores_favoritos (usuario_id, jugador_usuario_id)
+      VALUES ($1, $2) ON CONFLICT DO NOTHING
+    `, [req.usuario.id, req.params.jugador_usuario_id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /padel/favoritos:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// DELETE /padel/favoritos/:jugador_usuario_id — quitar favorito
+router.delete('/favoritos/:jugador_usuario_id', authUsuario, async (req, res) => {
+  try {
+    await pool.query(`
+      DELETE FROM jugadores_favoritos
+      WHERE usuario_id = $1 AND jugador_usuario_id = $2
+    `, [req.usuario.id, req.params.jugador_usuario_id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /padel/favoritos:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
