@@ -596,13 +596,24 @@ async function cargarAgenda() {
       el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No tenés turnos cargados aún.<br>Agregá tu primera disponibilidad.</div>';
       return;
     }
-    const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    el.innerHTML = turnos.map(t => {
+    const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+    // Separar fijos y recurrentes
+    const fijos = turnos.filter(t => t.fecha_especifica);
+    const recurrentes = turnos.filter(t => !t.fecha_especifica);
+
+    // Agrupar fijos por fecha
+    const grupos = {};
+    fijos.forEach(t => {
+      const fechaKey = String(t.fecha_especifica).substring(0,10);
+      if (!grupos[fechaKey]) grupos[fechaKey] = [];
+      grupos[fechaKey].push(t);
+    });
+
+    const renderTurno = t => {
       const hi = String(t.hora_inicio).substring(0,5);
       const hf = String(t.hora_fin).substring(0,5);
-      const cuando = t.fecha_especifica
-        ? new Date(String(t.fecha_especifica).substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
-        : `Todos los ${DIAS[t.dia_semana]} (recurrente)`;
       const ocupados = parseInt(t.reservas_activas) || 0;
       const cupos = t.cupos || 1;
       const libres = cupos - ocupados;
@@ -611,12 +622,51 @@ async function cargarAgenda() {
         <div class="turno-card">
           <div style="flex:1">
             <div class="turno-hora">🕐 ${hi} - ${hf}</div>
-            <div class="turno-info">📅 ${cuando}${t.zona ? ' · 📍 '+t.zona : ''}</div>
+            ${t.zona ? `<div class="turno-info">📍 ${t.zona}</div>` : ''}
             <div style="margin-top:6px;font-size:12px;font-weight:700;color:${color}">${libres <= 0 ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares disponibles'}</div>
           </div>
           <button onclick="borrarTurno('${t.id}')" class="btn-sm danger">🗑</button>
         </div>`;
-    }).join('');
+    };
+
+    let html = '';
+
+    // Renderizar fijos agrupados por día
+    const fechasOrdenadas = Object.keys(grupos).sort();
+    fechasOrdenadas.forEach(fechaKey => {
+      const fecha = new Date(fechaKey + 'T12:00:00');
+      const diaNombre = DIAS_FULL[fecha.getDay()].toUpperCase();
+      const dia = fecha.getDate();
+      const mes = MESES[fecha.getMonth()].toUpperCase();
+      const anio = fecha.getFullYear();
+      html += `<div style="margin:18px 0 8px;padding:8px 14px;background:linear-gradient(90deg,#7c3aed22,transparent);border-left:3px solid #7c3aed;border-radius:6px;font-size:13px;font-weight:800;color:#a78bfa;letter-spacing:0.5px">${diaNombre} ${dia} DE ${mes} ${anio}</div>`;
+      grupos[fechaKey].forEach(t => { html += renderTurno(t); });
+    });
+
+    // Recurrentes al final
+    if (recurrentes.length) {
+      html += `<div style="margin:18px 0 8px;padding:8px 14px;background:linear-gradient(90deg,#0ea5e922,transparent);border-left:3px solid #0ea5e9;border-radius:6px;font-size:13px;font-weight:800;color:#38bdf8;letter-spacing:0.5px">🔁 RECURRENTES</div>`;
+      recurrentes.forEach(t => {
+        const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        const hi = String(t.hora_inicio).substring(0,5);
+        const hf = String(t.hora_fin).substring(0,5);
+        const ocupados = parseInt(t.reservas_activas) || 0;
+        const cupos = t.cupos || 1;
+        const libres = cupos - ocupados;
+        const color = libres <= 0 ? '#ff2d78' : libres === 1 ? '#fbbf24' : '#22c55e';
+        html += `
+        <div class="turno-card">
+          <div style="flex:1">
+            <div class="turno-hora">🕐 ${hi} - ${hf}</div>
+            <div class="turno-info">🔁 Todos los ${DIAS[t.dia_semana]}${t.zona ? ' · 📍 '+t.zona : ''}</div>
+            <div style="margin-top:6px;font-size:12px;font-weight:700;color:${color}">${libres <= 0 ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares disponibles'}</div>
+          </div>
+          <button onclick="borrarTurno('${t.id}')" class="btn-sm danger">🗑</button>
+        </div>`;
+      });
+    }
+
+    el.innerHTML = html;
   } catch(e) {
     el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
   }
