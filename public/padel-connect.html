@@ -947,7 +947,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <button class="back-btn" onclick="showScreen('actividad-screen')" style="font-size:22px">←</button>
     <div class="pp-title">🎯 <span>Competir</span></div>
   </div>
-  <div style="width:100%;max-width:420px;display:flex;gap:0;border-bottom:1px solid rgba(34,197,94,.15)">
+  <div style="width:100%;max-width:420px;display:flex;gap:0;border-bottom:1px solid rgba(34,197,94,.15);background:rgba(34,197,94,.06)">
     <button class="swipe-tab active" id="comp-tab-ranking" onclick="switchCompetirTab('ranking',this)" style="flex:1;color:var(--green)">🏆 Ranking</button>
     <button class="swipe-tab" id="comp-tab-torneos" onclick="switchCompetirTab('torneos',this)" style="flex:1;color:rgba(255,255,255,.45)">🎾 Torneos</button>
     <button class="swipe-tab" id="comp-tab-super8" onclick="switchCompetirTab('super8',this)" style="flex:1;color:rgba(255,255,255,.45)">⚡ Super 8</button>
