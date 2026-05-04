@@ -16,6 +16,7 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
 // ─── JUGADORES PADEL (tab Jugar) ─────────────────────────────────────
+let favoritosSet = new Set();
 let jugadoresList = [], jugadorIdx = 0;
 const NIVELES_PADEL = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
 
@@ -80,11 +81,36 @@ function renderJugadores() {
           <button onclick="verResenasJugador('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de clubes</button>
           <br>
           <button onclick="verResenasDeJugadores('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de jugadores</button>
+          <br>
+          <button id="btn-favorito-${p.usuario_id}" onclick="toggleFavorito('${p.usuario_id}','${p.nombre}')" style="margin-top:8px;background:${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.06)'};border:1px solid ${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.4)' : 'rgba(255,255,255,.1)'};color:${favoritosSet.has(String(p.usuario_id)) ? '#f87171' : 'rgba(255,255,255,.5)'};padding:8px 20px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">
+            ${favoritosSet.has(String(p.usuario_id)) ? '❤️ Favorito' : '🤍 Agregar Favorito'}
+          </button>
         </div>
       </div>
     </div>`;
 }
 
+async function cargarFavoritos() {
+  try {
+    const data = await api('/padel/favoritos');
+    favoritosSet = new Set(data.map(f => String(f.jugador_usuario_id)));
+  } catch(e) { favoritosSet = new Set(); }
+}
+async function toggleFavorito(jugadorUsuarioId, nombre) {
+  const esFav = favoritosSet.has(String(jugadorUsuarioId));
+  try {
+    if (esFav) {
+      await api('/padel/favoritos/' + jugadorUsuarioId, 'DELETE');
+      favoritosSet.delete(String(jugadorUsuarioId));
+    } else {
+      await api('/padel/favoritos/' + jugadorUsuarioId, 'POST');
+      favoritosSet.add(String(jugadorUsuarioId));
+    }
+    renderJugadores();
+  } catch(e) {
+    alert('Error al actualizar favorito');
+  }
+}
 function anteriorJugador() {
   if (jugadorIdx > 0) { jugadorIdx--; renderJugadores(); }
 }
@@ -1255,7 +1281,7 @@ async function api(path,opts={}){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='swipe'){cargarJugadoresPadel();poblarZonas();pingActividad();cargarMatchCount();}
+  if(id==='swipe'){cargarJugadoresPadel();cargarFavoritos();poblarZonas();pingActividad();cargarMatchCount();}
   if(id==='matches-screen'){loadMatches();renderizarAds('matches');}
 }
 
