@@ -83,7 +83,7 @@ function renderJugadores() {
           <button onclick="verResenasDeJugadores('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de jugadores</button>
           <br>
           <button id="btn-favorito-${p.usuario_id}" onclick="toggleFavorito('${p.usuario_id}','${p.nombre}')" style="margin-top:8px;background:${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.06)'};border:1px solid ${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.4)' : 'rgba(255,255,255,.1)'};color:${favoritosSet.has(String(p.usuario_id)) ? '#f87171' : 'rgba(255,255,255,.5)'};padding:8px 20px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">
-            ${favoritosSet.has(String(p.usuario_id)) ? '❤️ Favorito' : '🤍 Agregar Favorito'}
+            ${favoritosSet.has(String(p.usuario_id)) ? '❤️ Favorito' : '🤍 Agregar Jugador Favorito'}
           </button>
         </div>
       </div>
@@ -100,10 +100,10 @@ async function toggleFavorito(jugadorUsuarioId, nombre) {
   const esFav = favoritosSet.has(String(jugadorUsuarioId));
   try {
     if (esFav) {
-      await api('/padel/favoritos/' + jugadorUsuarioId, 'DELETE');
+      await api('/padel/favoritos/' + jugadorUsuarioId, {method:'DELETE'});
       favoritosSet.delete(String(jugadorUsuarioId));
     } else {
-      await api('/padel/favoritos/' + jugadorUsuarioId, 'POST');
+      await api('/padel/favoritos/' + jugadorUsuarioId, {method:'POST'});
       favoritosSet.add(String(jugadorUsuarioId));
     }
     renderJugadores();
