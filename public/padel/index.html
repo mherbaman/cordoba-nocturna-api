@@ -16,6 +16,7 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
 // ─── JUGADORES PADEL (tab Jugar) ─────────────────────────────────────
+let favoritosSet = new Set();
 let jugadoresList = [], jugadorIdx = 0;
 const NIVELES_PADEL = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
 
@@ -59,7 +60,7 @@ function renderJugadores() {
     <div style="text-align:right;color:rgba(255,255,255,.3);font-size:11px;margin-bottom:4px">${jugadorIdx+1} / ${total}</div>
     <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden">
       ${p.foto_url
-        ? `<img src="${p.foto_url}" style="width:100%;height:220px;object-fit:cover">`
+        ? `<div style="display:flex;justify-content:center;padding:24px 0 8px"><img src="${p.foto_url}" style="width:180px;height:180px;object-fit:cover;border-radius:50%;border:3px solid rgba(34,197,94,.4)"></div>`
         : `<div style="width:100%;height:220px;background:rgba(34,197,94,.08);display:flex;align-items:center;justify-content:center;font-size:72px">😊</div>`}
       <div style="padding:16px">
         <div style="font-size:20px;font-weight:700">${p.nombre}${p.edad ? `<span style="color:var(--green);font-size:15px;font-weight:400;margin-left:6px">${p.edad} años</span>` : ''}</div>
@@ -80,11 +81,36 @@ function renderJugadores() {
           <button onclick="verResenasJugador('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de clubes</button>
           <br>
           <button onclick="verResenasDeJugadores('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de jugadores</button>
+          <br>
+          <button id="btn-favorito-${p.usuario_id}" onclick="toggleFavorito('${p.usuario_id}','${p.nombre}')" style="margin-top:8px;background:${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.06)'};border:1px solid ${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.4)' : 'rgba(255,255,255,.1)'};color:${favoritosSet.has(String(p.usuario_id)) ? '#f87171' : 'rgba(255,255,255,.5)'};padding:8px 20px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">
+            ${favoritosSet.has(String(p.usuario_id)) ? '❤️ Favorito' : '🤍 Agregar Jugador Favorito'}
+          </button>
         </div>
       </div>
     </div>`;
 }
 
+async function cargarFavoritos() {
+  try {
+    const data = await api('/padel/favoritos');
+    favoritosSet = new Set(data.map(f => String(f.jugador_usuario_id)));
+  } catch(e) { favoritosSet = new Set(); }
+}
+async function toggleFavorito(jugadorUsuarioId, nombre) {
+  const esFav = favoritosSet.has(String(jugadorUsuarioId));
+  try {
+    if (esFav) {
+      await api('/padel/favoritos/' + jugadorUsuarioId, {method:'DELETE'});
+      favoritosSet.delete(String(jugadorUsuarioId));
+    } else {
+      await api('/padel/favoritos/' + jugadorUsuarioId, {method:'POST'});
+      favoritosSet.add(String(jugadorUsuarioId));
+    }
+    renderJugadores();
+  } catch(e) {
+    alert('Error al actualizar favorito');
+  }
+}
 function anteriorJugador() {
   if (jugadorIdx > 0) { jugadorIdx--; renderJugadores(); }
 }
@@ -384,7 +410,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 
 /* TABS SWIPE */
 .swipe-tabs{display:flex;width:100%;max-width:420px;background:rgba(34,197,94,.06);border-bottom:1px solid rgba(34,197,94,.15)}
-.swipe-tab{flex:1;padding:11px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.swipe-tab{flex:1;background:transparent;border:none;padding:11px 6px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
 .swipe-tab.active{color:var(--green);border-bottom-color:var(--green)}
 .tab-content{display:none;width:100%;flex:1;overflow-y:auto}
 .tab-content.active{display:flex;flex-direction:column}
@@ -414,7 +440,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .reserva-sheet{background:#071a0a;border:1px solid rgba(34,197,94,.25);border-radius:24px;padding:24px;width:90%;max-width:400px;max-height:85vh;overflow-y:auto}
 
 /* PERFIL PADEL SCREEN */
-#perfil-padel{justify-content:flex-start;padding:40px 24px 24px;overflow-y:auto}
+#perfil-padel{justify-content:flex-start;padding:12px 24px 24px;overflow-y:auto}
 .nivel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
 .nivel-btn{padding:12px;border-radius:12px;background:rgba(34,197,94,.06);border:1.5px solid rgba(34,197,94,.15);color:rgba(255,255,255,.7);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
 .nivel-btn:hover,.nivel-btn.selected{background:rgba(34,197,94,.2);border-color:var(--green);color:#fff}
@@ -446,6 +472,15 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .home-card-americano { background:rgba(234,179,8,.08); border-color:rgba(234,179,8,.3); }
 .home-card-americano:hover { background:rgba(234,179,8,.14); border-color:rgba(234,179,8,.6); }
 .home-card-americano .home-card-title { color:#fbbf24; }
+.home-card-jugar { background:rgba(34,197,94,.08); border-color:rgba(34,197,94,.3); }
+.home-card-jugar:hover { background:rgba(34,197,94,.14); border-color:var(--green); }
+.home-card-jugar .home-card-title { color:#4ade80; }
+.home-card-canchas { background:rgba(56,189,248,.08); border-color:rgba(56,189,248,.3); }
+.home-card-canchas:hover { background:rgba(56,189,248,.14); border-color:rgba(56,189,248,.6); }
+.home-card-canchas .home-card-title { color:#38bdf8; }
+.home-card-actividad { background:rgba(251,146,60,.08); border-color:rgba(251,146,60,.3); }
+.home-card-actividad:hover { background:rgba(251,146,60,.14); border-color:rgba(251,146,60,.6); }
+.home-card-actividad .home-card-title { color:#fb923c; }
 
 /* PRÓXIMOS PARTIDOS */
 #proximos-partidos { justify-content:flex-start; padding:0; }
@@ -552,36 +587,33 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <p class="home-subtitle" id="home-saludo">¿Qué querés hacer hoy? 🎾</p>
   </div>
   <div class="home-cards">
-    <div class="home-card home-card-partidos" onclick="irAProximosPartidos()">
-      <span class="home-card-icon">⚡</span>
-      <div class="home-card-title">Próximos Partidos</div>
-      <p class="home-card-desc">Encontrá y unite a partidos de pádel cerca tuyo. Filtrá por zona y categoría.</p>
-      <span class="home-card-arrow">→</span>
-    </div>
-    <div class="home-card home-card-perfil" onclick="irAMiPerfil()">
-      <span class="home-card-icon">👤</span>
-      <div class="home-card-title">Mi Perfil</div>
-      <p class="home-card-desc">Jugadores, canchas, ranking, mis reservas, mis partidos y configuración.</p>
-      <span class="home-card-arrow">→</span>
-    </div>
     <div class="home-card home-card-clases" onclick="showScreen('clases-screen');cargarClases()">
       <span class="home-card-icon">🎓</span>
       <div class="home-card-title">Clases Particulares</div>
       <p class="home-card-desc">Encontrá profesores disponibles y reservá tu clase de pádel.</p>
       <span class="home-card-arrow">→</span>
     </div>
-    
-      <div class="home-card home-card-americano" onclick="irAAmericanos()">
-        <div class="home-card-emoji">🎾</div>
-        <div class="home-card-title">Super 8 Americano</div>
-        <div class="home-card-sub">Formato round-robin · 8 jugadores · Ranking ELO</div>
-      </div>
-      <div class="home-card home-card-torneos" onclick="irATorneos()">
-      <span class="home-card-icon">🏆</span>
-      <div class="home-card-title">Torneos</div>
-      <p class="home-card-desc">Inscribite, seguí el fixture y la tabla de posiciones en tiempo real.</p>
+    <div class="home-card home-card-jugar" onclick="irAJugar()">
+      <span class="home-card-icon">🎾</span>
+      <div class="home-card-title">Jugar</div>
+      <p class="home-card-desc">Swipeá jugadores, encontrá partidos y unite a los que falta un jugador.</p>
       <span class="home-card-arrow">→</span>
     </div>
+    <div class="home-card home-card-canchas" onclick="irACanchas()">
+      <span class="home-card-icon">🏟️</span>
+      <div class="home-card-title">Canchas</div>
+      <p class="home-card-desc">Reservá tu cancha y explorá los clubes disponibles en tu zona.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card home-card-actividad" onclick="irAMiActividad()">
+      <span class="home-card-icon">📊</span>
+      <div class="home-card-title">Mi Actividad</div>
+      <p class="home-card-desc">Tus clases, turnos, inscripciones, torneos y ranking en un solo lugar.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:4px 20px 24px">
+    <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </div>
 
@@ -792,8 +824,11 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 
 <!-- PERFIL PADEL -->
 <div class="screen" id="perfil-padel">
+  <div style="width:100%;max-width:400px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div style="font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:1px">Tu perfil <span style="color:var(--green)">padelero</span></div>
+  </div>
   <div style="width:100%;max-width:400px">
-    <div style="font-family:'Bebas Neue',cursive;font-size:36px;letter-spacing:1px;margin-bottom:4px">Tu perfil <span style="color:var(--green)">padelero</span></div>
     <p style="color:var(--muted);font-size:14px;margin-bottom:28px">Completá estos datos para encontrar rivales de tu nivel.</p>
     <div class="error-msg" id="padel-error"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
@@ -844,8 +879,134 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 </div>
 
 <!-- SWIPE -->
+<!-- CANCHAS -->
+<div class="screen" id="canchas-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">🏟️ <span>Canchas</span></div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+    <div class="home-card home-card-canchas" onclick="mostrarReservarCancha()">
+      <span class="home-card-icon">📅</span>
+      <div class="home-card-title">Reservar Cancha</div>
+      <p class="home-card-desc">Encontrá canchas disponibles y reservá tu turno.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card" style="background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.3)">
+      <span class="home-card-icon">🏘️</span>
+      <div class="home-card-title" style="color:#a78bfa">Clubes</div>
+      <p class="home-card-desc">Explorá los clubes disponibles en tu zona.</p>
+      <span class="home-card-arrow" style="opacity:.2">→</span>
+      <div style="position:absolute;top:12px;right:12px;font-size:10px;color:rgba(255,255,255,.3);font-weight:700">PRÓXIMAMENTE</div>
+    </div>
+  </div>
+  <div id="canchas-list-section" style="width:100%;display:none;flex:1;overflow-y:auto">
+    <div style="padding:8px 20px 4px;display:flex;align-items:center;gap:8px">
+      <button onclick="ocultarReservarCancha()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer">← Volver</button>
+    </div>
+    <div id="canchas-jugador-list-2" style="padding:8px 0 40px"></div>
+  </div>
+</div>
+<!-- MI ACTIVIDAD -->
+<div class="screen" id="actividad-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">📊 <span>Mi Actividad</span></div>
+  </div>
+  <div style="width:100%;max-width:420px;padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+    <div class="home-card home-card-clases" onclick="showScreen('mis-clases-screen');cargarMisClases()">
+      <span class="home-card-icon">📚</span>
+      <div class="home-card-title">Mis Clases</div>
+      <p class="home-card-desc">Tus reservas de clases particulares con profesores.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card home-card-canchas" onclick="showScreen('mis-turnos-screen');cargarMisReservas()">
+      <span class="home-card-icon">📋</span>
+      <div class="home-card-title">Mis Turnos</div>
+      <p class="home-card-desc">Tus turnos de canchas reservados.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card home-card-jugar" onclick="showScreen('mis-inscripciones-screen');cargarMisInscripciones()">
+      <span class="home-card-icon">🏆</span>
+      <div class="home-card-title">Mis Inscripciones</div>
+      <p class="home-card-desc">Tus torneos y americanos en curso.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+    <div class="home-card home-card-actividad" onclick="showScreen('competir-screen')">
+      <span class="home-card-icon">🎯</span>
+      <div class="home-card-title">Competir</div>
+      <p class="home-card-desc">Torneos, Super 8 y Ranking de jugadores.</p>
+      <span class="home-card-arrow">→</span>
+    </div>
+  </div>
+</div>
+<!-- MIS CLASES -->
+<div class="screen" id="mis-clases-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('actividad-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">📚 <span>Mis Clases</span></div>
+  </div>
+  <div style="flex:1;width:100%;overflow-y:auto">
+    <div id="mis-clases-list" style="padding:8px 0 40px"></div>
+  </div>
+</div>
+<!-- MIS TURNOS -->
+<div class="screen" id="mis-turnos-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('actividad-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">📋 <span>Mis Turnos</span></div>
+  </div>
+  <div style="flex:1;width:100%;overflow-y:auto">
+    <div id="mis-reservas-list" style="padding:8px 0 40px"></div>
+  </div>
+</div>
+<!-- MIS INSCRIPCIONES -->
+<div class="screen" id="mis-inscripciones-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('actividad-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">🏆 <span>Mis Inscripciones</span></div>
+  </div>
+  <div style="flex:1;width:100%;overflow-y:auto;padding:16px">
+    <div id="mis-inscripciones-list"></div>
+  </div>
+</div>
+<!-- COMPETIR -->
+<div class="screen" id="competir-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header">
+    <button class="back-btn" onclick="showScreen('actividad-screen')" style="font-size:22px">←</button>
+    <div class="pp-title">🎯 <span>Competir</span></div>
+  </div>
+  <div style="width:100%;max-width:420px;display:flex;gap:0;border-bottom:1px solid rgba(34,197,94,.15);background:rgba(34,197,94,.06)">
+    <button class="swipe-tab active" id="comp-tab-ranking" onclick="switchCompetirTab('ranking',this)" style="flex:1;color:var(--green)">🏆 Ranking</button>
+    <button class="swipe-tab" id="comp-tab-torneos" onclick="switchCompetirTab('torneos',this)" style="flex:1;color:rgba(255,255,255,.45)">🎾 Torneos</button>
+    <button class="swipe-tab" id="comp-tab-super8" onclick="switchCompetirTab('super8',this)" style="flex:1;color:rgba(255,255,255,.45)">⚡ Super 8</button>
+  </div>
+  <div id="comp-content-ranking" style="flex:1;width:100%;overflow-y:auto">
+    <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap">
+      <select id="ranking-nivel-filter-2" class="input-field" style="flex:1;margin:0;font-size:13px;background:#030d06;color:#fff" onchange="cargarRankingCompetir()">
+        <option value="">Todos los niveles</option>
+        <option value="octava">8va categoría</option>
+        <option value="septima">7ma categoría</option>
+        <option value="sexta">6ta categoría</option>
+        <option value="quinta">5ta categoría</option>
+        <option value="cuarta">4ta categoría</option>
+        <option value="tercera">3ra categoría</option>
+        <option value="segunda">2da categoría</option>
+        <option value="primera">1ra categoría</option>
+      </select>
+    </div>
+    <div id="ranking-list-2"></div>
+  </div>
+  <div id="comp-content-torneos" style="display:none;flex:1;width:100%;overflow-y:auto;padding:16px">
+    <div id="torneos-lista-2"></div>
+  </div>
+  <div id="comp-content-super8" style="display:none;flex:1;width:100%;overflow-y:auto;padding:16px">
+    <div id="americanos-lista-2"></div>
+  </div>
+</div>
 <div class="screen" id="swipe" style="padding:0">
   <div class="swipe-header">
+    <button class="back-btn" onclick="showScreen('home-screen')" style="font-size:20px;opacity:.7;padding:0 8px 0 0">←</button>
     <button class="profile-btn" id="profile-header-btn" onclick="openProfile()">
       <span id="profile-btn-emoji">👤</span>
       <img id="profile-btn-img" src="" alt="">
@@ -868,16 +1029,11 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
   <div class="swipe-tabs" id="swipe-tabs">
     <div class="swipe-tab active" onclick="switchTab('jugar',this)">🎾 Jugar</div>
-    <div class="swipe-tab" onclick="switchTab('canchas',this)">🏟️ Canchas</div>
-    <div class="swipe-tab" onclick="switchTab('ranking',this)">🏆 Ranking</div>
-    <div class="swipe-tab" onclick="switchTab('partidos',this)">⚡ Partidos</div>
-    <div class="swipe-tab" onclick="switchTab('misreservas',this)">📋 Mis turnos</div>
-    <div class="swipe-tab" onclick="switchTab('misinscripciones',this)">🏆 Mis inscripciones</div>
+    <div class="swipe-tab" onclick="switchTab('falta1',this)">🔥 Falta 1</div>
+    <div class="swipe-tab" onclick="switchTab('partidos',this)">⚡ Mis Partidos</div>
+    <div class="swipe-tab" onclick="switchTab('proximospartidos',this)">📍 Próximos</div>
   </div>
   <!-- TAB MIS INSCRIPCIONES -->
-  <div class="tab-content" id="tab-misinscripciones" style="padding:16px;overflow-y:auto">
-    <div id="mis-inscripciones-list"><div style="text-align:center;padding:40px;color:var(--muted)">Cargando...</div></div>
-  </div>
   <!-- TAB JUGAR -->
   <div class="tab-content active" id="tab-jugar">
     <div style="padding:12px 16px 0;width:100%;max-width:420px;margin:0 auto">
@@ -889,45 +1045,45 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div><!-- fin tab-jugar -->
 
   <!-- TAB CANCHAS -->
-  <div class="tab-content" id="tab-canchas">
-    <div style="padding:14px 18px 0;font-size:12px;color:var(--muted)">Reservá una cancha cerca tuyo</div>
-    <div id="canchas-jugador-list" style="padding:8px 0 40px"></div>
-  </div>
 
   <!-- TAB MIS RESERVAS -->
   <div class="tab-content" id="tab-partidos">
     <div style="padding:16px">
       <button onclick="abrirCrearPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">⚡ Crear partido</button>
     </div>
+    <div id="partidos-list" style="padding:0 16px 16px"><p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando partidos...</p></div>
+  </div>
+
+  <!-- TAB FALTA 1 -->
+  <div class="tab-content" id="tab-falta1" style="flex:1;overflow-y:auto">
+    <div id="falta1-list" style="padding:12px 16px 80px"></div>
+  </div>
+
+  <!-- TAB PROXIMOS PARTIDOS -->
+  <div class="tab-content" id="tab-proximospartidos" style="flex:1;overflow-y:auto">
+    <div class="pp-filtros" style="padding:12px 16px 0">
+      <select class="pp-filtro" id="pp-filtro-zona-2" onchange="cargarProximosSwipe()" style="color-scheme:dark;background:#030d06;flex:1">
+        <option value="">📍 Todas las zonas</option>
+        <option value="Centro">Centro</option>
+        <option value="Nueva Córdoba">Nueva Córdoba</option>
+        <option value="Güemes">Güemes</option>
+        <option value="Alberdi">Alberdi</option>
+        <option value="General Paz">General Paz</option>
+        <option value="Cerro de las Rosas">Cerro de las Rosas</option>
+        <option value="Villa Allende">Villa Allende</option>
+        <option value="Arguello">Arguello</option>
+      </select>
+    </div>
+    <div id="proximos-swipe-list" style="padding:8px 16px 80px"></div>
+  </div>
     <div id="partidos-list" style="padding:0 16px 16px">
       <p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando partidos...</p>
     </div>
   </div>
 
-  <div class="tab-content" id="tab-misreservas">
-    <div style="padding:14px 18px 8px;display:flex;gap:8px">
-      <button onclick="switchMisReservasTab('canchas',this)" id="btn-mis-canchas" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.15);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">🏟️ Canchas</button>
-      <button onclick="switchMisReservasTab('clases',this)" id="btn-mis-clases" style="flex:1;padding:8px;border-radius:50px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer">🎓 Clases</button>
-    </div>
-    <div id="mis-reservas-list" style="padding:4px 0 40px"></div>
-    <div id="mis-clases-list" style="padding:4px 0 40px;display:none"></div>
   </div>
 
   <!-- TAB RANKING -->
-  <div class="tab-content" id="tab-ranking">
-    <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap">
-      <select id="ranking-nivel-filter" class="input-field" style="flex:1;margin:0;font-size:13px;background:#030d06;color:#fff" onchange="cargarRanking()">
-        <option value="">Todos los niveles</option>
-        <option value="octava">8va categoría</option>
-        <option value="septima">7ma categoría</option>
-        <option value="sexta">6ta categoría</option>
-        <option value="quinta">5ta categoría</option>
-        <option value="cuarta">4ta categoría</option>
-        <option value="tercera">3ra categoría</option>
-        <option value="segunda">2da categoría</option>
-        <option value="primera">1ra categoría</option>
-      </select>
-    </div>
     <div id="ranking-list"></div>
   </div>
 
@@ -981,9 +1137,9 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 </div>
 
 <!-- PROFILE MODAL -->
-<div id="profile-modal">
+<div id="profile-modal" onclick="if(event.target===this)closeProfile()">
   <div class="profile-sheet">
-    <div class="profile-handle"></div>
+    <div class="profile-handle" onclick="closeProfile()" style="cursor:pointer;text-align:center;padding:4px 0;margin-bottom:12px;color:rgba(255,255,255,.3);font-size:18px">⌄</div>
     <!-- FOTO + NOMBRE -->
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div class="photo-ring" id="modal-photo-ring">
@@ -1123,7 +1279,7 @@ async function api(path,opts={}){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='swipe'){cargarJugadoresPadel();poblarZonas();pingActividad();cargarMatchCount();}
+  if(id==='swipe'){cargarJugadoresPadel();cargarFavoritos();poblarZonas();pingActividad();cargarMatchCount();}
   if(id==='matches-screen'){loadMatches();renderizarAds('matches');}
 }
 
@@ -2043,17 +2199,64 @@ async function guardarPerfilPadel() {
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────
+async function cargarFalta1Swipe() {
+  const el = document.getElementById('falta1-list');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const partidos = await api('/padel/partidos-publicos');
+    const falta1 = partidos.filter(p => p.cupos - (p.inscriptos||[]).length === 1);
+    if (!falta1.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🔥</div>No hay partidos que necesiten un jugador ahora.</div>';
+      return;
+    }
+    el.innerHTML = falta1.map(p => renderPartidoPublicoCard(p)).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+async function cargarProximosSwipe() {
+  const el = document.getElementById('proximos-swipe-list');
+  if (!el) return;
+  const zona = document.getElementById('pp-filtro-zona-2')?.value || '';
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    let url = '/padel/partidos-publicos';
+    if (zona) url += '?zona=' + encodeURIComponent(zona);
+    const partidos = await api(url);
+    if (!partidos.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay partidos próximos.</div>';
+      return;
+    }
+    el.innerHTML = partidos.map(p => renderPartidoPublicoCard(p)).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+function renderPartidoPublicoCard(p) {
+  const inscriptos = p.inscriptos || [];
+  const libres = p.cupos - inscriptos.length;
+  const fecha = new Date(String(p.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short'});
+  const yaInscripto = usuario && inscriptos.some(i => i.usuario_id === usuario.id);
+  return `<div class="partido-pub-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;color:#fbbf24">${p.zona} · ${p.categoria||''}</div>
+      <span style="font-size:11px;font-weight:700;color:${libres===1?'#f87171':'#4ade80'};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;border:1px solid ${libres===1?'rgba(248,113,113,.4)':'rgba(74,222,128,.4)'}">${libres} lugar${libres===1?'':'es'}</span>
+    </div>
+    <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${fecha} · ${p.hora||''}</div>
+    ${p.lugar ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">📍 ${p.lugar}</div>` : ''}
+    ${!yaInscripto && libres > 0 ? `<button onclick="inscribirsePartidoPublico('${p.id}')" style="width:100%;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">🎾 Unirme</button>` : yaInscripto ? `<div style="text-align:center;color:#4ade80;font-size:13px;font-weight:700">✓ Ya estás inscripto</div>` : `<div style="text-align:center;color:rgba(255,255,255,.3);font-size:12px">Partido completo</div>`}
+  </div>`;
+}
 function switchTab(tab, btn) {
   document.querySelectorAll('.swipe-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   if(btn) btn.classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='jugar') { cargarJugadoresPadel(); poblarZonas(); }
-  if(tab==='canchas') cargarCanchasJugador();
-  if(tab==='ranking') cargarRanking();
+  if(tab==='falta1') cargarFalta1Swipe();
   if(tab==='partidos') cargarPartidos();
-  if(tab==='misreservas') cargarMisReservas();
-  if(tab==='misinscripciones') cargarMisInscripciones();
+  if(tab==='proximospartidos') cargarProximosSwipe();
 }
 
 // ── CANCHAS JUGADOR ───────────────────────────────────────────────────
@@ -3100,12 +3303,135 @@ function irAMiPerfil() {
 }
 
 
-// ============================================================
 // TORNEOS
+function irAJugar() {
+  showScreen('swipe');
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('.swipe-tab');
+    switchTab('jugar', tabs[0]);
+  }, 100);
+}
+function irACanchas() {
+  showScreen('canchas-screen');
+}
+function mostrarReservarCancha() {
+  document.getElementById('canchas-list-section').style.display = 'flex';
+  document.getElementById('canchas-list-section').style.flexDirection = 'column';
+  cargarCanchasJugador2();
+}
+function ocultarReservarCancha() {
+  document.getElementById('canchas-list-section').style.display = 'none';
+}
+async function cargarCanchasJugador2() {
+  const el = document.getElementById('canchas-jugador-list-2');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const canchas = await api('/padel/canchas');
+    if (!canchas.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
+      return;
+    }
+    const porNegocio = {};
+    canchas.forEach(c => {
+      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
+      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
+      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
+    });
+    el.innerHTML = Object.values(porNegocio).map(c => `
+      <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
+        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
+        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
+        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
+      </div>`).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+function irAMiActividad() {
+  showScreen('actividad-screen');
+}
 // ============================================================
 let torneoActual = null;
 let torneoTabActual = 'info';
 
+function switchCompetirTab(tab, btn) {
+  document.querySelectorAll('#competir-screen .swipe-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.color = 'rgba(255,255,255,.45)';
+  });
+  btn.classList.add('active');
+  btn.style.color = 'var(--green)';
+  document.getElementById('comp-content-ranking').style.display = tab === 'ranking' ? 'flex' : 'none';
+  document.getElementById('comp-content-torneos').style.display = tab === 'torneos' ? 'block' : 'none';
+  document.getElementById('comp-content-super8').style.display = tab === 'super8' ? 'block' : 'none';
+  if (tab === 'ranking') cargarRankingCompetir();
+  if (tab === 'torneos') cargarTorneosCompetir();
+  if (tab === 'super8') cargarSuper8Competir();
+}
+async function cargarRankingCompetir() {
+  const nivel = document.getElementById('ranking-nivel-filter-2')?.value || '';
+  const el = document.getElementById('ranking-list-2');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const data = await api('/padel/ranking' + (nivel ? '?nivel=' + nivel : ''));
+    if (!data.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay jugadores en el ranking aún.</div>'; return; }
+    el.innerHTML = data.map((j, idx) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:${idx===0?'#fbbf24':idx===1?'#94a3b8':idx===2?'#b45309':'var(--muted)'};width:28px;text-align:center">${idx+1}</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+          ${j.foto_url ? `<img src="${j.foto_url}" style="width:100%;height:100%;object-fit:cover">` : '<span style="font-size:18px">👤</span>'}
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${j.nombre}</div>
+          <div style="font-size:11px;color:var(--muted)">${j.nivel||''} · ${j.zona||''}</div>
+        </div>
+        <div style="font-family:'Bebas Neue',cursive;font-size:18px;color:var(--green)">${j.ranking_puntos||0}</div>
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar ranking.</div>';
+  }
+}
+async function cargarTorneosCompetir() {
+  const el = document.getElementById('torneos-lista-2');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const torneos = await api('/torneos');
+    if (!torneos.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay torneos disponibles.</div>'; return; }
+    el.innerHTML = torneos.map(t => {
+      const estadoColor = t.estado === 'inscripciones_abiertas' ? '#4ade80' : t.estado === 'en_curso' ? '#fbbf24' : 'rgba(255,255,255,.4)';
+      const estadoLabel = { borrador:'Próximamente', inscripciones_abiertas:'Inscripciones abiertas', inscripciones_cerradas:'Inscripciones cerradas', en_curso:'En curso', finalizado:'Finalizado' }[t.estado] || t.estado;
+      const fecha = new Date(t.fecha_inicio.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {day:'numeric', month:'long'});
+      return `<div onclick="abrirTorneo(${t.id})" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-family:'Bebas Neue',cursive;font-size:20px;color:#f87171">${t.nombre}</div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor}">${estadoLabel}</span>
+        </div>
+        ${t.sede ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📍 ${t.sede}</div>` : ''}
+        <div style="color:rgba(255,255,255,.5);font-size:12px">📅 ${fecha}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar torneos.</div>';
+  }
+}
+async function cargarSuper8Competir() {
+  const el = document.getElementById('americanos-lista-2');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const data = await api('/americanos');
+    if (!data.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay Super 8 disponibles.</div>'; return; }
+    el.innerHTML = data.map(a => `
+      <div onclick="abrirAmericano(${a.id})" style="background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.2);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer">
+        <div style="font-family:'Bebas Neue',cursive;font-size:20px;color:#fbbf24;margin-bottom:6px">${a.nombre}</div>
+        ${a.sede ? `<div style="color:rgba(255,255,255,.5);font-size:12px">📍 ${a.sede}</div>` : ''}
+      </div>`).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar Super 8.</div>';
+  }
+}
 function irATorneos() {
   showScreen('torneos-screen');
   cargarTorneos();
@@ -3706,8 +4032,9 @@ async function cargarClases() {
       p.disponibilidad.forEach(d => {
         let diaKey, diaLabel;
         if (d.fecha_especifica) {
-          const fecha = new Date(d.fecha_especifica + 'T12:00:00');
-          diaKey = d.fecha_especifica;
+          const fechaStr = String(d.fecha_especifica).substring(0,10);
+          const fecha = new Date(fechaStr + 'T12:00:00');
+          diaKey = fechaStr;
           diaLabel = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
         } else if (d.dia_semana !== null && d.dia_semana !== undefined) {
           diaKey = 'sem_' + d.dia_semana;
@@ -4113,6 +4440,9 @@ async function cargarMisInscripciones() {
 }
 </script>
 
+<button id="fab-crear-partido" onclick="abrirCrearPartido()" style="position:fixed;bottom:28px;right:20px;z-index:500;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;padding:14px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(34,197,94,.4);transition:all .2s">
+  ⚡ Crear Partido
+</button>
 </body>
 </html>
 
