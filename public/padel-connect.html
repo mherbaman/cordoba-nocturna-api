@@ -59,7 +59,7 @@ function renderJugadores() {
     <div style="text-align:right;color:rgba(255,255,255,.3);font-size:11px;margin-bottom:4px">${jugadorIdx+1} / ${total}</div>
     <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden">
       ${p.foto_url
-        ? `<img src="${p.foto_url}" style="width:100%;height:220px;object-fit:cover">`
+        ? `<div style="display:flex;justify-content:center;padding:24px 0 8px"><img src="${p.foto_url}" style="width:180px;height:180px;object-fit:cover;border-radius:50%;border:3px solid rgba(34,197,94,.4)"></div>`
         : `<div style="width:100%;height:220px;background:rgba(34,197,94,.08);display:flex;align-items:center;justify-content:center;font-size:72px">😊</div>`}
       <div style="padding:16px">
         <div style="font-size:20px;font-weight:700">${p.nombre}${p.edad ? `<span style="color:var(--green);font-size:15px;font-weight:400;margin-left:6px">${p.edad} años</span>` : ''}</div>
