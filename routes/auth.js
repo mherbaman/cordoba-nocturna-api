@@ -34,7 +34,7 @@ router.post('/registro', async (req, res) => {
       INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, foto_url, vibe, edad, app_origen)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING id, nombre, apellido, email, foto_url, vibe, edad, telefono, app_origen, creado_en
-    `, [nombre, email, telefono, password_hash, foto_url, vibe, edad]);
+    `, [nombre, apellido||'', email, telefono, password_hash, foto_url, vibe, edad, app_origen||'padel']);
 
     const usuario = result.rows[0];
     const token = jwt.sign(
