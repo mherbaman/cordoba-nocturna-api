@@ -96,6 +96,78 @@ router.get('/dashboard', authSuperAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+
+// ── GET /superadmin/actividad-reciente ───────────────────────────────
+router.get('/actividad-reciente', authSuperAdmin, async (req, res) => {
+  try {
+    const dias = 10;
+    const desde = `NOW() - INTERVAL '${dias} days'`;
+
+    const [
+      usuarios, jugadores, partidos_publicos, inscriptos,
+      americanos, americanos_jugadores, torneos, reservas,
+      matches, resenas, profesores, partidos_padel
+    ] = await Promise.all([
+      pool.query(`SELECT u.nombre, u.apellido, u.app_origen, u.creado_en as fecha, 'usuario_nuevo' as tipo
+                  FROM usuarios u WHERE u.creado_en >= ${desde} ORDER BY u.creado_en DESC LIMIT 30`),
+      pool.query(`SELECT jp.nombre, jp.creado_en as fecha, 'perfil_jugador' as tipo
+                  FROM jugadores_padel jp WHERE jp.creado_en >= ${desde} ORDER BY jp.creado_en DESC LIMIT 20`),
+      pool.query(`SELECT pp.descripcion as nombre, pp.zona, pp.fecha as fecha_partido, pp.creado_en as fecha, 'partido_publico' as tipo
+                  FROM partidos_publicos pp WHERE pp.creado_en >= ${desde} ORDER BY pp.creado_en DESC LIMIT 20`),
+      pool.query(`SELECT ppi.nombre, pp.zona, ppi.inscripto_en as fecha, 'inscripcion_partido' as tipo
+                  FROM partidos_publicos_inscriptos ppi
+                  JOIN partidos_publicos pp ON pp.id = ppi.partido_id
+                  WHERE ppi.inscripto_en >= ${desde} ORDER BY ppi.inscripto_en DESC LIMIT 20`),
+      pool.query(`SELECT a.nombre, a.zona, a.creado_en as fecha, 'americano_nuevo' as tipo
+                  FROM americanos a WHERE a.creado_en >= ${desde} ORDER BY a.creado_en DESC LIMIT 10`),
+      pool.query(`SELECT u.nombre, a.nombre as americano, aj.creado_en as fecha, 'inscripcion_americano' as tipo
+                  FROM americanos_jugadores aj
+                  JOIN americanos a ON a.id = aj.americano_id
+                  JOIN usuarios u ON u.id = aj.usuario_id
+                  WHERE aj.creado_en >= ${desde} ORDER BY aj.creado_en DESC LIMIT 20`),
+      pool.query(`SELECT ct.nombre, ct.creado_en as fecha, 'torneo_nuevo' as tipo
+                  FROM categorias_torneo ct WHERE ct.creado_en >= ${desde} ORDER BY ct.creado_en DESC LIMIT 10`),
+      pool.query(`SELECT u.nombre as alumno, p.nombre as profesor, rc.fecha, rc.creado_en as fecha, 'reserva_clase' as tipo
+                  FROM reservas_clase rc
+                  JOIN usuarios u ON u.id = rc.alumno_id
+                  JOIN profesores_padel p ON p.id = rc.profesor_id
+                  WHERE rc.creado_en >= ${desde} ORDER BY rc.creado_en DESC LIMIT 20`),
+      pool.query(`SELECT COUNT(*) as total, DATE(creado_en) as dia
+                  FROM matches WHERE creado_en >= ${desde} GROUP BY dia ORDER BY dia DESC LIMIT 10`),
+      pool.query(`SELECT rp.comentario, jp.nombre, rp.creado_en as fecha, 'resena_jugador' as tipo
+                  FROM resenas_padel rp
+                  JOIN jugadores_padel jp ON jp.id = rp.jugador_id
+                  WHERE rp.creado_en >= ${desde} ORDER BY rp.creado_en DESC LIMIT 10`),
+      pool.query(`SELECT p.nombre, p.creado_en as fecha, p.estado, 'profesor_nuevo' as tipo
+                  FROM profesores_padel p WHERE p.creado_en >= ${desde} ORDER BY p.creado_en DESC LIMIT 10`),
+      pool.query(`SELECT pp.descripcion as nombre, pp.creado_en as fecha, 'partido_privado' as tipo
+                  FROM partidos_padel pp WHERE pp.creado_en >= ${desde} ORDER BY pp.creado_en DESC LIMIT 20`)
+    ]);
+
+    // Unir todos los eventos y ordenar por fecha
+    let eventos = [
+      ...usuarios.rows,
+      ...jugadores.rows,
+      ...partidos_publicos.rows,
+      ...inscriptos.rows,
+      ...americanos.rows,
+      ...americanos_jugadores.rows,
+      ...torneos.rows,
+      ...reservas.rows,
+      ...resenas.rows,
+      ...profesores.rows,
+      ...partidos_padel.rows
+    ].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    res.json({
+      eventos,
+      matches_por_dia: matches.rows
+    });
+  } catch (err) {
+    console.error('actividad-reciente error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── GET /superadmin/negocios ─────────────────────────────────────────
 router.get('/negocios', authSuperAdmin, async (req, res) => {
   try {

@@ -793,23 +793,54 @@ async function cargarDashboard() {
       <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-num">${data.matches||0}</div><div class="stat-lbl">Matches</div></div>
       <div class="stat-card"><div class="stat-icon">🌙</div><div class="stat-num">${data.sesiones_activas||0}</div><div class="stat-lbl">Sesiones activas</div></div>
     `;
+    // Cargar actividad reciente
     const recent = document.getElementById('dashboard-recent');
-    recent.innerHTML = `
-      <table>
-        <thead><tr><th>Negocio</th><th>Usuarios hoy</th><th>Matches hoy</th><th>Estado</th></tr></thead>
-        <tbody>
-          ${(data.negocios_detalle||[]).map(n => `
-            <tr>
-              <td><strong>${n.nombre}</strong></td>
-              <td>${n.usuarios_hoy||0}</td>
-              <td>${n.matches_hoy||0}</td>
-              <td><span class="badge ${n.sesion_activa?'badge-green':'badge-red'}">${n.sesion_activa?'Abierto':'Cerrado'}</span>
-                <span class="badge" style="${{mes_gratis:'background:rgba(201,168,76,.15);color:#c9a84c',pago:'background:rgba(34,197,94,.15);color:#22c55e',vencido:'background:rgba(251,191,36,.15);color:#fbbf24',suspendido:'background:rgba(220,38,38,.15);color:#ef4444'}[n.estado_pago||'mes_gratis']}">${{mes_gratis:'🎁 Gratis',pago:'✅ Pagó',vencido:'⚠️ Vencido',suspendido:'🚫 Suspendido'}[n.estado_pago||'mes_gratis']}</span></td>
-            </tr>
-          `).join('') || '<tr><td colspan="4"><div class="empty-state-table"><div class="icon">🏢</div>No hay negocios aún</div></td></tr>'}
-        </tbody>
-      </table>`;
-  } catch(err) {
+    recent.innerHTML = '<div class="loader"></div>';
+    try {
+      const act = await apiAdmin('/superadmin/actividad-reciente');
+      const eventos = act.eventos || [];
+      const iconos = {
+        usuario_nuevo:'👤',perfil_jugador:'🎾',partido_publico:'📍',
+        inscripcion_partido:'✅',americano_nuevo:'⚡',inscripcion_americano:'🏆',
+        torneo_nuevo:'🥇',reserva_clase:'📚',resena_jugador:'⭐',
+        profesor_nuevo:'🎓',partido_privado:'🤝'
+      };
+      const labels = {
+        usuario_nuevo:'Nuevo usuario',perfil_jugador:'Perfil jugador creado',
+        partido_publico:'Partido público creado',inscripcion_partido:'Inscripción a partido',
+        americano_nuevo:'Super 8 creado',inscripcion_americano:'Inscripción a Super 8',
+        torneo_nuevo:'Torneo creado',reserva_clase:'Clase reservada',
+        resena_jugador:'Reseña de jugador',profesor_nuevo:'Profesor registrado',
+        partido_privado:'Partido privado creado'
+      };
+      const grupos = {};
+      eventos.forEach(e => {
+        const dia = new Date(e.fecha).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        if(!grupos[dia]) grupos[dia]=[];
+        grupos[dia].push(e);
+      });
+      if(!Object.keys(grupos).length){
+        recent.innerHTML='<div class="empty-state-table"><div class="icon">📭</div>Sin actividad en los últimos 10 días</div>';
+      } else {
+        recent.innerHTML=Object.entries(grupos).map(([dia,evs])=>`
+          <div style="margin-bottom:20px">
+            <div style="padding:8px 14px;background:linear-gradient(90deg,rgba(255,45,120,.15),transparent);border-left:3px solid var(--pink);border-radius:6px;font-size:12px;font-weight:800;color:var(--pink);letter-spacing:0.5px;margin-bottom:8px;text-transform:uppercase">${dia}</div>
+            ${evs.map(e=>`
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--card);border-radius:10px;margin-bottom:6px;border:1px solid rgba(255,255,255,.06)">
+                <div style="font-size:22px;width:32px;text-align:center">${iconos[e.tipo]||'📌'}</div>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:700">${labels[e.tipo]||e.tipo}</div>
+                  <div style="font-size:12px;color:var(--muted)">${e.nombre||''} ${e.zona?'· 📍'+e.zona:''} ${e.americano?'· '+e.americano:''} ${e.profesor?'· con '+e.profesor:''} ${e.app_origen?'· app: '+e.app_origen:''}</div>
+                </div>
+                <div style="font-size:11px;color:var(--muted);white-space:nowrap">${new Date(e.fecha).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('');
+      }
+    } catch(e) {
+      recent.innerHTML='<div style="color:var(--muted);padding:16px">Error cargando actividad</div>';
+    }
     document.getElementById('stats-grid').innerHTML = `<p style="color:var(--muted)">Error cargando dashboard</p>`;
   }
 }
