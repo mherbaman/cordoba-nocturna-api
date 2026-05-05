@@ -134,9 +134,9 @@ router.get('/actividad-reciente', authSuperAdmin, async (req, res) => {
                   WHERE rc.creado_en >= ${desde} ORDER BY rc.creado_en DESC LIMIT 20`),
       pool.query(`SELECT COUNT(*) as total, DATE(creado_en) as dia
                   FROM matches WHERE creado_en >= ${desde} GROUP BY dia ORDER BY dia DESC LIMIT 10`),
-      pool.query(`SELECT rp.comentario, jp.nombre, rp.creado_en as fecha, 'resena_jugador' as tipo
+      pool.query(`SELECT rp.comentario, u.nombre, rp.creado_en as fecha, 'resena_jugador' as tipo
                   FROM resenas_padel rp
-                  JOIN jugadores_padel jp ON jp.id = rp.jugador_id
+                  JOIN usuarios u ON u.id = rp.a_usuario
                   WHERE rp.creado_en >= ${desde} ORDER BY rp.creado_en DESC LIMIT 10`),
       pool.query(`SELECT p.nombre, p.creado_en as fecha, p.estado, 'profesor_nuevo' as tipo
                   FROM profesores_padel p WHERE p.creado_en >= ${desde} ORDER BY p.creado_en DESC LIMIT 10`),
