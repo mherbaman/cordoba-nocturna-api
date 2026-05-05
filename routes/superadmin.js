@@ -140,7 +140,7 @@ router.get('/actividad-reciente', authSuperAdmin, async (req, res) => {
                   WHERE rp.creado_en >= ${desde} ORDER BY rp.creado_en DESC LIMIT 10`),
       pool.query(`SELECT p.nombre, p.creado_en as fecha, p.estado, 'profesor_nuevo' as tipo
                   FROM profesores_padel p WHERE p.creado_en >= ${desde} ORDER BY p.creado_en DESC LIMIT 10`),
-      pool.query(`SELECT pp.descripcion as nombre, pp.creado_en as fecha, 'partido_privado' as tipo
+      pool.query(`SELECT pp.lugar as nombre, pp.creado_en as fecha, 'partido_privado' as tipo
                   FROM partidos_padel pp WHERE pp.creado_en >= ${desde} ORDER BY pp.creado_en DESC LIMIT 20`)
     ]);
 
