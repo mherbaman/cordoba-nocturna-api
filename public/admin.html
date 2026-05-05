@@ -273,6 +273,11 @@ if('serviceWorker' in navigator){
               <label class="field-label">Texto del badge (visible en la app)</label>
               <input class="input-field" id="pp-tag" placeholder="Ej: PROMO, DESCUENTO, GRATIS" value="">
             </div>
+            <div>
+              <label class="field-label">Orden (0 = promo principal)</label>
+              <input class="input-field" id="pp-orden" type="number" value="-1" placeholder="-1">
+              <div style="color:var(--muted);font-size:11px;margin-top:4px;">0 para apps que usan orden 0, -1 para padel</div>
+            </div>
             <div class="full">
               <label class="field-label">✅ Mensaje de confirmación (aparece antes de enviar WhatsApp)</label>
               <input class="input-field" id="pp-confirmacion" placeholder="Al participar acepto recibir información de esta promoción" value="Al participar acepto recibir información de esta promoción">
@@ -1080,6 +1085,7 @@ async function cargarPromoPrincipal() {
       document.getElementById('pp-tag').value = 'GRATIS';
       document.getElementById('pp-whatsapp').value = pp.whatsapp || '543512291554';
     document.getElementById('pp-imagen-url').value = pp.imagen_url || '';
+    document.getElementById('pp-orden').value = pp.orden !== undefined ? pp.orden : -1;
     document.getElementById('pp-url-promo').value = pp.url_promo || '';
     const apps_loaded = (pp.app||'todas') === 'todas' ? ['todas'] : pp.app.split(',');
     ['córdoba','fiesta','sunset','padel','gym','shopping','todas'].forEach(a => {
@@ -1128,7 +1134,8 @@ async function guardarPromoPersonal() {
   try {
     const sponsors = await apiAdmin('/sponsors');
     const pp = sponsors.find(s => s.confirmacion !== undefined && s.orden === -1) || sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
-    const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, app:app_pp, orden:-1, imagen_url, imagen_promo:url_promo, confirmacion };
+    const orden_pp = parseInt(document.getElementById('pp-orden')?.value);
+    const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, app:app_pp, orden:isNaN(orden_pp)?-1:orden_pp, imagen_url, imagen_promo:url_promo, confirmacion };
     if (pp) await apiAdmin(`/sponsors/${pp.id}`, { method:'PUT', body:JSON.stringify(body) });
     else    await apiAdmin('/sponsors', { method:'POST', body:JSON.stringify({...body, activo:true}) });
     alert('✅ Promo Principal guardada!');
