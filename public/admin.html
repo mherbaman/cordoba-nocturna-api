@@ -440,6 +440,15 @@ if('serviceWorker' in navigator){
       <div class="page" id="page-usuarios">
         <div class="page-title">USUARIOS</div>
         <div class="page-sub">Todos los perfiles registrados</div>
+        <div style="padding:0 0 14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="filtrarUsuariosPorApp('todas')" id="filtro-app-todas" class="btn-filtro-app active" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Todas</button>
+          <button onclick="filtrarUsuariosPorApp('cordoba')" id="filtro-app-cordoba" class="btn-filtro-app" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(255,45,120,.3);background:rgba(255,45,120,.1);color:#ff2d78;font-size:12px;font-weight:700;cursor:pointer">🎧 CórdobaConnect</button>
+          <button onclick="filtrarUsuariosPorApp('padel')" id="filtro-app-padel" class="btn-filtro-app" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.1);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">🎾 Padel</button>
+          <button onclick="filtrarUsuariosPorApp('gym')" id="filtro-app-gym" class="btn-filtro-app" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.1);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">💪 Gym</button>
+          <button onclick="filtrarUsuariosPorApp('fiesta')" id="filtro-app-fiesta" class="btn-filtro-app" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.1);color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer">💍 Fiesta</button>
+          <button onclick="filtrarUsuariosPorApp('sunset')" id="filtro-app-sunset" class="btn-filtro-app" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(251,146,60,.3);background:rgba(251,146,60,.1);color:#fb923c;font-size:12px;font-weight:700;cursor:pointer">🌅 Sunset</button>
+          <button onclick="filtrarUsuariosPorApp('shopping')" id="filtro-app-shopping" class="btn-filtro-app" style="padding:7px 16px;border-radius:50px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.1);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer">🛍 Shopping</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1484,39 +1493,55 @@ async function guardarNegocio(id) {
 }
 
 // ─── USUARIOS ─────────────────────────────────────────────────────────
+let usuariosCache = [];
+
+function filtrarUsuariosPorApp(app) {
+  document.querySelectorAll('.btn-filtro-app').forEach(b => b.style.opacity = '0.5');
+  const btn = document.getElementById('filtro-app-'+app);
+  if(btn) btn.style.opacity = '1';
+  const filtrados = app === 'todas' ? usuariosCache : usuariosCache.filter(u => (u.apps||[]).includes(app));
+  renderUsuarios(filtrados);
+}
+
+function renderUsuarios(usuarios) {
+  const tbody = document.getElementById('usuarios-tbody');
+  if (!usuarios.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state-table"><div class="icon">👥</div>No hay usuarios para este filtro</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = usuarios.map(u => {
+    const codigo = 'USR-' + u.id.substring(0,8);
+    return `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${u.foto_url ? `<img src="${u.foto_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-size:14px">😊</div>`}
+          <strong>${u.nombre}</strong>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-family:monospace;font-size:12px;color:var(--pink);background:rgba(255,45,120,.1);padding:3px 8px;border-radius:6px">${codigo}</span>
+          <button onclick="navigator.clipboard.writeText('${codigo}');this.textContent='✓'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px">📋</button>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:13px">${u.email||'—'}</td>
+      <td style="font-size:13px">${u.apellido||'—'}</td>
+      <td style="font-size:13px">${u.telefono ? `<span style="color:#22c55e">📱 ${u.telefono}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:4px">${(u.apps||[]).map(a => `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:50px;background:${{cordoba:'rgba(255,45,120,.15)',padel:'rgba(34,197,94,.15)',gym:'rgba(251,191,36,.15)',fiesta:'rgba(167,139,250,.15)',sunset:'rgba(251,146,60,.15)',shopping:'rgba(251,191,36,.15)'}[a]||'rgba(255,255,255,.08)'};color:${{cordoba:'#ff2d78',padel:'#22c55e',gym:'#fbbf24',fiesta:'#a78bfa',sunset:'#fb923c',shopping:'#fbbf24'}[a]||'rgba(255,255,255,.5)'}">${{cordoba:'🎧',padel:'🎾',gym:'💪',fiesta:'💍',sunset:'🌅',shopping:'🛍'}[a]||'📱'} ${a}</span>`).join('')||'—'}</div></td>
+      <td style="font-size:13px">${u.vibe||'—'}</td>
+      <td>${u.edad||'—'}</td>
+      <td style="color:var(--muted);font-size:12px">${new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
+    </tr>`;
+  }).join('');
+}
+
 async function cargarUsuarios() {
   const tbody = document.getElementById('usuarios-tbody');
   try {
     const usuarios = await apiAdmin('/superadmin/usuarios');
-    if (!usuarios.length) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state-table"><div class="icon">👥</div>No hay usuarios aún</div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = usuarios.map(u => {
-      const codigo = 'USR-' + u.id.substring(0,8);
-      return `
-      <tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:10px">
-            ${u.foto_url ? `<img src="${u.foto_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-size:14px">😊</div>`}
-            <strong>${u.nombre}</strong>
-          </div>
-        </td>
-        <td>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-family:monospace;font-size:12px;color:var(--pink);background:rgba(255,45,120,.1);padding:3px 8px;border-radius:6px">${codigo}</span>
-            <button onclick="navigator.clipboard.writeText('${codigo}');this.textContent='✓'" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px">📋</button>
-          </div>
-        </td>
-        <td style="color:var(--muted);font-size:13px">${u.email||'—'}</td>
-        <td style="font-size:13px">${u.apellido||'—'}</td>
-        <td style="font-size:13px">${u.telefono ? `<span style="color:#22c55e">📱 ${u.telefono}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
-        <td><div style="display:flex;flex-wrap:wrap;gap:4px">${(u.apps||[]).map(a => `<span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:50px;background:${{cordoba:'rgba(255,45,120,.15)',padel:'rgba(34,197,94,.15)',gym:'rgba(251,191,36,.15)',fiesta:'rgba(167,139,250,.15)',sunset:'rgba(251,146,60,.15)',shopping:'rgba(251,191,36,.15)'}[a]||'rgba(255,255,255,.08)'};color:${{cordoba:'#ff2d78',padel:'#22c55e',gym:'#fbbf24',fiesta:'#a78bfa',sunset:'#fb923c',shopping:'#fbbf24'}[a]||'rgba(255,255,255,.5)'}">${{cordoba:'🎧',padel:'🎾',gym:'💪',fiesta:'💍',sunset:'🌅',shopping:'🛍️'}[a]||'📱'} ${a}</span>`).join('')||'—'}</div></td>
-        <td style="font-size:13px">${u.vibe||'—'}</td>
-        <td>${u.edad||'—'}</td>
-        <td style="color:var(--muted);font-size:12px">${new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
-      </tr>`;
-    }).join('');
+    usuariosCache = usuarios;
+    renderUsuarios(usuarios);
   } catch(err) {
     tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
   }
