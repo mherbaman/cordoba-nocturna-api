@@ -841,6 +841,7 @@ async function cargarDashboard() {
     } catch(e) {
       recent.innerHTML='<div style="color:var(--muted);padding:16px">Error cargando actividad</div>';
     }
+  } catch(err) {
     document.getElementById('stats-grid').innerHTML = `<p style="color:var(--muted)">Error cargando dashboard</p>`;
   }
 }
