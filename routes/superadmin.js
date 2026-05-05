@@ -112,13 +112,13 @@ router.get('/actividad-reciente', authSuperAdmin, async (req, res) => {
                   FROM usuarios u WHERE u.creado_en >= ${desde} ORDER BY u.creado_en DESC LIMIT 30`),
       pool.query(`SELECT jp.nombre, jp.creado_en as fecha, 'perfil_jugador' as tipo
                   FROM jugadores_padel jp WHERE jp.creado_en >= ${desde} ORDER BY jp.creado_en DESC LIMIT 20`),
-      pool.query(`SELECT pp.descripcion as nombre, pp.zona, pp.fecha as fecha_partido, pp.creado_en as fecha, 'partido_publico' as tipo
+      pool.query(`SELECT pp.lugar as nombre, pp.zona, pp.fecha as fecha_partido, pp.creado_en as fecha, 'partido_publico' as tipo
                   FROM partidos_publicos pp WHERE pp.creado_en >= ${desde} ORDER BY pp.creado_en DESC LIMIT 20`),
       pool.query(`SELECT ppi.nombre, pp.zona, ppi.inscripto_en as fecha, 'inscripcion_partido' as tipo
                   FROM partidos_publicos_inscriptos ppi
                   JOIN partidos_publicos pp ON pp.id = ppi.partido_id
                   WHERE ppi.inscripto_en >= ${desde} ORDER BY ppi.inscripto_en DESC LIMIT 20`),
-      pool.query(`SELECT a.nombre, a.zona, a.creado_en as fecha, 'americano_nuevo' as tipo
+      pool.query(`SELECT a.nombre, a.sede as zona, a.creado_en as fecha, 'americano_nuevo' as tipo
                   FROM americanos a WHERE a.creado_en >= ${desde} ORDER BY a.creado_en DESC LIMIT 10`),
       pool.query(`SELECT u.nombre, a.nombre as americano, aj.creado_en as fecha, 'inscripcion_americano' as tipo
                   FROM americanos_jugadores aj
