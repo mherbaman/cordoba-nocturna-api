@@ -452,7 +452,7 @@ if('serviceWorker' in navigator){
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Nombre</th><th>Código</th><th>Email</th><th>Apellido</th><th>Teléfono</th><th>App</th><th>Vibe</th><th>Edad</th><th>Registrado</th></tr>
+              <tr><th>Nombre</th><th>Código</th><th>Email</th><th>Apellido</th><th>Teléfono</th><th>App</th><th>Vibe</th><th>Edad</th><th>Registrado</th><th></th></tr>
             </thead>
             <tbody id="usuarios-tbody">
               <tr><td colspan="6"><div class="loader"></div></td></tr>
@@ -1564,8 +1564,17 @@ function renderUsuarios(usuarios) {
       <td style="font-size:13px">${u.vibe||'—'}</td>
       <td>${u.edad||'—'}</td>
       <td style="color:var(--muted);font-size:12px">${new Date(u.creado_en).toLocaleDateString('es-AR')}</td>
+      <td><button onclick="resetPassword('${u.id}','${u.nombre}')" style="background:rgba(255,45,120,.15);border:1px solid rgba(255,45,120,.3);color:#ff2d78;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">🔑 Reset</button></td>
     </tr>`;
   }).join('');
+}
+
+async function resetPassword(id, nombre) {
+  if (!confirm(`¿Resetear contraseña de ${nombre}? Se le asignará la contraseña temporal: Padel1234`)) return;
+  try {
+    const res = await apiAdmin(`/superadmin/usuarios/${id}/reset-password`, { method:'POST' });
+    alert(`✅ Contraseña reseteada\nEl usuario ${nombre} debe ingresar con:\n🔑 Padel1234`);
+  } catch(err) { alert('Error: ' + err.message); }
 }
 
 async function cargarUsuarios() {

@@ -97,6 +97,19 @@ router.get('/dashboard', authSuperAdmin, async (req, res) => {
 });
 
 
+
+// ── POST /superadmin/usuarios/:id/reset-password ─────────────────────
+router.post('/usuarios/:id/reset-password', authSuperAdmin, async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const tempPassword = 'Padel1234';
+    const hash = await bcrypt.hash(tempPassword, 10);
+    await pool.query('UPDATE usuarios SET password_hash = $1 WHERE id = $2', [hash, req.params.id]);
+    res.json({ ok: true, password_temporal: tempPassword });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── GET /superadmin/actividad-reciente ───────────────────────────────
 router.get('/actividad-reciente', authSuperAdmin, async (req, res) => {
   try {
