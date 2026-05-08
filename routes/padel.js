@@ -1207,13 +1207,11 @@ router.post('/partidos-publicos/:id/inscribirse', authUsuario, async (req, res) 
     if (!p.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
     const partido = p.rows[0];
 
-    // No se puede inscribir el día del partido ni después
-    const hoy = new Date();
-    hoy.setHours(0,0,0,0);
-    const fechaPartido = new Date(partido.fecha);
-    fechaPartido.setHours(0,0,0,0);
-    if (fechaPartido <= hoy) {
-      return res.status(400).json({ error: 'Las inscripciones cerraron el día anterior al partido' });
+    // No se puede inscribir después de la hora del partido
+    const ahora = new Date();
+    const fechaHoraPartido = new Date(partido.fecha + 'T' + partido.hora);
+    if (ahora >= fechaHoraPartido) {
+      return res.status(400).json({ error: 'Las inscripciones cerraron, el partido ya comenzó' });
     }
 
     // Contar inscriptos
