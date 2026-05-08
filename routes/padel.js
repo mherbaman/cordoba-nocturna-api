@@ -1234,6 +1234,32 @@ router.post('/partidos-publicos/:id/inscribirse', authUsuario, async (req, res) 
       [id, usuario_id, jugador.nombre || 'Jugador', jugador.nivel || null, jugador.foto_url || null]
     );
 
+    // Si falta 1 jugador, notificar a la zona
+    const totalInscriptos = parseInt(count.rows[0].count) + 1;
+    if (partido.cupos - totalInscriptos === 1) {
+      try {
+        const { Resend } = require('resend');
+        const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
+        const jugadoresZona = await pool.query(
+          `SELECT u.email, u.nombre FROM usuarios u JOIN jugadores_padel jp ON jp.usuario_id = u.id WHERE jp.zona ILIKE $1 AND u.email IS NOT NULL AND jp.activo = true AND u.id != $2`,
+          [`%${partido.zona}%`, usuario_id]
+        );
+        const fechaLabel = new Date(String(partido.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        const catLabels = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
+        const catLabel = catLabels[partido.categoria] || partido.categoria;
+        console.log('Notificando falta 1 a', jugadoresZona.rows.length, 'jugadores de zona', partido.zona);
+        for (const j of jugadoresZona.rows) {
+          try {
+            await resend.emails.send({
+              from: 'PadelConnect <partidos@send.cordobalux.com>',
+              to: j.email,
+              subject: `🔥 ¡Falta 1 jugador! ${catLabel} en ${partido.zona}`,
+              html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;background:#111;color:#fff;border-radius:12px;padding:24px"><h2 style="color:#f87171">🔥 ¡Falta 1 jugador!</h2><p>Hola <strong>${j.nombre}</strong>,</p><p>Hay un partido de <strong>${catLabel}</strong> en <strong>${partido.zona}</strong> que necesita un jugador más:</p><ul style="line-height:2"><li>📅 <strong>Fecha:</strong> ${fechaLabel}</li><li>🕐 <strong>Hora:</strong> ${partido.hora||''}</li><li>📍 <strong>Lugar:</strong> ${partido.lugar||'A confirmar'}</li><li>💰 <strong>Costo:</strong> ${partido.costo ? '$'+partido.costo : 'A confirmar'}</li></ul><a href="https://cordobalux.com/padel/" style="display:inline-block;background:#f87171;color:#fff;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 ¡Quiero jugar!</a><p style="margin-top:24px;font-size:12px;color:#666"><a href="https://cordobalux.com/padel/" style="color:#facc15;text-decoration:none">PadelConnect by CórdobaLux</a></p></div>`
+            });
+          } catch (e) { console.error('Error email falta1 a', j.email, e.message); }
+        }
+      } catch (e) { console.error('Error emails falta1:', e.message); }
+    }
     // Retornar partido actualizado con inscriptos
     const updated = await pool.query(`
       SELECT pp.*, COUNT(pi2.id)::int AS inscriptos,
