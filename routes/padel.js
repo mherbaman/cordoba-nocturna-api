@@ -1150,8 +1150,8 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
                 <li>🕐 <strong>Hora:</strong> ${hora}</li>
                 <li>💰 <strong>Costo:</strong> ${costo ? '$' + costo : 'A confirmar'}</li>
               </ul>
-              <a href="https://cordobalux.com/padel-connect.html" style="display:inline-block;background:#facc15;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 Ver partido</a>
-              <p style="margin-top:24px;font-size:12px;color:#666">CórdobaLux — cordobalux.com</p>
+              <a href="https://cordobalux.com/padel/" style="display:inline-block;background:#facc15;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 Ver partido</a>
+              <p style="margin-top:24px;font-size:12px;color:#666"><a href="https://cordobalux.com/padel/" style="color:#facc15;text-decoration:none">PadelConnect by CórdobaLux</a></p>
             </div>`
           });
           console.log('✅ Email enviado a:', j.email);
