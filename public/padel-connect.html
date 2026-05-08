@@ -2216,15 +2216,13 @@ async function cargarProximosSwipe() {
   const el = document.getElementById('proximos-swipe-list');
   if (!el) return;
   const zonaDefault = perfilPadel?.zona?.split(',')[0]?.trim() || '';
-  console.log('cargarProximosSwipe zona:', zona, 'el:', el, 'perfilPadel:', perfilPadel?.zona);
   const selectZona = document.getElementById('pp-filtro-zona-2');
   if (selectZona && !selectZona.value && zonaDefault) selectZona.value = zonaDefault;
   const zona = selectZona?.value || '';
   el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  console.log('partidos response:', partidos);
   try {
-    let url = '/padel/partidos-publicos';
-    if (zona) url += '?zona=' + encodeURIComponent(zona);
+    let url = '/padel/partidos-publicos?_=' + Date.now();
+    if (zona) url += '&zona=' + encodeURIComponent(zona);
     const partidos = await api(url);
     if (!partidos.length) {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay partidos próximos.</div>';
