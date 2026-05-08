@@ -386,7 +386,7 @@ router.post('/inscribir', authUsuario, async (req, res) => {
 router.post('/', authAdmin, async (req, res) => {
   try {
     const {
-      nombre, descripcion, sede,
+      nombre, descripcion, sede, zona,
       fecha_inicio, fecha_fin,
       cantidad_canchas, duracion_partido_min,
       descanso_entre_rondas_min, hora_inicio_dia, hora_fin_dia,
