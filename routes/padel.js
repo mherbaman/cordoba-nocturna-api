@@ -1256,13 +1256,14 @@ router.delete('/partidos-publicos/:id/desinscribirse', authUsuario, async (req, 
     const { id } = req.params;
     const usuario_id = req.usuario.id;
 
-    // No se puede desinscribir el día del partido ni después
-    const p = await pool.query('SELECT fecha FROM partidos_publicos WHERE id = $1', [id]);
+    // Solo se puede cancelar hasta 4 horas antes del partido
+    const p = await pool.query('SELECT fecha, hora FROM partidos_publicos WHERE id = $1', [id]);
     if (!p.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const fechaPartido = new Date(p.rows[0].fecha); fechaPartido.setHours(0,0,0,0);
-    if (fechaPartido <= hoy) {
-      return res.status(400).json({ error: 'Ya no podés cancelar la inscripción' });
+    const ahora = new Date();
+    const fechaHoraPartido = new Date(p.rows[0].fecha + 'T' + p.rows[0].hora);
+    const cuatroHorasAntes = new Date(fechaHoraPartido.getTime() - 4 * 60 * 60 * 1000);
+    if (ahora >= cuatroHorasAntes) {
+      return res.status(400).json({ error: 'Ya no podés cancelar — solo se puede hasta 4 horas antes del partido. Tené en cuenta que cancelaciones tardías pueden resultar en una reseña negativa de los otros jugadores.' });
     }
 
     await pool.query(
