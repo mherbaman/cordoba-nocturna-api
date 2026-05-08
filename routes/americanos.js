@@ -269,15 +269,36 @@ router.get('/:id', async (req, res) => {
 // ── POST /americanos ──────────────────────────────────────────────────
 router.post('/', async (req, res) => {
   try {
-    const { nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas,
+    const { nombre, descripcion, sede, zona, fecha, hora_inicio, cantidad_canchas,
             duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, categoria } = req.body;
     if (!nombre || !fecha) return res.status(400).json({ error: 'Nombre y fecha son obligatorios' });
     const r = await pool.query(
-      'INSERT INTO americanos (nombre, descripcion, sede, fecha, hora_inicio, cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, estado, categoria) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *',
-      [nombre, descripcion||null, sede||null, fecha, hora_inicio||'09:00',
+      'INSERT INTO americanos (nombre, descripcion, sede, zona, fecha, hora_inicio, cantidad_canchas, duracion_partido_min, descanso_entre_rondas_min, formato, precio_inscripcion, estado, categoria) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *',
+      [nombre, descripcion||null, sede||null, zona||null, fecha, hora_inicio||'09:00',
        cantidad_canchas||2, duracion_partido_min||20, descanso_entre_rondas_min||5,
        formato||'mejor_de_7', precio_inscripcion||0, 'proximamente', categoria||null]
     );
+    // Enviar emails a jugadores de la zona
+    if (zona) {
+      try {
+        const jugadores = await pool.query(
+          `SELECT u.email, u.nombre FROM usuarios u JOIN jugadores_padel jp ON jp.usuario_id = u.id WHERE jp.zona ILIKE $1 AND u.email IS NOT NULL AND jp.activo = true`,
+          [`%${zona}%`]
+        );
+        const fechaLabel = new Date(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+        console.log('Jugadores a notificar por americano:', jugadores.rows.length);
+        for (const j of jugadores.rows) {
+          try {
+            await resend.emails.send({
+              from: FROM_EMAIL,
+              to: j.email,
+              subject: `⚡ Nuevo Super 8 en tu zona — ${nombre}`,
+              html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;background:#111;color:#fff;border-radius:12px;padding:24px"><h2 style="color:#facc15">⚡ ¡Nuevo Super 8 en tu zona!</h2><p>Hola <strong>${j.nombre}</strong>,</p><p>Se creó un nuevo Super 8 americano:</p><ul style="line-height:2"><li>🏓 <strong>Nombre:</strong> ${nombre}</li><li>📍 <strong>Sede:</strong> ${sede || 'A confirmar'}</li><li>📅 <strong>Fecha:</strong> ${fechaLabel}</li><li>💰 <strong>Inscripción:</strong> ${precio_inscripcion ? '$' + precio_inscripcion : 'Gratis'}</li></ul><a href="https://cordobalux.com/padel-connect.html" style="display:inline-block;background:#facc15;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 Ver Super 8</a><p style="margin-top:24px;font-size:12px;color:#666">CórdobaLux — cordobalux.com</p></div>`
+            });
+          } catch (e) { console.error('Error email americano a', j.email, e.message); }
+        }
+      } catch (e) { console.error('Error emails americano:', e.message); }
+    }
     res.json(r.rows[0]);
   } catch(err) { console.error('POST /americanos:', err); res.status(500).json({ error: err.message }); }
 });

@@ -1122,32 +1122,6 @@ router.post('/partidos-publicos', authAdmin, async (req, res) => {
       [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4]
     );
 
-    try {
-      const subs = await pool.query('SELECT * FROM push_suscripciones', []);
-      const catLabels = { octava:'8va categoría', septima:'7ma categoría', sexta:'6ta categoría', quinta:'5ta categoría', cuarta:'4ta categoría', tercera:'3ra categoría', segunda:'2da categoría', primera:'1ra categoría' };
-      const catLabel = catLabels[categoria] || categoria;
-      const lugarLabel = lugar ? lugar : 'lugar a confirmar';
-      const payload = JSON.stringify({ title: '⚡ ¡Unite al partido!', body: catLabel + ' en ' + lugarLabel + ' — ' + fecha + ' ' + hora, url: 'https://cordobalux.com/padel-connect.html' });
-      console.log('Suscriptores encontrados:', subs.rows.length);
-      for (const sub of subs.rows) {
-        console.log('Enviando a:', sub.endpoint.substring(0,50), 'p256dh:', sub.p256dh?.substring(0,10), 'auth:', sub.auth?.substring(0,5));
-        try {
-          await webpush.sendNotification({
-            endpoint: sub.endpoint,
-            keys: { p256dh: sub.p256dh, auth: sub.auth }
-          }, payload, {
-            vapidDetails: {
-              subject: 'mailto:admin@cordobalux.com',
-              publicKey: 'BBC-BM0lWegmCr3e5ROgYJne9T_OtJDmUFPReuJkAUR83TOE90VmdVXLFBGZGde6VdFo5Ru53jziQPtQ_hZcd4Q',
-              privateKey: '0y0zMBqZdqIdvA7G9FWTENw_2DpOBzAc97uL-oSHFUo'
-            }
-          });
-          console.log('✅ Push enviado a:', sub.endpoint.substring(0, 50));
-        } 
-        catch (e) { if (e.statusCode === 410) await pool.query('DELETE FROM push_suscripciones WHERE endpoint = $1', [sub.endpoint]); }
-      }
-    } catch (e) { console.error('Error push:', e.message); }
-
     // Enviar emails a jugadores de la zona
     try {
       const { Resend } = require('resend');

@@ -432,7 +432,38 @@ router.post('/', authAdmin, async (req, res) => {
         `, [torneo.id, cat.nombre, cat.nivel, cat.genero, cat.cupo_max || 16]);
       }
     }
-
+    if (zona) {
+      try {
+        const jugadores = await pool.query(
+          `SELECT u.email, u.nombre FROM usuarios u JOIN jugadores_padel jp ON jp.usuario_id = u.id WHERE jp.zona ILIKE $1 AND u.email IS NOT NULL AND jp.activo = true`,
+          [`%${zona}%`]
+        );
+        const fechaLabel = new Date(fecha_inicio).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+        console.log('Jugadores a notificar por torneo:', jugadores.rows.length);
+        for (const j of jugadores.rows) {
+          try {
+            await resend.emails.send({
+              from: FROM_EMAIL,
+              to: j.email,
+              subject: `🎾 Nuevo torneo en tu zona — ${nombre}`,
+              html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;background:#111;color:#fff;border-radius:12px;padding:24px">
+                <h2 style="color:#facc15">🎾 ¡Nuevo torneo en tu zona!</h2>
+                <p>Hola <strong>${j.nombre}</strong>,</p>
+                <p>Se creó un nuevo torneo de pádel:</p>
+                <ul style="line-height:2">
+                  <li>🏆 <strong>Torneo:</strong> ${nombre}</li>
+                  <li>📍 <strong>Sede:</strong> ${sede || 'A confirmar'}</li>
+                  <li>📅 <strong>Fecha:</strong> ${fechaLabel}</li>
+                  <li>💰 <strong>Inscripción:</strong> ${precio_inscripcion ? '$' + precio_inscripcion : 'Gratis'}</li>
+                </ul>
+                <a href="https://cordobalux.com/padel-connect.html" style="display:inline-block;background:#facc15;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 Ver torneo</a>
+                <p style="margin-top:24px;font-size:12px;color:#666">CórdobaLux — cordobalux.com</p>
+              </div>`
+            });
+          } catch (e) { console.error('Error email torneo a', j.email, e.message); }
+        }
+      } catch (e) { console.error('Error emails torneo:', e.message); }
+    }
     res.json({
       ok: true,
       torneo,
