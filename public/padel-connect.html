@@ -2210,7 +2210,7 @@ async function cargarFalta1Swipe() {
     }
     el.innerHTML = falta1.map(p => renderPartidoPublicoCard(p)).join('');
   } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+    console.error('falta1 error:', e); el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error: ' + e.message + '</div>';
   }
 }
 async function cargarProximosSwipe() {
