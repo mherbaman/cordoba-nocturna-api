@@ -791,6 +791,26 @@ router.post('/partidos', authUsuario, async (req, res) => {
       `, [partido_id, inv.jugador_id, inv.equipo]);
     }
 
+    // Notificar por email a los jugadores invitados
+    try {
+      const { Resend } = require('resend');
+      const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
+      const creador = await pool.query('SELECT nombre FROM usuarios WHERE id = $1', [creador_id]);
+      const creadorNombre = creador.rows[0]?.nombre || 'Un jugador';
+      const fechaLabel = fecha ? new Date(fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'A confirmar';
+      for (const inv of invitados) {
+        try {
+          const u = await pool.query('SELECT nombre, email FROM usuarios WHERE id = $1', [inv.jugador_id]);
+          if (!u.rows[0]?.email) continue;
+          await resend.emails.send({
+            from: 'PadelConnect <partidos@send.cordobalux.com>',
+            to: u.rows[0].email,
+            subject: `🎾 ${creadorNombre} te invitó a un partido`,
+            html: `<div style="font-family:sans-serif;max-width:480px;margin:auto;background:#111;color:#fff;border-radius:12px;padding:24px"><h2 style="color:#facc15">🎾 ¡Tenés una invitación!</h2><p>Hola <strong>${u.rows[0].nombre}</strong>,</p><p><strong>${creadorNombre}</strong> te invitó a jugar un partido:</p><ul style="line-height:2"><li>📅 <strong>Fecha:</strong> ${fechaLabel}</li><li>🕐 <strong>Hora:</strong> ${hora || 'A confirmar'}</li><li>📍 <strong>Lugar:</strong> ${lugar || 'A confirmar'}</li></ul><a href="https://cordobalux.com/padel/" style="display:inline-block;background:#facc15;color:#000;font-weight:bold;padding:12px 24px;border-radius:8px;text-decoration:none;margin-top:12px">👉 Ver invitación</a><p style="margin-top:24px;font-size:12px;color:#666"><a href="https://cordobalux.com/padel/" style="color:#facc15;text-decoration:none">PadelConnect by CórdobaLux</a></p></div>`
+          });
+        } catch (e) { console.error('Error email invitacion a', inv.jugador_id, e.message); }
+      }
+    } catch (e) { console.error('Error emails invitacion:', e.message); }
     res.json({ ok: true, partido_id });
   } catch (err) {
     console.error('POST /padel/partidos:', err.message);
