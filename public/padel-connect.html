@@ -2210,7 +2210,7 @@ async function cargarFalta1Swipe() {
     }
     el.innerHTML = falta1.map(p => renderPartidoPublicoCard(p)).join('');
   } catch(e) {
-    console.error('falta1 error:', e); el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error: ' + e.message + '</div>';
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
   }
 }
 async function cargarProximosSwipe() {
@@ -2235,8 +2235,8 @@ async function cargarProximosSwipe() {
   }
 }
 function renderPartidoPublicoCard(p) {
-  const inscriptos = p.inscriptos || [];
-  const libres = p.cupos - inscriptos.length;
+  const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
+  const libres = p.cupos - (parseInt(p.inscriptos)||0);
   const fecha = new Date(String(p.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short'});
   const yaInscripto = usuario && inscriptos.some(i => i.usuario_id === usuario.id);
   return `<div class="partido-pub-card">
