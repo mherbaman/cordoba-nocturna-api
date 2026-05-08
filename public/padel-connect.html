@@ -1278,6 +1278,7 @@ function showScreen(id){
   document.getElementById(id).classList.add('active');
   if(id==='swipe'){cargarJugadoresPadel();cargarFavoritos();poblarZonas();pingActividad();cargarMatchCount();}
   if(id==='matches-screen'){loadMatches();renderizarAds('matches');}
+  if(id==='proximos-partidos'){cargarPartidosPublicos();}
 }
 
 function checkAge(){
@@ -2213,7 +2214,6 @@ async function cargarFalta1Swipe() {
   }
 }
 async function cargarProximosSwipe() {
-  console.log('=== cargarProximosSwipe START ===');
   const el = document.getElementById('proximos-swipe-list');
   if (!el) return;
   const zonaDefault = perfilPadel?.zona?.split(',')[0]?.trim() || '';
@@ -2225,7 +2225,6 @@ async function cargarProximosSwipe() {
     let url = '/padel/partidos-publicos?_=' + Date.now();
     if (zona) url += '&zona=' + encodeURIComponent(zona);
     const partidos = await api(url);
-  console.log('=== partidos recibidos:', partidos?.length, JSON.stringify(partidos));
     if (!partidos.length) {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay partidos próximos.</div>';
       return;
