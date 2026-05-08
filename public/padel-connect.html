@@ -2203,7 +2203,7 @@ async function cargarFalta1Swipe() {
   el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
   try {
     const partidos = await api('/padel/partidos-publicos');
-    const falta1 = partidos.filter(p => p.cupos - (p.inscriptos||[]).length === 1);
+    const falta1 = partidos.filter(p => p.cupos - (parseInt(p.inscriptos)||0) === 1);
     if (!falta1.length) {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🔥</div>No hay partidos que necesiten un jugador ahora.</div>';
       return;
