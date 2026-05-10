@@ -2360,11 +2360,28 @@ async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio
 async function cargarPartidos() {
   const el = document.getElementById('partidos-list');
   el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando...</p>';
-  const data = await api('/padel/partidos');
-  if (!data || !data.length) {
-    el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">No tens partidos todavia</p>';
+  let privados = [], publicos = [];
+  try { privados = await api('/padel/partidos') || []; } catch(e) {}
+  try { publicos = await api('/padel/mis-partidos-publicos') || []; } catch(e) {}
+  if (!privados.length && !publicos.length) {
+    el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">No tenés partidos todavía</p>';
     return;
   }
+  window._partidosCargados = privados;
+  window._partidosPublicosCargados = publicos;
+  let html = '';
+  if (publicos.length) {
+    html += '<div style="font-size:11px;color:#fbbf24;font-weight:700;letter-spacing:1px;margin-bottom:10px">PARTIDOS PÚBLICOS</div>';
+    html += publicos.map(p => renderPartidoPublicoMio(p)).join('');
+    if (privados.length) html += '<div style="height:1px;background:rgba(255,255,255,.08);margin:16px 0"></div>';
+  }
+  if (privados.length) {
+    html += '<div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:10px">PARTIDOS PRIVADOS</div>';
+  }
+  // parche: inyectar html antes del render de privados
+  el.innerHTML = html;
+  const data = privados;
+  if (!data || !data.length) return;
   window._partidosCargados = data;
   el.innerHTML = data.map(p => {
     const esCreador = p.creador_id === usuario?.id;
@@ -4386,6 +4403,165 @@ async function cargarMisInscripciones() {
   }
 }
 </script>
+
+
+function renderPartidoPublicoMio(p) {
+  const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
+  const esCreador = p.creado_por_usuario_id === usuario?.id;
+  const esPrimerInscripto = p.primer_inscripto === usuario?.id;
+  const puedeCargarResultado = esCreador || esPrimerInscripto;
+  const fecha = p.fecha ? new Date(String(p.fecha).substring(0,10)+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
+  const hora = p.hora ? String(p.hora).substring(0,5) : '';
+  const estadoColor = p.estado==='jugado'?'#60a5fa':p.estado==='suspendido'?'#f87171':p.estado==='abierto'?'#4ade80':'#fbbf24';
+  const estadoLabel = p.estado==='jugado'?'🏆 Jugado':p.estado==='suspendido'?'❌ Suspendido':p.estado==='abierto'?'✅ Abierto':'⏳ '+p.estado;
+
+  let equiposHtml = '';
+  if (p.estado === 'jugado' || p.estado === 'suspendido') {
+    if (p.equipo1_j1) {
+      equiposHtml = `<div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 1</div>
+          <div style="font-size:12px;color:#fff">${p.eq1j1_nombre||'-'}</div>
+          <div style="font-size:12px;color:#fff">${p.eq1j2_nombre||'-'}</div>
+        </div>
+        <div style="display:flex;align-items:center;font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">VS</div>
+        <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 2</div>
+          <div style="font-size:12px;color:#fff">${p.eq2j1_nombre||'-'}</div>
+          <div style="font-size:12px;color:#fff">${p.eq2j2_nombre||'-'}</div>
+        </div>
+      </div>`;
+    }
+    if (p.estado === 'jugado') {
+      equiposHtml += `<div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;margin-bottom:10px">
+        <div style="font-family:'Bebas Neue',cursive;font-size:32px;color:#fff">${p.resultado_eq1} — ${p.resultado_eq2}</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1?'🏆 Ganó Equipo 1':'🏆 Ganó Equipo 2'}</div>
+      </div>`;
+    }
+  } else {
+    // Mostrar inscriptos
+    if (inscriptos.length) {
+      equiposHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+        ${inscriptos.map(j => `<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:4px 10px 4px 4px">
+          ${j.foto_url ? `<img src="${j.foto_url}" style="width:24px;height:24px;border-radius:50%;object-fit:cover">` : '<span style="font-size:14px">😊</span>'}
+          <span style="font-size:12px;color:#fff">${j.nombre}</span>
+        </div>`).join('')}
+      </div>`;
+    }
+  }
+
+  let botonesHtml = '';
+  if (p.estado === 'abierto' && puedeCargarResultado && inscriptos.length >= 2) {
+    botonesHtml = `<button onclick="abrirResultadoPublico('${p.id}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px">📊 Cargar resultado</button>`;
+  }
+  if (p.estado === 'jugado' && p.equipo1_j1) {
+    botonesHtml += `<button onclick="abrirResenasPartidoPublico('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);color:#facc15;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">⭐ Reseñar jugadores</button>`;
+  }
+  if (p.estado === 'suspendido') {
+    botonesHtml += `<button onclick="abrirResenasPartidoPublico('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">⭐ Reseñar al que faltó</button>`;
+  }
+
+  return `<div style="background:rgba(255,255,255,.04);border:1.5px solid rgba(251,191,36,.2);border-radius:14px;padding:14px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#fbbf24">${p.zona} · ${formatCategoria(p.categoria)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${fecha} ${hora}hs${p.lugar ? ' · '+p.lugar : ''}</div>
+        ${esCreador ? '<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:2px">👑 Creador</div>' : ''}
+      </div>
+      <span style="font-size:11px;font-weight:700;color:${estadoColor};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor}">${estadoLabel}</span>
+    </div>
+    ${equiposHtml}
+    ${botonesHtml}
+  </div>`;
+}
+
+function abrirResultadoPublico(partido_id) {
+  const p = (window._partidosPublicosCargados || []).find(x => x.id === partido_id);
+  if (!p) return;
+  const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
+  if (inscriptos.length < 2) { alert('Necesitás al menos 2 jugadores inscriptos para cargar el resultado'); return; }
+
+  // Armar modal de resultado con selección de equipos
+  const jugadoresOpts = inscriptos.map(j => `<option value="${j.usuario_id}">${j.nombre}</option>`).join('');
+  document.getElementById('modal-resultado').style.display = 'flex';
+  // Reusar modal-resultado existente pero con equipos dinámicos
+  document.getElementById('faltaron-list').innerHTML = inscriptos.map(j => `
+    <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer">
+      <input type="checkbox" value="${j.usuario_id}" style="width:16px;height:16px;accent-color:var(--green)">
+      <span style="font-size:13px;color:#fff">${j.nombre}</span>
+    </label>`).join('');
+
+  // Guardar contexto
+  window._resultadoPublicoId = partido_id;
+  window._resultadoPublicoInscriptos = inscriptos;
+
+  // Agregar selects de equipos al modal
+  const equiposHtml = `<div id="equipos-publico" style="margin-bottom:16px">
+    <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px">ARMÁ LOS EQUIPOS</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">EQ1 J1</div>
+        <select id="pub-eq1j1" style="width:100%;padding:8px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px"><option value="">—</option>${jugadoresOpts}</select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">EQ1 J2</div>
+        <select id="pub-eq1j2" style="width:100%;padding:8px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px"><option value="">—</option>${jugadoresOpts}</select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">EQ2 J1</div>
+        <select id="pub-eq2j1" style="width:100%;padding:8px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px"><option value="">—</option>${jugadoresOpts}</select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">EQ2 J2</div>
+        <select id="pub-eq2j2" style="width:100%;padding:8px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px"><option value="">—</option>${jugadoresOpts}</select>
+      </div>
+    </div>
+  </div>`;
+
+  const existing = document.getElementById('equipos-publico');
+  if (existing) existing.remove();
+  document.getElementById('faltaron-list').insertAdjacentHTML('beforebegin', equiposHtml);
+
+  // Sobreescribir confirmarResultado temporalmente
+  window._confirmarResultadoOriginal = window.confirmarResultado;
+  window.confirmarResultado = confirmarResultadoPublico;
+}
+
+async function confirmarResultadoPublico() {
+  const partido_id = window._resultadoPublicoId;
+  const faltaron = [...document.querySelectorAll('#faltaron-list input:checked')].map(i => i.value);
+  const suspendido = faltaron.length > 0;
+  let eq1 = 0, eq2 = 0;
+  if (!suspendido) {
+    eq1 = parseInt(document.getElementById('res-eq1').value);
+    eq2 = parseInt(document.getElementById('res-eq2').value);
+    if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresá los sets de cada equipo'); return; }
+  }
+  const equipo1_j1 = document.getElementById('pub-eq1j1')?.value || null;
+  const equipo1_j2 = document.getElementById('pub-eq1j2')?.value || null;
+  const equipo2_j1 = document.getElementById('pub-eq2j1')?.value || null;
+  const equipo2_j2 = document.getElementById('pub-eq2j2')?.value || null;
+
+  try {
+    const res = await api('/padel/partidos-publicos/' + partido_id + '/resultado', {
+      method: 'PUT',
+      body: JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, equipo1_j1, equipo1_j2, equipo2_j1, equipo2_j2, faltaron })
+    });
+    if (res.ok) {
+      cerrarResultado();
+      // Restaurar confirmarResultado original
+      if (window._confirmarResultadoOriginal) window.confirmarResultado = window._confirmarResultadoOriginal;
+      const eq = document.getElementById('equipos-publico');
+      if (eq) eq.remove();
+      cargarPartidos();
+    }
+  } catch(err) { alert(err.message); }
+}
+
+function abrirResenasPartidoPublico(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  // Reusar la funcion existente de reseñas de partidos privados
+  abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2);
+}
 
 <button id="fab-crear-partido" onclick="abrirCrearPartido()" style="position:fixed;bottom:28px;right:20px;z-index:500;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;padding:14px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(34,197,94,.4);transition:all .2s">
   ⚡ Crear Partido
