@@ -4403,8 +4403,7 @@ async function cargarMisInscripciones() {
   }
 }
 </script>
-
-
+<script>
 function renderPartidoPublicoMio(p) {
   const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
   const esCreador = p.creado_por_usuario_id === usuario?.id;
@@ -4563,6 +4562,7 @@ function abrirResenasPartidoPublico(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j
   abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2);
 }
 
+</script>
 <button id="fab-crear-partido" onclick="abrirCrearPartido()" style="position:fixed;bottom:28px;right:20px;z-index:500;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;padding:14px 20px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(34,197,94,.4);transition:all .2s">
   ⚡ Crear Partido
 </button>
