@@ -2598,8 +2598,28 @@ async function responderInvitacion(partido_id, estado) {
 }
 
 function abrirCrearPartido() {
+  // Pre-seleccionar zona del perfil del usuario
+  const zonaUsuario = perfilPadel?.zona?.split(',')[0]?.trim() || '';
+  const selZona = document.getElementById('nuevo-partido-zona');
+  if (selZona && zonaUsuario) {
+    for (let i = 0; i < selZona.options.length; i++) {
+      if (selZona.options[i].value === zonaUsuario) { selZona.selectedIndex = i; break; }
+    }
+  }
+  // Pre-seleccionar categoria del perfil
+  const catUsuario = perfilPadel?.nivel || '';
+  const selCat = document.getElementById('nuevo-partido-categoria');
+  if (selCat && catUsuario) {
+    for (let i = 0; i < selCat.options.length; i++) {
+      if (selCat.options[i].value === catUsuario) { selCat.selectedIndex = i; break; }
+    }
+  }
+  // Fecha minima hoy
+  const hoy = new Date().toISOString().split('T')[0];
+  const fechaInput = document.getElementById('nuevo-partido-fecha');
+  if (fechaInput) { fechaInput.min = hoy; fechaInput.value = hoy; }
+  document.getElementById('nuevo-partido-error').style.display = 'none';
   document.getElementById('modal-crear-partido').style.display = 'flex';
-  cargarJugadoresParaPartido();
 }
 
 function cerrarCrearPartido() {
@@ -2607,73 +2627,42 @@ function cerrarCrearPartido() {
 }
 
 let jugadoresDisponibles = [];
-async function cargarJugadoresParaPartido() {
-  // Cargar turnos disponibles
-  const turnos = await api('/padel/mis-turnos-disponibles');
-  const turnosSel = document.getElementById('partido-turno');
-  const turnosLoading = document.getElementById('turnos-loading');
-  if (!turnos || !turnos.length) {
-    turnosLoading.textContent = 'No tenés turnos confirmados disponibles. Reservá una cancha primero.';
-  } else {
-    turnosLoading.style.display = 'none';
-    turnosSel.style.display = 'block';
-    turnosSel.innerHTML = '<option value="">— Elegir turno —</option>' +
-      turnos.map(t => {
-        const fecha = t.fecha.slice(0,10).split('-').reverse().join('/');
-        const hora = t.hora_inicio.slice(0,5);
-        return `<option value="${t.id}" data-fecha="${t.fecha.slice(0,10)}" data-hora="${hora}" data-lugar="${t.cancha} — ${t.lugar||''}">${fecha} ${hora}hs — ${t.cancha}</option>`;
-      }).join('');
-  }
-  // Cargar jugadores
-  const data = await api('/padel/jugadores');
-  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
-  actualizarSelectsPartido();
-}
 
-function elegirTurno() {
-  const sel = document.getElementById('partido-turno');
-  const opt = sel.options[sel.selectedIndex];
-  if (!opt.value) {
-    document.getElementById('turno-detalle').style.display = 'none';
-    return;
-  }
-  const fecha = opt.dataset.fecha;
-  const hora = opt.dataset.hora;
-  const lugar = opt.dataset.lugar;
-  document.getElementById('partido-fecha').value = fecha;
-  document.getElementById('partido-hora').value = hora;
-  document.getElementById('partido-lugar').value = lugar;
-  document.getElementById('partido-reserva-id').value = opt.value;
-  document.getElementById('turno-detalle').style.display = 'block';
-  document.getElementById('turno-detalle').innerHTML = `📅 ${fecha.split('-').reverse().join('/')} · ⏰ ${hora}hs · 📍 ${lugar}`;
-}
-
-function actualizarSelectsPartido() {
-  const campos = ['eq1j2','eq2j1','eq2j2'];
-  const elegidos = campos.map(c => document.getElementById('partido-' + c)?.value).filter(Boolean);
-  campos.forEach(campo => {
-    const sel = document.getElementById('partido-' + campo);
-    const valorActual = sel.value;
-    sel.innerHTML = '<option value="">— Elegir jugador —</option>' +
-      jugadoresDisponibles
-        .filter(j => j.usuario_id === valorActual || !elegidos.includes(j.usuario_id))
-        .map(j => `<option value="${j.usuario_id}" ${j.usuario_id === valorActual ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`)
-        .join('');
-  });
+async function confirmarCrearPartidoPublico() {
+  const zona = document.getElementById('nuevo-partido-zona').value;
+  const categoria = document.getElementById('nuevo-partido-categoria').value;
+  const fecha = document.getElementById('nuevo-partido-fecha').value;
+  const hora = document.getElementById('nuevo-partido-hora').value;
+  const lugar = document.getElementById('nuevo-partido-lugar').value.trim();
+  const descripcion = document.getElementById('nuevo-partido-descripcion').value.trim();
+  const errEl = document.getElementById('nuevo-partido-error');
+  errEl.style.display = 'none';
+  if (!zona) { errEl.textContent = 'Seleccioná una zona'; errEl.style.display = 'block'; return; }
+  if (!fecha) { errEl.textContent = 'Seleccioná una fecha'; errEl.style.display = 'block'; return; }
+  if (!hora) { errEl.textContent = 'Seleccioná una hora'; errEl.style.display = 'block'; return; }
+  showLoader('Publicando partido...');
+  try {
+    const res = await api('/padel/partidos-publicos', {
+      method: 'POST',
+      body: JSON.stringify({ zona, categoria, fecha, hora, lugar: lugar || null, descripcion: descripcion || null, cupos: 4 })
+    });
+    if (res.ok) {
+      cerrarCrearPartido();
+      // Recargar lista según donde estemos
+      const tabProximos = document.getElementById('tab-proximospartidos');
+      if (tabProximos && tabProximos.classList.contains('active')) cargarProximosSwipe();
+      const tabPartidos = document.getElementById('tab-partidos');
+      if (tabPartidos && tabPartidos.classList.contains('active')) cargarPartidos();
+      alert('✅ ¡Partido publicado! Los jugadores de la zona van a recibir una notificación.');
+    }
+  } catch(err) {
+    errEl.textContent = err.message || 'Error al publicar';
+    errEl.style.display = 'block';
+  } finally { hideLoader(); }
 }
 
 async function confirmarCrearPartido() {
-  const fecha = document.getElementById('partido-fecha').value;
-  const hora = document.getElementById('partido-hora').value;
-  const lugar = document.getElementById('partido-lugar').value;
-  const eq1j2 = document.getElementById('partido-eq1j2').value;
-  const eq2j1 = document.getElementById('partido-eq2j1').value;
-  const eq2j2 = document.getElementById('partido-eq2j2').value;
-  if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const reserva_id = document.getElementById('partido-reserva-id').value;
-  if (!reserva_id) { alert('Seleccioná un turno confirmado'); return; }
-  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null, reserva_id: reserva_id||null })});
-  if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
+  await confirmarCrearPartidoPublico();
 }
 
 let partidoResultadoId = null;
@@ -2808,83 +2797,7 @@ async function responderInvitacion(partido_id, estado) {
   if (res.ok) cargarPartidos();
 }
 
-function abrirCrearPartido() {
-  document.getElementById('modal-crear-partido').style.display = 'flex';
-  cargarJugadoresParaPartido();
-}
 
-function cerrarCrearPartido() {
-  document.getElementById('modal-crear-partido').style.display = 'none';
-}
-
-async function cargarJugadoresParaPartido() {
-  // Cargar turnos disponibles
-  const turnos = await api('/padel/mis-turnos-disponibles');
-  const turnosSel = document.getElementById('partido-turno');
-  const turnosLoading = document.getElementById('turnos-loading');
-  if (!turnos || !turnos.length) {
-    turnosLoading.textContent = 'No tenés turnos confirmados disponibles. Reservá una cancha primero.';
-  } else {
-    turnosLoading.style.display = 'none';
-    turnosSel.style.display = 'block';
-    turnosSel.innerHTML = '<option value="">— Elegir turno —</option>' +
-      turnos.map(t => {
-        const fecha = t.fecha.slice(0,10).split('-').reverse().join('/');
-        const hora = t.hora_inicio.slice(0,5);
-        return `<option value="${t.id}" data-fecha="${t.fecha.slice(0,10)}" data-hora="${hora}" data-lugar="${t.cancha} — ${t.lugar||''}">${fecha} ${hora}hs — ${t.cancha}</option>`;
-      }).join('');
-  }
-  // Cargar jugadores
-  const data = await api('/padel/jugadores');
-  jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
-  actualizarSelectsPartido();
-}
-
-function elegirTurno() {
-  const sel = document.getElementById('partido-turno');
-  const opt = sel.options[sel.selectedIndex];
-  if (!opt.value) {
-    document.getElementById('turno-detalle').style.display = 'none';
-    return;
-  }
-  const fecha = opt.dataset.fecha;
-  const hora = opt.dataset.hora;
-  const lugar = opt.dataset.lugar;
-  document.getElementById('partido-fecha').value = fecha;
-  document.getElementById('partido-hora').value = hora;
-  document.getElementById('partido-lugar').value = lugar;
-  document.getElementById('partido-reserva-id').value = opt.value;
-  document.getElementById('turno-detalle').style.display = 'block';
-  document.getElementById('turno-detalle').innerHTML = `📅 ${fecha.split('-').reverse().join('/')} · ⏰ ${hora}hs · 📍 ${lugar}`;
-}
-
-function actualizarSelectsPartido() {
-  const campos = ['eq1j2','eq2j1','eq2j2'];
-  const elegidos = campos.map(c => document.getElementById('partido-' + c)?.value).filter(Boolean);
-  campos.forEach(campo => {
-    const sel = document.getElementById('partido-' + campo);
-    const valorActual = sel.value;
-    sel.innerHTML = '<option value="">— Elegir jugador —</option>' +
-      jugadoresDisponibles
-        .filter(j => j.usuario_id === valorActual || !elegidos.includes(j.usuario_id))
-        .map(j => `<option value="${j.usuario_id}" ${j.usuario_id === valorActual ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`)
-        .join('');
-  });
-}
-
-async function confirmarCrearPartido() {
-  const fecha = document.getElementById('partido-fecha').value;
-  const hora = document.getElementById('partido-hora').value;
-  const lugar = document.getElementById('partido-lugar').value;
-  const eq1j2 = document.getElementById('partido-eq1j2').value;
-  const eq2j1 = document.getElementById('partido-eq2j1').value;
-  const eq2j2 = document.getElementById('partido-eq2j2').value;
-  if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const reserva_id = document.getElementById('partido-reserva-id').value;
-  if (!reserva_id) { alert('Seleccioná un turno confirmado'); return; }
-  const res = await api('/padel/partidos', {method:'POST',body:JSON.stringify({ fecha, hora, lugar, equipo1_j2: eq1j2||null, equipo2_j1: eq2j1||null, equipo2_j2: eq2j2||null, reserva_id: reserva_id||null })});
-  if (res.ok) { cerrarCrearPartido(); cargarPartidos(); }
-}
 
 async function cargarRanking() {
   const el = document.getElementById('ranking-list');
@@ -3172,35 +3085,64 @@ async function cargarMisClases() {
       <div style="font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">⚡ Crear partido</div>
       <button onclick="cerrarCrearPartido()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer">✕</button>
     </div>
-    <div style="margin-bottom:16px">
-      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">TURNO CONFIRMADO</div>
-      <div id="turnos-loading" style="color:rgba(255,255,255,.35);font-size:13px;text-align:center;padding:10px">Cargando turnos...</div>
-      <select id="partido-turno" onchange="elegirTurno()" style="display:none;width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
-        <option value="">— Elegir turno —</option>
-      </select>
-      <div id="turno-detalle" style="display:none;margin-top:8px;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;font-size:12px;color:rgba(255,255,255,.7)"></div>
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.5);line-height:1.6">
+      🎾 Creá un partido abierto. Cualquier jugador de la zona puede anotarse.
     </div>
-    <input type="hidden" id="partido-fecha">
-    <input type="hidden" id="partido-hora">
-    <input type="hidden" id="partido-lugar">
-    <input type="hidden" id="partido-reserva-id">
-    <div style="background:rgba(34,197,94,.06);border-radius:12px;padding:12px;margin-bottom:12px">
-      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px">EQUIPO 1</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:6px">Vos (creador)</div>
-      <select id="partido-eq1j2" onchange="actualizarSelectsPartido()" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
-        <option value="">— Compañero —</option>
-      </select>
-    </div>
-    <div style="background:rgba(34,197,94,.06);border-radius:12px;padding:12px;margin-bottom:20px">
-      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:8px">EQUIPO 2</div>
-      <select id="partido-eq2j1" onchange="actualizarSelectsPartido()" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px;margin-bottom:8px">
-        <option value="">— Jugador 1 —</option>
-      </select>
-      <select id="partido-eq2j2" onchange="actualizarSelectsPartido()" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
-        <option value="">— Jugador 2 —</option>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">ZONA</div>
+      <select id="nuevo-partido-zona" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+        <option value="Todas">📍 Todas las zonas</option>
+        <option value="Centro">Centro</option>
+        <option value="Nueva Córdoba">Nueva Córdoba</option>
+        <option value="Güemes">Güemes</option>
+        <option value="Alberdi">Alberdi</option>
+        <option value="General Paz">General Paz</option>
+        <option value="Cerro de las Rosas">Cerro de las Rosas</option>
+        <option value="Villa Allende">Villa Allende</option>
+        <option value="Arguello">Arguello</option>
+        <option value="Urca">Urca</option>
+        <option value="Jardín">Jardín</option>
+        <option value="Maipú">Maipú</option>
+        <option value="Villa Belgrano">Villa Belgrano</option>
+        <option value="La Calera">La Calera</option>
+        <option value="Unquillo">Unquillo</option>
+        <option value="Mendiolaza">Mendiolaza</option>
+        <option value="Salsipuedes">Salsipuedes</option>
       </select>
     </div>
-    <button onclick="confirmarCrearPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">⚡ Crear e invitar</button>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">CATEGORÍA</div>
+      <select id="nuevo-partido-categoria" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+        <option value="octava">8va categoría</option>
+        <option value="septima">7ma categoría</option>
+        <option value="sexta">6ta categoría</option>
+        <option value="quinta">5ta categoría</option>
+        <option value="cuarta">4ta categoría</option>
+        <option value="tercera">3ra categoría</option>
+        <option value="segunda">2da categoría</option>
+        <option value="primera">1ra categoría</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div>
+        <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">FECHA</div>
+        <input type="date" id="nuevo-partido-fecha" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">HORA</div>
+        <input type="time" id="nuevo-partido-hora" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark">
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">LUGAR (opcional)</div>
+      <input type="text" id="nuevo-partido-lugar" placeholder="Ej: Club Atlético Córdoba" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:6px">DESCRIPCIÓN (opcional)</div>
+      <input type="text" id="nuevo-partido-descripcion" placeholder="Ej: Partido amistoso, traer pelotas" maxlength="200" style="width:100%;padding:10px;background:#030d06;border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px">
+    </div>
+    <div id="nuevo-partido-error" style="display:none;color:#f87171;font-size:13px;margin-bottom:12px;text-align:center"></div>
+    <button onclick="confirmarCrearPartidoPublico()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">⚡ Publicar partido</button>
   </div>
 </div>
 
@@ -4208,6 +4150,9 @@ function renderPartidoPublico(p) {
     }
     return '<div class="cupo-slot"><span style="color:rgba(255,255,255,.2);font-size:18px">+</span></div>';
   }).join('');
+  const creadoPorHtml = p.creado_por_nombre
+    ? '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:8px">👤 Creado por <strong style="color:rgba(255,255,255,.55)">' + p.creado_por_nombre + '</strong></div>'
+    : '';
 
   let btnHTML = '';
   if (lleno && !yoInscripto) {
@@ -4230,6 +4175,7 @@ function renderPartidoPublico(p) {
     '<div class="partido-pub-fecha">📅 ' + fecha + ' &nbsp; 🕐 ' + hora + 'hs</div>' +
     '<div class="partido-pub-info">' + (p.lugar ? '🏟️ ' + p.lugar + '<br>' : '') + (p.descripcion || '') + '</div>' +
     (p.costo ? '<span class="partido-pub-costo">💰 ' + p.costo + '</span>' : '') +
+    creadoPorHtml +
     '<div class="partido-pub-cupos">' + slots + '<span class="cupo-label">' + inscriptos + '/' + cupos + '</span></div>' +
     btnHTML + '</div>';
 }
