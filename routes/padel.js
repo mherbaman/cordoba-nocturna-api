@@ -1129,17 +1129,36 @@ router.get('/partidos-publicos', async (req, res) => {
   }
 });
 
-// POST /padel/partidos-publicos  — crear partido público (requiere auth admin)
-router.post('/partidos-publicos', authAdmin, async (req, res) => {
+// POST /padel/partidos-publicos  — crear partido público (admin o usuario)
+router.post('/partidos-publicos', async (req, res) => {
+  // Auth flexible: admin o usuario
+  let creado_por_usuario_id = null;
+  let creado_por_nombre = null;
+  const authHeader = req.headers['authorization'];
+  if (authHeader) {
+    try {
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(authHeader.replace('Bearer ',''), process.env.JWT_SECRET);
+      if (decoded.tipo === 'admin') {
+        // sigue como admin
+      } else {
+        creado_por_usuario_id = decoded.id;
+        const uRes = await pool.query('SELECT nombre FROM usuarios WHERE id = $1', [decoded.id]);
+        creado_por_nombre = uRes.rows[0]?.nombre || null;
+      }
+    } catch(e) { return res.status(401).json({ error: 'Token inválido' }); }
+  } else {
+    return res.status(401).json({ error: 'Se requiere autenticación' });
+  }
   try {
     const { zona, categoria, fecha, hora, lugar, costo, descripcion, cupos } = req.body;
     if (!zona || !categoria || !fecha || !hora) {
       return res.status(400).json({ error: 'zona, categoria, fecha y hora son obligatorios' });
     }
     const result = await pool.query(
-      `INSERT INTO partidos_publicos (zona, categoria, fecha, hora, lugar, costo, descripcion, cupos)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4]
+      `INSERT INTO partidos_publicos (zona, categoria, fecha, hora, lugar, costo, descripcion, cupos, creado_por_usuario_id, creado_por_nombre)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4, creado_por_usuario_id, creado_por_nombre]
     );
 
     // Enviar emails a jugadores de la zona
