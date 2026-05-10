@@ -1783,6 +1783,136 @@ router.post('/push-suscripcion', authUsuario, async (req, res) => {
   }
 });
 
+
+// ─── RESULTADO Y RESEÑAS PARTIDOS PÚBLICOS ───────────────────────────────────
+
+// PUT /padel/partidos-publicos/:id/resultado — cargar resultado
+router.put('/partidos-publicos/:id/resultado', authUsuario, async (req, res) => {
+  const { id } = req.params;
+  const usuario_id = req.usuario.id;
+  const { resultado_eq1, resultado_eq2, equipo1_j1, equipo1_j2, equipo2_j1, equipo2_j2, faltaron } = req.body;
+
+  try {
+    const p = await pool.query('SELECT * FROM partidos_publicos WHERE id = $1', [id]);
+    if (!p.rows.length) return res.status(404).json({ error: 'Partido no encontrado' });
+    const partido = p.rows[0];
+
+    // Verificar que puede cargar resultado: creador o primer inscripto
+    const inscriptos = await pool.query(
+      'SELECT usuario_id FROM partidos_publicos_inscriptos WHERE partido_id = $1 ORDER BY inscripto_en ASC',
+      [id]
+    );
+    const primerInscripto = inscriptos.rows[0]?.usuario_id;
+    const esCreador = partido.creado_por_usuario_id === usuario_id;
+    const esPrimerInscripto = primerInscripto === usuario_id;
+
+    if (!esCreador && !esPrimerInscripto) {
+      return res.status(403).json({ error: 'Solo el creador o el primer inscripto puede cargar el resultado' });
+    }
+
+    const suspendido = faltaron && faltaron.length > 0;
+    const ganador_equipo = suspendido ? null : (resultado_eq1 > resultado_eq2 ? 1 : 2);
+
+    await pool.query(`
+      UPDATE partidos_publicos SET
+        estado = $1,
+        resultado_eq1 = $2,
+        resultado_eq2 = $3,
+        ganador_equipo = $4,
+        equipo1_j1 = $5,
+        equipo1_j2 = $6,
+        equipo2_j1 = $7,
+        equipo2_j2 = $8,
+        faltaron = $9,
+        actualizado_en = NOW()
+      WHERE id = $10
+    `, [
+      suspendido ? 'suspendido' : 'jugado',
+      resultado_eq1 || 0, resultado_eq2 || 0, ganador_equipo,
+      equipo1_j1 || null, equipo1_j2 || null,
+      equipo2_j1 || null, equipo2_j2 || null,
+      suspendido ? faltaron : null,
+      id
+    ]);
+
+    // Actualizar ELO si no fue suspendido
+    if (!suspendido) {
+      const ganadores = ganador_equipo === 1
+        ? [equipo1_j1, equipo1_j2]
+        : [equipo2_j1, equipo2_j2];
+      const perdedores = ganador_equipo === 1
+        ? [equipo2_j1, equipo2_j2]
+        : [equipo1_j1, equipo1_j2];
+
+      for (const uid of ganadores.filter(Boolean)) {
+        await pool.query(`
+          UPDATE jugadores_padel
+          SET ranking_puntos = COALESCE(ranking_puntos, 1000) + 10,
+              partidos_jugados = COALESCE(partidos_jugados, 0) + 1,
+              victorias = COALESCE(victorias, 0) + 1
+          WHERE usuario_id = $1
+        `, [uid]);
+      }
+      for (const uid of perdedores.filter(Boolean)) {
+        await pool.query(`
+          UPDATE jugadores_padel
+          SET ranking_puntos = GREATEST(COALESCE(ranking_puntos, 1000) - 10, 0),
+              partidos_jugados = COALESCE(partidos_jugados, 0) + 1
+          WHERE usuario_id = $1
+        `, [uid]);
+      }
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /padel/partidos-publicos/:id/resultado:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// GET /padel/mis-partidos-publicos — partidos públicos donde estoy inscripto o soy creador
+router.get('/mis-partidos-publicos', authUsuario, async (req, res) => {
+  const usuario_id = req.usuario.id;
+  try {
+    const result = await pool.query(`
+      SELECT pp.*,
+        u1.nombre AS eq1j1_nombre, u1.foto_url AS eq1j1_foto,
+        u2.nombre AS eq1j2_nombre, u2.foto_url AS eq1j2_foto,
+        u3.nombre AS eq2j1_nombre, u3.foto_url AS eq2j1_foto,
+        u4.nombre AS eq2j2_nombre, u4.foto_url AS eq2j2_foto,
+        COUNT(pi2.id)::int AS inscriptos,
+        json_agg(
+          json_build_object(
+            'usuario_id', pi2.usuario_id,
+            'nombre', pi2.nombre,
+            'foto_url', pi2.foto_url,
+            'inscripto_en', pi2.inscripto_en
+          ) ORDER BY pi2.inscripto_en
+        ) FILTER (WHERE pi2.id IS NOT NULL) AS jugadores,
+        (SELECT usuario_id FROM partidos_publicos_inscriptos
+         WHERE partido_id = pp.id ORDER BY inscripto_en ASC LIMIT 1) AS primer_inscripto
+      FROM partidos_publicos pp
+      LEFT JOIN partidos_publicos_inscriptos pi2 ON pi2.partido_id = pp.id
+      LEFT JOIN usuarios u1 ON u1.id = pp.equipo1_j1
+      LEFT JOIN usuarios u2 ON u2.id = pp.equipo1_j2
+      LEFT JOIN usuarios u3 ON u3.id = pp.equipo2_j1
+      LEFT JOIN usuarios u4 ON u4.id = pp.equipo2_j2
+      WHERE pp.creado_por_usuario_id = $1
+         OR EXISTS (
+           SELECT 1 FROM partidos_publicos_inscriptos
+           WHERE partido_id = pp.id AND usuario_id = $1
+         )
+      GROUP BY pp.id, u1.nombre, u1.foto_url, u2.nombre, u2.foto_url,
+               u3.nombre, u3.foto_url, u4.nombre, u4.foto_url
+      ORDER BY pp.fecha DESC, pp.hora DESC
+    `, [usuario_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/mis-partidos-publicos:', err.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
