@@ -1288,7 +1288,44 @@ router.post('/partidos-publicos/:id/inscribirse', authUsuario, async (req, res) 
       LEFT JOIN partidos_publicos_inscriptos pi2 ON pi2.partido_id = pp.id
       WHERE pp.id = $1 GROUP BY pp.id`, [id]);
 
-    res.json({ ok: true, partido: updated.rows[0] });
+    // Crear chat directo con el organizador
+    const partido_actualizado = updated.rows[0];
+    let organizador_id = partido_actualizado.creado_por_usuario_id;
+    let organizador_nombre = partido_actualizado.creado_por_nombre;
+
+    // Si no hay creador (partido de admin), usar el primer inscripto
+    if (!organizador_id) {
+      const primerInscripto = await pool.query(
+        'SELECT usuario_id, nombre FROM partidos_publicos_inscriptos WHERE partido_id = $1 ORDER BY inscripto_en ASC LIMIT 1',
+        [id]
+      );
+      if (primerInscripto.rows.length && primerInscripto.rows[0].usuario_id !== usuario_id) {
+        organizador_id = primerInscripto.rows[0].usuario_id;
+        organizador_nombre = primerInscripto.rows[0].nombre;
+      }
+    }
+
+    let match_id = null;
+    if (organizador_id && organizador_id !== usuario_id) {
+      try {
+        const existeMatch = await pool.query(`
+          SELECT id FROM matches
+          WHERE sesion_id IS NULL
+          AND ((usuario_1 = $1 AND usuario_2 = $2) OR (usuario_1 = $2 AND usuario_2 = $1))
+        `, [usuario_id, organizador_id]);
+        if (existeMatch.rows.length) {
+          match_id = existeMatch.rows[0].id;
+        } else {
+          const nuevoMatch = await pool.query(
+            'INSERT INTO matches (usuario_1, usuario_2) VALUES ($1, $2) RETURNING id',
+            [usuario_id, organizador_id]
+          );
+          match_id = nuevoMatch.rows[0].id;
+        }
+      } catch(e) { console.error('Error creando chat directo:', e.message); }
+    }
+
+    res.json({ ok: true, partido: updated.rows[0], match_id, organizador_nombre });
   } catch (err) {
     console.error('Error inscribirse partido:', err);
     res.status(500).json({ error: err.message });
