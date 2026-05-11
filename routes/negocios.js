@@ -84,7 +84,7 @@ router.get('/:slug/sesion-activa', async (req, res) => {
 // ── POST /negocios (solo superadmin) ─────────────────────────────────
 // Crear un nuevo negocio cliente
 router.post('/', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, slug, descripcion, logo_url, color_primario, color_secundario, dueno_nombre, dueno_email, dueno_tel } = req.body;
+  const { nombre, tipo, slug, descripcion, logo_url, color_primario, color_secundario, dueno_nombre, dueno_email, dueno_tel, whatsapp, zona, direccion, instagram } = req.body;
 
   if (!nombre || !tipo || !slug) {
     return res.status(400).json({ error: 'Nombre, tipo y slug son requeridos' });
@@ -92,10 +92,10 @@ router.post('/', authSuperAdmin, async (req, res) => {
 
   try {
     const result = await pool.query(`
-      INSERT INTO negocios (nombre, tipo, slug, descripcion, logo_url, color_primario, color_secundario, dueno_nombre, dueno_email, dueno_tel)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      INSERT INTO negocios (nombre, tipo, slug, descripcion, logo_url, color_primario, color_secundario, dueno_nombre, dueno_email, dueno_tel, whatsapp, zona, direccion, instagram)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
       RETURNING *
-    `, [nombre, tipo, slug, descripcion, logo_url, color_primario || '#ff2d78', color_secundario || '#7c3aed', dueno_nombre, dueno_email, dueno_tel]);
+    `, [nombre, tipo, slug, descripcion, logo_url, color_primario || '#ff2d78', color_secundario || '#7c3aed', dueno_nombre, dueno_email, dueno_tel, whatsapp, zona, direccion, instagram]);
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -107,7 +107,7 @@ router.post('/', authSuperAdmin, async (req, res) => {
 // ── PUT /negocios/:id (superadmin) ───────────────────────────────────
 // Actualizar datos de un negocio
 router.put('/:id', authSuperAdmin, async (req, res) => {
-  const { nombre, descripcion, logo_url, color_primario, color_secundario, activo, plan } = req.body;
+  const { nombre, descripcion, logo_url, color_primario, color_secundario, activo, plan, dueno_nombre, dueno_email, dueno_tel, whatsapp, zona, direccion, instagram } = req.body;
   try {
     const result = await pool.query(`
       UPDATE negocios SET
