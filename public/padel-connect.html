@@ -1876,6 +1876,15 @@ async function onModalPhoto(e){
   reader.readAsDataURL(file);
 }
 
+function mostrarHome() {
+  if (usuario) {
+    const nombre = usuario.nombre ? usuario.nombre.split(' ')[0] : '';
+    const el = document.getElementById('home-saludo');
+    if (el && nombre) el.textContent = '¡Hola, ' + nombre + '! ¿Qué querés hacer hoy? 🎾';
+  }
+  showScreen('home-screen');
+}
+
 async function cargarSponsorsApp(){
   try{
     sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());
@@ -3243,14 +3252,7 @@ async function cargarMisClases() {
 </div>
 
 <script>
-function mostrarHome() {
-  if (usuario) {
-    const nombre = usuario.nombre ? usuario.nombre.split(' ')[0] : '';
-    const el = document.getElementById('home-saludo');
-    if (el && nombre) el.textContent = '¡Hola, ' + nombre + '! ¿Qué querés hacer hoy? 🎾';
-  }
-  showScreen('home-screen');
-}
+// mostrarHome movida al script principal
 
 function irAProximosPartidos() {
   showScreen('proximos-partidos');
