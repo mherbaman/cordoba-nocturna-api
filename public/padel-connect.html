@@ -3023,9 +3023,7 @@ async function inscribirsePartido(partidoId) {
     // Abrir chat con el organizador si hay match_id
     if (data.match_id && data.organizador_nombre) {
       setTimeout(() => {
-        if (confirm('✅ ¡Te inscribiste!
-
-¿Querés hablar con ' + data.organizador_nombre.split(' ')[0] + ' para coordinar detalles?')) {
+        if (confirm('\u2705 Te inscribiste! Queres hablar con ' + data.organizador_nombre.split(' ')[0] + ' para coordinar detalles?')) {
           openChat(data.match_id, { id: null, nombre: data.organizador_nombre, foto_url: '' });
         }
       }, 400);
