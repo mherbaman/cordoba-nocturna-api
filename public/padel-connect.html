@@ -1885,6 +1885,67 @@ function mostrarHome() {
   showScreen('home-screen');
 }
 
+// mostrarHome movida al script principal
+
+function irAProximosPartidos() {
+  showScreen('proximos-partidos');
+  cargarPartidosPublicos();
+}
+
+function irAMiPerfil() {
+  showScreen('swipe');
+  setTimeout(() => switchTab('jugar', document.querySelector('.swipe-tab')), 100);
+}
+
+
+// TORNEOS
+function irAJugar() {
+  showScreen('swipe');
+  setTimeout(() => {
+    const tabs = document.querySelectorAll('.swipe-tab');
+    switchTab('jugar', tabs[0]);
+  }, 100);
+}
+function irACanchas() {
+  showScreen('canchas-screen');
+}
+function mostrarReservarCancha() {
+  document.getElementById('canchas-list-section').style.display = 'flex';
+  document.getElementById('canchas-list-section').style.flexDirection = 'column';
+  cargarCanchasJugador2();
+}
+function ocultarReservarCancha() {
+  document.getElementById('canchas-list-section').style.display = 'none';
+}
+async function cargarCanchasJugador2() {
+  const el = document.getElementById('canchas-jugador-list-2');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const canchas = await api('/padel/canchas');
+    if (!canchas.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
+      return;
+    }
+    const porNegocio = {};
+    canchas.forEach(c => {
+      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
+      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
+      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
+    });
+    el.innerHTML = Object.values(porNegocio).map(c => `
+      <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
+        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
+        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
+        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
+      </div>`).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+function irAMiActividad() {
+  showScreen('actividad-screen');
+}
+
 async function cargarSponsorsApp(){
   try{
     sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());
@@ -3252,66 +3313,7 @@ async function cargarMisClases() {
 </div>
 
 <script>
-// mostrarHome movida al script principal
-
-function irAProximosPartidos() {
-  showScreen('proximos-partidos');
-  cargarPartidosPublicos();
-}
-
-function irAMiPerfil() {
-  showScreen('swipe');
-  setTimeout(() => switchTab('jugar', document.querySelector('.swipe-tab')), 100);
-}
-
-
-// TORNEOS
-function irAJugar() {
-  showScreen('swipe');
-  setTimeout(() => {
-    const tabs = document.querySelectorAll('.swipe-tab');
-    switchTab('jugar', tabs[0]);
-  }, 100);
-}
-function irACanchas() {
-  showScreen('canchas-screen');
-}
-function mostrarReservarCancha() {
-  document.getElementById('canchas-list-section').style.display = 'flex';
-  document.getElementById('canchas-list-section').style.flexDirection = 'column';
-  cargarCanchasJugador2();
-}
-function ocultarReservarCancha() {
-  document.getElementById('canchas-list-section').style.display = 'none';
-}
-async function cargarCanchasJugador2() {
-  const el = document.getElementById('canchas-jugador-list-2');
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    const canchas = await api('/padel/canchas');
-    if (!canchas.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
-      return;
-    }
-    const porNegocio = {};
-    canchas.forEach(c => {
-      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
-      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
-      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
-    });
-    el.innerHTML = Object.values(porNegocio).map(c => `
-      <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
-        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
-        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
-        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
-      </div>`).join('');
-  } catch(err) {
-    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
-  }
-}
-function irAMiActividad() {
-  showScreen('actividad-screen');
-}
+// funciones navegacion movidas al script principal
 // ============================================================
 let torneoActual = null;
 let torneoTabActual = 'info';
