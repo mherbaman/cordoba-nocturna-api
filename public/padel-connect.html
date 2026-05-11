@@ -1946,1219 +1946,6 @@ function irAMiActividad() {
   showScreen('actividad-screen');
 }
 
-async function cargarSponsorsApp(){
-  try{
-    sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());
-    renderizarAds('splash');
-    renderizarAds('qr');
-    renderizarAds('swipe');
-    cargarEventosActivos();
-  }catch(e){}
-}
-
-function renderizarAds(pantalla){
-  const el=document.getElementById('ads-'+pantalla);
-  if(!el)return;
-  const filtrados=sponsorsCache.filter(s=>{
-    if(!s.activo)return false;
-    const sApp=(s.app||'todas').toLowerCase();
-    if(sApp!=='todas'&&!sApp.split(',').map(x=>x.trim()).includes('padel'))return false;
-    const sPan=(s.pantalla||'todas').toLowerCase();
-    if(sPan==='todas')return true;
-    return sPan.split(',').map(x=>x.trim()).includes(pantalla);
-  });
-  if(!filtrados.length){el.innerHTML='';return;}
-  const principal=filtrados.filter(s=>s.orden===0||s.orden==='0');
-  const premium=filtrados.filter(s=>{const o=parseInt(s.orden)||0;return o>=1&&o<=2;});
-  const estandar=filtrados.filter(s=>{const o=parseInt(s.orden)||0;return o>=3;});
-  let html='';
-  // PROMO PRINCIPAL — banner ancho completo
-  if(principal.length){
-    const s=principal[0];
-    const img=s.imagen_url?`<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`:(s.emoji||'🎾');
-    html+=`<div class="ad-card-main" data-sid="${s.id}" style="cursor:pointer;background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
-      <div style="width:54px;height:54px;flex-shrink:0;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.06);">${img}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--green);margin-bottom:2px;">⭐ PROMO PRINCIPAL</div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.nombre}</div>
-        <div style="font-size:12px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.promo}</div>
-      </div>
-    </div>`;
-  }
-  // PREMIUM — grid 2 columnas
-  if(premium.length){
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
-    html+=premium.map(s=>{
-      const img=s.imagen_url?`<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:(s.emoji||'🎾');
-      return`<div class="ad-card-prem" data-sid="${s.id}" style="cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;text-align:center;">
-        <div style="font-size:28px;margin-bottom:6px;">${img}</div>
-        <div style="font-size:12px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.nombre}</div>
-        <div style="font-size:11px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.promo}</div>
-      </div>`;
-    }).join('');
-    html+='</div>';
-  }
-  // ESTÁNDAR — grid 3 columnas
-  if(estandar.length){
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;align-items:start;">';
-    html+=estandar.map(s=>{
-      const img=s.imagen_url?`<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:(s.emoji||'🎾');
-      return`<div class="ad-card-std" data-sid="${s.id}" style="cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;">
-        <div style="font-size:24px;margin-bottom:6px;">${img}</div>
-        <div style="font-size:11px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.nombre}</div>
-        <div style="font-size:10px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.promo}</div>
-      </div>`;
-    }).join('');
-    html+='</div>';
-  }
-  el.innerHTML=html;
-  el.querySelectorAll('[data-sid]').forEach(d=>{d.onclick=()=>abrirPromoSponsor(d.getAttribute('data-sid'));});
-}
-
-function abrirPromoSponsor(id){
-  const s=sponsorsCache.find(x=>x.id===id);if(!s)return;
-  const wrap=document.getElementById('promo-img-wrap');
-  if(s.imagen_promo||s.imagen_url){
-    wrap.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`;
-  }else{
-    wrap.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#071a0a"/><text x="190" y="70" font-family="sans-serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="sans-serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="2" fill="rgba(34,197,94,.4)" rx="1"/><text x="190" y="158" font-family="sans-serif" font-size="16" fill="#22c55e" text-anchor="middle">${s.promo}</text></svg>`;
-  }
-  const userId=usuario?'USR-'+usuario.id.substring(0,8):'';
-  const msgPromo=encodeURIComponent(`Hola! Quiero participar en: *${s.nombre}*\n${s.promo}\nMi código: *${userId}*`);
-  const wa=document.getElementById('promo-whatsapp');
-  const ig=document.getElementById('promo-instagram');
-  wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}?text=${msgPromo}`:'#';
-  ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';
-  wa.style.display=s.whatsapp?'flex':'none';
-  ig.style.display=s.instagram?'flex':'none';
-  wa.onclick=function(){
-    if(!wa.dataset.url||wa.dataset.url==='#')return;
-    if(confirm('Al participar confirmás que aceptás recibir información de esta promoción. ¿Continuás?'))window.open(wa.dataset.url);
-  };
-  document.getElementById('promo-modal').classList.add('show');
-}
-
-function cerrarPromo(){document.getElementById('promo-modal').classList.remove('show');}
-
-let _reservaDisp = null;
-let _reservaProfe = null;
-let _reservaFechaSeleccionada = null;
-
-function abrirModalReserva(dispJson, profeJson, fechasJson) {
-  _reservaDisp = JSON.parse(dispJson.replace(/&quot;/g, '"'));
-  _reservaProfe = JSON.parse(profeJson.replace(/&quot;/g, '"'));
-  const fechas = JSON.parse(fechasJson.replace(/&quot;/g, '"'));
-  _reservaFechaSeleccionada = fechas.length === 1 ? fechas[0] : null;
-
-  document.getElementById('modal-reserva-profe').textContent = 'Profesor: ' + _reservaProfe.nombre;
-  document.getElementById('modal-reserva-detalle').innerHTML =
-    '🕐 <strong>' + _reservaDisp.hora_inicio.substring(0,5) + ' — ' + _reservaDisp.hora_fin.substring(0,5) + '</strong><br>' +
-    (_reservaDisp.lugar ? '📍 ' + _reservaDisp.lugar + '<br>' : '') +
-    (_reservaProfe.precio_hora ? '💰 $' + _reservaProfe.precio_hora + '/hora' : '');
-
-  const contFechas = document.getElementById('modal-fechas-opciones');
-  contFechas.innerHTML = '';
-  fechas.forEach(f => {
-    const fecha = new Date(f + 'T12:00:00');
-    const label = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
-    const btn = document.createElement('button');
-    btn.textContent = label;
-    btn.dataset.fecha = f;
-    btn.style.cssText = 'padding:10px 16px;border-radius:50px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.08);color:#a78bfa;font-size:13px;font-weight:600;cursor:pointer;text-align:left';
-    btn.onclick = () => {
-      contFechas.querySelectorAll('button').forEach(b => { b.style.background='rgba(139,92,246,.08)'; b.style.borderColor='rgba(139,92,246,.3)'; });
-      btn.style.background = 'rgba(139,92,246,.25)';
-      btn.style.borderColor = '#a78bfa';
-      _reservaFechaSeleccionada = f;
-    };
-    if (fechas.length === 1) { btn.style.background='rgba(139,92,246,.25)'; btn.style.borderColor='#a78bfa'; }
-    contFechas.appendChild(btn);
-  });
-
-  document.getElementById('modal-reserva-notas').value = '';
-  document.getElementById('modal-reserva-msg').style.display = 'none';
-  const modal = document.getElementById('modal-reserva-clase');
-  modal.style.display = 'flex';
-}
-
-function cerrarModalReserva() {
-  document.getElementById('modal-reserva-clase').style.display = 'none';
-}
-
-async function confirmarReservaClase() {
-  if (!_reservaFechaSeleccionada) { alert('Elegí una fecha'); return; }
-  const notas = document.getElementById('modal-reserva-notas').value.trim();
-  const btn = document.getElementById('btn-confirmar-reserva');
-  btn.disabled = true; btn.textContent = 'Reservando...';
-  const msg = document.getElementById('modal-reserva-msg');
-  try {
-    const res = await api('/padel/clases/reservar', { method:'POST', body: JSON.stringify({
-      profesor_id: _reservaProfe.id,
-      disponibilidad_id: _reservaDisp.id,
-      fecha: _reservaFechaSeleccionada,
-      hora_inicio: _reservaDisp.hora_inicio,
-      hora_fin: _reservaDisp.hora_fin,
-      zona: _reservaDisp.zona,
-      lugar: _reservaDisp.lugar,
-      notas: notas || null
-    })});
-    msg.style.display = 'block';
-    msg.style.background = 'rgba(34,197,94,.1)';
-    msg.style.border = '1px solid rgba(34,197,94,.3)';
-    msg.style.color = '#22c55e';
-    msg.textContent = '✅ ¡Clase reservada! El profesor se va a contactar con vos.';
-    btn.textContent = '✓ Reservado';
-    if (res.whatsapp_profe) setTimeout(() => window.open(res.whatsapp_profe), 1000);
-    setTimeout(() => { cerrarModalReserva(); cargarClases(); }, 2500);
-  } catch(e) {
-    msg.style.display = 'block';
-    msg.style.background = 'rgba(255,45,120,.1)';
-    msg.style.border = '1px solid rgba(255,45,120,.3)';
-    msg.style.color = '#ff2d78';
-    msg.textContent = '❌ ' + (e.message || 'Error al reservar');
-    btn.disabled = false; btn.textContent = 'Confirmar reserva';
-  }
-}
-
-async function cargarEventosActivos(){
-  const el=document.getElementById('eventos-activos-list');
-  if(!el)return;
-  try{
-    const [canchas, nocturna] = await Promise.all([
-      fetch(API+'/negocios/sesiones-activas?tipo=padel').then(r=>r.json()).catch(()=>[]),
-      fetch(API+'/negocios/sesiones-activas?tipo=nocturna').then(r=>r.json()).catch(()=>[])
-    ]);
-
-    let html = '';
-
-    if(canchas.length){
-      html += canchas.map(s=>{
-        const emoji=s.tipo==='torneo'?'🏆':s.tipo==='club'?'🏅':'🎾';
-        return`<div class="evento-card" onclick="document.getElementById('qr-codigo').value='';document.getElementById('qr-codigo').focus()">
-          <div class="evento-img">${emoji}</div>
-          <div class="evento-info">
-            <div class="evento-nombre">${s.nombre}</div>
-            <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} jugadores</div>
-          </div>
-          <span class="evento-codigo" style="background:linear-gradient(135deg,#15803d,#22c55e)">ABIERTO</span>
-        </div>`;
-      }).join('');
-    } else {
-      html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No hay canchas activas ahora</div>';
-    }
-
-    if(nocturna.length){
-      html += `<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:16px 0 8px;text-align:left">🌙 También esta noche en CórdobaLux</div>`;
-      html += nocturna.slice(0,3).map(s=>{
-        const emojiMap={disco:'🎧',bar:'🍺',pub:'🎸',restaurante:'🍽️',casamiento:'💍',sunset:'🌅',gimnasio:'💪',festival:'🎪'};
-        const emoji=emojiMap[s.tipo]||'🌙';
-        return`<div class="evento-card" style="opacity:.75;border-color:rgba(255,45,120,.15)" onclick="window.open('https://cordobalux.com/cordoba-connect.html')">
-          <div class="evento-img" style="background:linear-gradient(135deg,rgba(255,45,120,.2),rgba(124,58,237,.15))">${emoji}</div>
-          <div class="evento-info">
-            <div class="evento-nombre">${s.nombre}</div>
-            <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} personas</div>
-          </div>
-          <span class="evento-codigo" style="background:linear-gradient(135deg,#7c3aed,#ff2d78);font-size:9px">CÓRDOBA LUX</span>
-        </div>`;
-      }).join('');
-    }
-
-    el.innerHTML = html;
-  }catch(e){
-    el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No se pudieron cargar las canchas</div>';
-  }
-}
-
-// ── NIVELES PADEL ─────────────────────────────────────────────────────
-const NIVELES_PADEL_CORTO = ['8va','7ma','6ta','5ta','4ta','3ra','2da','1ra'];
-let nivelSeleccionado = '';
-let perfilPadel = null;
-
-function toggleZonaCustomPerfil(val) {
-  const el = document.getElementById('padel-zona-custom');
-  if (el) el.style.display = val === 'Otra zona' ? 'block' : 'none';
-}
-
-function selectNivel(btn, nivel) {
-  document.querySelectorAll('.nivel-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  nivelSeleccionado = nivel;
-}
-
-async function verificarPerfilPadel() {
-  if (!usuario) return false;
-  try {
-    // Chequear datos completos del usuario
-    const perfUsuario = await api('/auth/perfil');
-    usuario.apellido = perfUsuario.apellido;
-    usuario.telefono = perfUsuario.telefono;
-    usuario.app_origen = perfUsuario.app_origen;
-    // Si falta apellido o telefono, mostrar modal y retornar 'incompleto'
-    if (!perfUsuario.apellido || !perfUsuario.telefono) {
-      return 'incompleto';
-    }
-    const data = await api(`/padel/jugadores/mi-perfil?usuario_id=${usuario.id}`);
-    if (data.tiene_perfil) { perfilPadel = data.perfil; return true; }
-    return false;
-  } catch(e) { return false; }
-}
-
-async function cargarZonasPadel() {
-  // Pre-cargar apellido y telefono si ya existen
-  const apEl = document.getElementById('padel-apellido');
-  const telEl = document.getElementById('padel-telefono');
-  if(apEl && usuario?.apellido) apEl.value = usuario.apellido;
-  if(telEl && usuario?.telefono) telEl.value = usuario.telefono;
-  try {
-    const negocios = await fetch(API+'/negocios/sesiones-activas').then(r=>r.json()).catch(()=>[]);
-    // Zonas fijas de Córdoba como fallback
-    const ZONAS_FIJAS = [
-      'Centro','Nueva Córdoba','Güemes','Alberdi','General Paz','Cerro de las Rosas',
-      'Villa Allende','Arguello','Urca','Jardín','Maipú','Villa Belgrano',
-      'La Calera','Unquillo','Mendiolaza','Salsipuedes','Otra zona'
-    ];
-    const sel = document.getElementById('padel-zona');
-    if (!sel) return;
-    // Limpiar opciones existentes excepto la primera
-    while(sel.options.length > 1) sel.remove(1);
-    ZONAS_FIJAS.forEach(z => {
-      const opt = document.createElement('option');
-      opt.value = z; opt.textContent = z;
-      sel.appendChild(opt);
-    });
-  } catch(e) {}
-}
-
-async function guardarPerfilPadel() {
-  const zonaSelect = document.getElementById('padel-zona')?.value;
-  const zona = zonaSelect === 'Otra zona'
-    ? document.getElementById('padel-zona-custom')?.value.trim()
-    : zonaSelect;
-  const apellido = document.getElementById('padel-apellido')?.value.trim();
-  const telefono = document.getElementById('padel-telefono')?.value.trim();
-  const errEl = document.getElementById('padel-error');
-  if (!apellido) { errEl.textContent='Ingresá tu apellido'; errEl.style.display='block'; return; }
-  if (!telefono) { errEl.textContent='Ingresá tu teléfono'; errEl.style.display='block'; return; }
-  if (!nivelSeleccionado) { errEl.textContent='Seleccioná tu categoría'; errEl.style.display='block'; return; }
-  if (!zona) { errEl.textContent='Seleccioná tu zona'; errEl.style.display='block'; return; }
-  errEl.style.display='none';
-  // Guardar apellido y telefono en el perfil del usuario
-  try {
-    const upd = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ apellido, telefono }) });
-    usuario.apellido = upd.apellido;
-    usuario.telefono = upd.telefono;
-    localStorage.setItem('cl_usuario', JSON.stringify(usuario));
-  } catch(e) {}
-  showLoader('Guardando perfil...');
-  try {
-    await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
-      usuario_id: usuario.id,
-      nombre: usuario.nombre,
-      nivel: nivelSeleccionado,
-      zona,
-      foto_url: usuario.foto_url || null
-    })});
-    perfilPadel = { nivel: nivelSeleccionado, zona };
-    await cargarJugadoresPadel();
-    showScreen('swipe');
-  } catch(err) {
-    errEl.textContent = err.message; errEl.style.display='block';
-  } finally { hideLoader(); }
-}
-
-// ── TABS ──────────────────────────────────────────────────────────────
-async function cargarFalta1Swipe() {
-  const el = document.getElementById('falta1-list');
-  if (!el) return;
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    const partidos = await api('/padel/partidos-publicos?_=' + Date.now());
-    const falta1 = partidos.filter(p => p.cupos - (parseInt(p.inscriptos)||0) === 1);
-    if (!falta1.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🔥</div>No hay partidos que necesiten un jugador ahora.</div>';
-      return;
-    }
-    el.innerHTML = falta1.map(p => renderPartidoPublicoCard(p)).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
-  }
-}
-async function cargarProximosSwipe() {
-  const el = document.getElementById('proximos-swipe-list');
-  if (!el) return;
-  const zonaDefault = perfilPadel?.zona?.split(',')[0]?.trim() || '';
-  const selectZona = document.getElementById('pp-filtro-zona-2');
-  if (selectZona && !selectZona.value && zonaDefault) selectZona.value = zonaDefault;
-  const zona = selectZona?.value || '';
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    let url = '/padel/partidos-publicos?_=' + Date.now();
-    if (zona) url += '&zona=' + encodeURIComponent(zona);
-    const partidos = await api(url);
-    if (!partidos.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay partidos próximos.</div>';
-      return;
-    }
-    el.innerHTML = partidos.map(p => renderPartidoPublicoCard(p)).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
-  }
-}
-function renderPartidoPublicoCard(p) {
-  const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
-  const libres = p.cupos - (parseInt(p.inscriptos)||0);
-  const fecha = new Date(String(p.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short'});
-  const yaInscripto = usuario && inscriptos.some(i => i.usuario_id === usuario.id);
-  return `<div class="partido-pub-card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-      <div style="font-family:'Bebas Neue',cursive;font-size:18px;color:#fbbf24">${p.zona} · ${p.categoria||''}</div>
-      <span style="font-size:11px;font-weight:700;color:${libres===1?'#f87171':'#4ade80'};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;border:1px solid ${libres===1?'rgba(248,113,113,.4)':'rgba(74,222,128,.4)'}">${libres} lugar${libres===1?'':'es'}</span>
-    </div>
-    <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${fecha} · ${p.hora||''}</div>
-    ${p.lugar ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">📍 ${p.lugar}</div>` : ''}
-    ${!yaInscripto && libres > 0 ? `<button onclick="inscribirsePartidoPublico('${p.id}')" style="width:100%;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">🎾 Unirme</button>` : yaInscripto ? `<div style="text-align:center;color:#4ade80;font-size:13px;font-weight:700">✓ Ya estás inscripto</div>` : `<div style="text-align:center;color:rgba(255,255,255,.3);font-size:12px">Partido completo</div>`}
-  </div>`;
-}
-function switchTab(tab, btn) {
-  document.querySelectorAll('.swipe-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='jugar') { cargarJugadoresPadel(); poblarZonas(); }
-  if(tab==='falta1') cargarFalta1Swipe();
-  if(tab==='partidos') cargarPartidos();
-  if(tab==='proximospartidos') cargarProximosSwipe();
-}
-
-// ── CANCHAS JUGADOR ───────────────────────────────────────────────────
-async function cargarCanchasJugador() {
-  const el = document.getElementById('canchas-jugador-list');
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    const canchas = await api('/padel/canchas');
-    if (!canchas.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
-      return;
-    }
-    // Agrupar por negocio — mostrar cada uno una sola vez
-    const porNegocio = {};
-    canchas.forEach(c => {
-      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
-      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
-      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
-    });
-    el.innerHTML = Object.values(porNegocio).map(c => `
-      <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
-        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
-        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
-        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
-      </div>`).join('');
-  } catch(err) {
-    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
-  }
-}
-
-async function verTurnosCancha(negocioId, nombre) {
-  const hoy = new Date().toISOString().split('T')[0];
-  const modal = document.getElementById('modal-reserva');
-  const body = document.getElementById('modal-reserva-body');
-  modal.classList.add('show');
-  // Mostrar selector de fecha primero
-  body.innerHTML = `
-    <div style="font-weight:700;font-size:15px;margin-bottom:14px">🏟️ ${nombre}</div>
-    <label style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Seleccioná una fecha</label>
-    <input type="date" id="fecha-turno" value="${hoy}" min="${hoy}"
-      style="background:rgba(255,255,255,.04);border:1.5px solid rgba(34,197,94,.2);color:#fff;padding:12px;border-radius:12px;font-size:15px;width:100%;margin-bottom:14px;color-scheme:dark"
-      onchange="cargarTurnosFecha('${negocioId}','${nombre}',this.value)">
-    <div id="turnos-resultado"><div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Seleccioná una fecha para ver los turnos disponibles</div></div>
-    <button onclick="document.getElementById('modal-reserva').classList.remove('show')" style="width:100%;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>`;
-}
-
-async function cargarTurnosFecha(negocioId, nombre, fecha) {
-  const el = document.getElementById('turnos-resultado');
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="loader"></div></div>';
-  try {
-    const turnos = await api(`/padel/turnos-disponibles?negocio_id=${negocioId}&fecha=${fecha}`);
-    const fechaLabel = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
-    if (!turnos.length) {
-      el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted)">No hay turnos disponibles para ${fechaLabel}</div>`;
-      return;
-    }
-    el.innerHTML = `
-      <div style="color:var(--green);font-size:13px;font-weight:600;margin-bottom:10px">📅 ${fechaLabel} — ${turnos.length} turno(s) disponible(s)</div>
-      ${turnos.map(t => `
-        <div class="turno-item">
-          <div>
-            <div class="turno-hora">🕐 ${t.hora_inicio.substring(0,5)} - ${t.hora_fin.substring(0,5)}</div>
-            <div style="color:var(--muted);font-size:11px">🏟️ Cancha N°${t.numero_cancha||1}</div>
-            <div class="turno-precio">${t.precio_por_hora}</div>
-          </div>
-          <button class="btn-reservar" onclick="confirmarReserva('${negocioId}','${t.id}','${fecha}','${t.hora_inicio.substring(0,5)}','${t.precio_por_hora}')">Reservar</button>
-        </div>`).join('')}`;
-  } catch(err) {
-    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:16px">${err.message}</div>`;
-  }
-}
-
-async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio) {
-  if (!usuario) { alert('Tenés que iniciar sesión'); return; }
-  if (!perfilPadel) { alert('Completá tu perfil de jugador primero'); showScreen('perfil-padel'); return; }
-  if (!confirm(`Reservar turno ${hora} por ${precio}?\n\n⚠️ Atención: si cancelás tu reserva, el club podrá dejarte una reseña negativa.`)) return;
-  showLoader('Reservando...');
-  try {
-    const data = await api('/padel/reservas', { method:'POST', body:JSON.stringify({
-      jugador_id: perfilPadel.id,
-      negocio_id: negocioId,
-      disponibilidad_id: disponibilidadId,
-      fecha,
-      telefono_contacto: usuario.telefono || null
-    })});
-    document.getElementById('modal-reserva').classList.remove('show');
-    if (data.whatsapp_club) {
-      if (confirm(`✅ ¡Reserva confirmada!\n🏟️ Cancha N°${data.numero_cancha||1}\n🕐 ${hora}\n💰 $${precio}\n\n¿Querés avisarle al club por WhatsApp?`)) {
-        window.open(data.whatsapp_club);
-      }
-    } else {
-      alert(`✅ ¡Reserva confirmada!\n🏟️ Cancha N°${data.numero_cancha||1}\n🕐 ${hora}`);
-    }
-  } catch(err) { alert(err.message); }
-  finally { hideLoader(); }
-}
-
-// ── RANKING ───────────────────────────────────────────────────────────
-
-async function cargarPartidos() {
-  const el = document.getElementById('partidos-list');
-  el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando...</p>';
-  let privados = [], publicos = [];
-  try { privados = await api('/padel/partidos') || []; } catch(e) {}
-  try { publicos = await api('/padel/mis-partidos-publicos') || []; } catch(e) {}
-  if (!privados.length && !publicos.length) {
-    el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">No tenés partidos todavía</p>';
-    return;
-  }
-  window._partidosCargados = privados;
-  window._partidosPublicosCargados = publicos;
-  let html = '';
-  if (publicos.length) {
-    html += '<div style="font-size:11px;color:#fbbf24;font-weight:700;letter-spacing:1px;margin-bottom:10px">PARTIDOS PÚBLICOS</div>';
-    html += publicos.map(p => renderPartidoPublicoMio(p)).join('');
-    if (privados.length) html += '<div style="height:1px;background:rgba(255,255,255,.08);margin:16px 0"></div>';
-  }
-  if (privados.length) {
-    html += '<div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:10px">PARTIDOS PRIVADOS</div>';
-  }
-  // parche: inyectar html antes del render de privados
-  el.innerHTML = html;
-  const data = privados;
-  if (!data || !data.length) return;
-  window._partidosCargados = data;
-  el.innerHTML = data.map(p => {
-    const esCreador = p.creador_id === usuario?.id;
-    const invPendiente = !esCreador && p.mi_invitacion === 'pendiente';
-    const estadoColor = p.estado==='confirmado'?'#22c55e':p.estado==='jugado'?'#60a5fa':p.estado==='suspendido'?'#f87171':'#facc15';
-    const estadoLabel = p.estado==='confirmado'?'✅ Confirmado':p.estado==='jugado'?'🏆 Jugado':p.estado==='suspendido'?'❌ Suspendido':'⏳ Pendiente';
-
-    if (p.estado === 'jugado') return `
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? p.fecha.slice(0,10).split('-').reverse().join('/') : ''} ${p.hora ? p.hora.slice(0,5) : ''}${p.lugar ? ' · '+p.lugar : ''}</div>
-        <div style="font-size:11px;font-weight:700;color:#60a5fa">🏆 Jugado</div>
-      </div>
-
-      <div style="display:flex;gap:8px">
-        <button onclick="toggleResultado('res-${p.id}')" style="flex:1;padding:9px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:#60a5fa;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Ver más</button>
-        <button onclick="abrirResenasPartido('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar</button>
-      </div>
-      <div id="res-${p.id}" style="display:none;margin-top:10px">
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
-            <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 1</div>
-            <div style="font-size:12px;color:#fff">${p.eq1j1_nombre||'-'}</div>
-            <div style="font-size:12px;color:#fff">${p.eq1j2_nombre||'-'}</div>
-          </div>
-          <div style="display:flex;align-items:center;font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">VS</div>
-          <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
-            <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 2</div>
-            <div style="font-size:12px;color:#fff">${p.eq2j1_nombre||'-'}</div>
-            <div style="font-size:12px;color:#fff">${p.eq2j2_nombre||'-'}</div>
-          </div>
-        </div>
-        <div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px">
-          <div style="font-family:'Bebas Neue',cursive;font-size:32px;color:#fff">${p.resultado_eq1} — ${p.resultado_eq2}</div>
-          <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
-        </div>
-      </div>
-    </div>`;
-
-    return `
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? p.fecha.slice(0,10).split('-').reverse().join('/') : ''} ${p.hora ? p.hora.slice(0,5) : ''} ${p.lugar ? '· '+p.lugar : ''}</div>
-        <div style="font-size:11px;font-weight:700;color:${estadoColor}">${estadoLabel}</div>
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
-          <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 1</div>
-          <div style="font-size:12px;color:#fff">${p.eq1j1_nombre||'-'}</div>
-          <div style="font-size:12px;color:#fff">${p.eq1j2_nombre||'-'}</div>
-        </div>
-        <div style="display:flex;align-items:center;font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">VS</div>
-        <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
-          <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 2</div>
-          <div style="font-size:12px;color:#fff">${p.eq2j1_nombre||'-'}</div>
-          <div style="font-size:12px;color:#fff">${p.eq2j2_nombre||'-'}</div>
-        </div>
-      </div>
-      ${invPendiente ? `
-      <div style="display:flex;gap:8px">
-        <button onclick="responderInvitacion('${p.id}','aceptado')" style="flex:1;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">✅ Aceptar</button>
-        <button onclick="responderInvitacion('${p.id}','rechazado')" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:50px;font-size:13px;cursor:pointer">❌ Rechazar</button>
-      </div>` : ''}
-      ${p.estado==='jugado' ? `
-      <div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;margin-top:4px">
-        <div style="font-family:'Bebas Neue',cursive;font-size:28px;color:#fff">${p.resultado_eq1} — ${p.resultado_eq2}</div>
-        <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
-      </div>` : ''}
-      ${p.estado==='suspendido' ? `
-      <button onclick="prepararResenaSuspendido('${p.id}')" style="width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar al que faltó</button>` : ''}
-      ${esCreador && p.estado==='confirmado' ? `
-      <button onclick="abrirResultado('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
-      ${esCreador && p.estado==='pendiente' ? `
-      <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:4px">Esperando que los jugadores acepten</div>` : ''}
-      ${esCreador && p.estado !== 'jugado' && p.estado !== 'cancelado' && p.estado !== 'suspendido' ? `
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="abrirEditarPartido('${p.id}','${p.fecha ? p.fecha.slice(0,10) : ''}','${p.hora ? p.hora.slice(0,5) : ''}','${p.lugar||''}','${p.equipo1_j2||''}','${p.equipo2_j1||''}','${p.equipo2_j2||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✏️ Editar</button>
-        <button onclick="cancelarPartido('${p.id}')" style="flex:1;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">❌ Cancelar</button>
-      </div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-let partidoResenaId = null;
-let jugadoresResena = [];
-let resenasYaHechas = [];
-
-async function prepararResenaSuspendido(partido_id) {
-  // Buscar el partido en la lista ya cargada
-  const lista = document.getElementById('partidos-list');
-  const allPartidos = window._partidosCargados || [];
-  const p = allPartidos.find(x => x.id === partido_id);
-  if (!p) return;
-  partidoResenaId = partido_id;
-  const faltaron = p.faltaron || [];
-  const todos = [
-    { id: p.equipo1_j1, nombre: p.eq1j1_nombre },
-    { id: p.equipo1_j2, nombre: p.eq1j2_nombre },
-    { id: p.equipo2_j1, nombre: p.eq2j1_nombre },
-    { id: p.equipo2_j2, nombre: p.eq2j2_nombre },
-  ].filter(j => j.id);
-  jugadoresResena = todos.filter(j => faltaron.includes(j.id));
-  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
-  renderJugadoresResena();
-  document.getElementById('modal-resenas-partido').style.display = 'flex';
-}
-
-async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
-  partidoResenaId = partido_id;
-  // Todos los jugadores del partido excepto yo
-  jugadoresResena = [
-    { id: ej1j1, nombre: nj1j1 },
-    { id: ej1j2, nombre: nj1j2 },
-    { id: ej2j1, nombre: nj2j1 },
-    { id: ej2j2, nombre: nj2j2 },
-  ].filter(j => j.id && j.id !== usuario?.id);
-
-  // Ver a quiénes ya reseñé
-  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
-
-  renderJugadoresResena();
-  document.getElementById('modal-resenas-partido').style.display = 'flex';
-}
-
-function renderJugadoresResena() {
-  const el = document.getElementById('resenas-partido-list');
-  el.innerHTML = jugadoresResena.map(j => {
-    const yaResene = resenasYaHechas.includes(j.id);
-    return `
-    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
-      <div style="font-size:14px;color:#fff;font-weight:600;margin-bottom:8px">${j.nombre}</div>
-      ${yaResene ? `<div style="font-size:12px;color:var(--green)">✅ Ya reseñaste a este jugador</div>` : `
-      <div style="display:flex;gap:6px;margin-bottom:8px" id="estrellas-${j.id}">
-        ${[1,2,3,4,5].map(n => `<button onclick="elegirEstrella('${j.id}',${n})" style="background:none;border:none;font-size:28px;cursor:pointer;color:#facc15;opacity:.3" data-n="${n}">★</button>`).join('')}
-      </div>
-      <input type="text" id="comentario-${j.id}" placeholder="Comentario (opcional)" maxlength="200"
-        style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;margin-bottom:8px">
-      <button onclick="enviarResena('${j.id}')" style="width:100%;padding:8px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Enviar reseña</button>
-      `}
-    </div>`;
-  }).join('');
-}
-
-let estrellasSeleccionadas = {};
-function elegirEstrella(jugador_id, n) {
-  estrellasSeleccionadas[jugador_id] = n;
-  const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
-  btns.forEach(b => b.style.opacity = parseFloat(b.dataset.n) <= n ? '1' : '.4');
-}
-
-async function enviarResena(a_usuario) {
-  const estrellas = estrellasSeleccionadas[a_usuario];
-  if (!estrellas) { alert('Elegí una puntuación'); return; }
-  const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
-  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
-    partido_id: partidoResenaId, a_usuario, estrellas, comentario
-  })});
-  if (res.ok) {
-    resenasYaHechas.push(a_usuario);
-    renderJugadoresResena();
-  }
-}
-
-function cerrarResenasPartido() {
-  document.getElementById('modal-resenas-partido').style.display = 'none';
-}
-
-function toggleResultado(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-async function cancelarPartido(partido_id) {
-  if (!confirm('¿Cancelar este partido?')) return;
-  const res = await api('/padel/partidos/' + partido_id + '/cancelar', {method:'PUT',body:JSON.stringify({})});
-  if (res.ok) cargarPartidos();
-}
-
-let editandoPartidoId = null;
-function abrirEditarPartido(id, fecha, hora, lugar, eq1j2, eq2j1, eq2j2) {
-  editandoPartidoId = id;
-  document.getElementById('editar-fecha').value = fecha;
-  document.getElementById('editar-hora').value = hora;
-  document.getElementById('editar-lugar').value = lugar;
-  document.getElementById('modal-editar-partido').style.display = 'flex';
-  api('/padel/jugadores').then(data => {
-    jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
-    poblarSelectsEditar(eq1j2, eq2j1, eq2j2);
-  });
-}
-function actualizarSelectsEditar() {
-  const campos = ['editar-eq1j2','editar-eq2j1','editar-eq2j2'];
-  const elegidos = campos.map(c => document.getElementById(c)?.value).filter(Boolean);
-  campos.forEach(campo => {
-    const sel = document.getElementById(campo);
-    const valorActual = sel.value;
-    sel.innerHTML = '<option value="">— Sin jugador —</option>' +
-      jugadoresDisponibles
-        .filter(j => j.usuario_id === valorActual || !elegidos.includes(j.usuario_id))
-        .map(j => `<option value="${j.usuario_id}" ${j.usuario_id === valorActual ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`)
-        .join('');
-  });
-}
-
-function poblarSelectsEditar(eq1j2, eq2j1, eq2j2) {
-  ['editar-eq1j2','editar-eq2j1','editar-eq2j2'].forEach((campo, i) => {
-    const sel = document.getElementById(campo);
-    const val = [eq1j2, eq2j1, eq2j2][i] || '';
-    sel.innerHTML = '<option value="">— Sin jugador —</option>' +
-      jugadoresDisponibles.map(j => `<option value="${j.usuario_id}" ${j.usuario_id === val ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`).join('');
-  });
-}
-function cerrarEditarPartido() {
-  document.getElementById('modal-editar-partido').style.display = 'none';
-}
-async function confirmarEditarPartido() {
-  const fecha = document.getElementById('editar-fecha').value;
-  const hora = document.getElementById('editar-hora').value;
-  const lugar = document.getElementById('editar-lugar').value;
-  const eq1j2 = document.getElementById('editar-eq1j2').value;
-  const eq2j1 = document.getElementById('editar-eq2j1').value;
-  const eq2j2 = document.getElementById('editar-eq2j2').value;
-  if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
-  const res = await api('/padel/partidos/' + editandoPartidoId + '/editar', {method:'PUT',body:JSON.stringify({fecha,hora,lugar,equipo1_j2:eq1j2||null,equipo2_j1:eq2j1||null,equipo2_j2:eq2j2||null})});
-  if (res.ok) { cerrarEditarPartido(); cargarPartidos(); }
-}
-
-async function responderInvitacion(partido_id, estado) {
-  const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
-  if (res.ok) cargarPartidos();
-}
-
-function abrirCrearPartido() {
-  // Pre-seleccionar zona del perfil del usuario
-  const zonaUsuario = perfilPadel?.zona?.split(',')[0]?.trim() || '';
-  const selZona = document.getElementById('nuevo-partido-zona');
-  if (selZona && zonaUsuario) {
-    for (let i = 0; i < selZona.options.length; i++) {
-      if (selZona.options[i].value === zonaUsuario) { selZona.selectedIndex = i; break; }
-    }
-  }
-  // Pre-seleccionar categoria del perfil
-  const catUsuario = perfilPadel?.nivel || '';
-  const selCat = document.getElementById('nuevo-partido-categoria');
-  if (selCat && catUsuario) {
-    for (let i = 0; i < selCat.options.length; i++) {
-      if (selCat.options[i].value === catUsuario) { selCat.selectedIndex = i; break; }
-    }
-  }
-  // Fecha minima hoy
-  const hoy = new Date().toISOString().split('T')[0];
-  const fechaInput = document.getElementById('nuevo-partido-fecha');
-  if (fechaInput) { fechaInput.min = hoy; fechaInput.value = hoy; }
-  document.getElementById('nuevo-partido-error').style.display = 'none';
-  document.getElementById('modal-crear-partido').style.display = 'flex';
-}
-
-function cerrarCrearPartido() {
-  document.getElementById('modal-crear-partido').style.display = 'none';
-}
-
-let jugadoresDisponibles = [];
-
-async function confirmarCrearPartidoPublico() {
-  const zona = document.getElementById('nuevo-partido-zona').value;
-  const categoria = document.getElementById('nuevo-partido-categoria').value;
-  const fecha = document.getElementById('nuevo-partido-fecha').value;
-  const hora = document.getElementById('nuevo-partido-hora').value;
-  const lugar = document.getElementById('nuevo-partido-lugar').value.trim();
-  const descripcion = document.getElementById('nuevo-partido-descripcion').value.trim();
-  const errEl = document.getElementById('nuevo-partido-error');
-  errEl.style.display = 'none';
-  if (!zona) { errEl.textContent = 'Seleccioná una zona'; errEl.style.display = 'block'; return; }
-  if (!fecha) { errEl.textContent = 'Seleccioná una fecha'; errEl.style.display = 'block'; return; }
-  if (!hora) { errEl.textContent = 'Seleccioná una hora'; errEl.style.display = 'block'; return; }
-  showLoader('Publicando partido...');
-  try {
-    const res = await api('/padel/partidos-publicos', {
-      method: 'POST',
-      body: JSON.stringify({ zona, categoria, fecha, hora, lugar: lugar || null, descripcion: descripcion || null, cupos: 4 })
-    });
-    if (res.ok) {
-      cerrarCrearPartido();
-      // Recargar lista según donde estemos
-      const tabProximos = document.getElementById('tab-proximospartidos');
-      if (tabProximos && tabProximos.classList.contains('active')) cargarProximosSwipe();
-      const tabPartidos = document.getElementById('tab-partidos');
-      if (tabPartidos && tabPartidos.classList.contains('active')) cargarPartidos();
-      alert('✅ ¡Partido publicado! Los jugadores de la zona van a recibir una notificación.');
-    }
-  } catch(err) {
-    errEl.textContent = err.message || 'Error al publicar';
-    errEl.style.display = 'block';
-  } finally { hideLoader(); }
-}
-
-async function confirmarCrearPartido() {
-  await confirmarCrearPartidoPublico();
-}
-
-let partidoResultadoId = null;
-let jugadoresPartidoActual = [];
-function abrirResultado(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
-  partidoResultadoId = partido_id;
-  jugadoresPartidoActual = [
-    { id: ej1j1, nombre: nj1j1 },
-    { id: ej1j2, nombre: nj1j2 },
-    { id: ej2j1, nombre: nj2j1 },
-    { id: ej2j2, nombre: nj2j2 },
-  ].filter(j => j.id);
-  // Renderizar checkboxes de faltaron
-  const el = document.getElementById('faltaron-list');
-  el.innerHTML = jugadoresPartidoActual.map(j => `
-    <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer">
-      <input type="checkbox" value="${j.id}" style="width:16px;height:16px;accent-color:var(--green)">
-      <span style="font-size:13px;color:#fff">${j.nombre}</span>
-    </label>
-  `).join('');
-  document.getElementById('modal-resultado').style.display = 'flex';
-}
-function cerrarResultado() {
-  document.getElementById('modal-resultado').style.display = 'none';
-}
-async function confirmarResultado() {
-  const faltaron = [...document.querySelectorAll('#faltaron-list input:checked')].map(i => i.value);
-  const suspendido = faltaron.length > 0;
-  let eq1 = 0, eq2 = 0;
-  if (!suspendido) {
-    eq1 = parseInt(document.getElementById('res-eq1').value);
-    eq2 = parseInt(document.getElementById('res-eq2').value);
-    if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresá los sets de cada equipo'); return; }
-  }
-  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron })});
-  if (res.ok) { cerrarResultado(); cargarPartidos(); }
-}
-
-
-async function prepararResenaSuspendido(partido_id) {
-  // Buscar el partido en la lista ya cargada
-  const lista = document.getElementById('partidos-list');
-  const allPartidos = window._partidosCargados || [];
-  const p = allPartidos.find(x => x.id === partido_id);
-  if (!p) return;
-  partidoResenaId = partido_id;
-  const faltaron = p.faltaron || [];
-  const todos = [
-    { id: p.equipo1_j1, nombre: p.eq1j1_nombre },
-    { id: p.equipo1_j2, nombre: p.eq1j2_nombre },
-    { id: p.equipo2_j1, nombre: p.eq2j1_nombre },
-    { id: p.equipo2_j2, nombre: p.eq2j2_nombre },
-  ].filter(j => j.id);
-  jugadoresResena = todos.filter(j => faltaron.includes(j.id));
-  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
-  renderJugadoresResena();
-  document.getElementById('modal-resenas-partido').style.display = 'flex';
-}
-
-async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
-  partidoResenaId = partido_id;
-  // Todos los jugadores del partido excepto yo
-  jugadoresResena = [
-    { id: ej1j1, nombre: nj1j1 },
-    { id: ej1j2, nombre: nj1j2 },
-    { id: ej2j1, nombre: nj2j1 },
-    { id: ej2j2, nombre: nj2j2 },
-  ].filter(j => j.id && j.id !== usuario?.id);
-
-  // Ver a quiénes ya reseñé
-  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
-
-  renderJugadoresResena();
-  document.getElementById('modal-resenas-partido').style.display = 'flex';
-}
-
-function renderJugadoresResena() {
-  const el = document.getElementById('resenas-partido-list');
-  el.innerHTML = jugadoresResena.map(j => {
-    const yaResene = resenasYaHechas.includes(j.id);
-    return `
-    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
-      <div style="font-size:14px;color:#fff;font-weight:600;margin-bottom:8px">${j.nombre}</div>
-      ${yaResene ? `<div style="font-size:12px;color:var(--green)">✅ Ya reseñaste a este jugador</div>` : `
-      <div style="display:flex;gap:6px;margin-bottom:8px" id="estrellas-${j.id}">
-        ${[1,2,3,4,5].map(n => `<button onclick="elegirEstrella('${j.id}',${n})" style="background:none;border:none;font-size:28px;cursor:pointer;color:#facc15;opacity:.3" data-n="${n}">★</button>`).join('')}
-      </div>
-      <input type="text" id="comentario-${j.id}" placeholder="Comentario (opcional)" maxlength="200"
-        style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;margin-bottom:8px">
-      <button onclick="enviarResena('${j.id}')" style="width:100%;padding:8px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Enviar reseña</button>
-      `}
-    </div>`;
-  }).join('');
-}
-
-function elegirEstrella(jugador_id, n) {
-  estrellasSeleccionadas[jugador_id] = n;
-  const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
-  btns.forEach(b => b.style.opacity = parseFloat(b.dataset.n) <= n ? '1' : '.4');
-}
-
-async function enviarResena(a_usuario) {
-  const estrellas = estrellasSeleccionadas[a_usuario];
-  if (!estrellas) { alert('Elegí una puntuación'); return; }
-  const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
-  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
-    partido_id: partidoResenaId, a_usuario, estrellas, comentario
-  })});
-  if (res.ok) {
-    resenasYaHechas.push(a_usuario);
-    renderJugadoresResena();
-  }
-}
-
-function cerrarResenasPartido() {
-  document.getElementById('modal-resenas-partido').style.display = 'none';
-}
-
-function toggleResultado(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-async function cancelarPartido(partido_id) {
-  if (!confirm('¿Cancelar este partido?')) return;
-  const res = await api('/padel/partidos/' + partido_id + '/cancelar', {method:'PUT',body:JSON.stringify({})});
-  if (res.ok) cargarPartidos();
-}
-
-async function responderInvitacion(partido_id, estado) {
-  const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
-  if (res.ok) cargarPartidos();
-}
-
-
-
-async function cargarRanking() {
-  const el = document.getElementById('ranking-list');
-  const nivel = document.getElementById('ranking-nivel-filter')?.value || '';
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    const params = nivel ? `?nivel=${nivel}` : '';
-    const jugadores = await api('/padel/ranking'+params);
-    if (!jugadores.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay jugadores en el ranking aún</div>';
-      return;
-    }
-    el.innerHTML = jugadores.map(j => `
-      <div class="ranking-item">
-        <div class="ranking-pos">${j.posicion}</div>
-        <div class="ranking-av">${j.foto_url?`<img src="${j.foto_url}">`:'🎾'}</div>
-        <div>
-          <div class="ranking-nombre">${j.nombre}</div>
-          <div class="ranking-nivel">${j.nivel} · ${j.zona}</div>
-        </div>
-        <div class="ranking-pts">${j.ranking_puntos}</div>
-      </div>`).join('');
-  } catch(err) {
-    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
-  }
-}
-
-// ── PERFIL EXTENDIDO ─────────────────────────────────────────────────
-const ZONAS_DISPONIBLES = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes', '+ Otra zona'];
-let nivelModal = '';
-let zonasModal = [];
-
-function selectNivelModal(btn, nivel) {
-  document.querySelectorAll('#modal-nivel-grid .nivel-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  nivelModal = nivel;
-}
-
-function renderZonasModal() {
-  const el = document.getElementById('modal-zonas-chips');
-  if (!el) return;
-  el.innerHTML = ZONAS_DISPONIBLES.map(z => {
-    if (z === '+ Otra zona') {
-      return `<button class="pv-chip" onclick="agregarZonaCustom()" style="border-style:dashed">+ Otra zona</button>`;
-    }
-    const sel = zonasModal.includes(z);
-    return `<button class="pv-chip ${sel?'sel':''}" onclick="toggleZonaModal(this,'${z}')">${z}</button>`;
-  }).join('') + `<div id="zona-custom-input" style="display:none;width:100%;margin-top:8px;gap:6px">
-    <input id="zona-custom-val" class="input-field" style="margin:0;flex:1;font-size:13px" placeholder="Escribí tu zona...">
-    <button onclick="confirmarZonaCustom()" style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">+</button>
-  </div>`;
-  // Mostrar input si hay zonas custom
-  const customZonas = zonasModal.filter(z => !ZONAS_DISPONIBLES.includes(z) && z !== '+ Otra zona');
-  if (customZonas.length) {
-    customZonas.forEach(z => {
-      const btn = document.createElement('button');
-      btn.className = 'pv-chip sel';
-      btn.textContent = z;
-      btn.onclick = () => toggleZonaModal(btn, z);
-      el.insertBefore(btn, el.lastChild);
-    });
-  }
-}
-
-function agregarZonaCustom() {
-  const input = document.getElementById('zona-custom-input');
-  if (input) input.style.display = 'flex';
-  setTimeout(() => document.getElementById('zona-custom-val')?.focus(), 100);
-}
-
-function confirmarZonaCustom() {
-  const val = document.getElementById('zona-custom-val')?.value.trim();
-  if (!val) return;
-  if (zonasModal.length >= 3) { alert('Podés elegir hasta 3 zonas'); return; }
-  if (!zonasModal.includes(val)) zonasModal.push(val);
-  document.getElementById('zona-custom-val').value = '';
-  document.getElementById('zona-custom-input').style.display = 'none';
-  renderZonasModal();
-}
-
-function toggleZonaModal(btn, zona) {
-  if (zonasModal.includes(zona)) {
-    zonasModal = zonasModal.filter(z => z !== zona);
-    btn.classList.remove('sel');
-  } else {
-    if (zonasModal.length >= 3) { alert('Podés elegir hasta 3 zonas'); return; }
-    zonasModal.push(zona);
-    btn.classList.add('sel');
-  }
-}
-
-function toggleCambiarPass() {
-  const el = document.getElementById('cambiar-pass-form');
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-async function cambiarPassword() {
-  const actual = document.getElementById('pass-actual')?.value;
-  const nueva = document.getElementById('pass-nueva')?.value;
-  const confirmar = document.getElementById('pass-confirmar')?.value;
-  if (!actual || !nueva || !confirmar) { alert('Completá todos los campos'); return; }
-  if (nueva.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
-  if (nueva !== confirmar) { alert('Las contraseñas no coinciden'); return; }
-  showLoader('Cambiando contraseña...');
-  try {
-    await api('/auth/cambiar-password', { method:'POST', body:JSON.stringify({ password_actual: actual, password_nueva: nueva }) });
-    document.getElementById('cambiar-pass-form').style.display = 'none';
-    document.getElementById('pass-actual').value = '';
-    document.getElementById('pass-nueva').value = '';
-    document.getElementById('pass-confirmar').value = '';
-    alert('✅ Contraseña actualizada');
-  } catch(err) { alert(err.message); }
-  finally { hideLoader(); }
-}
-
-async function guardarPerfilCompleto() {
-  const nombre = document.getElementById('modal-name-input')?.value.trim();
-  const edad = parseInt(document.getElementById('modal-edad')?.value) || null;
-  const apellido = document.getElementById('modal-apellido-perfil')?.value.trim() || null;
-  const telefono = document.getElementById('modal-telefono-perfil')?.value.trim() || null;
-  if (!nombre) { alert('Ingresá tu nombre'); return; }
-  if (!nivelModal) { alert('Seleccioná tu categoría'); return; }
-  if (zonasModal.length === 0) { alert('Seleccioná al menos una zona'); return; }
-  showLoader('Guardando...');
-  try {
-    // Actualizar usuario general
-    const updUsuario = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({
-      nombre,
-      apellido,
-      telefono,
-      edad,
-      vibe: selectedVibes.join(', ') || usuario.vibe
-    })});
-    usuario.apellido = updUsuario.apellido;
-    usuario.telefono = updUsuario.telefono;
-    clSetUsuario(usuario);
-    // Actualizar perfil padel
-    await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
-      usuario_id: usuario.id,
-      nombre,
-      nivel: nivelModal,
-      zona: zonasModal.join(', '),
-      foto_url: usuario.foto_url || null
-    })});
-    usuario = { ...usuario, nombre, edad, vibe: selectedVibes.join(', ') || usuario.vibe };
-    clSetUsuario(usuario);
-    perfilPadel = { ...perfilPadel, nivel: nivelModal, zona: zonasModal.join(', ') };
-    syncProfileBtn();
-    document.getElementById('profile-modal').classList.remove('show');
-    alert('✅ Perfil actualizado');
-  } catch(err) { alert(err.message); }
-  finally { hideLoader(); }
-}
-
-// ── MIS RESERVAS ──────────────────────────────────────────────────────
-async function cargarMisReservas() {
-  const el = document.getElementById('mis-reservas-list');
-  if (!el) return;
-  if (!perfilPadel) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Completá tu perfil primero</div>';
-    return;
-  }
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    const reservas = await api('/padel/reservas/mis-reservas?usuario_id=' + usuario.id);
-    if (!reservas.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés reservas aún.<br>Reservá desde el tab 🏟️ Canchas</div>';
-      return;
-    }
-    const hoy = new Date().toISOString().split('T')[0];
-    el.innerHTML = reservas.map(r => {
-      const esPasada = r.fecha < hoy;
-      const esCancelada = r.estado === 'cancelado';
-      const colorEstado = esCancelada ? '#ef4444' : r.estado === 'confirmado' ? '#22c55e' : '#f59e0b';
-      const labelEstado = esCancelada ? '✕ Cancelada' : r.estado === 'confirmado' ? '✓ Confirmada' : r.estado;
-      const puedeCanc = !esPasada && !esCancelada;
-      return `<div style="background:var(--card);border:1px solid ${esCancelada?'rgba(239,68,68,.2)':'var(--border)'};border-radius:16px;padding:16px;margin:8px 18px;opacity:${esPasada||esCancelada?'.6':'1'}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-          <div>
-            <div style="font-weight:700;font-size:15px">🏟️ ${r.club_nombre}</div>
-            <div style="color:var(--muted);font-size:12px;margin-top:2px">📍 ${r.zona_cancha||''}</div>
-          </div>
-          <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
-        </div>
-        <div style="display:flex;gap:16px;font-size:13px;margin-bottom:12px">
-          <span>📅 ${String(r.fecha).substring(0,10)}</span>
-          <span>🕐 ${String(r.hora_inicio).substring(0,5)} - ${String(r.hora_fin).substring(0,5)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="color:var(--green);font-weight:700">💰 ${r.precio_cobrado||r.precio_total}</span>
-          ${puedeCanc ? `<button onclick="cancelarReserva('${r.id}','${r.club_nombre}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">Cancelar turno</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-  } catch(err) {
-    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
-  }
-}
-
-async function cancelarReserva(reservaId, clubNombre) {
-  if (!confirm(`¿Cancelar la reserva en ${clubNombre}?\nEl club será notificado por WhatsApp.`)) return;
-  showLoader('Cancelando...');
-  try {
-    const data = await api(`/padel/reservas/${reservaId}`, {
-      method: 'DELETE',
-      body: JSON.stringify({ usuario_id: usuario.id })
-    });
-    if (data.whatsapp_club) window.open(data.whatsapp_club);
-    await cargarMisReservas();
-  } catch(err) { alert(err.message); }
-  finally { hideLoader(); }
-}
-
-function switchMisReservasTab(tab, btn) {
-  document.getElementById('mis-reservas-list').style.display = tab === 'canchas' ? 'block' : 'none';
-  document.getElementById('mis-clases-list').style.display = tab === 'clases' ? 'block' : 'none';
-  document.getElementById('btn-mis-canchas').style.background = tab === 'canchas' ? 'rgba(34,197,94,.15)' : 'transparent';
-  document.getElementById('btn-mis-canchas').style.borderColor = tab === 'canchas' ? 'rgba(34,197,94,.3)' : 'rgba(255,255,255,.1)';
-  document.getElementById('btn-mis-canchas').style.color = tab === 'canchas' ? '#22c55e' : 'rgba(255,255,255,.5)';
-  document.getElementById('btn-mis-clases').style.background = tab === 'clases' ? 'rgba(139,92,246,.15)' : 'transparent';
-  document.getElementById('btn-mis-clases').style.borderColor = tab === 'clases' ? 'rgba(139,92,246,.3)' : 'rgba(255,255,255,.1)';
-  document.getElementById('btn-mis-clases').style.color = tab === 'clases' ? '#a78bfa' : 'rgba(255,255,255,.5)';
-  if (tab === 'clases') cargarMisClases();
-}
-
-async function cargarMisClases() {
-  const el = document.getElementById('mis-clases-list');
-  if (!el) return;
-  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
-  try {
-    const clases = await api('/padel/clases/mis-reservas-alumno');
-    if (!clases.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés clases reservadas aún.<br>Buscá un profe en 🎓 Clases Particulares</div>';
-      return;
-    }
-    const hoy = new Date().toISOString().split('T')[0];
-    el.innerHTML = clases.map(c => {
-      const esPasada = c.fecha < hoy;
-      const colorEstado = c.estado === 'cancelada' ? '#ef4444' : c.estado === 'confirmada' ? '#22c55e' : '#f59e0b';
-      const labelEstado = c.estado === 'cancelada' ? '✕ Cancelada' : c.estado === 'confirmada' ? '✓ Confirmada' : '⏳ Pendiente';
-      const fecha = new Date(String(c.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short' });
-      return `<div style="background:var(--card);border:1px solid ${c.estado==='cancelada'?'rgba(239,68,68,.2)':'rgba(139,92,246,.2)'};border-radius:16px;padding:16px;margin:8px 18px;opacity:${esPasada||c.estado==='cancelada'?'.6':'1'}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-          <div style="display:flex;gap:10px;align-items:center">
-            ${c.profesor_foto ? `<img src="${c.profesor_foto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,.4)">` : `<div style="width:40px;height:40px;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:18px">🎾</div>`}
-            <div>
-              <div style="font-weight:700;font-size:15px">${c.profesor_nombre}</div>
-              <div style="color:var(--muted);font-size:12px">Clase particular</div>
-            </div>
-          </div>
-          <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
-        </div>
-        <div style="display:flex;gap:16px;font-size:13px;margin-bottom:10px">
-          <span>📅 ${fecha}</span>
-          <span>🕐 ${String(c.hora_inicio).substring(0,5)} - ${String(c.hora_fin).substring(0,5)}</span>
-        </div>
-        ${c.lugar ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📍 ${c.lugar}</div>` : ''}
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          ${c.precio_cobrado ? `<span style="color:#facc15;font-weight:700">💰 $${c.precio_cobrado}</span>` : '<span></span>'}
-          ${c.profesor_whatsapp && !esPasada && c.estado !== 'cancelada' ? `<a href="https://wa.me/${c.profesor_whatsapp.replace(/\D/g,'')}" target="_blank" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;text-decoration:none">💬 Profe</a>` : ''}
-        </div>
-      </div>`;
-    }).join('');
-  } catch(err) {
-    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
-  }
-}
-
-// ── PROXIES para funciones definidas mas abajo ──────────────────────
-function inscribirsePartidoPublico(id) { inscribirsePartido(id); }
-function unirsePartidoPublico(id) { inscribirsePartido(id); }
-function cargarPartidosPublicos() { _renderPartidosPublicos && _renderPartidosPublicos(); }
-function irAProximosPartidos() { showScreen('proximos-partidos'); setTimeout(()=>{ typeof _renderPartidosPublicos==='function' && _renderPartidosPublicos(); },100); }
-</script>
 
 <!-- MODAL RESENAS JUGADOR -->
 <div id="modal-resenas-jugador" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
@@ -4445,6 +3232,1218 @@ async function cargarMisInscripciones() {
 }
 </script>
 <script>
+
+async function cargarSponsorsApp(){
+  try{
+    sponsorsCache=await fetch(`${API}/sponsors`).then(r=>r.json());
+    renderizarAds('splash');
+    renderizarAds('qr');
+    renderizarAds('swipe');
+    cargarEventosActivos();
+  }catch(e){}
+}
+
+function renderizarAds(pantalla){
+  const el=document.getElementById('ads-'+pantalla);
+  if(!el)return;
+  const filtrados=sponsorsCache.filter(s=>{
+    if(!s.activo)return false;
+    const sApp=(s.app||'todas').toLowerCase();
+    if(sApp!=='todas'&&!sApp.split(',').map(x=>x.trim()).includes('padel'))return false;
+    const sPan=(s.pantalla||'todas').toLowerCase();
+    if(sPan==='todas')return true;
+    return sPan.split(',').map(x=>x.trim()).includes(pantalla);
+  });
+  if(!filtrados.length){el.innerHTML='';return;}
+  const principal=filtrados.filter(s=>s.orden===0||s.orden==='0');
+  const premium=filtrados.filter(s=>{const o=parseInt(s.orden)||0;return o>=1&&o<=2;});
+  const estandar=filtrados.filter(s=>{const o=parseInt(s.orden)||0;return o>=3;});
+  let html='';
+  // PROMO PRINCIPAL — banner ancho completo
+  if(principal.length){
+    const s=principal[0];
+    const img=s.imagen_url?`<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`:(s.emoji||'🎾');
+    html+=`<div class="ad-card-main" data-sid="${s.id}" style="cursor:pointer;background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(34,197,94,.05));border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+      <div style="width:54px;height:54px;flex-shrink:0;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.06);">${img}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--green);margin-bottom:2px;">⭐ PROMO PRINCIPAL</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.nombre}</div>
+        <div style="font-size:12px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.promo}</div>
+      </div>
+    </div>`;
+  }
+  // PREMIUM — grid 2 columnas
+  if(premium.length){
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">';
+    html+=premium.map(s=>{
+      const img=s.imagen_url?`<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:(s.emoji||'🎾');
+      return`<div class="ad-card-prem" data-sid="${s.id}" style="cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">${img}</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.nombre}</div>
+        <div style="font-size:11px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.promo}</div>
+      </div>`;
+    }).join('');
+    html+='</div>';
+  }
+  // ESTÁNDAR — grid 3 columnas
+  if(estandar.length){
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;align-items:start;">';
+    html+=estandar.map(s=>{
+      const img=s.imagen_url?`<img src="${s.imagen_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:(s.emoji||'🎾');
+      return`<div class="ad-card-std" data-sid="${s.id}" style="cursor:pointer;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;text-align:center;min-height:90px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-size:24px;margin-bottom:6px;">${img}</div>
+        <div style="font-size:11px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.nombre}</div>
+        <div style="font-size:10px;color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.promo}</div>
+      </div>`;
+    }).join('');
+    html+='</div>';
+  }
+  el.innerHTML=html;
+  el.querySelectorAll('[data-sid]').forEach(d=>{d.onclick=()=>abrirPromoSponsor(d.getAttribute('data-sid'));});
+}
+
+function abrirPromoSponsor(id){
+  const s=sponsorsCache.find(x=>x.id===id);if(!s)return;
+  const wrap=document.getElementById('promo-img-wrap');
+  if(s.imagen_promo||s.imagen_url){
+    wrap.innerHTML=`<img src="${s.imagen_promo||s.imagen_url}">`;
+  }else{
+    wrap.innerHTML=`<svg viewBox="0 0 380 220" xmlns="http://www.w3.org/2000/svg"><rect width="380" height="220" fill="#071a0a"/><text x="190" y="70" font-family="sans-serif" font-size="60" text-anchor="middle">${s.emoji}</text><text x="190" y="115" font-family="sans-serif" font-size="22" font-weight="bold" fill="#fff" text-anchor="middle">${s.nombre}</text><rect x="60" y="128" width="260" height="2" fill="rgba(34,197,94,.4)" rx="1"/><text x="190" y="158" font-family="sans-serif" font-size="16" fill="#22c55e" text-anchor="middle">${s.promo}</text></svg>`;
+  }
+  const userId=usuario?'USR-'+usuario.id.substring(0,8):'';
+  const msgPromo=encodeURIComponent(`Hola! Quiero participar en: *${s.nombre}*\n${s.promo}\nMi código: *${userId}*`);
+  const wa=document.getElementById('promo-whatsapp');
+  const ig=document.getElementById('promo-instagram');
+  wa.dataset.url=s.whatsapp?`https://wa.me/${s.whatsapp}?text=${msgPromo}`:'#';
+  ig.dataset.url=s.instagram?`https://instagram.com/${s.instagram}`:'#';
+  wa.style.display=s.whatsapp?'flex':'none';
+  ig.style.display=s.instagram?'flex':'none';
+  wa.onclick=function(){
+    if(!wa.dataset.url||wa.dataset.url==='#')return;
+    if(confirm('Al participar confirmás que aceptás recibir información de esta promoción. ¿Continuás?'))window.open(wa.dataset.url);
+  };
+  document.getElementById('promo-modal').classList.add('show');
+}
+
+function cerrarPromo(){document.getElementById('promo-modal').classList.remove('show');}
+
+let _reservaDisp = null;
+let _reservaProfe = null;
+let _reservaFechaSeleccionada = null;
+
+function abrirModalReserva(dispJson, profeJson, fechasJson) {
+  _reservaDisp = JSON.parse(dispJson.replace(/&quot;/g, '"'));
+  _reservaProfe = JSON.parse(profeJson.replace(/&quot;/g, '"'));
+  const fechas = JSON.parse(fechasJson.replace(/&quot;/g, '"'));
+  _reservaFechaSeleccionada = fechas.length === 1 ? fechas[0] : null;
+
+  document.getElementById('modal-reserva-profe').textContent = 'Profesor: ' + _reservaProfe.nombre;
+  document.getElementById('modal-reserva-detalle').innerHTML =
+    '🕐 <strong>' + _reservaDisp.hora_inicio.substring(0,5) + ' — ' + _reservaDisp.hora_fin.substring(0,5) + '</strong><br>' +
+    (_reservaDisp.lugar ? '📍 ' + _reservaDisp.lugar + '<br>' : '') +
+    (_reservaProfe.precio_hora ? '💰 $' + _reservaProfe.precio_hora + '/hora' : '');
+
+  const contFechas = document.getElementById('modal-fechas-opciones');
+  contFechas.innerHTML = '';
+  fechas.forEach(f => {
+    const fecha = new Date(f + 'T12:00:00');
+    const label = fecha.toLocaleDateString('es-AR', { weekday:'long', day:'numeric', month:'long' });
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.dataset.fecha = f;
+    btn.style.cssText = 'padding:10px 16px;border-radius:50px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.08);color:#a78bfa;font-size:13px;font-weight:600;cursor:pointer;text-align:left';
+    btn.onclick = () => {
+      contFechas.querySelectorAll('button').forEach(b => { b.style.background='rgba(139,92,246,.08)'; b.style.borderColor='rgba(139,92,246,.3)'; });
+      btn.style.background = 'rgba(139,92,246,.25)';
+      btn.style.borderColor = '#a78bfa';
+      _reservaFechaSeleccionada = f;
+    };
+    if (fechas.length === 1) { btn.style.background='rgba(139,92,246,.25)'; btn.style.borderColor='#a78bfa'; }
+    contFechas.appendChild(btn);
+  });
+
+  document.getElementById('modal-reserva-notas').value = '';
+  document.getElementById('modal-reserva-msg').style.display = 'none';
+  const modal = document.getElementById('modal-reserva-clase');
+  modal.style.display = 'flex';
+}
+
+function cerrarModalReserva() {
+  document.getElementById('modal-reserva-clase').style.display = 'none';
+}
+
+async function confirmarReservaClase() {
+  if (!_reservaFechaSeleccionada) { alert('Elegí una fecha'); return; }
+  const notas = document.getElementById('modal-reserva-notas').value.trim();
+  const btn = document.getElementById('btn-confirmar-reserva');
+  btn.disabled = true; btn.textContent = 'Reservando...';
+  const msg = document.getElementById('modal-reserva-msg');
+  try {
+    const res = await api('/padel/clases/reservar', { method:'POST', body: JSON.stringify({
+      profesor_id: _reservaProfe.id,
+      disponibilidad_id: _reservaDisp.id,
+      fecha: _reservaFechaSeleccionada,
+      hora_inicio: _reservaDisp.hora_inicio,
+      hora_fin: _reservaDisp.hora_fin,
+      zona: _reservaDisp.zona,
+      lugar: _reservaDisp.lugar,
+      notas: notas || null
+    })});
+    msg.style.display = 'block';
+    msg.style.background = 'rgba(34,197,94,.1)';
+    msg.style.border = '1px solid rgba(34,197,94,.3)';
+    msg.style.color = '#22c55e';
+    msg.textContent = '✅ ¡Clase reservada! El profesor se va a contactar con vos.';
+    btn.textContent = '✓ Reservado';
+    if (res.whatsapp_profe) setTimeout(() => window.open(res.whatsapp_profe), 1000);
+    setTimeout(() => { cerrarModalReserva(); cargarClases(); }, 2500);
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.style.background = 'rgba(255,45,120,.1)';
+    msg.style.border = '1px solid rgba(255,45,120,.3)';
+    msg.style.color = '#ff2d78';
+    msg.textContent = '❌ ' + (e.message || 'Error al reservar');
+    btn.disabled = false; btn.textContent = 'Confirmar reserva';
+  }
+}
+
+async function cargarEventosActivos(){
+  const el=document.getElementById('eventos-activos-list');
+  if(!el)return;
+  try{
+    const [canchas, nocturna] = await Promise.all([
+      fetch(API+'/negocios/sesiones-activas?tipo=padel').then(r=>r.json()).catch(()=>[]),
+      fetch(API+'/negocios/sesiones-activas?tipo=nocturna').then(r=>r.json()).catch(()=>[])
+    ]);
+
+    let html = '';
+
+    if(canchas.length){
+      html += canchas.map(s=>{
+        const emoji=s.tipo==='torneo'?'🏆':s.tipo==='club'?'🏅':'🎾';
+        return`<div class="evento-card" onclick="document.getElementById('qr-codigo').value='';document.getElementById('qr-codigo').focus()">
+          <div class="evento-img">${emoji}</div>
+          <div class="evento-info">
+            <div class="evento-nombre">${s.nombre}</div>
+            <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} jugadores</div>
+          </div>
+          <span class="evento-codigo" style="background:linear-gradient(135deg,#15803d,#22c55e)">ABIERTO</span>
+        </div>`;
+      }).join('');
+    } else {
+      html += '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No hay canchas activas ahora</div>';
+    }
+
+    if(nocturna.length){
+      html += `<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin:16px 0 8px;text-align:left">🌙 También esta noche en CórdobaLux</div>`;
+      html += nocturna.slice(0,3).map(s=>{
+        const emojiMap={disco:'🎧',bar:'🍺',pub:'🎸',restaurante:'🍽️',casamiento:'💍',sunset:'🌅',gimnasio:'💪',festival:'🎪'};
+        const emoji=emojiMap[s.tipo]||'🌙';
+        return`<div class="evento-card" style="opacity:.75;border-color:rgba(255,45,120,.15)" onclick="window.open('https://cordobalux.com/cordoba-connect.html')">
+          <div class="evento-img" style="background:linear-gradient(135deg,rgba(255,45,120,.2),rgba(124,58,237,.15))">${emoji}</div>
+          <div class="evento-info">
+            <div class="evento-nombre">${s.nombre}</div>
+            <div class="evento-fecha">${s.sesion_nombre} · ${s.total_usuarios||0} personas</div>
+          </div>
+          <span class="evento-codigo" style="background:linear-gradient(135deg,#7c3aed,#ff2d78);font-size:9px">CÓRDOBA LUX</span>
+        </div>`;
+      }).join('');
+    }
+
+    el.innerHTML = html;
+  }catch(e){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">No se pudieron cargar las canchas</div>';
+  }
+}
+
+// ── NIVELES PADEL ─────────────────────────────────────────────────────
+const NIVELES_PADEL_CORTO = ['8va','7ma','6ta','5ta','4ta','3ra','2da','1ra'];
+let nivelSeleccionado = '';
+let perfilPadel = null;
+
+function toggleZonaCustomPerfil(val) {
+  const el = document.getElementById('padel-zona-custom');
+  if (el) el.style.display = val === 'Otra zona' ? 'block' : 'none';
+}
+
+function selectNivel(btn, nivel) {
+  document.querySelectorAll('.nivel-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  nivelSeleccionado = nivel;
+}
+
+async function verificarPerfilPadel() {
+  if (!usuario) return false;
+  try {
+    // Chequear datos completos del usuario
+    const perfUsuario = await api('/auth/perfil');
+    usuario.apellido = perfUsuario.apellido;
+    usuario.telefono = perfUsuario.telefono;
+    usuario.app_origen = perfUsuario.app_origen;
+    // Si falta apellido o telefono, mostrar modal y retornar 'incompleto'
+    if (!perfUsuario.apellido || !perfUsuario.telefono) {
+      return 'incompleto';
+    }
+    const data = await api(`/padel/jugadores/mi-perfil?usuario_id=${usuario.id}`);
+    if (data.tiene_perfil) { perfilPadel = data.perfil; return true; }
+    return false;
+  } catch(e) { return false; }
+}
+
+async function cargarZonasPadel() {
+  // Pre-cargar apellido y telefono si ya existen
+  const apEl = document.getElementById('padel-apellido');
+  const telEl = document.getElementById('padel-telefono');
+  if(apEl && usuario?.apellido) apEl.value = usuario.apellido;
+  if(telEl && usuario?.telefono) telEl.value = usuario.telefono;
+  try {
+    const negocios = await fetch(API+'/negocios/sesiones-activas').then(r=>r.json()).catch(()=>[]);
+    // Zonas fijas de Córdoba como fallback
+    const ZONAS_FIJAS = [
+      'Centro','Nueva Córdoba','Güemes','Alberdi','General Paz','Cerro de las Rosas',
+      'Villa Allende','Arguello','Urca','Jardín','Maipú','Villa Belgrano',
+      'La Calera','Unquillo','Mendiolaza','Salsipuedes','Otra zona'
+    ];
+    const sel = document.getElementById('padel-zona');
+    if (!sel) return;
+    // Limpiar opciones existentes excepto la primera
+    while(sel.options.length > 1) sel.remove(1);
+    ZONAS_FIJAS.forEach(z => {
+      const opt = document.createElement('option');
+      opt.value = z; opt.textContent = z;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
+}
+
+async function guardarPerfilPadel() {
+  const zonaSelect = document.getElementById('padel-zona')?.value;
+  const zona = zonaSelect === 'Otra zona'
+    ? document.getElementById('padel-zona-custom')?.value.trim()
+    : zonaSelect;
+  const apellido = document.getElementById('padel-apellido')?.value.trim();
+  const telefono = document.getElementById('padel-telefono')?.value.trim();
+  const errEl = document.getElementById('padel-error');
+  if (!apellido) { errEl.textContent='Ingresá tu apellido'; errEl.style.display='block'; return; }
+  if (!telefono) { errEl.textContent='Ingresá tu teléfono'; errEl.style.display='block'; return; }
+  if (!nivelSeleccionado) { errEl.textContent='Seleccioná tu categoría'; errEl.style.display='block'; return; }
+  if (!zona) { errEl.textContent='Seleccioná tu zona'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  // Guardar apellido y telefono en el perfil del usuario
+  try {
+    const upd = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ apellido, telefono }) });
+    usuario.apellido = upd.apellido;
+    usuario.telefono = upd.telefono;
+    localStorage.setItem('cl_usuario', JSON.stringify(usuario));
+  } catch(e) {}
+  showLoader('Guardando perfil...');
+  try {
+    await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
+      usuario_id: usuario.id,
+      nombre: usuario.nombre,
+      nivel: nivelSeleccionado,
+      zona,
+      foto_url: usuario.foto_url || null
+    })});
+    perfilPadel = { nivel: nivelSeleccionado, zona };
+    await cargarJugadoresPadel();
+    showScreen('swipe');
+  } catch(err) {
+    errEl.textContent = err.message; errEl.style.display='block';
+  } finally { hideLoader(); }
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────
+async function cargarFalta1Swipe() {
+  const el = document.getElementById('falta1-list');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const partidos = await api('/padel/partidos-publicos?_=' + Date.now());
+    const falta1 = partidos.filter(p => p.cupos - (parseInt(p.inscriptos)||0) === 1);
+    if (!falta1.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🔥</div>No hay partidos que necesiten un jugador ahora.</div>';
+      return;
+    }
+    el.innerHTML = falta1.map(p => renderPartidoPublicoCard(p)).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+async function cargarProximosSwipe() {
+  const el = document.getElementById('proximos-swipe-list');
+  if (!el) return;
+  const zonaDefault = perfilPadel?.zona?.split(',')[0]?.trim() || '';
+  const selectZona = document.getElementById('pp-filtro-zona-2');
+  if (selectZona && !selectZona.value && zonaDefault) selectZona.value = zonaDefault;
+  const zona = selectZona?.value || '';
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    let url = '/padel/partidos-publicos?_=' + Date.now();
+    if (zona) url += '&zona=' + encodeURIComponent(zona);
+    const partidos = await api(url);
+    if (!partidos.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay partidos próximos.</div>';
+      return;
+    }
+    el.innerHTML = partidos.map(p => renderPartidoPublicoCard(p)).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+function renderPartidoPublicoCard(p) {
+  const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
+  const libres = p.cupos - (parseInt(p.inscriptos)||0);
+  const fecha = new Date(String(p.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'short', day:'numeric', month:'short'});
+  const yaInscripto = usuario && inscriptos.some(i => i.usuario_id === usuario.id);
+  return `<div class="partido-pub-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;color:#fbbf24">${p.zona} · ${p.categoria||''}</div>
+      <span style="font-size:11px;font-weight:700;color:${libres===1?'#f87171':'#4ade80'};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;border:1px solid ${libres===1?'rgba(248,113,113,.4)':'rgba(74,222,128,.4)'}">${libres} lugar${libres===1?'':'es'}</span>
+    </div>
+    <div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📅 ${fecha} · ${p.hora||''}</div>
+    ${p.lugar ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">📍 ${p.lugar}</div>` : ''}
+    ${!yaInscripto && libres > 0 ? `<button onclick="inscribirsePartidoPublico('${p.id}')" style="width:100%;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">🎾 Unirme</button>` : yaInscripto ? `<div style="text-align:center;color:#4ade80;font-size:13px;font-weight:700">✓ Ya estás inscripto</div>` : `<div style="text-align:center;color:rgba(255,255,255,.3);font-size:12px">Partido completo</div>`}
+  </div>`;
+}
+function switchTab(tab, btn) {
+  document.querySelectorAll('.swipe-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='jugar') { cargarJugadoresPadel(); poblarZonas(); }
+  if(tab==='falta1') cargarFalta1Swipe();
+  if(tab==='partidos') cargarPartidos();
+  if(tab==='proximospartidos') cargarProximosSwipe();
+}
+
+// ── CANCHAS JUGADOR ───────────────────────────────────────────────────
+async function cargarCanchasJugador() {
+  const el = document.getElementById('canchas-jugador-list');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const canchas = await api('/padel/canchas');
+    if (!canchas.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
+      return;
+    }
+    // Agrupar por negocio — mostrar cada uno una sola vez
+    const porNegocio = {};
+    canchas.forEach(c => {
+      if (!porNegocio[c.id]) porNegocio[c.id] = { ...c, total_turnos: 0, precio_min: c.precio_por_hora };
+      porNegocio[c.id].total_turnos += parseInt(c.turnos_disponibles) || 0;
+      if (c.precio_por_hora < porNegocio[c.id].precio_min) porNegocio[c.id].precio_min = c.precio_por_hora;
+    });
+    el.innerHTML = Object.values(porNegocio).map(c => `
+      <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
+        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
+        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
+        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
+      </div>`).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+
+async function verTurnosCancha(negocioId, nombre) {
+  const hoy = new Date().toISOString().split('T')[0];
+  const modal = document.getElementById('modal-reserva');
+  const body = document.getElementById('modal-reserva-body');
+  modal.classList.add('show');
+  // Mostrar selector de fecha primero
+  body.innerHTML = `
+    <div style="font-weight:700;font-size:15px;margin-bottom:14px">🏟️ ${nombre}</div>
+    <label style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Seleccioná una fecha</label>
+    <input type="date" id="fecha-turno" value="${hoy}" min="${hoy}"
+      style="background:rgba(255,255,255,.04);border:1.5px solid rgba(34,197,94,.2);color:#fff;padding:12px;border-radius:12px;font-size:15px;width:100%;margin-bottom:14px;color-scheme:dark"
+      onchange="cargarTurnosFecha('${negocioId}','${nombre}',this.value)">
+    <div id="turnos-resultado"><div style="text-align:center;color:var(--muted);font-size:13px;padding:16px">Seleccioná una fecha para ver los turnos disponibles</div></div>
+    <button onclick="document.getElementById('modal-reserva').classList.remove('show')" style="width:100%;margin-top:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:11px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>`;
+}
+
+async function cargarTurnosFecha(negocioId, nombre, fecha) {
+  const el = document.getElementById('turnos-resultado');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="loader"></div></div>';
+  try {
+    const turnos = await api(`/padel/turnos-disponibles?negocio_id=${negocioId}&fecha=${fecha}`);
+    const fechaLabel = new Date(fecha + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
+    if (!turnos.length) {
+      el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted)">No hay turnos disponibles para ${fechaLabel}</div>`;
+      return;
+    }
+    el.innerHTML = `
+      <div style="color:var(--green);font-size:13px;font-weight:600;margin-bottom:10px">📅 ${fechaLabel} — ${turnos.length} turno(s) disponible(s)</div>
+      ${turnos.map(t => `
+        <div class="turno-item">
+          <div>
+            <div class="turno-hora">🕐 ${t.hora_inicio.substring(0,5)} - ${t.hora_fin.substring(0,5)}</div>
+            <div style="color:var(--muted);font-size:11px">🏟️ Cancha N°${t.numero_cancha||1}</div>
+            <div class="turno-precio">${t.precio_por_hora}</div>
+          </div>
+          <button class="btn-reservar" onclick="confirmarReserva('${negocioId}','${t.id}','${fecha}','${t.hora_inicio.substring(0,5)}','${t.precio_por_hora}')">Reservar</button>
+        </div>`).join('')}`;
+  } catch(err) {
+    el.innerHTML = `<div style="color:var(--muted);text-align:center;padding:16px">${err.message}</div>`;
+  }
+}
+
+async function confirmarReserva(negocioId, disponibilidadId, fecha, hora, precio) {
+  if (!usuario) { alert('Tenés que iniciar sesión'); return; }
+  if (!perfilPadel) { alert('Completá tu perfil de jugador primero'); showScreen('perfil-padel'); return; }
+  if (!confirm(`Reservar turno ${hora} por ${precio}?\n\n⚠️ Atención: si cancelás tu reserva, el club podrá dejarte una reseña negativa.`)) return;
+  showLoader('Reservando...');
+  try {
+    const data = await api('/padel/reservas', { method:'POST', body:JSON.stringify({
+      jugador_id: perfilPadel.id,
+      negocio_id: negocioId,
+      disponibilidad_id: disponibilidadId,
+      fecha,
+      telefono_contacto: usuario.telefono || null
+    })});
+    document.getElementById('modal-reserva').classList.remove('show');
+    if (data.whatsapp_club) {
+      if (confirm(`✅ ¡Reserva confirmada!\n🏟️ Cancha N°${data.numero_cancha||1}\n🕐 ${hora}\n💰 $${precio}\n\n¿Querés avisarle al club por WhatsApp?`)) {
+        window.open(data.whatsapp_club);
+      }
+    } else {
+      alert(`✅ ¡Reserva confirmada!\n🏟️ Cancha N°${data.numero_cancha||1}\n🕐 ${hora}`);
+    }
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
+}
+
+// ── RANKING ───────────────────────────────────────────────────────────
+
+async function cargarPartidos() {
+  const el = document.getElementById('partidos-list');
+  el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">Cargando...</p>';
+  let privados = [], publicos = [];
+  try { privados = await api('/padel/partidos') || []; } catch(e) {}
+  try { publicos = await api('/padel/mis-partidos-publicos') || []; } catch(e) {}
+  if (!privados.length && !publicos.length) {
+    el.innerHTML = '<p style="color:rgba(255,255,255,.35);text-align:center;padding:40px 0">No tenés partidos todavía</p>';
+    return;
+  }
+  window._partidosCargados = privados;
+  window._partidosPublicosCargados = publicos;
+  let html = '';
+  if (publicos.length) {
+    html += '<div style="font-size:11px;color:#fbbf24;font-weight:700;letter-spacing:1px;margin-bottom:10px">PARTIDOS PÚBLICOS</div>';
+    html += publicos.map(p => renderPartidoPublicoMio(p)).join('');
+    if (privados.length) html += '<div style="height:1px;background:rgba(255,255,255,.08);margin:16px 0"></div>';
+  }
+  if (privados.length) {
+    html += '<div style="font-size:11px;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:10px">PARTIDOS PRIVADOS</div>';
+  }
+  // parche: inyectar html antes del render de privados
+  el.innerHTML = html;
+  const data = privados;
+  if (!data || !data.length) return;
+  window._partidosCargados = data;
+  el.innerHTML = data.map(p => {
+    const esCreador = p.creador_id === usuario?.id;
+    const invPendiente = !esCreador && p.mi_invitacion === 'pendiente';
+    const estadoColor = p.estado==='confirmado'?'#22c55e':p.estado==='jugado'?'#60a5fa':p.estado==='suspendido'?'#f87171':'#facc15';
+    const estadoLabel = p.estado==='confirmado'?'✅ Confirmado':p.estado==='jugado'?'🏆 Jugado':p.estado==='suspendido'?'❌ Suspendido':'⏳ Pendiente';
+
+    if (p.estado === 'jugado') return `
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? p.fecha.slice(0,10).split('-').reverse().join('/') : ''} ${p.hora ? p.hora.slice(0,5) : ''}${p.lugar ? ' · '+p.lugar : ''}</div>
+        <div style="font-size:11px;font-weight:700;color:#60a5fa">🏆 Jugado</div>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button onclick="toggleResultado('res-${p.id}')" style="flex:1;padding:9px;background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.2);color:#60a5fa;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Ver más</button>
+        <button onclick="abrirResenasPartido('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar</button>
+      </div>
+      <div id="res-${p.id}" style="display:none;margin-top:10px">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 1</div>
+            <div style="font-size:12px;color:#fff">${p.eq1j1_nombre||'-'}</div>
+            <div style="font-size:12px;color:#fff">${p.eq1j2_nombre||'-'}</div>
+          </div>
+          <div style="display:flex;align-items:center;font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">VS</div>
+          <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
+            <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 2</div>
+            <div style="font-size:12px;color:#fff">${p.eq2j1_nombre||'-'}</div>
+            <div style="font-size:12px;color:#fff">${p.eq2j2_nombre||'-'}</div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px">
+          <div style="font-family:'Bebas Neue',cursive;font-size:32px;color:#fff">${p.resultado_eq1} — ${p.resultado_eq2}</div>
+          <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
+        </div>
+      </div>
+    </div>`;
+
+    return `
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;color:rgba(255,255,255,.5)">${p.fecha ? p.fecha.slice(0,10).split('-').reverse().join('/') : ''} ${p.hora ? p.hora.slice(0,5) : ''} ${p.lugar ? '· '+p.lugar : ''}</div>
+        <div style="font-size:11px;font-weight:700;color:${estadoColor}">${estadoLabel}</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 1</div>
+          <div style="font-size:12px;color:#fff">${p.eq1j1_nombre||'-'}</div>
+          <div style="font-size:12px;color:#fff">${p.eq1j2_nombre||'-'}</div>
+        </div>
+        <div style="display:flex;align-items:center;font-family:'Bebas Neue',cursive;font-size:22px;color:var(--green)">VS</div>
+        <div style="flex:1;background:rgba(34,197,94,.08);border-radius:10px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px">EQUIPO 2</div>
+          <div style="font-size:12px;color:#fff">${p.eq2j1_nombre||'-'}</div>
+          <div style="font-size:12px;color:#fff">${p.eq2j2_nombre||'-'}</div>
+        </div>
+      </div>
+      ${invPendiente ? `
+      <div style="display:flex;gap:8px">
+        <button onclick="responderInvitacion('${p.id}','aceptado')" style="flex:1;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">✅ Aceptar</button>
+        <button onclick="responderInvitacion('${p.id}','rechazado')" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:50px;font-size:13px;cursor:pointer">❌ Rechazar</button>
+      </div>` : ''}
+      ${p.estado==='jugado' ? `
+      <div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;margin-top:4px">
+        <div style="font-family:'Bebas Neue',cursive;font-size:28px;color:#fff">${p.resultado_eq1} — ${p.resultado_eq2}</div>
+        <div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">${p.ganador_equipo===1 ? '🏆 Ganó Equipo 1' : '🏆 Ganó Equipo 2'}</div>
+      </div>` : ''}
+      ${p.estado==='suspendido' ? `
+      <button onclick="prepararResenaSuspendido('${p.id}')" style="width:100%;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">⭐ Reseñar al que faltó</button>` : ''}
+      ${esCreador && p.estado==='confirmado' ? `
+      <button onclick="abrirResultado('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);color:#60a5fa;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📊 Cargar resultado</button>` : ''}
+      ${esCreador && p.estado==='pendiente' ? `
+      <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:4px">Esperando que los jugadores acepten</div>` : ''}
+      ${esCreador && p.estado !== 'jugado' && p.estado !== 'cancelado' && p.estado !== 'suspendido' ? `
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="abrirEditarPartido('${p.id}','${p.fecha ? p.fecha.slice(0,10) : ''}','${p.hora ? p.hora.slice(0,5) : ''}','${p.lugar||''}','${p.equipo1_j2||''}','${p.equipo2_j1||''}','${p.equipo2_j2||''}')" style="flex:1;padding:9px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:#facc15;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">✏️ Editar</button>
+        <button onclick="cancelarPartido('${p.id}')" style="flex:1;padding:9px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">❌ Cancelar</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+let partidoResenaId = null;
+let jugadoresResena = [];
+let resenasYaHechas = [];
+
+async function prepararResenaSuspendido(partido_id) {
+  // Buscar el partido en la lista ya cargada
+  const lista = document.getElementById('partidos-list');
+  const allPartidos = window._partidosCargados || [];
+  const p = allPartidos.find(x => x.id === partido_id);
+  if (!p) return;
+  partidoResenaId = partido_id;
+  const faltaron = p.faltaron || [];
+  const todos = [
+    { id: p.equipo1_j1, nombre: p.eq1j1_nombre },
+    { id: p.equipo1_j2, nombre: p.eq1j2_nombre },
+    { id: p.equipo2_j1, nombre: p.eq2j1_nombre },
+    { id: p.equipo2_j2, nombre: p.eq2j2_nombre },
+  ].filter(j => j.id);
+  jugadoresResena = todos.filter(j => faltaron.includes(j.id));
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
+
+async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  partidoResenaId = partido_id;
+  // Todos los jugadores del partido excepto yo
+  jugadoresResena = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id && j.id !== usuario?.id);
+
+  // Ver a quiénes ya reseñé
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
+
+function renderJugadoresResena() {
+  const el = document.getElementById('resenas-partido-list');
+  el.innerHTML = jugadoresResena.map(j => {
+    const yaResene = resenasYaHechas.includes(j.id);
+    return `
+    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:14px;color:#fff;font-weight:600;margin-bottom:8px">${j.nombre}</div>
+      ${yaResene ? `<div style="font-size:12px;color:var(--green)">✅ Ya reseñaste a este jugador</div>` : `
+      <div style="display:flex;gap:6px;margin-bottom:8px" id="estrellas-${j.id}">
+        ${[1,2,3,4,5].map(n => `<button onclick="elegirEstrella('${j.id}',${n})" style="background:none;border:none;font-size:28px;cursor:pointer;color:#facc15;opacity:.3" data-n="${n}">★</button>`).join('')}
+      </div>
+      <input type="text" id="comentario-${j.id}" placeholder="Comentario (opcional)" maxlength="200"
+        style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;margin-bottom:8px">
+      <button onclick="enviarResena('${j.id}')" style="width:100%;padding:8px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Enviar reseña</button>
+      `}
+    </div>`;
+  }).join('');
+}
+
+let estrellasSeleccionadas = {};
+function elegirEstrella(jugador_id, n) {
+  estrellasSeleccionadas[jugador_id] = n;
+  const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
+  btns.forEach(b => b.style.opacity = parseFloat(b.dataset.n) <= n ? '1' : '.4');
+}
+
+async function enviarResena(a_usuario) {
+  const estrellas = estrellasSeleccionadas[a_usuario];
+  if (!estrellas) { alert('Elegí una puntuación'); return; }
+  const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
+  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
+    partido_id: partidoResenaId, a_usuario, estrellas, comentario
+  })});
+  if (res.ok) {
+    resenasYaHechas.push(a_usuario);
+    renderJugadoresResena();
+  }
+}
+
+function cerrarResenasPartido() {
+  document.getElementById('modal-resenas-partido').style.display = 'none';
+}
+
+function toggleResultado(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function cancelarPartido(partido_id) {
+  if (!confirm('¿Cancelar este partido?')) return;
+  const res = await api('/padel/partidos/' + partido_id + '/cancelar', {method:'PUT',body:JSON.stringify({})});
+  if (res.ok) cargarPartidos();
+}
+
+let editandoPartidoId = null;
+function abrirEditarPartido(id, fecha, hora, lugar, eq1j2, eq2j1, eq2j2) {
+  editandoPartidoId = id;
+  document.getElementById('editar-fecha').value = fecha;
+  document.getElementById('editar-hora').value = hora;
+  document.getElementById('editar-lugar').value = lugar;
+  document.getElementById('modal-editar-partido').style.display = 'flex';
+  api('/padel/jugadores').then(data => {
+    jugadoresDisponibles = (data || []).filter(j => j.usuario_id !== usuario?.id);
+    poblarSelectsEditar(eq1j2, eq2j1, eq2j2);
+  });
+}
+function actualizarSelectsEditar() {
+  const campos = ['editar-eq1j2','editar-eq2j1','editar-eq2j2'];
+  const elegidos = campos.map(c => document.getElementById(c)?.value).filter(Boolean);
+  campos.forEach(campo => {
+    const sel = document.getElementById(campo);
+    const valorActual = sel.value;
+    sel.innerHTML = '<option value="">— Sin jugador —</option>' +
+      jugadoresDisponibles
+        .filter(j => j.usuario_id === valorActual || !elegidos.includes(j.usuario_id))
+        .map(j => `<option value="${j.usuario_id}" ${j.usuario_id === valorActual ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`)
+        .join('');
+  });
+}
+
+function poblarSelectsEditar(eq1j2, eq2j1, eq2j2) {
+  ['editar-eq1j2','editar-eq2j1','editar-eq2j2'].forEach((campo, i) => {
+    const sel = document.getElementById(campo);
+    const val = [eq1j2, eq2j1, eq2j2][i] || '';
+    sel.innerHTML = '<option value="">— Sin jugador —</option>' +
+      jugadoresDisponibles.map(j => `<option value="${j.usuario_id}" ${j.usuario_id === val ? 'selected' : ''}>${j.nombre} (${j.nivel||''})</option>`).join('');
+  });
+}
+function cerrarEditarPartido() {
+  document.getElementById('modal-editar-partido').style.display = 'none';
+}
+async function confirmarEditarPartido() {
+  const fecha = document.getElementById('editar-fecha').value;
+  const hora = document.getElementById('editar-hora').value;
+  const lugar = document.getElementById('editar-lugar').value;
+  const eq1j2 = document.getElementById('editar-eq1j2').value;
+  const eq2j1 = document.getElementById('editar-eq2j1').value;
+  const eq2j2 = document.getElementById('editar-eq2j2').value;
+  if (!fecha || !hora) { alert('Fecha y hora son obligatorias'); return; }
+  const res = await api('/padel/partidos/' + editandoPartidoId + '/editar', {method:'PUT',body:JSON.stringify({fecha,hora,lugar,equipo1_j2:eq1j2||null,equipo2_j1:eq2j1||null,equipo2_j2:eq2j2||null})});
+  if (res.ok) { cerrarEditarPartido(); cargarPartidos(); }
+}
+
+async function responderInvitacion(partido_id, estado) {
+  const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
+  if (res.ok) cargarPartidos();
+}
+
+function abrirCrearPartido() {
+  // Pre-seleccionar zona del perfil del usuario
+  const zonaUsuario = perfilPadel?.zona?.split(',')[0]?.trim() || '';
+  const selZona = document.getElementById('nuevo-partido-zona');
+  if (selZona && zonaUsuario) {
+    for (let i = 0; i < selZona.options.length; i++) {
+      if (selZona.options[i].value === zonaUsuario) { selZona.selectedIndex = i; break; }
+    }
+  }
+  // Pre-seleccionar categoria del perfil
+  const catUsuario = perfilPadel?.nivel || '';
+  const selCat = document.getElementById('nuevo-partido-categoria');
+  if (selCat && catUsuario) {
+    for (let i = 0; i < selCat.options.length; i++) {
+      if (selCat.options[i].value === catUsuario) { selCat.selectedIndex = i; break; }
+    }
+  }
+  // Fecha minima hoy
+  const hoy = new Date().toISOString().split('T')[0];
+  const fechaInput = document.getElementById('nuevo-partido-fecha');
+  if (fechaInput) { fechaInput.min = hoy; fechaInput.value = hoy; }
+  document.getElementById('nuevo-partido-error').style.display = 'none';
+  document.getElementById('modal-crear-partido').style.display = 'flex';
+}
+
+function cerrarCrearPartido() {
+  document.getElementById('modal-crear-partido').style.display = 'none';
+}
+
+let jugadoresDisponibles = [];
+
+async function confirmarCrearPartidoPublico() {
+  const zona = document.getElementById('nuevo-partido-zona').value;
+  const categoria = document.getElementById('nuevo-partido-categoria').value;
+  const fecha = document.getElementById('nuevo-partido-fecha').value;
+  const hora = document.getElementById('nuevo-partido-hora').value;
+  const lugar = document.getElementById('nuevo-partido-lugar').value.trim();
+  const descripcion = document.getElementById('nuevo-partido-descripcion').value.trim();
+  const errEl = document.getElementById('nuevo-partido-error');
+  errEl.style.display = 'none';
+  if (!zona) { errEl.textContent = 'Seleccioná una zona'; errEl.style.display = 'block'; return; }
+  if (!fecha) { errEl.textContent = 'Seleccioná una fecha'; errEl.style.display = 'block'; return; }
+  if (!hora) { errEl.textContent = 'Seleccioná una hora'; errEl.style.display = 'block'; return; }
+  showLoader('Publicando partido...');
+  try {
+    const res = await api('/padel/partidos-publicos', {
+      method: 'POST',
+      body: JSON.stringify({ zona, categoria, fecha, hora, lugar: lugar || null, descripcion: descripcion || null, cupos: 4 })
+    });
+    if (res.ok) {
+      cerrarCrearPartido();
+      // Recargar lista según donde estemos
+      const tabProximos = document.getElementById('tab-proximospartidos');
+      if (tabProximos && tabProximos.classList.contains('active')) cargarProximosSwipe();
+      const tabPartidos = document.getElementById('tab-partidos');
+      if (tabPartidos && tabPartidos.classList.contains('active')) cargarPartidos();
+      alert('✅ ¡Partido publicado! Los jugadores de la zona van a recibir una notificación.');
+    }
+  } catch(err) {
+    errEl.textContent = err.message || 'Error al publicar';
+    errEl.style.display = 'block';
+  } finally { hideLoader(); }
+}
+
+async function confirmarCrearPartido() {
+  await confirmarCrearPartidoPublico();
+}
+
+let partidoResultadoId = null;
+let jugadoresPartidoActual = [];
+function abrirResultado(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  partidoResultadoId = partido_id;
+  jugadoresPartidoActual = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id);
+  // Renderizar checkboxes de faltaron
+  const el = document.getElementById('faltaron-list');
+  el.innerHTML = jugadoresPartidoActual.map(j => `
+    <label style="display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer">
+      <input type="checkbox" value="${j.id}" style="width:16px;height:16px;accent-color:var(--green)">
+      <span style="font-size:13px;color:#fff">${j.nombre}</span>
+    </label>
+  `).join('');
+  document.getElementById('modal-resultado').style.display = 'flex';
+}
+function cerrarResultado() {
+  document.getElementById('modal-resultado').style.display = 'none';
+}
+async function confirmarResultado() {
+  const faltaron = [...document.querySelectorAll('#faltaron-list input:checked')].map(i => i.value);
+  const suspendido = faltaron.length > 0;
+  let eq1 = 0, eq2 = 0;
+  if (!suspendido) {
+    eq1 = parseInt(document.getElementById('res-eq1').value);
+    eq2 = parseInt(document.getElementById('res-eq2').value);
+    if (isNaN(eq1) || isNaN(eq2)) { alert('Ingresá los sets de cada equipo'); return; }
+  }
+  const res = await api('/padel/partidos/' + partidoResultadoId + '/resultado', {method:'PUT',body:JSON.stringify({ resultado_eq1: eq1, resultado_eq2: eq2, faltaron })});
+  if (res.ok) { cerrarResultado(); cargarPartidos(); }
+}
+
+
+async function prepararResenaSuspendido(partido_id) {
+  // Buscar el partido en la lista ya cargada
+  const lista = document.getElementById('partidos-list');
+  const allPartidos = window._partidosCargados || [];
+  const p = allPartidos.find(x => x.id === partido_id);
+  if (!p) return;
+  partidoResenaId = partido_id;
+  const faltaron = p.faltaron || [];
+  const todos = [
+    { id: p.equipo1_j1, nombre: p.eq1j1_nombre },
+    { id: p.equipo1_j2, nombre: p.eq1j2_nombre },
+    { id: p.equipo2_j1, nombre: p.eq2j1_nombre },
+    { id: p.equipo2_j2, nombre: p.eq2j2_nombre },
+  ].filter(j => j.id);
+  jugadoresResena = todos.filter(j => faltaron.includes(j.id));
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
+
+async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  partidoResenaId = partido_id;
+  // Todos los jugadores del partido excepto yo
+  jugadoresResena = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id && j.id !== usuario?.id);
+
+  // Ver a quiénes ya reseñé
+  resenasYaHechas = await api('/padel/resenas-partido/' + partido_id + '/mias');
+
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
+
+function renderJugadoresResena() {
+  const el = document.getElementById('resenas-partido-list');
+  el.innerHTML = jugadoresResena.map(j => {
+    const yaResene = resenasYaHechas.includes(j.id);
+    return `
+    <div style="padding:12px;border-bottom:1px solid rgba(255,255,255,.07)">
+      <div style="font-size:14px;color:#fff;font-weight:600;margin-bottom:8px">${j.nombre}</div>
+      ${yaResene ? `<div style="font-size:12px;color:var(--green)">✅ Ya reseñaste a este jugador</div>` : `
+      <div style="display:flex;gap:6px;margin-bottom:8px" id="estrellas-${j.id}">
+        ${[1,2,3,4,5].map(n => `<button onclick="elegirEstrella('${j.id}',${n})" style="background:none;border:none;font-size:28px;cursor:pointer;color:#facc15;opacity:.3" data-n="${n}">★</button>`).join('')}
+      </div>
+      <input type="text" id="comentario-${j.id}" placeholder="Comentario (opcional)" maxlength="200"
+        style="width:100%;padding:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;margin-bottom:8px">
+      <button onclick="enviarResena('${j.id}')" style="width:100%;padding:8px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">Enviar reseña</button>
+      `}
+    </div>`;
+  }).join('');
+}
+
+function elegirEstrella(jugador_id, n) {
+  estrellasSeleccionadas[jugador_id] = n;
+  const btns = document.querySelectorAll(`#estrellas-${jugador_id} button`);
+  btns.forEach(b => b.style.opacity = parseFloat(b.dataset.n) <= n ? '1' : '.4');
+}
+
+async function enviarResena(a_usuario) {
+  const estrellas = estrellasSeleccionadas[a_usuario];
+  if (!estrellas) { alert('Elegí una puntuación'); return; }
+  const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
+  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
+    partido_id: partidoResenaId, a_usuario, estrellas, comentario
+  })});
+  if (res.ok) {
+    resenasYaHechas.push(a_usuario);
+    renderJugadoresResena();
+  }
+}
+
+function cerrarResenasPartido() {
+  document.getElementById('modal-resenas-partido').style.display = 'none';
+}
+
+function toggleResultado(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function cancelarPartido(partido_id) {
+  if (!confirm('¿Cancelar este partido?')) return;
+  const res = await api('/padel/partidos/' + partido_id + '/cancelar', {method:'PUT',body:JSON.stringify({})});
+  if (res.ok) cargarPartidos();
+}
+
+async function responderInvitacion(partido_id, estado) {
+  const res = await api('/padel/partidos/' + partido_id + '/responder', {method:'PUT',body:JSON.stringify({ estado })});
+  if (res.ok) cargarPartidos();
+}
+
+
+
+async function cargarRanking() {
+  const el = document.getElementById('ranking-list');
+  const nivel = document.getElementById('ranking-nivel-filter')?.value || '';
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const params = nivel ? `?nivel=${nivel}` : '';
+    const jugadores = await api('/padel/ranking'+params);
+    if (!jugadores.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay jugadores en el ranking aún</div>';
+      return;
+    }
+    el.innerHTML = jugadores.map(j => `
+      <div class="ranking-item">
+        <div class="ranking-pos">${j.posicion}</div>
+        <div class="ranking-av">${j.foto_url?`<img src="${j.foto_url}">`:'🎾'}</div>
+        <div>
+          <div class="ranking-nombre">${j.nombre}</div>
+          <div class="ranking-nivel">${j.nivel} · ${j.zona}</div>
+        </div>
+        <div class="ranking-pts">${j.ranking_puntos}</div>
+      </div>`).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+
+// ── PERFIL EXTENDIDO ─────────────────────────────────────────────────
+const ZONAS_DISPONIBLES = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes', '+ Otra zona'];
+let nivelModal = '';
+let zonasModal = [];
+
+function selectNivelModal(btn, nivel) {
+  document.querySelectorAll('#modal-nivel-grid .nivel-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  nivelModal = nivel;
+}
+
+function renderZonasModal() {
+  const el = document.getElementById('modal-zonas-chips');
+  if (!el) return;
+  el.innerHTML = ZONAS_DISPONIBLES.map(z => {
+    if (z === '+ Otra zona') {
+      return `<button class="pv-chip" onclick="agregarZonaCustom()" style="border-style:dashed">+ Otra zona</button>`;
+    }
+    const sel = zonasModal.includes(z);
+    return `<button class="pv-chip ${sel?'sel':''}" onclick="toggleZonaModal(this,'${z}')">${z}</button>`;
+  }).join('') + `<div id="zona-custom-input" style="display:none;width:100%;margin-top:8px;gap:6px">
+    <input id="zona-custom-val" class="input-field" style="margin:0;flex:1;font-size:13px" placeholder="Escribí tu zona...">
+    <button onclick="confirmarZonaCustom()" style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">+</button>
+  </div>`;
+  // Mostrar input si hay zonas custom
+  const customZonas = zonasModal.filter(z => !ZONAS_DISPONIBLES.includes(z) && z !== '+ Otra zona');
+  if (customZonas.length) {
+    customZonas.forEach(z => {
+      const btn = document.createElement('button');
+      btn.className = 'pv-chip sel';
+      btn.textContent = z;
+      btn.onclick = () => toggleZonaModal(btn, z);
+      el.insertBefore(btn, el.lastChild);
+    });
+  }
+}
+
+function agregarZonaCustom() {
+  const input = document.getElementById('zona-custom-input');
+  if (input) input.style.display = 'flex';
+  setTimeout(() => document.getElementById('zona-custom-val')?.focus(), 100);
+}
+
+function confirmarZonaCustom() {
+  const val = document.getElementById('zona-custom-val')?.value.trim();
+  if (!val) return;
+  if (zonasModal.length >= 3) { alert('Podés elegir hasta 3 zonas'); return; }
+  if (!zonasModal.includes(val)) zonasModal.push(val);
+  document.getElementById('zona-custom-val').value = '';
+  document.getElementById('zona-custom-input').style.display = 'none';
+  renderZonasModal();
+}
+
+function toggleZonaModal(btn, zona) {
+  if (zonasModal.includes(zona)) {
+    zonasModal = zonasModal.filter(z => z !== zona);
+    btn.classList.remove('sel');
+  } else {
+    if (zonasModal.length >= 3) { alert('Podés elegir hasta 3 zonas'); return; }
+    zonasModal.push(zona);
+    btn.classList.add('sel');
+  }
+}
+
+function toggleCambiarPass() {
+  const el = document.getElementById('cambiar-pass-form');
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function cambiarPassword() {
+  const actual = document.getElementById('pass-actual')?.value;
+  const nueva = document.getElementById('pass-nueva')?.value;
+  const confirmar = document.getElementById('pass-confirmar')?.value;
+  if (!actual || !nueva || !confirmar) { alert('Completá todos los campos'); return; }
+  if (nueva.length < 6) { alert('La nueva contraseña debe tener al menos 6 caracteres'); return; }
+  if (nueva !== confirmar) { alert('Las contraseñas no coinciden'); return; }
+  showLoader('Cambiando contraseña...');
+  try {
+    await api('/auth/cambiar-password', { method:'POST', body:JSON.stringify({ password_actual: actual, password_nueva: nueva }) });
+    document.getElementById('cambiar-pass-form').style.display = 'none';
+    document.getElementById('pass-actual').value = '';
+    document.getElementById('pass-nueva').value = '';
+    document.getElementById('pass-confirmar').value = '';
+    alert('✅ Contraseña actualizada');
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
+}
+
+async function guardarPerfilCompleto() {
+  const nombre = document.getElementById('modal-name-input')?.value.trim();
+  const edad = parseInt(document.getElementById('modal-edad')?.value) || null;
+  const apellido = document.getElementById('modal-apellido-perfil')?.value.trim() || null;
+  const telefono = document.getElementById('modal-telefono-perfil')?.value.trim() || null;
+  if (!nombre) { alert('Ingresá tu nombre'); return; }
+  if (!nivelModal) { alert('Seleccioná tu categoría'); return; }
+  if (zonasModal.length === 0) { alert('Seleccioná al menos una zona'); return; }
+  showLoader('Guardando...');
+  try {
+    // Actualizar usuario general
+    const updUsuario = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({
+      nombre,
+      apellido,
+      telefono,
+      edad,
+      vibe: selectedVibes.join(', ') || usuario.vibe
+    })});
+    usuario.apellido = updUsuario.apellido;
+    usuario.telefono = updUsuario.telefono;
+    clSetUsuario(usuario);
+    // Actualizar perfil padel
+    await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
+      usuario_id: usuario.id,
+      nombre,
+      nivel: nivelModal,
+      zona: zonasModal.join(', '),
+      foto_url: usuario.foto_url || null
+    })});
+    usuario = { ...usuario, nombre, edad, vibe: selectedVibes.join(', ') || usuario.vibe };
+    clSetUsuario(usuario);
+    perfilPadel = { ...perfilPadel, nivel: nivelModal, zona: zonasModal.join(', ') };
+    syncProfileBtn();
+    document.getElementById('profile-modal').classList.remove('show');
+    alert('✅ Perfil actualizado');
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
+}
+
+// ── MIS RESERVAS ──────────────────────────────────────────────────────
+async function cargarMisReservas() {
+  const el = document.getElementById('mis-reservas-list');
+  if (!el) return;
+  if (!perfilPadel) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Completá tu perfil primero</div>';
+    return;
+  }
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const reservas = await api('/padel/reservas/mis-reservas?usuario_id=' + usuario.id);
+    if (!reservas.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés reservas aún.<br>Reservá desde el tab 🏟️ Canchas</div>';
+      return;
+    }
+    const hoy = new Date().toISOString().split('T')[0];
+    el.innerHTML = reservas.map(r => {
+      const esPasada = r.fecha < hoy;
+      const esCancelada = r.estado === 'cancelado';
+      const colorEstado = esCancelada ? '#ef4444' : r.estado === 'confirmado' ? '#22c55e' : '#f59e0b';
+      const labelEstado = esCancelada ? '✕ Cancelada' : r.estado === 'confirmado' ? '✓ Confirmada' : r.estado;
+      const puedeCanc = !esPasada && !esCancelada;
+      return `<div style="background:var(--card);border:1px solid ${esCancelada?'rgba(239,68,68,.2)':'var(--border)'};border-radius:16px;padding:16px;margin:8px 18px;opacity:${esPasada||esCancelada?'.6':'1'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-weight:700;font-size:15px">🏟️ ${r.club_nombre}</div>
+            <div style="color:var(--muted);font-size:12px;margin-top:2px">📍 ${r.zona_cancha||''}</div>
+          </div>
+          <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:13px;margin-bottom:12px">
+          <span>📅 ${String(r.fecha).substring(0,10)}</span>
+          <span>🕐 ${String(r.hora_inicio).substring(0,5)} - ${String(r.hora_fin).substring(0,5)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:var(--green);font-weight:700">💰 ${r.precio_cobrado||r.precio_total}</span>
+          ${puedeCanc ? `<button onclick="cancelarReserva('${r.id}','${r.club_nombre}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">Cancelar turno</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+
+async function cancelarReserva(reservaId, clubNombre) {
+  if (!confirm(`¿Cancelar la reserva en ${clubNombre}?\nEl club será notificado por WhatsApp.`)) return;
+  showLoader('Cancelando...');
+  try {
+    const data = await api(`/padel/reservas/${reservaId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ usuario_id: usuario.id })
+    });
+    if (data.whatsapp_club) window.open(data.whatsapp_club);
+    await cargarMisReservas();
+  } catch(err) { alert(err.message); }
+  finally { hideLoader(); }
+}
+
+function switchMisReservasTab(tab, btn) {
+  document.getElementById('mis-reservas-list').style.display = tab === 'canchas' ? 'block' : 'none';
+  document.getElementById('mis-clases-list').style.display = tab === 'clases' ? 'block' : 'none';
+  document.getElementById('btn-mis-canchas').style.background = tab === 'canchas' ? 'rgba(34,197,94,.15)' : 'transparent';
+  document.getElementById('btn-mis-canchas').style.borderColor = tab === 'canchas' ? 'rgba(34,197,94,.3)' : 'rgba(255,255,255,.1)';
+  document.getElementById('btn-mis-canchas').style.color = tab === 'canchas' ? '#22c55e' : 'rgba(255,255,255,.5)';
+  document.getElementById('btn-mis-clases').style.background = tab === 'clases' ? 'rgba(139,92,246,.15)' : 'transparent';
+  document.getElementById('btn-mis-clases').style.borderColor = tab === 'clases' ? 'rgba(139,92,246,.3)' : 'rgba(255,255,255,.1)';
+  document.getElementById('btn-mis-clases').style.color = tab === 'clases' ? '#a78bfa' : 'rgba(255,255,255,.5)';
+  if (tab === 'clases') cargarMisClases();
+}
+
+async function cargarMisClases() {
+  const el = document.getElementById('mis-clases-list');
+  if (!el) return;
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const clases = await api('/padel/clases/mis-reservas-alumno');
+    if (!clases.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No tenés clases reservadas aún.<br>Buscá un profe en 🎓 Clases Particulares</div>';
+      return;
+    }
+    const hoy = new Date().toISOString().split('T')[0];
+    el.innerHTML = clases.map(c => {
+      const esPasada = c.fecha < hoy;
+      const colorEstado = c.estado === 'cancelada' ? '#ef4444' : c.estado === 'confirmada' ? '#22c55e' : '#f59e0b';
+      const labelEstado = c.estado === 'cancelada' ? '✕ Cancelada' : c.estado === 'confirmada' ? '✓ Confirmada' : '⏳ Pendiente';
+      const fecha = new Date(String(c.fecha).substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'short' });
+      return `<div style="background:var(--card);border:1px solid ${c.estado==='cancelada'?'rgba(239,68,68,.2)':'rgba(139,92,246,.2)'};border-radius:16px;padding:16px;margin:8px 18px;opacity:${esPasada||c.estado==='cancelada'?'.6':'1'}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div style="display:flex;gap:10px;align-items:center">
+            ${c.profesor_foto ? `<img src="${c.profesor_foto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(139,92,246,.4)">` : `<div style="width:40px;height:40px;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;font-size:18px">🎾</div>`}
+            <div>
+              <div style="font-weight:700;font-size:15px">${c.profesor_nombre}</div>
+              <div style="color:var(--muted);font-size:12px">Clase particular</div>
+            </div>
+          </div>
+          <span style="background:rgba(0,0,0,.3);border:1px solid ${colorEstado};color:${colorEstado};padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${labelEstado}</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:13px;margin-bottom:10px">
+          <span>📅 ${fecha}</span>
+          <span>🕐 ${String(c.hora_inicio).substring(0,5)} - ${String(c.hora_fin).substring(0,5)}</span>
+        </div>
+        ${c.lugar ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📍 ${c.lugar}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          ${c.precio_cobrado ? `<span style="color:#facc15;font-weight:700">💰 $${c.precio_cobrado}</span>` : '<span></span>'}
+          ${c.profesor_whatsapp && !esPasada && c.estado !== 'cancelada' ? `<a href="https://wa.me/${c.profesor_whatsapp.replace(/\D/g,'')}" target="_blank" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:7px 14px;border-radius:50px;font-size:12px;font-weight:600;text-decoration:none">💬 Profe</a>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
+  }
+}
+
+// ── PROXIES para funciones definidas mas abajo ──────────────────────
+function inscribirsePartidoPublico(id) { inscribirsePartido(id); }
+function unirsePartidoPublico(id) { inscribirsePartido(id); }
+</script>
 function renderPartidoPublicoMio(p) {
   const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
   const esCreador = p.creado_por_usuario_id === usuario?.id;
