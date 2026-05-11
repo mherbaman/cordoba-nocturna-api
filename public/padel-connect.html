@@ -4443,6 +4443,7 @@ async function cargarMisClases() {
 function inscribirsePartidoPublico(id) { inscribirsePartido(id); }
 function unirsePartidoPublico(id) { inscribirsePartido(id); }
 </script>
+<script>
 function renderPartidoPublicoMio(p) {
   const inscriptos = Array.isArray(p.jugadores) ? p.jugadores : [];
   const esCreador = p.creado_por_usuario_id === usuario?.id;
