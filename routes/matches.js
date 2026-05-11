@@ -86,9 +86,9 @@ router.get('/mis-matches', authUsuario, async (req, res) => {
       SELECT 
         m.id,
         m.creado_en,
-        n.nombre as negocio_nombre,
+        COALESCE(n.nombre, 'PadelConnect') as negocio_nombre,
         n.tipo as negocio_tipo,
-        s.nombre as sesion_nombre,
+        COALESCE(s.nombre, 'Chat directo') as sesion_nombre,
         CASE WHEN m.usuario_1 = $1 THEN u2.id ELSE u1.id END as otro_id,
         CASE WHEN m.usuario_1 = $1 THEN u2.nombre ELSE u1.nombre END as otro_nombre,
         CASE WHEN m.usuario_1 = $1 THEN u2.foto_url ELSE u1.foto_url END as otro_foto,
@@ -96,8 +96,8 @@ router.get('/mis-matches', authUsuario, async (req, res) => {
       FROM matches m
       JOIN usuarios u1 ON u1.id = m.usuario_1
       JOIN usuarios u2 ON u2.id = m.usuario_2
-      JOIN sesiones_noche s ON s.id = m.sesion_id
-      JOIN negocios n ON n.id = m.negocio_id
+      LEFT JOIN sesiones_noche s ON s.id = m.sesion_id
+      LEFT JOIN negocios n ON n.id = m.negocio_id
       WHERE m.usuario_1 = $1 OR m.usuario_2 = $1
       ORDER BY m.creado_en DESC
     `, [req.usuario.id]);
