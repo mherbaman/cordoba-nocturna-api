@@ -3152,6 +3152,12 @@ async function cargarMisClases() {
     el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
   }
 }
+
+// ── PROXIES para funciones definidas mas abajo ──────────────────────
+function inscribirsePartidoPublico(id) { inscribirsePartido(id); }
+function unirsePartidoPublico(id) { inscribirsePartido(id); }
+function cargarPartidosPublicos() { _renderPartidosPublicos && _renderPartidosPublicos(); }
+function irAProximosPartidos() { showScreen('proximos-partidos'); setTimeout(()=>{ typeof _renderPartidosPublicos==='function' && _renderPartidosPublicos(); },100); }
 </script>
 
 <!-- MODAL RESENAS JUGADOR -->
