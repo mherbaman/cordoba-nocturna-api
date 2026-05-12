@@ -39,6 +39,21 @@ router.get('/sesiones-activas', async (req, res) => {
   }
 });
 
+// ── GET /negocios/clubes-padel ──────────────────────────────────────
+router.get('/clubes-padel', async (req, res) => {
+  try {
+    const { zona } = req.query;
+    let query = `SELECT nombre, direccion, dueno_tel as telefono, instagram, zona, whatsapp
+                 FROM negocios WHERE tipo = 'padel' AND activo = true`;
+    const params = [];
+    if (zona) { query += ` AND zona = $1`; params.push(zona); }
+    query += ` ORDER BY zona NULLS LAST, nombre ASC`;
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
 // ── GET /negocios/:slug ──────────────────────────────────────────────
 // Info pública de un negocio (para mostrar en la app del usuario)
 router.get('/:slug', async (req, res) => {
