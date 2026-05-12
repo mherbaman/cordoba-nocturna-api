@@ -472,7 +472,7 @@ if('serviceWorker' in navigator){
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Nombre</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Plan</th><th>Instagram</th><th>Dirección</th><th>Estado</th><th>Acciones</th></tr>
+              <tr><th>Nombre</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Plan</th><th>Instagram</th><th>Dirección</th><th>Zona</th><th>Estado</th><th>Acciones</th></tr>
             </thead>
             <tbody id="negocios-tbody">
               <tr><td colspan="5"><div class="loader"></div></td></tr>
@@ -1311,6 +1311,7 @@ function renderNegocios(negocios) {
         <td><span class="badge badge-green">${n.plan}</span></td>
         <td style="font-size:12px">${n.instagram ? `<a href="https://instagram.com/${n.instagram.replace('@','')}" target="_blank" style="color:#a78bfa">📷 ${n.instagram}</a>` : '<span style="color:var(--muted)">—</span>'}</td>
         <td style="font-size:12px;color:var(--muted)">${n.direccion||'—'}</td>
+        <td style="font-size:12px;color:var(--muted)">${n.zona||'—'}</td>
         <td><span class="badge ${n.activo?'badge-green':'badge-red'}">${n.activo?'Activo':'Inactivo'}</span>
           ${n.estado_pago==='mes_gratis'?'<span class="badge badge-yellow">🎁 Mes gratis</span>':n.estado_pago==='vencido'?'<span class="badge badge-red">⚠️ Vencido</span>':n.estado_pago==='suspendido'?'<span class="badge" style="background:rgba(156,163,175,.15);color:#9ca3af">⏸️ Suspendido</span>':n.estado_pago==='pago'?'<span class="badge badge-green">✅ Pagó</span>':'<span class="badge badge-yellow">🎁 Mes gratis</span>'}
           ${n.vencimiento_plan?`<span class="badge badge-yellow" style="font-size:10px">Vence: ${new Date(n.vencimiento_plan.slice(0,10)+'T12:00:00').toLocaleDateString('es-AR')}</span>`:''}</td>
