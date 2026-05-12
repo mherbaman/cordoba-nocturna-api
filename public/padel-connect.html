@@ -725,16 +725,30 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <option value="Alberdi">Alberdi</option>
       <option value="General Paz">General Paz</option>
       <option value="Cerro de las Rosas">Cerro de las Rosas</option>
-      <option value="Villa Allende">Villa Allende</option>
-      <option value="Arguello">Arguello</option>
+      <option value="Quebrada de las Rosas">Quebrada de las Rosas</option>
       <option value="Urca">Urca</option>
+      <option value="Buen Pastor">Buen Pastor</option>
+      <option value="Alta Córdoba">Alta Córdoba</option>
+      <option value="San Vicente">San Vicente</option>
+      <option value="Talleres">Talleres</option>
+      <option value="Poeta Lugones">Poeta Lugones</option>
+      <option value="Villa del Parque">Villa del Parque</option>
       <option value="Jardín">Jardín</option>
+      <option value="Cañitas">Cañitas</option>
       <option value="Maipú">Maipú</option>
+      <option value="Palermo">Palermo</option>
       <option value="Villa Belgrano">Villa Belgrano</option>
+      <option value="Arguello">Arguello</option>
+      <option value="Colinas de Vélez Sársfield">Colinas de Vélez Sársfield</option>
+      <option value="Villa Warcalde">Villa Warcalde</option>
+      <option value="Country Club">Country Club</option>
+      <option value="Manantiales">Manantiales</option>
+      <option value="Villa Allende">Villa Allende</option>
       <option value="La Calera">La Calera</option>
       <option value="Unquillo">Unquillo</option>
       <option value="Mendiolaza">Mendiolaza</option>
       <option value="Salsipuedes">Salsipuedes</option>
+      <option value="Río Ceballos">Río Ceballos</option>
     </select>
     <select class="pp-filtro" id="pp-filtro-cat" onchange="cargarPartidosPublicos()" style="color-scheme:dark;background:#030d06">
       <option value="">🎾 Todas las categorías</option>
@@ -1063,15 +1077,37 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   <div class="tab-content" id="tab-proximospartidos" style="flex:1;overflow-y:auto">
     <div class="pp-filtros" style="padding:12px 16px 0">
       <select class="pp-filtro" id="pp-filtro-zona-2" onchange="cargarProximosSwipe()" style="color-scheme:dark;background:#030d06;flex:1">
-        <option value="">📍 Todas las zonas</option>
-        <option value="Centro">Centro</option>
-        <option value="Nueva Córdoba">Nueva Córdoba</option>
-        <option value="Güemes">Güemes</option>
-        <option value="Alberdi">Alberdi</option>
-        <option value="General Paz">General Paz</option>
-        <option value="Cerro de las Rosas">Cerro de las Rosas</option>
-        <option value="Villa Allende">Villa Allende</option>
-        <option value="Arguello">Arguello</option>
+      <option value="">📍 Todas las zonas</option>
+      <option value="Centro">Centro</option>
+      <option value="Nueva Córdoba">Nueva Córdoba</option>
+      <option value="Güemes">Güemes</option>
+      <option value="Alberdi">Alberdi</option>
+      <option value="General Paz">General Paz</option>
+      <option value="Cerro de las Rosas">Cerro de las Rosas</option>
+      <option value="Quebrada de las Rosas">Quebrada de las Rosas</option>
+      <option value="Urca">Urca</option>
+      <option value="Buen Pastor">Buen Pastor</option>
+      <option value="Alta Córdoba">Alta Córdoba</option>
+      <option value="San Vicente">San Vicente</option>
+      <option value="Talleres">Talleres</option>
+      <option value="Poeta Lugones">Poeta Lugones</option>
+      <option value="Villa del Parque">Villa del Parque</option>
+      <option value="Jardín">Jardín</option>
+      <option value="Cañitas">Cañitas</option>
+      <option value="Maipú">Maipú</option>
+      <option value="Palermo">Palermo</option>
+      <option value="Villa Belgrano">Villa Belgrano</option>
+      <option value="Arguello">Arguello</option>
+      <option value="Colinas de Vélez Sársfield">Colinas de Vélez Sársfield</option>
+      <option value="Villa Warcalde">Villa Warcalde</option>
+      <option value="Country Club">Country Club</option>
+      <option value="Manantiales">Manantiales</option>
+      <option value="Villa Allende">Villa Allende</option>
+      <option value="La Calera">La Calera</option>
+      <option value="Unquillo">Unquillo</option>
+      <option value="Mendiolaza">Mendiolaza</option>
+      <option value="Salsipuedes">Salsipuedes</option>
+      <option value="Río Ceballos">Río Ceballos</option>
       </select>
     </div>
     <div id="proximos-swipe-list" style="padding:8px 16px 80px"></div>
@@ -1979,16 +2015,30 @@ function irAMiActividad() {
         <option value="Alberdi">Alberdi</option>
         <option value="General Paz">General Paz</option>
         <option value="Cerro de las Rosas">Cerro de las Rosas</option>
-        <option value="Villa Allende">Villa Allende</option>
-        <option value="Arguello">Arguello</option>
+        <option value="Quebrada de las Rosas">Quebrada de las Rosas</option>
         <option value="Urca">Urca</option>
+        <option value="Buen Pastor">Buen Pastor</option>
+        <option value="Alta Córdoba">Alta Córdoba</option>
+        <option value="San Vicente">San Vicente</option>
+        <option value="Talleres">Talleres</option>
+        <option value="Poeta Lugones">Poeta Lugones</option>
+        <option value="Villa del Parque">Villa del Parque</option>
         <option value="Jardín">Jardín</option>
+        <option value="Cañitas">Cañitas</option>
         <option value="Maipú">Maipú</option>
+        <option value="Palermo">Palermo</option>
         <option value="Villa Belgrano">Villa Belgrano</option>
+        <option value="Arguello">Arguello</option>
+        <option value="Colinas de Vélez Sársfield">Colinas de Vélez Sársfield</option>
+        <option value="Villa Warcalde">Villa Warcalde</option>
+        <option value="Country Club">Country Club</option>
+        <option value="Manantiales">Manantiales</option>
+        <option value="Villa Allende">Villa Allende</option>
         <option value="La Calera">La Calera</option>
         <option value="Unquillo">Unquillo</option>
         <option value="Mendiolaza">Mendiolaza</option>
         <option value="Salsipuedes">Salsipuedes</option>
+        <option value="Río Ceballos">Río Ceballos</option>
       </select>
     </div>
     <div style="margin-bottom:14px">
@@ -3499,9 +3549,7 @@ async function cargarZonasPadel() {
     const negocios = await fetch(API+'/negocios/sesiones-activas').then(r=>r.json()).catch(()=>[]);
     // Zonas fijas de Córdoba como fallback
     const ZONAS_FIJAS = [
-      'Centro','Nueva Córdoba','Güemes','Alberdi','General Paz','Cerro de las Rosas',
-      'Villa Allende','Arguello','Urca','Jardín','Maipú','Villa Belgrano',
-      'La Calera','Unquillo','Mendiolaza','Salsipuedes','Otra zona'
+      'Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Quebrada de las Rosas', 'Urca', 'Buen Pastor', 'Alta Córdoba', 'San Vicente', 'Talleres', 'Poeta Lugones', 'Villa del Parque', 'Jardín', 'Cañitas', 'Maipú', 'Palermo', 'Villa Belgrano', 'Arguello', 'Colinas de Vélez Sársfield', 'Villa Warcalde', 'Country Club', 'Manantiales', 'Villa Allende', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes', 'Río Ceballos', 'Otra zona'
     ];
     const sel = document.getElementById('padel-zona');
     if (!sel) return;
