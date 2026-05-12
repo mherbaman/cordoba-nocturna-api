@@ -1472,18 +1472,35 @@ router.post('/profesores', authUsuario, async (req, res) => {
 // GET /padel/profesores/:id/disponibilidad
 router.get('/profesores/:id/disponibilidad', async (req, res) => {
   try {
+    // Intentar obtener usuario del token (opcional, no bloquea si no hay token)
+    let alumno_id = null;
+    try {
+      const auth = req.headers.authorization;
+      if (auth) {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(auth.replace('Bearer ',''), process.env.JWT_SECRET);
+        alumno_id = decoded.id;
+      }
+    } catch(e) {}
+
     const result = await pool.query(`
       SELECT d.*,
         (SELECT COUNT(*) FROM reservas_clase r
          WHERE r.disponibilidad_id = d.id
            AND r.estado != 'cancelada'
            AND (d.fecha_especifica IS NOT NULL OR r.fecha >= CURRENT_DATE)
-        ) AS reservas_activas
+        ) AS reservas_activas,
+        (SELECT COUNT(*) FROM reservas_clase r
+         WHERE r.disponibilidad_id = d.id
+           AND r.alumno_id = $2
+           AND r.estado != 'cancelada'
+           AND (d.fecha_especifica IS NOT NULL OR r.fecha >= CURRENT_DATE)
+        ) AS ya_reservado
       FROM disponibilidad_profesor d
       WHERE d.profesor_id = $1 AND d.activo = true
         AND (d.fecha_especifica IS NULL OR d.fecha_especifica >= CURRENT_DATE)
       ORDER BY COALESCE(d.fecha_especifica, ('2000-01-0' || (d.dia_semana+1))::date), d.hora_inicio
-    `, [req.params.id]);
+    `, [req.params.id, alumno_id]);
     res.json(result.rows);
   } catch (err) {
     console.error('GET /padel/profesores/:id/disponibilidad:', err.message);
