@@ -1460,6 +1460,10 @@ function abrirModalNegocio(n={}) {
         <label class="field-label">Instagram</label>
         <input class="input-field" id="neg-instagram" value="${n.instagram||''}" placeholder="@miclub">
       </div>
+      <div class="full">
+        <label class="field-label">Foto URL (jpg/png liviano)</label>
+        <input class="input-field" id="neg-foto" value="${n.foto_url||''}" placeholder="https://...imagen.jpg">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
@@ -1594,7 +1598,8 @@ async function guardarNegocio(id) {
       return sel||null;
     })(),
     direccion:   document.getElementById('neg-direccion').value.trim()||null,
-    instagram:   document.getElementById('neg-instagram').value.trim()||null
+    instagram:   document.getElementById('neg-instagram').value.trim()||null,
+    foto_url:    document.getElementById('neg-foto').value.trim()||null
   };
   if (!body.nombre || !body.slug) { alert('Nombre y slug son requeridos'); return; }
   try {

@@ -2982,6 +2982,7 @@ async function cargarClubes() {
     }
     lista.innerHTML = clubes.map(c => `
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px">
+        ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;height:140px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ''}
         <div style="font-weight:700;font-size:15px;margin-bottom:4px">🏟️ ${c.nombre}</div>
         ${c.zona ? `<div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:6px">📍 ${c.zona}</div>` : ''}
         ${c.direccion ? `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">📌 ${c.direccion}</div>` : ''}
