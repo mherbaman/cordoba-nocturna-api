@@ -1956,9 +1956,12 @@ async function crearPartidoPublico() {
     await apiAdmin('/padel/partidos-publicos',{method:'POST',body:JSON.stringify({zona,categoria:cat,fecha,hora,lugar,costo,descripcion:desc,cupos})});
     msgEl.textContent='Partido creado';
     msgEl.style.cssText='display:block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e';
+    const _zona=zona, _cat=cat, _fecha=fecha, _hora=hora, _lugar=lugar, _cupos=cupos;
     ['np-zona','np-cat','np-fecha','np-hora','np-lugar','np-costo','np-desc'].forEach(id=>{document.getElementById(id).value='';});
     setTimeout(()=>msgEl.style.display='none',3000);
     cargarPartidosPubAdmin();
+    const msgWaPartido = `🎾 Nuevo partido público en CórdobaLux!\n\n📍 Zona: ${_zona}\n🏅 Categoría: ${_cat}\n📅 ${_fecha} a las ${_hora}${_lugar ? '\n🏟️ '+_lugar : ''}\n👥 Cupos: ${_cupos}\n\n¡Inscribite en la app! 👆`;
+    mostrarModalWa(msgWaPartido);
   } catch(e) {
     msgEl.textContent='Error: '+e.message;
     msgEl.style.cssText='display:block;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171';
@@ -2013,6 +2016,9 @@ async function crearTorneo() {
     msg.style.color = '#4ade80';
     msg.textContent = `Torneo creado. ${data.slots_disponibles} slots disponibles.`;
     setTimeout(() => { document.getElementById('form-torneo').style.display = 'none'; cargarTorneosAdmin(); }, 2000);
+    const _zonaT = document.getElementById('t-zona').value;
+    const msgWaTorneo = `🏆 Nuevo torneo en CórdobaLux!\n\n${nombre}${sede ? '\n📍 '+sede : ''}\n📅 Del ${fechaInicio} al ${fechaFin}${_zonaT ? '\n🗺️ Zona: '+_zonaT : ''}${descripcion ? '\n\n'+descripcion : ''}\n\n¡Inscribite en la app! 👆`;
+    mostrarModalWa(msgWaTorneo);
   } catch(e) {
     msg.style.color = '#f87171'; msg.textContent = e.message || 'Error al crear torneo.';
   }
@@ -2383,6 +2389,9 @@ async function crearAmericano() {
     });
     msg.style.color='#4ade80'; msg.textContent='Americano creado ✓';
     setTimeout(() => { document.getElementById('form-americano').style.display='none'; cargarAmericanosAdmin(); }, 1500);
+    const _nombreAm=nombre, _fechaAm=fecha, _sedeAm=document.getElementById('am-sede').value.trim(), _zonaAm=document.getElementById('am-zona').value, _descAm=document.getElementById('am-descripcion').value.trim();
+    const msgWaAm = `⚡ Nuevo Super 8 en CórdobaLux!\n\n${_nombreAm}${_sedeAm ? '\n📍 '+_sedeAm : ''}\n📅 ${_fechaAm}${_zonaAm ? '\n🗺️ Zona: '+_zonaAm : ''}${_descAm ? '\n\n'+_descAm : ''}\n\n¡Inscribite en la app! 👆`;
+    mostrarModalWa(msgWaAm);
   } catch(e) { msg.style.color='#f87171'; msg.textContent = e.message || 'Error al crear.'; }
 }
 
@@ -2731,5 +2740,35 @@ async function asignarDelegado(usuarioId) {
     </div>
   </div>
 </div>
+<!-- MODAL WHATSAPP CREACION -->
+<div id="modal-wa-creacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0d1117;border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:24px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:700;color:#22c55e;margin-bottom:6px">💬 Compartir por WhatsApp</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px">Copiá el mensaje y pegalo en el grupo.</div>
+    <textarea id="modal-wa-texto" readonly style="width:100%;height:180px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#fff;font-size:13px;padding:12px;resize:none;line-height:1.6;box-sizing:border-box"></textarea>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button onclick="copiarMsgWa()" id="btn-copiar-wa" style="flex:1;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:12px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">📋 Copiar</button>
+      <button onclick="abrirWaGrupo()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">💬 Abrir grupo</button>
+    </div>
+    <button onclick="document.getElementById('modal-wa-creacion').style.display='none'" style="width:100%;margin-top:10px;background:transparent;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);padding:10px;border-radius:50px;font-size:13px;cursor:pointer">Cerrar</button>
+  </div>
+</div>
+
+<script>
+function mostrarModalWa(texto) {
+  document.getElementById('modal-wa-texto').value = texto;
+  document.getElementById('modal-wa-creacion').style.display = 'flex';
+}
+async function copiarMsgWa() {
+  const txt = document.getElementById('modal-wa-texto').value;
+  const btn = document.getElementById('btn-copiar-wa');
+  try { await navigator.clipboard.writeText(txt); btn.textContent = '✅ Copiado!'; }
+  catch(e) { btn.textContent = '❌ Error'; }
+  setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+}
+function abrirWaGrupo() {
+  window.open('https://chat.whatsapp.com/GFAoGkAhlTQ3wBtAaBrZN5', '_blank');
+}
+</script>
 </body>
 </html>
