@@ -43,7 +43,7 @@ router.get('/sesiones-activas', async (req, res) => {
 router.get('/clubes-padel', async (req, res) => {
   try {
     const { zona } = req.query;
-    let query = `SELECT nombre, direccion, dueno_tel as telefono, instagram, zona, whatsapp
+    let query = `SELECT nombre, direccion, dueno_tel as telefono, instagram, zona, whatsapp, foto_url
                  FROM negocios WHERE tipo = 'padel' AND activo = true`;
     const params = [];
     if (zona) { query += ` AND zona = $1`; params.push(zona); }
