@@ -1336,6 +1336,7 @@ async function cargarNegocios() {
     tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
   }
 }
+function abrirModalNegocio(n={}) {
   document.getElementById('modal-title').textContent = n.id ? 'Editar negocio' : 'Nuevo negocio';
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-grid">
