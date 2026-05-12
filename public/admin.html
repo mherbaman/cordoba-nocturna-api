@@ -424,6 +424,51 @@ if('serviceWorker' in navigator){
           <div class="section-title">Todos los negocios</div>
           <button class="btn-add" onclick="abrirModalNegocio()">+ Nuevo negocio</button>
         </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <select id="neg-filtro-tipo" onchange="filtrarNegocios()" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a0030;color:#fff;font-size:13px">
+            <option value="">Todos los tipos</option>
+            <option value="padel">Padel</option>
+            <option value="boliche">Boliche</option>
+            <option value="bar">Bar</option>
+            <option value="restaurante">Restaurante</option>
+            <option value="gym">Gym</option>
+            <option value="otro">Otro</option>
+          </select>
+          <select id="neg-filtro-zona" onchange="filtrarNegocios()" style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a0030;color:#fff;font-size:13px">
+            <option value="">Todas las zonas</option>
+            <option value="Centro">Centro</option>
+            <option value="Nueva Córdoba">Nueva Córdoba</option>
+            <option value="Güemes">Güemes</option>
+            <option value="Alberdi">Alberdi</option>
+            <option value="General Paz">General Paz</option>
+            <option value="Cerro de las Rosas">Cerro de las Rosas</option>
+            <option value="Quebrada de las Rosas">Quebrada de las Rosas</option>
+            <option value="Urca">Urca</option>
+            <option value="Buen Pastor">Buen Pastor</option>
+            <option value="Alta Córdoba">Alta Córdoba</option>
+            <option value="San Vicente">San Vicente</option>
+            <option value="Talleres">Talleres</option>
+            <option value="Poeta Lugones">Poeta Lugones</option>
+            <option value="Villa del Parque">Villa del Parque</option>
+            <option value="Jardín">Jardín</option>
+            <option value="Cañitas">Cañitas</option>
+            <option value="Maipú">Maipú</option>
+            <option value="Palermo">Palermo</option>
+            <option value="Villa Belgrano">Villa Belgrano</option>
+            <option value="Arguello">Arguello</option>
+            <option value="Colinas de Vélez Sársfield">Colinas de Vélez Sársfield</option>
+            <option value="Villa Warcalde">Villa Warcalde</option>
+            <option value="Country Club">Country Club</option>
+            <option value="Manantiales">Manantiales</option>
+            <option value="Villa Allende">Villa Allende</option>
+            <option value="La Calera">La Calera</option>
+            <option value="Unquillo">Unquillo</option>
+            <option value="Mendiolaza">Mendiolaza</option>
+            <option value="Salsipuedes">Salsipuedes</option>
+            <option value="Río Ceballos">Río Ceballos</option>
+          </select>
+          <input id="neg-filtro-texto" oninput="filtrarNegocios()" placeholder="🔍 Buscar por nombre..." style="padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a0030;color:#fff;font-size:13px;min-width:200px">
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1238,15 +1283,26 @@ function abrirModalSesion() {
 }
 
 // ─── NEGOCIOS ─────────────────────────────────────────────────────────
-async function cargarNegocios() {
+let negociosCache = [];
+function filtrarNegocios() {
+  const tipo  = document.getElementById('neg-filtro-tipo')?.value || '';
+  const zona  = document.getElementById('neg-filtro-zona')?.value || '';
+  const texto = (document.getElementById('neg-filtro-texto')?.value || '').toLowerCase();
+  const filtrados = negociosCache.filter(n => {
+    if (tipo  && n.tipo !== tipo) return false;
+    if (zona  && n.zona !== zona) return false;
+    if (texto && !n.nombre.toLowerCase().includes(texto)) return false;
+    return true;
+  });
+  renderNegocios(filtrados);
+}
+function renderNegocios(negocios) {
   const tbody = document.getElementById('negocios-tbody');
-  try {
-    const negocios = await apiAdmin('/superadmin/negocios');
-    if (!negocios.length) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state-table"><div class="icon">🏢</div>No hay negocios aún</div></td></tr>`;
-      return;
-    }
-    tbody.innerHTML = negocios.map(n => `
+  if (!negocios.length) {
+    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Sin resultados</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = negocios.map(n => `
       <tr class="negocio-row">
         <td>${n.nombre}</td>
         <td><span class="badge badge-yellow">${n.tipo}</span></td>
@@ -1265,12 +1321,21 @@ async function cargarNegocios() {
           <button class="btn-sm" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2)" onclick="verPanelNegocio('${n.id}','${n.nombre}')">👁 Ver panel</button>
         </div></td>
       </tr>`).join('');
+}
+async function cargarNegocios() {
+  const tbody = document.getElementById('negocios-tbody');
+  try {
+    const negocios = await apiAdmin('/superadmin/negocios');
+    negociosCache = negocios;
+    if (!negocios.length) {
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state-table"><div class="icon">🏢</div>No hay negocios aún</div></td></tr>`;
+      return;
+    }
+    renderNegocios(negocios);
   } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Error</td></tr>`;
   }
 }
-
-function abrirModalNegocio(n={}) {
   document.getElementById('modal-title').textContent = n.id ? 'Editar negocio' : 'Nuevo negocio';
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-grid">
