@@ -2921,6 +2921,7 @@ async function cargarClases() {
         const ocupados = parseInt(disp.reservas_activas) || 0;
         const libres = cupos - ocupados;
         const sinCupos = libres <= 0;
+        const yaReservado = parseInt(disp.ya_reservado) > 0;
 
         // Para slots recurrentes calcular próximas fechas, para específicos usar la fecha fija
         let fechasOpciones = [];
@@ -2950,7 +2951,7 @@ async function cargarClases() {
               <span style="background:${sinCupos ? 'rgba(255,45,120,.1)' : 'rgba(139,92,246,.1)'};border:1px solid ${sinCupos ? 'rgba(255,45,120,.3)' : 'rgba(139,92,246,.3)'};color:${sinCupos ? '#ff2d78' : '#a78bfa'};padding:2px 8px;border-radius:50px;font-size:11px">${sinCupos ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares'}</span>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              ${!sinCupos ? `<button onclick="abrirModalReserva('${dispData}','${profeData}','${fechasJson}')" style="background:linear-gradient(135deg,#6d28d9,#a78bfa);border:none;color:#fff;padding:8px 18px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">📅 Reservar</button>` : `<span style="color:rgba(255,255,255,.3);font-size:12px">Turno completo</span>`}
+              ${yaReservado ? `<span style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 18px;border-radius:50px;font-size:12px;font-weight:700">✓ Reservado</span>` : !sinCupos ? `<button onclick="abrirModalReserva('${dispData}','${profeData}','${fechasJson}')" style="background:linear-gradient(135deg,#6d28d9,#a78bfa);border:none;color:#fff;padding:8px 18px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">📅 Reservar</button>` : `<span style="color:rgba(255,255,255,.3);font-size:12px">Turno completo</span>`}
               ${profe.whatsapp ? `<a href="https://wa.me/${profe.whatsapp.replace(/\D/g,'')}" target="_blank" style="display:inline-block;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;text-decoration:none">💬 Consultar</a>` : ''}
             </div>
           </div>
