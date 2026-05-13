@@ -2947,6 +2947,7 @@ async function cargarClases() {
             <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
               ${profe.precio_hora ? `<span style="background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);color:#facc15;padding:2px 8px;border-radius:50px;font-size:11px">💰 $${profe.precio_hora}/h</span>` : ''}
               ${profe.modalidad ? `<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:2px 8px;border-radius:50px;font-size:11px">${profe.modalidad}</span>` : ''}
+              ${disp.zona ? `<span style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);color:#a78bfa;padding:2px 8px;border-radius:50px;font-size:11px">🗺️ ${disp.zona}</span>` : ''}
               ${lugar ? `<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:2px 8px;border-radius:50px;font-size:11px">📍 ${lugar}</span>` : ''}
               <span style="background:${sinCupos ? 'rgba(255,45,120,.1)' : 'rgba(139,92,246,.1)'};border:1px solid ${sinCupos ? 'rgba(255,45,120,.3)' : 'rgba(139,92,246,.3)'};color:${sinCupos ? '#ff2d78' : '#a78bfa'};padding:2px 8px;border-radius:50px;font-size:11px">${sinCupos ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares'}</span>
             </div>
