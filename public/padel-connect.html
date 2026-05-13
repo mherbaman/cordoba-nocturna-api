@@ -4649,7 +4649,7 @@ async function eliminarPartidoMio(id) {
   if (!confirm('¿Eliminar este partido?')) return;
   try {
     await api('/padel/partidos-publicos/' + id, { method: 'DELETE' });
-    cargarMiActividad();
+    cargarPartidos();
   } catch(e) {
     alert(e.message || 'Error al eliminar');
   }
