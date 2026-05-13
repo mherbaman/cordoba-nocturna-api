@@ -2769,21 +2769,5 @@ function abrirWaGrupo() {
   </div>
 </div>
 
-<script>
-function mostrarModalWa(texto) {
-  document.getElementById('modal-wa-texto').value = texto;
-  document.getElementById('modal-wa-creacion').style.display = 'flex';
-}
-async function copiarMsgWa() {
-  const txt = document.getElementById('modal-wa-texto').value;
-  const btn = document.getElementById('btn-copiar-wa');
-  try { await navigator.clipboard.writeText(txt); btn.textContent = '✅ Copiado!'; }
-  catch(e) { btn.textContent = '❌ Error'; }
-  setTimeout(() => btn.textContent = '📋 Copiar', 2000);
-}
-function abrirWaGrupo() {
-  window.open('https://chat.whatsapp.com/GFAoGkAhlTQ3wBtAaBrZN5', '_blank');
-}
-</script>
 </body>
 </html>
