@@ -1270,7 +1270,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     </div>
     <!-- STATS -->
     <div class="stats-row">
-      <div class="sbox" onclick="showScreen('favoritos-screen')" style="cursor:pointer"><div class="snum" id="s-fav">0</div><div class="slbl">Favoritos</div></div>
+      <div class="sbox" onclick="closeProfile();showScreen('favoritos-screen')" style="cursor:pointer"><div class="snum" id="s-fav">0</div><div class="slbl">Jug. Favoritos</div></div>
       <div class="sbox"><div class="snum" id="s-likes">0</div><div class="slbl">Conexiones</div></div>
       <div class="sbox"><div class="snum" id="s-matches">0</div><div class="slbl">Matches</div></div>
     </div>
