@@ -111,6 +111,37 @@ async function toggleFavorito(jugadorUsuarioId, nombre) {
     alert('Error al actualizar favorito');
   }
 }
+async function renderFavoritos() {
+  const el = document.getElementById('favoritos-list');
+  el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 0">Cargando...</div>';
+  try {
+    const data = await api('/padel/favoritos');
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 0">Todavía no tenés jugadores favoritos.<br>Agregá uno desde el swipe ❤️</div>';
+      return;
+    }
+    // Actualizar contador
+    const ctr = document.getElementById('s-fav');
+    if (ctr) ctr.textContent = data.length;
+    el.innerHTML = data.map(j => `
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px">
+        <div style="width:52px;height:52px;border-radius:50%;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:22px">
+          ${j.foto_url ? `<img src="${j.foto_url}" style="width:100%;height:100%;object-fit:cover">` : (j.vibe || '🎾')}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${j.nombre || 'Jugador'}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${j.nivel || ''} ${j.zona ? '· ' + j.zona : ''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <button onclick="toggleFavorito('${j.jugador_usuario_id}','${j.nombre}');renderFavoritos()" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;padding:6px 12px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer">❤️ Quitar</button>
+          <button onclick="abrirChatConUsuario('${j.jugador_usuario_id}','${j.nombre}','${j.foto_url || ''}','${j.vibe || '🎾'}')" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#4ade80;padding:6px 12px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer">💬 Chat</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 0">Error al cargar favoritos</div>';
+  }
+}
 function anteriorJugador() {
   if (jugadorIdx > 0) { jugadorIdx--; renderJugadores(); }
 }
@@ -1213,6 +1244,14 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 </div>
 
+<!-- FAVORITOS SCREEN -->
+<div class="screen" id="favoritos-screen" style="justify-content:flex-start;padding:0">
+  <div class="matches-header">
+    <button class="back-btn" onclick="showScreen('swipe')">←</button>
+    <div class="matches-title">Mis <span>Favoritos</span> ❤️</div>
+  </div>
+  <div id="favoritos-list" style="width:100%;max-width:420px;padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px"></div>
+</div>
 <!-- PROFILE MODAL -->
 <div id="profile-modal" onclick="if(event.target===this)closeProfile()">
   <div class="profile-sheet">
@@ -1231,7 +1270,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     </div>
     <!-- STATS -->
     <div class="stats-row">
-      <div class="sbox"><div class="snum" id="s-visto">0</div><div class="slbl">Vistos</div></div>
+      <div class="sbox" onclick="showScreen('favoritos-screen')" style="cursor:pointer"><div class="snum" id="s-fav">0</div><div class="slbl">Favoritos</div></div>
       <div class="sbox"><div class="snum" id="s-likes">0</div><div class="slbl">Conexiones</div></div>
       <div class="sbox"><div class="snum" id="s-matches">0</div><div class="slbl">Matches</div></div>
     </div>
@@ -1359,6 +1398,7 @@ function showScreen(id){
   if(id==='swipe'){cargarJugadoresPadel();cargarFavoritos();poblarZonas();pingActividad();cargarMatchCount();}
   if(id==='matches-screen'){loadMatches();renderizarAds('matches');}
   if(id==='proximos-partidos'){cargarPartidosPublicos();}
+  if(id==='favoritos-screen'){renderFavoritos();}
 }
 
 function checkAge(){
