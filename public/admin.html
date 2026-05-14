@@ -2027,6 +2027,7 @@ async function crearTorneo() {
 let adminTorneosInterval = null;
 let adminPartidosInterval = null;
 let adminTorneoIdActivo = null;
+let formResultadoAbierto = false;
 
 async function cargarTorneosAdmin() {
   // Limpiar interval de partidos si estaba activo
@@ -2097,10 +2098,7 @@ async function verPartidosTorneo(torneoId) {
   adminTorneoIdActivo = torneoId;
   // Auto-refresh cada 20s en la vista de partidos
   if (adminPartidosInterval) clearInterval(adminPartidosInterval);
-  adminPartidosInterval = setInterval(() => {
-    const formAbierto = document.querySelector('[id^="mod-form-"]') && [...document.querySelectorAll('[id^="mod-form-"]')].some(el => el.style.display !== 'none');
-    if (!formAbierto) verPartidosTorneo(adminTorneoIdActivo);
-  }, 20000);
+  adminPartidosInterval = setInterval(() => { if (!formResultadoAbierto) verPartidosTorneo(adminTorneoIdActivo); }, 20000);
   try {
     const data = await apiAdmin('/torneos/' + torneoId);
     const todos = data.partidos || [];
@@ -2138,7 +2136,7 @@ async function verPartidosTorneo(torneoId) {
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">${p.fase.toUpperCase()} · Gr.${p.grupo||'-'} R.${p.ronda||'-'} · C.${p.cancha}</div>
         <div style="font-size:13px;color:#fff;margin-bottom:4px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
         <div style="font-size:12px;color:#4ade80;margin-bottom:8px">Resultado actual: ${p.resultado_pareja1||'?'} / ${p.resultado_pareja2||'?'}${p.tiebreak_pareja1 != null ? ' &nbsp;·&nbsp; Tiebreak: '+p.tiebreak_pareja1+'-'+p.tiebreak_pareja2 : ''}</div>
-        <button onclick="document.getElementById('mod-form-${p.id}').style.display='block'" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">✏️ Modificar</button>
+        <button onclick="formResultadoAbierto=true;document.getElementById('mod-form-${p.id}').style.display='block'" style="padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.08);color:#4ade80;font-size:12px;font-weight:700;cursor:pointer">✏️ Modificar</button>
         <div id="mod-form-${p.id}" style="display:none;margin-top:10px">
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
             <input id="mod-res1-${p.id}" type="text" placeholder="6-3 6-4" value="${p.resultado_pareja1||''}" style="flex:1;min-width:80px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
@@ -2223,7 +2221,7 @@ async function modificarResultado(partidoId) {
       method: 'PUT', body: JSON.stringify(body)
     });
     msg.style.color='#4ade80'; msg.textContent='✅ Resultado modificado.';
-    setTimeout(() => { document.getElementById('mod-form-' + partidoId).style.display = 'none'; }, 1500);
+    setTimeout(() => { document.getElementById('mod-form-' + partidoId).style.display = 'none'; formResultadoAbierto=false; }, 1500);
   } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error.'; }
 }
 </script>
