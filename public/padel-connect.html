@@ -1902,7 +1902,7 @@ async function openProfile(){
   if(apPerfilEl) apPerfilEl.value = usuario.apellido||'';
   if(telPerfilEl) telPerfilEl.value = usuario.telefono||'';
   // Stats
-  document.getElementById('s-visto').textContent=perfilIdx;
+  if(document.getElementById('s-fav')) document.getElementById('s-fav').textContent=favoritosSet.size;
   document.getElementById('s-likes').textContent=matchesList.length;
   document.getElementById('s-matches').textContent=matchesList.length;
   // Nivel padel
