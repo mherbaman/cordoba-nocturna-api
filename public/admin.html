@@ -2097,9 +2097,7 @@ async function verPartidosTorneo(torneoId) {
   modal.style.display = 'flex';
   modalResultadoAbierto = true;
   adminTorneoIdActivo = torneoId;
-  // Auto-refresh cada 20s en la vista de partidos
-  if (adminPartidosInterval) clearInterval(adminPartidosInterval);
-  adminPartidosInterval = setInterval(() => { if (!formResultadoAbierto) verPartidosTorneo(adminTorneoIdActivo); }, 20000);
+  // Sin auto-refresh en el modal de partidos
   try {
     const data = await apiAdmin('/torneos/' + torneoId);
     const todos = data.partidos || [];
