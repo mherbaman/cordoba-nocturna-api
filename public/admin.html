@@ -2097,7 +2097,10 @@ async function verPartidosTorneo(torneoId) {
   adminTorneoIdActivo = torneoId;
   // Auto-refresh cada 20s en la vista de partidos
   if (adminPartidosInterval) clearInterval(adminPartidosInterval);
-  adminPartidosInterval = setInterval(() => verPartidosTorneo(adminTorneoIdActivo), 20000);
+  adminPartidosInterval = setInterval(() => {
+    const formAbierto = document.querySelector('[id^="mod-form-"]') && [...document.querySelectorAll('[id^="mod-form-"]')].some(el => el.style.display !== 'none');
+    if (!formAbierto) verPartidosTorneo(adminTorneoIdActivo);
+  }, 20000);
   try {
     const data = await apiAdmin('/torneos/' + torneoId);
     const todos = data.partidos || [];
