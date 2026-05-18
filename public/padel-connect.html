@@ -88,6 +88,18 @@ function renderJugadores() {
         </div>
       </div>
     </div>`;
+  // Touch swipe para navegar jugadores
+  setTimeout(() => {
+    const card = document.getElementById('jugadores-padel-list');
+    if (!card) return;
+    let tx = 0;
+    card.ontouchstart = e => { tx = e.touches[0].clientX; };
+    card.ontouchend = e => {
+      const diff = e.changedTouches[0].clientX - tx;
+      if (diff > 60) anteriorJugador();
+      else if (diff < -60) siguienteJugador();
+    };
+  }, 100);
 }
 
 async function cargarFavoritos() {
