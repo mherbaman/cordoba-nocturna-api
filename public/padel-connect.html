@@ -3901,7 +3901,7 @@ async function cargarPartidos() {
   const data = privados;
   if (!data || !data.length) return;
   window._partidosCargados = data;
-  el.innerHTML = data.map(p => {
+  el.innerHTML += data.map(p => {
     const esCreador = p.creador_id === usuario?.id;
     const invPendiente = !esCreador && p.mi_invitacion === 'pendiente';
     const estadoColor = p.estado==='confirmado'?'#22c55e':p.estado==='jugado'?'#60a5fa':p.estado==='suspendido'?'#f87171':'#facc15';
