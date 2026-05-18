@@ -57,13 +57,13 @@ function renderJugadores() {
   const p = jugadoresList[jugadorIdx];
   const total = jugadoresList.length;
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:8px;position:relative">
-      <div style="display:flex;align-items:center;gap:6px;background:rgba(255,20,147,.12);border:1px solid rgba(255,20,147,.4);padding:5px 12px;border-radius:50px">
-        <span style="color:#ff1493;font-size:13px">←</span>
-        <span style="color:#ff1493;font-size:11px;font-weight:700;letter-spacing:1px">SWIPE</span>
-        <span style="color:#ff1493;font-size:13px">→</span>
+    <div style="text-align:right;color:rgba(255,255,255,.3);font-size:11px;margin-bottom:4px">${jugadorIdx+1} / ${total}</div>
+    <div style="display:flex;justify-content:center;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(255,20,147,.12);border:1px solid rgba(255,20,147,.4);padding:5px 16px;border-radius:50px;animation:swipeHint 1.5s ease-in-out infinite">
+        <span style="color:#ff1493;font-size:14px">←</span>
+        <span style="color:#ff1493;font-size:11px;font-weight:700;letter-spacing:2px">SWIPE</span>
+        <span style="color:#ff1493;font-size:14px">→</span>
       </div>
-      <div style="color:rgba(255,255,255,.3);font-size:11px">${jugadorIdx+1} / ${total}</div>
     </div>
     <div class="swipe-jugador-inner" style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;will-change:transform">
       ${p.foto_url
