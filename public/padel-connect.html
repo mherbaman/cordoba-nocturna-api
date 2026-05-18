@@ -67,9 +67,9 @@ function renderJugadores() {
     </div>
     <div class="swipe-jugador-inner" style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;will-change:transform">
       ${p.foto_url
-        ? `<div style="display:flex;justify-content:center;padding:24px 0 8px"><img src="${p.foto_url}" style="width:180px;height:180px;object-fit:cover;border-radius:50%;border:3px solid rgba(34,197,94,.4)"></div>`
+        ? `<div style="display:flex;justify-content:center;padding:12px 0 6px"><img src="${p.foto_url}" style="width:130px;height:130px;object-fit:cover;border-radius:50%;border:3px solid rgba(34,197,94,.4)"></div>`
         : `<div style="width:100%;height:220px;background:rgba(34,197,94,.08);display:flex;align-items:center;justify-content:center;font-size:72px">😊</div>`}
-      <div style="padding:16px">
+      <div style="padding:10px 16px">
         <div style="font-size:20px;font-weight:700">${p.nombre}${p.edad ? `<span style="color:var(--green);font-size:15px;font-weight:400;margin-left:6px">${p.edad} años</span>` : ''}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
           ${p.nivel ? `<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:3px 12px;border-radius:50px;font-size:12px;font-weight:600">${p.nivel}</span>` : ''}
@@ -77,17 +77,15 @@ function renderJugadores() {
         </div>
         ${p.promedio_resenas ? `<div style="margin-top:8px;display:flex;align-items:center;gap:6px">${estrellas(p.promedio_resenas)}<span style="color:rgba(255,255,255,.4);font-size:12px">${p.promedio_resenas} (${p.total_resenas} reseña${p.total_resenas==1?'':'s'})</span></div>` : ''}
         ${p.descripcion ? `<div style="color:rgba(255,255,255,.5);font-size:13px;margin-top:8px">${p.descripcion}</div>` : ''}
-        <div style="display:flex;gap:8px;margin-top:16px">
-          <button onclick="anteriorJugador()" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">← Anterior</button>
-          <button onclick="siguienteJugador()" style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer">Next →</button>
+        <div style="display:flex;gap:8px;margin-top:8px">
           ${puedeContactar(perfilPadel?.nivel, p.nivel)
             ? `<button onclick="chatearConJugador('${p.usuario_id}','${p.nombre}','${p.foto_url||''}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer">💬 Mensaje</button>`
             : `<button disabled style="flex:1;padding:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.3);border-radius:50px;font-size:12px;cursor:not-allowed">Categoría muy diferente</button>`}
         </div>
-        <div style="text-align:center;margin-top:10px">
-          <button onclick="verResenasJugador('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de clubes</button>
+        <div style="text-align:center;margin-top:6px">
+          <button onclick="verResenasJugador('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Reseñas clubes</button>
           <br>
-          <button onclick="verResenasDeJugadores('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Ver reseñas de jugadores</button>
+          <button onclick="verResenasDeJugadores('${p.id}','${p.nombre}')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:underline">Reseñas jugadores</button>
           <br>
           <button id="btn-favorito-${p.usuario_id}" onclick="toggleFavorito('${p.usuario_id}','${p.nombre}')" style="margin-top:8px;background:${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.06)'};border:1px solid ${favoritosSet.has(String(p.usuario_id)) ? 'rgba(239,68,68,.4)' : 'rgba(255,255,255,.1)'};color:${favoritosSet.has(String(p.usuario_id)) ? '#f87171' : 'rgba(255,255,255,.5)'};padding:8px 20px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer">
             ${favoritosSet.has(String(p.usuario_id)) ? '❤️ Favorito' : '🤍 Agregar Jugador Favorito'}
@@ -1190,7 +1188,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
 
   <!-- TAB MIS RESERVAS -->
   <div class="tab-content" id="tab-partidos">
-    <div style="padding:16px">
+    <div style="padding:10px 16px">
       <button onclick="abrirCrearPartido()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer">⚡ Crear partido</button>
     </div>
     <div id="partidos-list" style="padding:0 16px 16px"></div>
