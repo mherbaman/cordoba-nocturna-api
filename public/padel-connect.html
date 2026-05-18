@@ -57,7 +57,7 @@ function renderJugadores() {
   const p = jugadoresList[jugadorIdx];
   const total = jugadoresList.length;
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div style="display:flex;align-items:center;justify-content:center;margin-bottom:8px;position:relative">
       <div style="display:flex;align-items:center;gap:6px;background:rgba(255,20,147,.12);border:1px solid rgba(255,20,147,.4);padding:5px 12px;border-radius:50px">
         <span style="color:#ff1493;font-size:13px">←</span>
         <span style="color:#ff1493;font-size:11px;font-weight:700;letter-spacing:1px">SWIPE</span>
@@ -412,6 +412,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 /* MATCHES */
 #matches-screen{justify-content:flex-start;padding:0}
 .matches-header{width:100%;max-width:420px;padding:20px 18px 0;display:flex;align-items:center;gap:12px;margin-bottom:20px}
+@keyframes swipeHint{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.95)}}
 .back-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
 .matches-title{font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:.5px}
 .matches-title span{color:var(--green)}
