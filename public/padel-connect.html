@@ -4060,6 +4060,7 @@ async function prepararResenaSuspendido(partido_id) {
 }
 
 async function abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  esPartidoPublico = false;
   partidoResenaId = partido_id;
   // Todos los jugadores del partido excepto yo
   jugadoresResena = [
@@ -4095,6 +4096,7 @@ function renderJugadoresResena() {
   }).join('');
 }
 
+let esPartidoPublico = false;
 let estrellasSeleccionadas = {};
 function elegirEstrella(jugador_id, n) {
   estrellasSeleccionadas[jugador_id] = n;
@@ -4106,7 +4108,7 @@ async function enviarResena(a_usuario) {
   const estrellas = estrellasSeleccionadas[a_usuario];
   if (!estrellas) { alert('Elegí una puntuación'); return; }
   const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
-  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
+  const res = await api(esPartidoPublico ? '/padel/resenas-partido-publico' : '/padel/resenas-partido', {method:'POST', body:JSON.stringify({
     partido_id: partidoResenaId, a_usuario, estrellas, comentario
   })});
   if (res.ok) {
@@ -4115,6 +4117,19 @@ async function enviarResena(a_usuario) {
   }
 }
 
+async function abrirResenasPartidoDesdePublico(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
+  esPartidoPublico = true;
+  partidoResenaId = partido_id;
+  jugadoresResena = [
+    { id: ej1j1, nombre: nj1j1 },
+    { id: ej1j2, nombre: nj1j2 },
+    { id: ej2j1, nombre: nj2j1 },
+    { id: ej2j2, nombre: nj2j2 },
+  ].filter(j => j.id && j.id !== usuario?.id);
+  resenasYaHechas = await api('/padel/resenas-partido-publico/' + partido_id + '/mias');
+  renderJugadoresResena();
+  document.getElementById('modal-resenas-partido').style.display = 'flex';
+}
 function cerrarResenasPartido() {
   document.getElementById('modal-resenas-partido').style.display = 'none';
 }
@@ -4716,10 +4731,10 @@ function renderPartidoPublicoMio(p) {
     botonesHtml += `<button onclick="eliminarPartidoMio('${p.id}')" style="width:100%;padding:10px;background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.25);color:#ff2d78;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">🗑️ Eliminar partido</button>`;
   }
   if (p.estado === 'jugado' && p.equipo1_j1) {
-    botonesHtml += `<button onclick="abrirResenasPartidoPublico('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);color:#facc15;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">⭐ Reseñar jugadores</button>`;
+    botonesHtml += `<button onclick="abrirResenasPartidoDesdePublico('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.2);color:#facc15;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">⭐ Reseñar jugadores</button>`;
   }
   if (p.estado === 'suspendido') {
-    botonesHtml += `<button onclick="abrirResenasPartidoPublico('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">⭐ Reseñar al que faltó</button>`;
+    botonesHtml += `<button onclick="abrirResenasPartidoDesdePublico('${p.id}','${p.equipo1_j1||''}','${p.eq1j1_nombre||''}','${p.equipo1_j2||''}','${p.eq1j2_nombre||''}','${p.equipo2_j1||''}','${p.eq2j1_nombre||''}','${p.equipo2_j2||''}','${p.eq2j2_nombre||''}')" style="width:100%;padding:10px;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);color:#f87171;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">⭐ Reseñar al que faltó</button>`;
   }
 
   return `<div style="background:rgba(255,255,255,.04);border:1.5px solid rgba(251,191,36,.2);border-radius:14px;padding:14px;margin-bottom:12px">
@@ -4830,7 +4845,7 @@ async function confirmarResultadoPublico() {
 
 function abrirResenasPartidoPublico(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2) {
   // Reusar la funcion existente de reseñas de partidos privados
-  abrirResenasPartido(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2);
+  abrirResenasPartidoDesdePublico(partido_id, ej1j1, nj1j1, ej1j2, nj1j2, ej2j1, nj2j1, ej2j2, nj2j2);
 }
 
 </script>
