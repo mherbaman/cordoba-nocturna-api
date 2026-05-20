@@ -849,6 +849,7 @@ async function guardarTurno(id) {
       await apiAdmin('/padel/disponibilidad', { method:'POST', body:JSON.stringify({
         negocio_id: negocioData.id,
         dia_semana,
+        fecha_especifica: fecha,
         hora_inicio, hora_fin,
         precio_por_hora: precio,
         cantidad_canchas: max,
