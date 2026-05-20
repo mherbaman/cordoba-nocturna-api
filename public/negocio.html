@@ -819,6 +819,7 @@ async function guardarTurno(id) {
   const hora_inicio = document.getElementById('disp-inicio').value;
   const hora_fin    = document.getElementById('disp-fin').value;
   const precio      = parseFloat(document.getElementById('disp-precio').value)||0;
+  const precioApp  = parseFloat(document.getElementById('disp-precio-app').value)||0;
   const max         = parseInt(document.getElementById('disp-max').value)||1;
   const nro         = parseInt(document.getElementById('disp-nro-cancha').value)||1;
   if (!fecha) { alert('Seleccioná una fecha'); return; }
@@ -828,7 +829,8 @@ async function guardarTurno(id) {
   try {
     if (id) {
       await apiAdmin('/padel/disponibilidad/' + id, { method:'PUT', body:JSON.stringify({
-        hora_inicio, hora_fin, precio_por_hora: precio, cantidad_canchas: max
+        hora_inicio, hora_fin, precio_por_hora: precio,
+        precio_app: precioApp, cantidad_canchas: max
       })});
     } else if (repetir > 0) {
       // Carga masiva por semanas
@@ -839,6 +841,7 @@ async function guardarTurno(id) {
         negocio_id: negocioData.id,
         hora_inicio, hora_fin,
         precio_por_hora: precio,
+        precio_app: precioApp,
         cantidad_canchas: max,
         numero_cancha: nro,
         fecha_desde: fecha,
@@ -852,6 +855,7 @@ async function guardarTurno(id) {
         fecha_especifica: fecha,
         hora_inicio, hora_fin,
         precio_por_hora: precio,
+        precio_app: precioApp,
         cantidad_canchas: max,
         numero_cancha: nro
       })});
