@@ -4375,7 +4375,7 @@ async function enviarResena(a_usuario) {
   const estrellas = estrellasSeleccionadas[a_usuario];
   if (!estrellas) { alert('Elegí una puntuación'); return; }
   const comentario = document.getElementById('comentario-' + a_usuario)?.value || '';
-  const res = await api('/padel/resenas-partido', {method:'POST', body:JSON.stringify({
+  const res = await api(esPartidoPublico ? '/padel/resenas-partido-publico' : '/padel/resenas-partido', {method:'POST', body:JSON.stringify({
     partido_id: partidoResenaId, a_usuario, estrellas, comentario
   })});
   if (res.ok) {
