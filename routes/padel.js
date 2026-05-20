@@ -264,7 +264,7 @@ router.get('/disponibilidad/:id', async (req, res) => {
 // El club carga un horario disponible
 router.post('/disponibilidad', authAdmin, async (req, res) => {
 
-  const { negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha, fecha_especifica } = req.body;
+  const { negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, precio_app, cantidad_canchas, zona, numero_cancha, fecha_especifica } = req.body;
   if (!negocio_id || dia_semana === undefined || !hora_inicio || !hora_fin || !precio_por_hora) {
     return res.status(400).json({ error: 'negocio_id, dia_semana, hora_inicio, hora_fin y precio_por_hora son requeridos' });
   }
@@ -272,10 +272,10 @@ router.post('/disponibilidad', authAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       INSERT INTO disponibilidad_padel
-        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha, fecha_especifica)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, precio_app, cantidad_canchas, zona, numero_cancha, fecha_especifica)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
-    `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas || 1, zona, numero_cancha || 1, fecha_especifica || null]);
+    `, [negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, precio_app || 0, cantidad_canchas || 1, zona, numero_cancha || 1, fecha_especifica || null]);
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -2069,7 +2069,7 @@ router.post('/disponibilidad/masiva', authAdmin, async (req, res) => {
           const fechaStr = d.toISOString().split('T')[0];
           const r = await pool.query(`
             INSERT INTO disponibilidad_padel
-              (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, cantidad_canchas, zona, numero_cancha, fecha_especifica)
+        (negocio_id, dia_semana, hora_inicio, hora_fin, precio_por_hora, precio_app, cantidad_canchas, zona, numero_cancha, fecha_especifica)
             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
             ON CONFLICT DO NOTHING
             RETURNING id
