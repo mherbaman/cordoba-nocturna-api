@@ -897,7 +897,7 @@ async function cargarDashboard() {
 async function cargarSponsors() {
   const tbody = document.getElementById('sponsors-tbody');
   try {
-    const sponsors = await apiAdmin('/sponsors');
+    const sponsors = await apiAdmin('/sponsors?todos=true');
     if (!sponsors.length) {
       tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state-table"><div class="icon">🎯</div>No hay sponsors aún.<br>Agregá el primero!</div></td></tr>`;
       return;
@@ -1164,7 +1164,7 @@ async function cerrarSesion(sesionId, nombre) {
 // ─── PROMO PRINCIPAL ─────────────────────────────────────────────────
 async function cargarPromoPrincipal() {
   try {
-    const sponsors = await apiAdmin('/sponsors');
+    const sponsors = await apiAdmin('/sponsors?todos=true');
     const pp = sponsors.find(s => s.confirmacion !== undefined && s.orden === -1) || sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
     if (pp) {
       document.getElementById('pp-titulo').value = pp.nombre || '';
@@ -1220,7 +1220,7 @@ async function guardarPromoPersonal() {
   const imagen_url  = document.getElementById('pp-imagen-url')?.value.trim()||'';
   const url_promo   = document.getElementById('pp-url-promo')?.value.trim()||'';
   try {
-    const sponsors = await apiAdmin('/sponsors');
+    const sponsors = await apiAdmin('/sponsors?todos=true');
     const pp = sponsors.find(s => s.confirmacion !== undefined && s.orden === -1) || sponsors.find(s => s.tag === 'PROMO-PRINCIPAL');
     const orden_pp = parseInt(document.getElementById('pp-orden')?.value);
     const body = { nombre:titulo, promo:desc, emoji, tag:'PROMO-PRINCIPAL', whatsapp, pantalla, app:app_pp, orden:isNaN(orden_pp)?-1:orden_pp, imagen_url, imagen_promo:url_promo, confirmacion };
