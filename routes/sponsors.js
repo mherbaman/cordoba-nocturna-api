@@ -9,8 +9,8 @@ const { authAdmin } = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
   try {
-    const { pantalla } = req.query;
-    let query = `SELECT * FROM sponsors WHERE activo = true`;
+    const { pantalla, todos } = req.query;
+    let query = todos === 'true' ? `SELECT * FROM sponsors WHERE 1=1` : `SELECT * FROM sponsors WHERE activo = true`;
     const params = [];
     if (pantalla) {
       query += ` AND (pantalla = $1 OR pantalla = 'todas')`;
