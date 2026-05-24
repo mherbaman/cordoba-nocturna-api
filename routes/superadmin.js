@@ -326,7 +326,7 @@ router.get('/sesiones-negocio/:id', async (req, res) => {
 router.get('/usuarios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT u.id, u.nombre, u.apellido, u.email, u.foto_url, u.vibe, u.edad, u.telefono, u.app_origen, u.creado_en, u.ultimo_login, u.activo,
+      SELECT u.id, u.nombre, u.apellido, u.email, u.foto_url, u.vibe, u.edad, u.telefono, u.app_origen, u.creado_en, u.ultimo_login, u.activo, u.email_bienvenida_enviado,
         COALESCE(json_agg(ua.app ORDER BY ua.primera_vez) FILTER (WHERE ua.app IS NOT NULL), '[]') as apps
       FROM usuarios u
       LEFT JOIN usuarios_apps ua ON ua.usuario_id = u.id
