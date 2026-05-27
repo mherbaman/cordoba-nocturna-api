@@ -4518,7 +4518,7 @@ async function cargarRanking() {
 }
 
 // ── PERFIL EXTENDIDO ─────────────────────────────────────────────────
-const ZONAS_DISPONIBLES = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes', '+ Otra zona'];
+const ZONAS_MODAL = ['Centro', 'Nueva Córdoba', 'Güemes', 'Alberdi', 'General Paz', 'Cerro de las Rosas', 'Villa Allende', 'Arguello', 'Urca', 'Jardín', 'Maipú', 'Villa Belgrano', 'La Calera', 'Unquillo', 'Mendiolaza', 'Salsipuedes', '+ Otra zona'];
 let nivelModal = '';
 let zonasModal = [];
 
@@ -4531,7 +4531,7 @@ function selectNivelModal(btn, nivel) {
 function renderZonasModal() {
   const el = document.getElementById('modal-zonas-chips');
   if (!el) return;
-  el.innerHTML = ZONAS_DISPONIBLES.map(z => {
+  el.innerHTML = ZONAS_MODAL.map(z => {
     if (z === '+ Otra zona') {
       return `<button class="pv-chip" onclick="agregarZonaCustom()" style="border-style:dashed">+ Otra zona</button>`;
     }
@@ -4542,7 +4542,7 @@ function renderZonasModal() {
     <button onclick="confirmarZonaCustom()" style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.3);color:var(--green);padding:8px 14px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer">+</button>
   </div>`;
   // Mostrar input si hay zonas custom
-  const customZonas = zonasModal.filter(z => !ZONAS_DISPONIBLES.includes(z) && z !== '+ Otra zona');
+  const customZonas = zonasModal.filter(z => !ZONAS_MODAL.includes(z) && z !== '+ Otra zona');
   if (customZonas.length) {
     customZonas.forEach(z => {
       const btn = document.createElement('button');
