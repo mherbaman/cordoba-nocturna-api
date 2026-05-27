@@ -218,6 +218,8 @@ function navTo(page, btn) {
 async function cargarDashboard() {
   if (!negocioData) return;
   document.getElementById("dash-nombre").textContent = negocioData.nombre;
+  const fechaHoy = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
+  document.getElementById("hero-fecha").textContent = "Panel de gestión · Hoy es " + fechaHoy;
   try {
     const hoy = new Date().toISOString().split("T")[0];
     const [reservas, turnos] = await Promise.all([
@@ -564,7 +566,7 @@ async function cargarResenasClub() {
       <div class="dashboard-hero">
         <div class="hero-greeting">Bienvenido de vuelta</div>
         <div class="hero-name" id="dash-nombre">—</div>
-        <div class="hero-sub">Panel de gestión · Hoy es ''' + new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}) + '''</div>
+        <div class="hero-sub" id="hero-fecha">Panel de gestión</div>
       </div>
       <div class="kpi-grid">
         <div class="kpi-card">
