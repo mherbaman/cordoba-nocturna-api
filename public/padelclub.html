@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎾</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Padel Club — Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--pink:#ff2d78;--purple:#7c3aed;--green:#22c55e;--bg:#07000f;--card:#0f0019;--border:rgba(34,197,94,.15);--text:#fff;--muted:rgba(255,255,255,.45)}
+    body{background:var(--bg);font-family:"DM Sans",sans-serif;color:var(--text);min-height:100vh}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* LOGIN */
+    #login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(34,197,94,.08) 0%,transparent 60%)}
+    .login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px;width:100%;max-width:400px;animation:fadeUp .6s ease forwards}
+    .login-logo{font-family:"Bebas Neue",cursive;font-size:38px;letter-spacing:2px;margin-bottom:4px}
+    .login-logo span{color:var(--green)}
+    .login-sub{color:var(--muted);font-size:13px;margin-bottom:32px}
+    .field-label{color:rgba(255,255,255,.45);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;display:block}
+    .input-field{background:rgba(255,255,255,.04);border:1.5px solid rgba(34,197,94,.2);color:#fff;padding:13px 16px;border-radius:12px;font-size:15px;width:100%;outline:none;font-family:"DM Sans",sans-serif;transition:border-color .3s;margin-bottom:16px}
+    .input-field:focus{border-color:var(--green);box-shadow:0 0 16px rgba(34,197,94,.15)}
+    .input-field::placeholder{color:rgba(255,255,255,.2)}
+    .btn-primary{background:linear-gradient(135deg,#15803d,var(--green));border:none;color:#fff;padding:14px;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;width:100%;transition:all .2s}
+    .btn-primary:hover{opacity:.9;transform:scale(1.01)}
+    .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .error-msg{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;display:none}
+
+    /* APP LAYOUT */
+    #app{display:none;min-height:100vh;flex-direction:column}
+    .top-bar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+    .top-logo{font-family:"Bebas Neue",cursive;font-size:20px;letter-spacing:1px;flex-shrink:0;color:var(--green)}
+    .top-negocio{flex:1;min-width:0}
+    .top-negocio .nombre{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .top-negocio .tipo{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-top:1px}
+    .top-app-badge{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);font-size:11px;font-weight:600;padding:4px 12px;border-radius:50px;white-space:nowrap;flex-shrink:0}
+    .btn-logout{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);padding:7px 14px;border-radius:50px;font-size:12px;cursor:pointer;transition:all .2s;flex-shrink:0}
+    .btn-logout:hover{border-color:var(--green);color:var(--green)}
+    .nav-tabs{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;display:flex;overflow-x:auto;scrollbar-width:none}
+    .nav-tabs::-webkit-scrollbar{display:none}
+    .tab{padding:13px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:"DM Sans",sans-serif}
+    .tab:hover{color:#fff}
+    .tab.active{color:var(--green);border-bottom-color:var(--green)}
+    .main{padding:24px;max-width:960px;margin:0 auto;width:100%;flex:1}
+    .page{display:none;animation:fadeUp .4s ease forwards}
+    .page.active{display:block}
+
+    /* DASHBOARD HERO */
+    .dashboard-hero{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(124,58,237,.05));border:1px solid rgba(34,197,94,.2);border-radius:24px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden}
+    .dashboard-hero::before{content:"🎾";position:absolute;right:-10px;top:-10px;font-size:120px;opacity:.06;transform:rotate(-15deg)}
+    .hero-greeting{font-size:13px;color:var(--green);text-transform:uppercase;letter-spacing:2px;font-weight:700;margin-bottom:4px}
+    .hero-name{font-family:"Bebas Neue",cursive;font-size:38px;letter-spacing:1px;line-height:1;margin-bottom:8px}
+    .hero-sub{color:var(--muted);font-size:14px}
+
+    /* KPI CARDS */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+    .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+    .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(34,197,94,.08)}
+    .kpi-card::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:.3}
+    .kpi-icon{font-size:24px;margin-bottom:10px}
+    .kpi-num{font-family:"Bebas Neue",cursive;font-size:38px;color:var(--green);line-height:1;margin-bottom:2px}
+    .kpi-num.pink{color:var(--pink)}
+    .kpi-num.gold{color:#fbbf24}
+    .kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+    .kpi-trend{font-size:10px;color:var(--green);margin-top:4px}
+
+    /* ACCESOS RAPIDOS */
+    .quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+    .quick-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;text-align:center;cursor:pointer;transition:all .2s}
+    .quick-card:hover{border-color:var(--green);background:rgba(34,197,94,.04);transform:translateY(-2px)}
+    .quick-icon{font-size:28px;margin-bottom:8px}
+    .quick-label{font-size:13px;font-weight:600;color:#fff}
+    .quick-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+    /* SECCION */
+    .section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+    .section-title{font-size:16px;font-weight:700}
+    .section-badge{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:50px}
+    .btn-export{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+    .btn-export:hover{background:rgba(34,197,94,.08);border-color:var(--green);color:var(--green)}
+
+    /* TURNO CARDS */
+    .turno-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .dia-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700;padding:6px 0}
+    .btn-sm{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:7px 12px;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-sm:hover{background:rgba(34,197,94,.1);border-color:var(--green)}
+    .btn-sm.btn-edit{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted)}
+
+    /* RESERVAS */
+    .reserva-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+    .reserva-estado{padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700;flex-shrink:0}
+    .estado-confirmado{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+    .estado-pendiente{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+    .estado-rechazado{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+
+    /* PARTIDO FLOTANTE */
+    .fab{position:fixed;bottom:28px;right:20px;background:linear-gradient(135deg,#15803d,var(--green));border:none;color:#fff;padding:14px 22px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;z-index:200;box-shadow:0 4px 24px rgba(34,197,94,.4);display:flex;align-items:center;gap:8px;transition:all .2s}
+    .fab:hover{transform:scale(1.05);box-shadow:0 6px 32px rgba(34,197,94,.5)}
+
+    /* LOADER */
+    .loader{width:24px;height:24px;border:2px solid rgba(34,197,94,.2);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin:32px auto;display:block}
+    .empty-state{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+
+    /* MODAL */
+    #modal-disponibilidad{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+    #modal-partido{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+    .modal-inner{background:#0f0019;border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:28px;width:90%;max-width:440px;max-height:90vh;overflow-y:auto}
+    .modal-title{font-family:"Bebas Neue",cursive;font-size:28px;letter-spacing:1px;margin-bottom:20px}
+    .modal-actions{display:flex;gap:10px;margin-top:20px}
+    .btn-cancel{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;flex:1}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+    .stat-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+    .stat-box .num{font-family:"Bebas Neue",cursive;font-size:36px;color:var(--green);line-height:1}
+    .stat-box .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+
+    @media(max-width:600px){
+      .top-app-badge{display:none}
+      .main{padding:16px}
+      .hero-name{font-size:28px}
+      .kpi-num{font-size:28px}
+    }
+  </style>
+</head>
+<body>
+
+<script>
+const API = "https://api.cordobalux.com";
+let adminToken  = localStorage.getItem("neg_token") || null;
+let adminData   = JSON.parse(localStorage.getItem("neg_admin") || "null");
+let negocioData = null;
+
+async function apiAdmin(path, opts={}) {
+  const headers = {"Content-Type":"application/json"};
+  if (adminToken) headers["Authorization"] = "Bearer " + adminToken;
+  const r = await fetch(API + path, {...opts, headers});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "Error");
+  return data;
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btn-login");
+  if (btn) btn.addEventListener("click", doLogin);
+  document.getElementById("login-password").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
+  if (adminToken) initApp();
+});
+
+async function doLogin() {
+  const email    = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+  const errEl    = document.getElementById("login-error");
+  const btn      = document.getElementById("btn-login");
+  errEl.style.display = "none";
+  btn.disabled = true; btn.textContent = "Entrando...";
+  try {
+    const data = await apiAdmin("/auth/admin-login", {method:"POST", body:JSON.stringify({email, password})});
+    adminToken = data.token;
+    adminData  = data.admin;
+    localStorage.setItem("neg_token", adminToken);
+    localStorage.setItem("neg_admin", JSON.stringify(adminData));
+    initApp();
+  } catch(err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+    btn.disabled = false; btn.textContent = "ENTRAR →";
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem("neg_token");
+  localStorage.removeItem("neg_admin");
+  location.reload();
+}
+
+async function initApp() {
+  try {
+    const negocios = await apiAdmin("/superadmin/mis-negocios");
+    negocioData = negocios[0];
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("app").style.display = "flex";
+    document.getElementById("top-nombre").textContent = negocioData.nombre;
+    document.getElementById("top-tipo").textContent   = negocioData.tipo || "Club de Pádel";
+    cargarDashboard();
+    navTo("dashboard", document.querySelector(".tab"));
+  } catch(err) {
+    alert("Error al cargar el club: " + err.message);
+    doLogout();
+  }
+}
+
+function navTo(page, btn) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  const el = document.getElementById("page-" + page);
+  if (el) el.classList.add("active");
+  if (btn) btn.classList.add("active");
+  if (page === "dashboard")  cargarDashboard();
+  if (page === "canchas")    cargarCanchas();
+  if (page === "reservas")   cargarReservas();
+  if (page === "partidos")   cargarPartidos();
+  if (page === "stats")      cargarStats();
+  if (page === "resenas")    cargarResenasClub();
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────
+async function cargarDashboard() {
+  if (!negocioData) return;
+  document.getElementById("dash-nombre").textContent = negocioData.nombre;
+  try {
+    const hoy = new Date().toISOString().split("T")[0];
+    const [reservas, turnos] = await Promise.all([
+      apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[]),
+      apiAdmin("/padel/disponibilidad/del-club?negocio_id=" + negocioData.id).catch(()=>[])
+    ]);
+    const confirmadas = reservas.filter(r => r.estado === "confirmado");
+    const ingresos    = confirmadas.reduce((s,r) => s + parseFloat(r.precio_cobrado||0), 0);
+    document.getElementById("kpi-reservas").textContent  = confirmadas.length;
+    document.getElementById("kpi-ingresos").textContent  = "$" + Math.round(ingresos).toLocaleString("es-AR");
+    document.getElementById("kpi-canchas").textContent   = turnos.length;
+    const ocup = turnos.length > 0 ? Math.round((confirmadas.length / turnos.length) * 100) : 0;
+    document.getElementById("kpi-ocupacion").textContent = ocup + "%";
+  } catch(e) {}
+}
+
+// ─── CANCHAS ──────────────────────────────────────────────────────────
+const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+let idsReservados = [], reservadoPor = {};
+
+async function cargarCanchas() {
+  const el = document.getElementById("canchas-list");
+  el.innerHTML = "<div class=\"loader\"></div>";
+  try {
+    const hoy = new Date().toISOString().split("T")[0];
+    const [turnos, reservasHoy] = await Promise.all([
+      apiAdmin("/padel/disponibilidad/del-club?negocio_id=" + negocioData.id),
+      apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[])
+    ]);
+    idsReservados = reservasHoy.filter(r=>r.estado==="confirmado").map(r=>r.disponibilidad_id);
+    reservadoPor  = {};
+    reservasHoy.forEach(r => { if(r.estado==="confirmado") reservadoPor[r.disponibilidad_id]={nombre:r.jugador_nombre,tel:r.jugador_telefono}; });
+    if (!turnos.length) { el.innerHTML = "<div class=\"empty-state\">🏟️ No tenés turnos cargados aún.<br>Presioná <strong>+ Agregar turno</strong> para empezar.</div>"; return; }
+    const fechasPorDia = {};
+    turnos.forEach(t => {
+      if (t.fecha_especifica) {
+        const f = String(t.fecha_especifica).substring(0,10);
+        const diaSem = new Date(f+"T12:00:00").getDay();
+        if (!fechasPorDia[diaSem]) fechasPorDia[diaSem]=[];
+        if (!fechasPorDia[diaSem].includes(f)) fechasPorDia[diaSem].push(f);
+      }
+    });
+    const grupos = {};
+    turnos.forEach(t => {
+      let key, titulo;
+      if (t.fecha_especifica) {
+        key = String(t.fecha_especifica).substring(0,10);
+        const [y,m,d] = key.split("-").map(Number);
+        titulo = new Date(y,m-1,d).toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+      } else {
+        const fechasDeEsteDia = fechasPorDia[t.dia_semana]||[];
+        if (fechasDeEsteDia.length>0) {
+          fechasDeEsteDia.sort(); key=fechasDeEsteDia[0];
+          const [y,m,d]=key.split("-").map(Number);
+          titulo=new Date(y,m-1,d).toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+        } else {
+          key="rec_"+t.dia_semana;
+          const hoyD=new Date(); const diff=(t.dia_semana-hoyD.getDay()+7)%7;
+          const prox=new Date(hoyD); prox.setDate(hoyD.getDate()+diff);
+          titulo=DIAS[t.dia_semana]+" (recurrente · próximo "+prox.toLocaleDateString("es-AR",{day:"numeric",month:"long"})+")";
+        }
+      }
+      if (!grupos[key]) grupos[key]={titulo,turnos:[]};
+      grupos[key].turnos.push(t);
+    });
+    el.innerHTML = Object.values(grupos).map(g => {
+      const turnosHtml = g.turnos.map(t => {
+        const reservado = idsReservados.includes(t.id);
+        return "<div class=\"turno-card\" style=\"" + (reservado?"border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04)":"") + "\">" +
+          "<div style=\"flex:1\">" +
+            "<div style=\"display:flex;align-items:center;gap:8px;flex-wrap:wrap\">" +
+              "<span style=\"font-weight:600;font-size:15px\">🕐 " + t.hora_inicio.substring(0,5) + " - " + t.hora_fin.substring(0,5) + "</span>" +
+              (reservado ? "<span style=\"background:rgba(239,68,68,.15);color:#ef4444;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700\">🔴 RESERVADO HOY</span>" : "<span style=\"background:rgba(34,197,94,.1);color:#22c55e;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700\">🟢 LIBRE</span>") +
+            "</div>" +
+            (reservado && reservadoPor[t.id] ? "<div style=\"margin-top:4px;font-size:12px;color:rgba(255,255,255,.7)\">👤 " + reservadoPor[t.id].nombre + (reservadoPor[t.id].tel ? " &nbsp;·&nbsp; <a href=\"https://wa.me/" + reservadoPor[t.id].tel + "\" style=\"color:#25d366;text-decoration:none\">💬 WA</a>" : "") + "</div>" : "") +
+            "<div style=\"color:var(--muted);font-size:12px;margin-top:2px\">🏟️ Cancha N°" + (t.numero_cancha||1) + " · <span style=\"text-decoration:line-through;opacity:.5\">$" + Math.round(t.precio_por_hora) + "</span> <span style=\"color:#22c55e;font-weight:700\">Precio por App $" + Math.round(t.precio_app||t.precio_por_hora) + "</span> · " + t.cantidad_canchas + " turno(s) máx</div>" +
+          "</div>" +
+          "<div style=\"display:flex;gap:6px;flex-shrink:0\">" +
+            "<button class=\"btn-sm\" onclick=\"editarTurno(" + JSON.stringify(t).replace(/"/g,"&quot;") + ")\" style=\"background:rgba(255,255,255,.08)\">✏️</button>" +
+            "<button class=\"btn-sm\" onclick=\"borrarTurno(\'" + t.id + "\')\" style=\"background:rgba(239,68,68,.1);color:#ef4444;border-color:rgba(239,68,68,.2)\">🗑</button>" +
+          "</div>" +
+        "</div>";
+      }).join("");
+      return "<div style=\"margin-bottom:20px\"><div class=\"dia-label\" style=\"color:rgba(34,197,94,.8);font-size:12px;padding:8px 0;border-bottom:1px solid rgba(34,197,94,.15);margin-bottom:8px\">📅 " + g.titulo.toUpperCase() + "</div>" + turnosHtml + "</div>";
+    }).join("");
+  } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: " + err.message + "</div>"; }
+}
+
+function abrirModalDisponibilidad(t={}) {
+  document.getElementById("modal-disp-title").textContent = t.id ? "Editar turno" : "Nuevo turno";
+  document.getElementById("modal-disp-body").innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:1/-1">
+        <label class="field-label">Fecha</label>
+        <input class="input-field" id="disp-fecha" type="date" value="${t.fecha||""}" style="margin:0;color-scheme:dark">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">¿Repetir semanalmente?</label>
+        <select class="input-field" id="disp-repetir" style="color:#fff;background:#1a0030;margin:0">
+          <option value="0" style="background:#1a0030">Solo ese día</option>
+          <option value="2" style="background:#1a0030">2 semanas</option>
+          <option value="4" style="background:#1a0030">4 semanas</option>
+          <option value="8" style="background:#1a0030">8 semanas</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <input class="input-field" id="disp-inicio" type="time" value="${t.hora_inicio?t.hora_inicio.substring(0,5):""}" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <input class="input-field" id="disp-fin" type="time" value="${t.hora_fin?t.hora_fin.substring(0,5):""}" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">💰 Precio normal</label>
+        <input class="input-field" id="disp-precio" type="number" value="${t.precio_por_hora||""}" placeholder="12000" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">📱 Precio por App</label>
+        <input class="input-field" id="disp-precio-app" type="number" value="${t.precio_app||""}" placeholder="10000" style="margin:0">
+        <div style="color:var(--muted);font-size:10px;margin-top:4px">Con descuento para pagos en app</div>
+      </div>
+      <div>
+        <label class="field-label">N° de cancha</label>
+        <input class="input-field" id="disp-nro-cancha" type="number" value="${t.numero_cancha||1}" min="1" max="20" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Máximo simultáneos</label>
+        <input class="input-field" id="disp-max" type="number" value="${t.cantidad_canchas||1}" min="1" max="10" style="margin:0">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarModalDisp()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="guardarTurno(${JSON.stringify(t.id||"")})" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">${t.id?"GUARDAR":"CREAR"}</button>
+    </div>`;
+  document.getElementById("modal-disponibilidad").style.display = "flex";
+}
+
+function editarTurno(t) { abrirModalDisponibilidad(t); }
+function cerrarModalDisp() { document.getElementById("modal-disponibilidad").style.display = "none"; }
+
+async function guardarTurno(id) {
+  const fecha       = document.getElementById("disp-fecha").value;
+  const repetir     = parseInt(document.getElementById("disp-repetir").value)||0;
+  const hora_inicio = document.getElementById("disp-inicio").value;
+  const hora_fin    = document.getElementById("disp-fin").value;
+  const precio      = parseFloat(document.getElementById("disp-precio").value)||0;
+  const precioApp   = parseFloat(document.getElementById("disp-precio-app").value)||0;
+  const max         = parseInt(document.getElementById("disp-max").value)||1;
+  const nro         = parseInt(document.getElementById("disp-nro-cancha").value)||1;
+  if (!fecha) { alert("Seleccioná una fecha"); return; }
+  if (!hora_inicio||!hora_fin) { alert("Ingresá hora de inicio y fin"); return; }
+  const fechaObj = new Date(fecha+"T00:00:00");
+  const dia_semana = fechaObj.getDay();
+  try {
+    if (id) {
+      await apiAdmin("/padel/disponibilidad/"+id, {method:"PUT", body:JSON.stringify({hora_inicio,hora_fin,precio_por_hora:precio,precio_app:precioApp,cantidad_canchas:max})});
+    } else if (repetir>0) {
+      const dias_semana=[dia_semana];
+      const fecha_hasta=new Date(fechaObj);
+      fecha_hasta.setDate(fecha_hasta.getDate()+(repetir-1)*7);
+      await apiAdmin("/padel/disponibilidad/masiva",{method:"POST",body:JSON.stringify({negocio_id:negocioData.id,hora_inicio,hora_fin,precio_por_hora:precio,precio_app:precioApp,cantidad_canchas:max,numero_cancha:nro,fecha_desde:fecha,fecha_hasta:fecha_hasta.toISOString().split("T")[0],dias_semana})});
+    } else {
+      await apiAdmin("/padel/disponibilidad",{method:"POST",body:JSON.stringify({negocio_id:negocioData.id,dia_semana,fecha_especifica:fecha,hora_inicio,hora_fin,precio_por_hora:precio,precio_app:precioApp,cantidad_canchas:max,numero_cancha:nro})});
+    }
+    cerrarModalDisp(); cargarCanchas(); alert("✅ Turno(s) guardado(s)");
+  } catch(err) { alert(err.message); }
+}
+
+async function borrarTurno(id) {
+  if (!confirm("¿Eliminar este turno?")) return;
+  try { await apiAdmin("/padel/disponibilidad/"+id,{method:"DELETE"}); cargarCanchas(); }
+  catch(err) { alert(err.message); }
+}
+
+// ─── RESERVAS ─────────────────────────────────────────────────────────
+let todasReservas = [];
+async function cargarReservas() {
+  const el = document.getElementById("reservas-list");
+  el.innerHTML = "<div class=\"loader\"></div>";
+  try {
+    const hoy = new Date().toISOString().split("T")[0];
+    todasReservas = await apiAdmin("/padel/reservas/del-club?negocio_id="+negocioData.id+"&fecha="+hoy);
+    renderReservas(todasReservas);
+  } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: "+err.message+"</div>"; }
+}
+
+function renderReservas(reservas) {
+  const el = document.getElementById("reservas-list");
+  if (!reservas.length) { el.innerHTML = "<div class=\"empty-state\">📋 No hay reservas para hoy</div>"; return; }
+  el.innerHTML = reservas.map(r => `
+    <div class="reserva-card">
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+          <span class="reserva-estado estado-${r.estado||"confirmado"}">${r.estado==="confirmado"?"✅ Confirmada":r.estado==="pendiente"?"⏳ Pendiente":"❌ Rechazada"}</span>
+          <span style="font-weight:700">🕐 ${r.hora_inicio?r.hora_inicio.substring(0,5):"—"}</span>
+          <span style="color:var(--muted);font-size:12px">Cancha N°${r.numero_cancha||1}</span>
+        </div>
+        <div style="font-size:14px;font-weight:600">👤 ${r.jugador_nombre||"—"}</div>
+        ${r.jugador_telefono?`<div style="margin-top:4px"><a href="https://wa.me/${r.jugador_telefono}" style="color:#25d366;font-size:13px;text-decoration:none">💬 WhatsApp</a></div>`:""}
+        <div style="color:#22c55e;font-size:13px;font-weight:700;margin-top:4px">💰 $${Math.round(r.precio_cobrado||0).toLocaleString("es-AR")}</div>
+      </div>
+    </div>`).join("");
+}
+
+function filtrarReservas(estado) {
+  document.querySelectorAll(".f-btn").forEach(b => b.style.background="rgba(255,255,255,.06)");
+  document.getElementById("f-"+estado).style.background = "rgba(34,197,94,.2)";
+  renderReservas(estado==="todas" ? todasReservas : todasReservas.filter(r=>r.estado===estado));
+}
+
+// ─── PARTIDOS ─────────────────────────────────────────────────────────
+async function cargarPartidos() {
+  const el = document.getElementById("partidos-list");
+  el.innerHTML = "<div class=\"loader\"></div>";
+  try {
+    const partidos = await apiAdmin("/padel/mis-partidos-publicos");
+    if (!partidos.length) { el.innerHTML = "<div class=\"empty-state\">⚡ No tenés partidos creados.<br>Usá el botón verde para crear uno.</div>"; return; }
+    el.innerHTML = partidos.map(p => `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:700;font-size:15px">${p.zona||"—"} · ${p.categoria||"—"}</div>
+            <div style="color:var(--muted);font-size:13px;margin-top:2px">📅 ${p.fecha} · 🕐 ${p.hora} · 📍 ${p.lugar||"—"}</div>
+          </div>
+          <span style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;padding:4px 12px;border-radius:50px;font-size:12px;font-weight:700">${p.estado||"abierto"}</span>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-size:13px;color:var(--muted)">👥 ${p.cupos||4} cupos · 💰 $${p.costo||0}</span>
+        </div>
+      </div>`).join("");
+  } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: "+err.message+"</div>"; }
+}
+
+function abrirCrearPartido() {
+  document.getElementById("modal-partido").style.display = "flex";
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear(), mm=String(hoy.getMonth()+1).padStart(2,"0"), dd=String(hoy.getDate()).padStart(2,"0");
+  document.getElementById("p-fecha").value = yyyy+"-"+mm+"-"+dd;
+}
+function cerrarModalPartido() { document.getElementById("modal-partido").style.display="none"; }
+
+async function confirmarCrearPartido() {
+  const zona      = document.getElementById("p-zona").value;
+  const categoria = document.getElementById("p-cat").value;
+  const fecha     = document.getElementById("p-fecha").value;
+  const hora      = document.getElementById("p-hora").value;
+  const lugar     = document.getElementById("p-lugar").value.trim();
+  const costo     = parseFloat(document.getElementById("p-costo").value)||0;
+  const cupos     = parseInt(document.getElementById("p-cupos").value)||4;
+  const desc      = document.getElementById("p-desc").value.trim();
+  if (!fecha||!hora||!lugar) { alert("Completá fecha, hora y lugar"); return; }
+  try {
+    await apiAdmin("/padel/partidos-publicos",{method:"POST",body:JSON.stringify({zona,categoria,fecha,hora,lugar,costo,cupos,descripcion:desc})});
+    cerrarModalPartido(); cargarPartidos(); alert("✅ Partido creado");
+  } catch(err) { alert(err.message); }
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────
+async function cargarStats() {
+  const el = document.getElementById("stats-content");
+  el.innerHTML = "<div class=\"loader\"></div>";
+  try {
+    const hoy = new Date().toISOString().split("T")[0];
+    const reservas = await apiAdmin("/padel/reservas/del-club?negocio_id="+negocioData.id+"&fecha="+hoy).catch(()=>[]);
+    const confirmadas = reservas.filter(r=>r.estado==="confirmado");
+    const ingresos = confirmadas.reduce((s,r)=>s+parseFloat(r.precio_cobrado||0),0);
+    el.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-box"><div class="num">${confirmadas.length}</div><div class="lbl">Reservas hoy</div></div>
+        <div class="stat-box"><div class="num" style="color:#fbbf24">$${Math.round(ingresos).toLocaleString("es-AR")}</div><div class="lbl">Ingresos hoy</div></div>
+        <div class="stat-box"><div class="num" style="color:var(--pink)">${reservas.length}</div><div class="lbl">Total turnos del día</div></div>
+      </div>
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:16px;font-size:13px;color:var(--muted)">
+        📊 Próximamente: estadísticas semanales, mensuales y comparativas de ocupación.
+      </div>`;
+  } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: "+err.message+"</div>"; }
+}
+
+// ─── RESEÑAS ──────────────────────────────────────────────────────────
+async function cargarResenasClub() {
+  const el = document.getElementById("resenas-list");
+  el.innerHTML = "<div class=\"loader\"></div>";
+  try {
+    const data = await apiAdmin("/padel/resenas-club-negocio");
+    if (!data.length) { el.innerHTML = "<div class=\"empty-state\">⭐ Aún no tenés reseñas</div>"; return; }
+    const estrellas = n => "★".repeat(n)+"☆".repeat(5-n);
+    el.innerHTML = data.map(r => `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start">
+        <div style="width:42px;height:42px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${r.jugador_foto?"<img src=\""+r.jugador_foto+"\" style=\"width:42px;height:42px;border-radius:50%;object-fit:cover\">":"👤"}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${r.jugador_nombre||"Jugador"}</div>
+          <div style="color:#fbbf24;font-size:16px;margin:2px 0">${estrellas(r.puntuacion)}</div>
+          ${r.comentario?"<div style=\"color:var(--muted);font-size:13px\">"+r.comentario+"</div>":""}
+          <div style="color:rgba(255,255,255,.3);font-size:11px;margin-top:4px">${new Date(r.creado_en).toLocaleDateString("es-AR")}</div>
+        </div>
+      </div>`).join("");
+  } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: "+err.message+"</div>"; }
+}
+</script>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">PADEL<span>CLUB</span></div>
+    <p class="login-sub">Panel de gestión para clubes de pádel</p>
+    <div class="error-msg" id="login-error"></div>
+    <label class="field-label">Email</label>
+    <input class="input-field" id="login-email" type="email" placeholder="tu@club.com">
+    <label class="field-label">Contraseña</label>
+    <input class="input-field" id="login-password" type="password" placeholder="••••••••">
+    <button class="btn-primary" id="btn-login">ENTRAR →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-logo">🎾 PADELCLUB</div>
+    <div class="top-negocio">
+      <div class="nombre" id="top-nombre">—</div>
+      <div class="tipo" id="top-tipo">Club de Pádel</div>
+    </div>
+    <span class="top-app-badge">🟢 En línea</span>
+    <button class="btn-logout" onclick="doLogout()">Salir</button>
+  </div>
+
+  <!-- TABS -->
+  <div class="nav-tabs">
+    <button class="tab active" onclick="navTo('dashboard',this)">📊 Dashboard</button>
+    <button class="tab" onclick="navTo('canchas',this)">🏟️ Mis Canchas</button>
+    <button class="tab" onclick="navTo('reservas',this)">📋 Reservas</button>
+    <button class="tab" onclick="navTo('partidos',this)">⚡ Partidos</button>
+    <button class="tab" onclick="navTo('stats',this)">📈 Estadísticas</button>
+    <button class="tab" onclick="navTo('resenas',this)">⭐ Reseñas</button>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="dashboard-hero">
+        <div class="hero-greeting">Bienvenido de vuelta</div>
+        <div class="hero-name" id="dash-nombre">—</div>
+        <div class="hero-sub">Panel de gestión · Hoy es ''' + new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}) + '''</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">📋</div>
+          <div class="kpi-num" id="kpi-reservas">—</div>
+          <div class="kpi-lbl">Reservas hoy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">💰</div>
+          <div class="kpi-num gold" id="kpi-ingresos">—</div>
+          <div class="kpi-lbl">Ingresos hoy</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🏟️</div>
+          <div class="kpi-num" id="kpi-canchas">—</div>
+          <div class="kpi-lbl">Turnos activos</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-num pink" id="kpi-ocupacion">—</div>
+          <div class="kpi-lbl">Ocupación</div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Accesos rápidos</div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1])">
+          <div class="quick-icon">🏟️</div>
+          <div class="quick-label">Mis Canchas</div>
+          <div class="quick-sub">Gestionar turnos</div>
+        </div>
+        <div class="quick-card" onclick="navTo('reservas',document.querySelectorAll('.tab')[2])">
+          <div class="quick-icon">📋</div>
+          <div class="quick-label">Reservas</div>
+          <div class="quick-sub">Ver de hoy</div>
+        </div>
+        <div class="quick-card" onclick="abrirCrearPartido()">
+          <div class="quick-icon">⚡</div>
+          <div class="quick-label">Crear Partido</div>
+          <div class="quick-sub">Partido público</div>
+        </div>
+        <div class="quick-card" onclick="navTo('resenas',document.querySelectorAll('.tab')[5])">
+          <div class="quick-icon">⭐</div>
+          <div class="quick-label">Reseñas</div>
+          <div class="quick-sub">Ver opiniones</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIS CANCHAS -->
+    <div class="page" id="page-canchas">
+      <div class="section-hdr">
+        <div class="section-title">🏟️ Disponibilidad de canchas</div>
+        <button class="btn-export" onclick="abrirModalDisponibilidad()">+ Agregar turno</button>
+      </div>
+      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:16px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.75)">
+        📌 Configurá los turnos disponibles por día y horario. Los jugadores podrán reservar desde Padel Connect.
+      </div>
+      <div id="canchas-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- RESERVAS -->
+    <div class="page" id="page-reservas">
+      <div class="section-hdr">
+        <div class="section-title">📋 Reservas de hoy</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm f-btn" id="f-confirmado" onclick="filtrarReservas('confirmado')" style="background:rgba(34,197,94,.2)">✅ Confirmadas</button>
+          <button class="btn-sm f-btn" id="f-todas" onclick="filtrarReservas('todas')">📋 Todas</button>
+        </div>
+      </div>
+      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.8)">
+        ✅ <strong>Las reservas se confirman automáticamente.</strong> El jugador recibe confirmación al instante.
+      </div>
+      <div id="reservas-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- PARTIDOS -->
+    <div class="page" id="page-partidos">
+      <div class="section-hdr">
+        <div class="section-title">⚡ Partidos públicos</div>
+        <button class="btn-export" onclick="abrirCrearPartido()">+ Crear partido</button>
+      </div>
+      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:16px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.75)">
+        ⚡ Creá partidos públicos para que los jugadores se inscriban desde Padel Connect.
+      </div>
+      <div id="partidos-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- ESTADISTICAS -->
+    <div class="page" id="page-stats">
+      <div class="section-hdr">
+        <div class="section-title">📈 Estadísticas</div>
+      </div>
+      <div id="stats-content"><div class="loader"></div></div>
+    </div>
+
+    <!-- RESEÑAS -->
+    <div class="page" id="page-resenas">
+      <div class="section-hdr">
+        <div class="section-title">⭐ Reseñas de jugadores</div>
+      </div>
+      <div id="resenas-list"><div class="loader"></div></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- FAB CREAR PARTIDO -->
+<button class="fab" onclick="abrirCrearPartido()">⚡ Crear Partido</button>
+
+<!-- MODAL DISPONIBILIDAD -->
+<div id="modal-disponibilidad" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner">
+    <div class="modal-title" id="modal-disp-title">Nuevo turno</div>
+    <div id="modal-disp-body"></div>
+  </div>
+</div>
+
+<!-- MODAL CREAR PARTIDO -->
+<div id="modal-partido" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner">
+    <div class="modal-title">⚡ Crear Partido</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:1/-1">
+        <label class="field-label">Zona</label>
+        <select class="input-field" id="p-zona" style="color:#fff;background:#1a0030;margin:0">
+          <option style="background:#1a0030">Nueva Córdoba</option>
+          <option style="background:#1a0030">Centro</option>
+          <option style="background:#1a0030">Cerro de las Rosas</option>
+          <option style="background:#1a0030">Villa Cabrera</option>
+          <option style="background:#1a0030">Güemes</option>
+          <option style="background:#1a0030">General Paz</option>
+          <option style="background:#1a0030">Alberdi</option>
+          <option style="background:#1a0030">Otra</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">Categoría</label>
+        <select class="input-field" id="p-cat" style="color:#fff;background:#1a0030;margin:0">
+          <option style="background:#1a0030">Iniciación</option>
+          <option style="background:#1a0030">3ra</option>
+          <option style="background:#1a0030">2da</option>
+          <option style="background:#1a0030">1ra</option>
+          <option style="background:#1a0030">Mixto</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Fecha</label>
+        <input class="input-field" id="p-fecha" type="date" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora</label>
+        <input class="input-field" id="p-hora" type="time" style="margin:0;color-scheme:dark">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">Lugar</label>
+        <input class="input-field" id="p-lugar" placeholder="Nombre del club / cancha" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Costo ($)</label>
+        <input class="input-field" id="p-costo" type="number" placeholder="0" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Cupos</label>
+        <input class="input-field" id="p-cupos" type="number" value="4" min="2" max="20" style="margin:0">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">Descripción (opcional)</label>
+        <input class="input-field" id="p-desc" placeholder="Info adicional..." style="margin:0">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarModalPartido()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarCrearPartido()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR →</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
