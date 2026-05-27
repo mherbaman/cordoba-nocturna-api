@@ -160,11 +160,13 @@ async function doLogin() {
   errEl.style.display = "none";
   btn.disabled = true; btn.textContent = "Entrando...";
   try {
-    const data = await apiAdmin("/auth/admin-login", {method:"POST", body:JSON.stringify({email, password})});
-    adminToken = data.token;
-    adminData  = data.admin;
+    const data = await apiAdmin("/superadmin/login-negocio", {method:"POST", body:JSON.stringify({email, password})});
+    adminToken  = data.token;
+    adminData   = data.admin;
+    negocioData = data.negocio;
     localStorage.setItem("neg_token", adminToken);
     localStorage.setItem("neg_admin", JSON.stringify(adminData));
+    localStorage.setItem("neg_negocio", JSON.stringify(negocioData));
     initApp();
   } catch(err) {
     errEl.textContent = err.message;
@@ -181,8 +183,11 @@ function doLogout() {
 
 async function initApp() {
   try {
-    const negocios = await apiAdmin("/superadmin/mis-negocios");
-    negocioData = negocios[0];
+    negocioData = negocioData || JSON.parse(localStorage.getItem("neg_negocio") || "null");
+    if (!negocioData) {
+      const negocios = await apiAdmin("/superadmin/mis-negocios");
+      negocioData = negocios[0];
+    }
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("app").style.display = "flex";
     document.getElementById("top-nombre").textContent = negocioData.nombre;
