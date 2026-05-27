@@ -89,6 +89,13 @@ app.get('/admin/', (req, res) => {
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
+app.get('/padelclub', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'padelclub.html'));
+});
+app.get('/padelclub/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'padelclub.html'));
+});
+
 app.get('/cconnect/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'cordoba-connect.html'));
 });
