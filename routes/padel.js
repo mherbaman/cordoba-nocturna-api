@@ -41,8 +41,9 @@ router.get('/jugadores', async (req, res) => {
     let params = [];
     let idx = 1;
     if (zona) {
-      conditions.push(`j.zona ILIKE $${idx++}`);
+      conditions.push(`(j.zona ILIKE $${idx} OR j.zona_principal ILIKE $${idx} OR j.zonas_extra::text ILIKE $${idx})`);
       params.push(`%${zona}%`);
+      idx++;
     }
     if (excluir_id) {
       conditions.push(`j.usuario_id != $${idx++}`);
@@ -52,6 +53,8 @@ router.get('/jugadores', async (req, res) => {
     const result = await pool.query(`
       SELECT
         j.id, j.usuario_id, j.nombre, j.nivel, j.zona,
+        COALESCE(j.zona_principal, j.zona) AS zona_principal,
+        j.zonas_extra,
         j.foto_url, j.descripcion, j.ranking_puntos,
         j.partidos_jugados, j.victorias,
         ROUND(j.promedio_resenas::numeric, 1) AS promedio_resenas,
