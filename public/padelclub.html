@@ -222,7 +222,7 @@ async function cargarDashboard() {
     const hoy = new Date().toISOString().split("T")[0];
     const [reservas, turnos] = await Promise.all([
       apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[]),
-      apiAdmin("/padel/disponibilidad/del-club?negocio_id=" + negocioData.id).catch(()=>[])
+      apiAdmin("/padel/disponibilidad/" + negocioData.id).catch(()=>[])
     ]);
     const confirmadas = reservas.filter(r => r.estado === "confirmado");
     const ingresos    = confirmadas.reduce((s,r) => s + parseFloat(r.precio_cobrado||0), 0);
@@ -244,7 +244,7 @@ async function cargarCanchas() {
   try {
     const hoy = new Date().toISOString().split("T")[0];
     const [turnos, reservasHoy] = await Promise.all([
-      apiAdmin("/padel/disponibilidad/del-club?negocio_id=" + negocioData.id),
+      apiAdmin("/padel/disponibilidad/" + negocioData.id),
       apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[])
     ]);
     idsReservados = reservasHoy.filter(r=>r.estado==="confirmado").map(r=>r.disponibilidad_id);
@@ -400,7 +400,7 @@ async function cargarReservas() {
   el.innerHTML = "<div class=\"loader\"></div>";
   try {
     const hoy = new Date().toISOString().split("T")[0];
-    todasReservas = await apiAdmin("/padel/reservas/del-club?negocio_id="+negocioData.id+"&fecha="+hoy);
+    todasReservas = await apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy);
     renderReservas(todasReservas);
   } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: "+err.message+"</div>"; }
 }
@@ -482,7 +482,7 @@ async function cargarStats() {
   el.innerHTML = "<div class=\"loader\"></div>";
   try {
     const hoy = new Date().toISOString().split("T")[0];
-    const reservas = await apiAdmin("/padel/reservas/del-club?negocio_id="+negocioData.id+"&fecha="+hoy).catch(()=>[]);
+    const reservas = await apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[]);
     const confirmadas = reservas.filter(r=>r.estado==="confirmado");
     const ingresos = confirmadas.reduce((s,r)=>s+parseFloat(r.precio_cobrado||0),0);
     el.innerHTML = `
