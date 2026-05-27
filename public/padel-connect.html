@@ -3830,15 +3830,18 @@ async function guardarPerfilPadel() {
   if (!nivelSeleccionado) { errEl.textContent='Seleccioná tu categoría'; errEl.style.display='block'; return; }
   if (!zona) { errEl.textContent='Seleccioná tu zona'; errEl.style.display='block'; return; }
   errEl.style.display='none';
-  // Guardar apellido y telefono en el perfil del usuario
-  try {
-    const upd = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ apellido, telefono }) });
-    usuario.apellido = upd.apellido;
-    usuario.telefono = upd.telefono;
-    localStorage.setItem('cl_usuario', JSON.stringify(usuario));
-  } catch(e) {}
   showLoader('Guardando perfil...');
   try {
+    // Guardar apellido y telefono
+    try {
+      const upd = await api('/auth/perfil', { method:'PUT', body:JSON.stringify({ apellido, telefono }) });
+      if (upd && upd.apellido) {
+        usuario.apellido = upd.apellido;
+        usuario.telefono = upd.telefono;
+        localStorage.setItem('cl_usuario', JSON.stringify(usuario));
+      }
+    } catch(e) { console.warn('PUT perfil:', e.message); }
+    // Guardar perfil jugador
     await api('/padel/jugadores', { method:'POST', body:JSON.stringify({
       usuario_id: usuario.id,
       nombre: usuario.nombre,
