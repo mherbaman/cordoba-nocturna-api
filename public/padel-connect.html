@@ -898,6 +898,19 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <input class="input-field" id="reg-edad" type="number" placeholder="Tu edad" min="18" max="99">
     <label class="field-label">Tu vibe de hoy</label>
     <div class="vibes" id="reg-vibes"></div>
+    <label class="field-label">📍 Zona principal de juego</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <button type="button" class="zona-btn" onclick="selectZonaReg(this,'CBA Centro')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Centro</button>
+      <button type="button" class="zona-btn" onclick="selectZonaReg(this,'CBA Norte')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Norte</button>
+      <button type="button" class="zona-btn" onclick="selectZonaReg(this,'CBA Sur')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Sur</button>
+      <button type="button" class="zona-btn" onclick="selectZonaReg(this,'CBA Este')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Este</button>
+      <button type="button" class="zona-btn" onclick="selectZonaReg(this,'CBA Oeste')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Oeste</button>
+      <button type="button" class="zona-btn" onclick="selectZonaReg(this,'INTERIOR RIOIV')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">Interior RIV</button>
+    </div>
+    <div id="reg-zonas-extra-wrap" style="display:none;margin-bottom:16px">
+      <label class="field-label" style="margin-bottom:8px">¿Jugás en otra zona también? <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="reg-zonas-extra-chips"></div>
+    </div>
     <button class="btn-primary" onclick="doRegister()">CREAR PERFIL →</button>
     <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px;margin-top:12px;font-size:12px;color:rgba(255,255,255,.6);text-align:center">
       ¿Ya usás otra app de CórdobaLux? Iniciá sesión con las mismas credenciales 🌙
@@ -948,11 +961,19 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <button class="nivel-btn" onclick="selectNivel(this,'segunda')">2da categoría</button>
       <button class="nivel-btn" onclick="selectNivel(this,'primera')">1ra categoría</button>
     </div>
-    <label class="field-label">Tu zona</label>
-    <select class="input-field" id="padel-zona" style="color:#fff;background:#030d06" onchange="toggleZonaCustomPerfil(this.value)">
-      <option value="">Seleccioná tu zona...</option>
-    </select>
-    <input class="input-field" id="padel-zona-custom" placeholder="Escribí tu zona..." style="display:none;margin-top:8px">
+    <label class="field-label">📍 Zona principal de juego</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <button type="button" class="zona-btn-perfil" onclick="selectZonaPerfil(this,'CBA Centro')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Centro</button>
+      <button type="button" class="zona-btn-perfil" onclick="selectZonaPerfil(this,'CBA Norte')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Norte</button>
+      <button type="button" class="zona-btn-perfil" onclick="selectZonaPerfil(this,'CBA Sur')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Sur</button>
+      <button type="button" class="zona-btn-perfil" onclick="selectZonaPerfil(this,'CBA Este')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Este</button>
+      <button type="button" class="zona-btn-perfil" onclick="selectZonaPerfil(this,'CBA Oeste')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">CBA Oeste</button>
+      <button type="button" class="zona-btn-perfil" onclick="selectZonaPerfil(this,'INTERIOR RIOIV')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);padding:10px;border-radius:10px;font-size:13px;cursor:pointer">Interior RIV</button>
+    </div>
+    <div id="perfil-zonas-extra-wrap" style="display:none;margin-bottom:16px">
+      <label class="field-label" style="margin-bottom:8px">¿Jugás en otra zona también? <span style="color:var(--muted);font-weight:400">(opcional, máx 2)</span></label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px" id="perfil-zonas-extra-chips"></div>
+    </div>
     <button class="btn-primary" onclick="guardarPerfilPadel()" style="margin-top:8px">GUARDAR Y JUGAR →</button>
   </div>
 </div>
@@ -1549,6 +1570,71 @@ function onRegPhoto(e){
   reader.readAsDataURL(file);
 }
 
+// ── ZONAS ─────────────────────────────────────────────────────────────
+const ZONAS_DISPONIBLES = ['CBA Centro','CBA Norte','CBA Sur','CBA Este','CBA Oeste','INTERIOR RIOIV'];
+let zonaRegSeleccionada = null;
+let zonasExtraReg = [];
+let zonaPerfilSeleccionada = null;
+let zonasExtraPerfil = [];
+
+function selectZonaReg(btn, zona) {
+  zonaRegSeleccionada = zona;
+  document.querySelectorAll('.zona-btn').forEach(b => {
+    b.style.background = 'rgba(255,255,255,.05)';
+    b.style.border = '1px solid rgba(255,255,255,.15)';
+    b.style.color = 'rgba(255,255,255,.7)';
+  });
+  btn.style.background = 'rgba(34,197,94,.2)';
+  btn.style.border = '1px solid #22c55e';
+  btn.style.color = '#22c55e';
+  // Mostrar zonas extra
+  const wrap = document.getElementById('reg-zonas-extra-wrap');
+  wrap.style.display = 'block';
+  renderZonasExtraChips('reg-zonas-extra-chips', zona, zonasExtraReg, (z) => {
+    const idx = zonasExtraReg.indexOf(z);
+    if (idx > -1) { zonasExtraReg.splice(idx, 1); }
+    else if (zonasExtraReg.length < 2) { zonasExtraReg.push(z); }
+    renderZonasExtraChips('reg-zonas-extra-chips', zona, zonasExtraReg, arguments.callee);
+  });
+}
+
+function selectZonaPerfil(btn, zona) {
+  zonaPerfilSeleccionada = zona;
+  document.querySelectorAll('.zona-btn-perfil').forEach(b => {
+    b.style.background = 'rgba(255,255,255,.05)';
+    b.style.border = '1px solid rgba(255,255,255,.15)';
+    b.style.color = 'rgba(255,255,255,.7)';
+  });
+  btn.style.background = 'rgba(34,197,94,.2)';
+  btn.style.border = '1px solid #22c55e';
+  btn.style.color = '#22c55e';
+  const wrap = document.getElementById('perfil-zonas-extra-wrap');
+  wrap.style.display = 'block';
+  renderZonasExtraChips('perfil-zonas-extra-chips', zona, zonasExtraPerfil, (z) => {
+    const idx = zonasExtraPerfil.indexOf(z);
+    if (idx > -1) { zonasExtraPerfil.splice(idx, 1); }
+    else if (zonasExtraPerfil.length < 2) { zonasExtraPerfil.push(z); }
+    renderZonasExtraChips('perfil-zonas-extra-chips', zona, zonasExtraPerfil, arguments.callee);
+  });
+}
+
+function renderZonasExtraChips(containerId, zonaPrincipal, seleccionadas, onToggle) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  ZONAS_DISPONIBLES.filter(z => z !== zonaPrincipal).forEach(z => {
+    const sel = seleccionadas.includes(z);
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.textContent = z;
+    chip.style.cssText = sel
+      ? 'background:rgba(34,197,94,.2);border:1px solid #22c55e;color:#22c55e;padding:6px 14px;border-radius:50px;font-size:12px;cursor:pointer'
+      : 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.6);padding:6px 14px;border-radius:50px;font-size:12px;cursor:pointer';
+    chip.onclick = () => onToggle(z);
+    container.appendChild(chip);
+  });
+}
+
 async function doRegister(){
   const n=document.getElementById('reg-nombre').value.trim();
   const em=document.getElementById('reg-email').value.trim();
@@ -1562,7 +1648,7 @@ async function doRegister(){
   if(pw.length<6){errEl.textContent='Mínimo 6 caracteres';errEl.style.display='block';return;}
   showLoader('Creando tu perfil...');
   try{
-    const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null,app_origen:'padel'})});
+    const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null,app_origen:'padel',zona_principal:zonaRegSeleccionada,zonas_extra:zonasExtraReg})});
     token=d.token;usuario=d.usuario;
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
@@ -3729,10 +3815,7 @@ async function cargarZonasPadel() {
 }
 
 async function guardarPerfilPadel() {
-  const zonaSelect = document.getElementById('padel-zona')?.value;
-  const zona = zonaSelect === 'Otra zona'
-    ? document.getElementById('padel-zona-custom')?.value.trim()
-    : zonaSelect;
+  const zona = zonaPerfilSeleccionada;
   const apellido = document.getElementById('padel-apellido')?.value.trim();
   const telefono = document.getElementById('padel-telefono')?.value.trim();
   const errEl = document.getElementById('padel-error');
@@ -3755,6 +3838,8 @@ async function guardarPerfilPadel() {
       nombre: usuario.nombre,
       nivel: nivelSeleccionado,
       zona,
+      zona_principal: zona,
+      zonas_extra: zonasExtraPerfil,
       foto_url: usuario.foto_url || null
     })});
     perfilPadel = { nivel: nivelSeleccionado, zona };
