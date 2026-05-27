@@ -81,7 +81,7 @@ router.get('/jugadores', async (req, res) => {
 // Crear o actualizar perfil de jugador
 router.post('/jugadores', async (req, res) => {
   const {
-    usuario_id, nombre, nivel, zona, foto_url, descripcion
+    usuario_id, nombre, nivel, zona, zona_principal, zonas_extra, foto_url, descripcion
   } = req.body;
 
   if (!usuario_id || !nombre || !nivel || !zona) {
@@ -95,18 +95,18 @@ router.post('/jugadores', async (req, res) => {
 
   try {
     const result = await pool.query(`
-      INSERT INTO jugadores_padel (usuario_id, nombre, nivel, zona, foto_url, descripcion)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO jugadores_padel (usuario_id, nombre, nivel, zona, zona_principal, zonas_extra, foto_url, descripcion)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       ON CONFLICT (usuario_id) DO UPDATE SET
-        nombre      = EXCLUDED.nombre,
-        nivel       = EXCLUDED.nivel,
-        zona        = EXCLUDED.zona,
-        foto_url    = COALESCE(EXCLUDED.foto_url, jugadores_padel.foto_url),
-        descripcion = COALESCE(EXCLUDED.descripcion, jugadores_padel.descripcion),
+        nombre         = EXCLUDED.nombre,
+        nivel          = EXCLUDED.nivel,
+        zona           = EXCLUDED.zona,
+        zona_principal = COALESCE(EXCLUDED.zona_principal, jugadores_padel.zona_principal),
+        zonas_extra    = COALESCE(EXCLUDED.zonas_extra, jugadores_padel.zonas_extra),
+        foto_url       = COALESCE(EXCLUDED.foto_url, jugadores_padel.foto_url),
+        descripcion    = COALESCE(EXCLUDED.descripcion, jugadores_padel.descripcion),
         actualizado_en = NOW()
-      RETURNING *
-    `, [usuario_id, nombre, nivel, zona, foto_url, descripcion]);
-
+    `, [usuario_id, nombre, nivel, zona||zona_principal, zona_principal||zona, zonas_extra||[], foto_url, descripcion]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('POST /padel/jugadores:', err);
