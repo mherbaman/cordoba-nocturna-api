@@ -424,6 +424,55 @@ router.post('/:id/generar-fixture', authAdmin, async (req, res) => {
     }
 
     await client.query("UPDATE americanos_parejas SET estado='en_curso' WHERE id=$1", [americanoId]);
+    // Enviar email individual a cada pareja con su partido de ronda 1
+    try {
+      const { rows: partidos_r1 } = await pool.query(`
+        SELECT p.*, i1.nombre_pareja as p1_nombre, i1.jugador1_email as p1_j1_email, i1.jugador2_email as p1_j2_email,
+               i2.nombre_pareja as p2_nombre, i2.jugador1_email as p2_j1_email, i2.jugador2_email as p2_j2_email,
+               c.nombre as cat_nombre
+        FROM americanos_parejas_partidos p
+        JOIN americanos_parejas_inscripciones i1 ON p.pareja1_id = i1.id
+        JOIN americanos_parejas_inscripciones i2 ON p.pareja2_id = i2.id
+        JOIN americanos_parejas_categorias c ON p.categoria_id = c.id
+        WHERE p.americano_id=$1 AND p.ronda=1 AND p.fase='grupos'`, [americanoId]);
+      const { rows: [am] } = await pool.query('SELECT * FROM americanos_parejas WHERE id=$1', [americanoId]);
+      for (const p of partidos_r1) {
+        const fecha_str = am.fecha ? new Date(am.fecha).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'}) : '';
+        const hora_str = p.hora_inicio ? p.hora_inicio.substring(0,5) : '';
+        const emailHtml = (miPareja, rival) => `
+          <div style="font-family:sans-serif;background:#07000f;color:#fff;padding:32px;border-radius:16px;max-width:500px;margin:0 auto">
+            <div style="font-size:28px;font-weight:900;margin-bottom:4px">🎾 PÁDEL AMERICANO</div>
+            <div style="font-size:16px;color:#22c55e;margin-bottom:20px">${am.nombre} — ${p.cat_nombre}</div>
+            <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:12px;padding:16px;margin-bottom:16px">
+              <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px">TU PRIMER PARTIDO</div>
+              <div style="font-size:18px;font-weight:700;margin-bottom:4px">${miPareja}</div>
+              <div style="font-size:14px;color:rgba(255,255,255,.5);margin-bottom:12px">vs</div>
+              <div style="font-size:18px;font-weight:700;color:#fbbf24">${rival}</div>
+            </div>
+            <div style="display:flex;gap:12px;margin-bottom:20px">
+              <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;flex:1;text-align:center">
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">FECHA</div>
+                <div style="font-size:13px;font-weight:600">${fecha_str}</div>
+              </div>
+              <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;flex:1;text-align:center">
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">HORA</div>
+                <div style="font-size:24px;font-weight:900;color:#22c55e">${hora_str}hs</div>
+              </div>
+              <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;flex:1;text-align:center">
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">CANCHA</div>
+                <div style="font-size:24px;font-weight:900;color:#22c55e">${p.cancha}</div>
+              </div>
+            </div>
+            <a href="https://api.cordobalux.com/padel" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;padding:12px 24px;border-radius:50px;text-decoration:none;font-weight:700">Ver fixture completo →</a>
+          </div>`;
+        // Email a pareja 1
+        const emails_p1 = [p.p1_j1_email, p.p1_j2_email].filter(Boolean);
+        if (emails_p1.length) await resend.emails.send({ from:'PadelConnect <partidos@send.cordobalux.com>', to:emails_p1, subject:`🎾 Tu primer partido — ${am.nombre}`, html: emailHtml(p.p1_nombre, p.p2_nombre) });
+        // Email a pareja 2
+        const emails_p2 = [p.p2_j1_email, p.p2_j2_email].filter(Boolean);
+        if (emails_p2.length) await resend.emails.send({ from:'PadelConnect <partidos@send.cordobalux.com>', to:emails_p2, subject:`🎾 Tu primer partido — ${am.nombre}`, html: emailHtml(p.p2_nombre, p.p1_nombre) });
+      }
+    } catch(emailR1Err) { console.error('Email ronda 1 error:', emailR1Err.message); }
     await client.query('COMMIT');
 
     // Enviar email a todos los usuarios
