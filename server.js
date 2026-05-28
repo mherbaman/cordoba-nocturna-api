@@ -61,6 +61,8 @@ app.use('/sponsors',    require('./routes/sponsors'));
 app.use('/padel',     require('./routes/padel'));
 app.use('/torneos',   require('./routes/torneos'));
 app.use('/americanos', require('./routes/americanos'));
+const americanosParejas = require('./routes/americanos_parejas');
+app.use('/americanos-parejas', americanosParejas);
 
 // ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
