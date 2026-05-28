@@ -590,13 +590,6 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 .btn-inscribirse:disabled { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); color:rgba(255,255,255,.3); cursor:not-allowed; transform:none; }
 .partido-pub-costo { display:inline-block; background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.25); color:#fbbf24; font-size:11px; font-weight:700; padding:3px 10px; border-radius:50px; margin-bottom:10px; }
 
-</style>
-
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/padel/sw.js', {scope: '/padel/'}).catch(()=>{});
-  });
 }
 </script>
 <script>
