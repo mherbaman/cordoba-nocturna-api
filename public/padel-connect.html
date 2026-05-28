@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="manifest" href="/manifest-padel.json">
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -597,6 +598,19 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/padel/sw.js', {scope: '/padel/'}).catch(()=>{});
   });
 }
+</script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "997d5c8c-eb9f-4dc6-b613-6d80c24832ed",
+      safari_web_id: "web.onesignal.auto.0d6d1ede-d24a-45d0-ba73-2f88839c0735",
+      notifyButton: { enable: false },
+      allowLocalhostAsSecureOrigin: false,
+    });
+    const userId = localStorage.getItem("cl_usuario") ? JSON.parse(localStorage.getItem("cl_usuario")).id : null;
+    if (userId) await OneSignal.login(userId);
+  });
 </script>
 </head>
 <body>
@@ -1642,7 +1656,6 @@ async function doLogin(){
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
     await cargarJugadoresPadel();
     mostrarHome();
-    registrarPush();
   }catch(err){
     errEl.textContent=err.message;errEl.style.display='block';
   }finally{hideLoader();}
@@ -3314,32 +3327,6 @@ async function desinscribirsePartido(partidoId) {
     await _renderPartidosPublicos();
   } catch(err) { alert(err.message); }
   finally { hideLoader(); }
-}
-
-async function registrarPush() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-  try {
-    const reg = await navigator.serviceWorker.register('/padel/sw.js', {scope: '/padel/'});
-    const permiso = await Notification.requestPermission();
-    if (permiso !== 'granted') return;
-    const VAPID_PUBLIC = 'BBC-BM0lWegmCr3e5ROgYJne9T_OtJDmUFPReuJkAUR83TOE90VmdVXLFBGZGde6VdFo5Ru53jziQPtQ_hZcd4Q';
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: VAPID_PUBLIC
-    });
-    const zonas = perfilPadel?.zona ? perfilPadel.zona.split(',').map(z => z.trim()) : [null];
-    const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey('p256dh')))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(sub.getKey('auth')))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    for (const zona of zonas) {
-      await api('/padel/push-suscripcion', {
-        method: 'POST',
-        body: JSON.stringify({ endpoint: sub.endpoint, p256dh, auth, zona })
-      });
-    }
-    console.log('✅ Push registrado correctamente');
-  } catch(e) {
-    console.warn('Push no disponible:', e.message);
-  }
 }
 
 // ── MODAL PERFIL INCOMPLETO ───────────────────────────────────────────

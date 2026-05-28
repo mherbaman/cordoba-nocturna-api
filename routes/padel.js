@@ -7,7 +7,6 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
 const { authAdmin, authUsuario } = require('../middleware/auth');
-const webpush = require('web-push');
 
 // ════════════════════════════════════════════════
 //   JUGADORES
@@ -1823,22 +1822,6 @@ router.put('/profesores/:id/estado', authAdmin, async (req, res) => {
   }
 });
 
-// POST /padel/push-suscripcion — guardar suscripción
-router.post('/push-suscripcion', authUsuario, async (req, res) => {
-  const { endpoint, p256dh, auth, zona } = req.body;
-  const usuario_id = req.usuario.id;
-  try {
-    await pool.query(`
-      INSERT INTO push_suscripciones (usuario_id, endpoint, p256dh, auth, zona)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (usuario_id, endpoint) DO UPDATE SET zona = $5
-    `, [usuario_id, endpoint, p256dh, auth, zona]);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error guardando suscripción' });
-  }
-});
 
 
 // ─── RESULTADO Y RESEÑAS PARTIDOS PÚBLICOS ───────────────────────────────────
