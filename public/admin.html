@@ -222,6 +222,7 @@ if('serviceWorker' in navigator){
       <button class="nav-item" onclick="navTo('profesores',this)"><span class="icon">🎾</span> Profesores</button>
       <button class="nav-item" onclick="navTo('torneos',this)"><span class="icon">🏆</span> Torneos</button>
       <button class="nav-item" onclick="navTo('americanos',this)"><span class="icon">🎾</span> Super 8 Americano</button>
+      <button class="nav-item" onclick="navTo('americanos-parejas',this)"><span class="icon">🤝</span> Pádel Americano</button>
       <div class="sidebar-footer">
         <button class="logout-nav" onclick="doAdminLogout()">🚪 Cerrar sesión</button>
       </div>
@@ -727,6 +728,624 @@ if('serviceWorker' in navigator){
           <div id="am-form-msg" style="margin-top:10px;font-size:13px"></div>
         </div>
         <div id="admin-americanos-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
+<div class="page" id="page-americanos-parejas">
+  <div class="page-title">PÁDEL AMERICANO 🤝</div>
+  <div class="page-sub">Americanos por parejas fijas — categorías masculino y femenino</div>
+
+  <button onclick="mostrarFormAmericanoPareja()" 
+    style="margin-bottom:20px;padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">
+    + Nuevo Americano Parejas
+  </button>
+
+  <!-- FORM CREAR -->
+  <div id="form-americano-pareja" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:#22c55e">Nuevo Pádel Americano por Parejas</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label>
+        <input id="ap-nombre" type="text" placeholder="Americano Mayo 2026" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Sede</label>
+        <input id="ap-sede" type="text" placeholder="Club Córdoba Racket" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Zona</label>
+        <select id="ap-zona" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
+          <option value="">Sin zona (notificar a todos)</option>
+          <option>Centro</option><option>Nueva Córdoba</option><option>Güemes</option>
+          <option>Cerro de las Rosas</option><option>Villa Allende</option><option>Arguello</option>
+        </select></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Fecha</label>
+        <input id="ap-fecha" type="date" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;color-scheme:dark"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Hora inicio</label>
+        <input id="ap-hora" type="time" value="09:00" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Canchas disponibles</label>
+        <input id="ap-canchas" type="number" value="2" min="1" max="10" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Precio inscripción ($)</label>
+        <input id="ap-precio" type="number" value="0" min="0" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Duración partido (min)</label>
+        <input id="ap-duracion" type="number" value="20" min="10" max="60" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descanso entre rondas (min)</label>
+        <input id="ap-descanso" type="number" value="5" min="0" max="30" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Formato de partido</label>
+        <select id="ap-formato" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
+          <option value="mejor_de_7">Mejor de 7 games</option>
+          <option value="set">1 Set (primero en 6)</option>
+        </select></div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripción</label>
+      <textarea id="ap-descripcion" rows="2" placeholder="Info del americano..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea>
+    </div>
+
+    <!-- CATEGORÍAS -->
+    <div style="margin-bottom:16px;background:rgba(255,255,255,.03);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+      <div style="font-size:13px;font-weight:700;color:#22c55e;margin-bottom:12px">📋 Categorías del torneo</div>
+      <div id="ap-categorias-lista"></div>
+      <button onclick="agregarCategoriaAP()" style="margin-top:10px;padding:7px 16px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">+ Agregar categoría</button>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button onclick="crearAmericanoPareja()" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">CREAR AMERICANO</button>
+      <button onclick="document.getElementById('form-americano-pareja').style.display='none'" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+    </div>
+    <div id="ap-form-msg" style="margin-top:10px;font-size:13px"></div>
+  </div>
+
+  <!-- LISTA DE AMERICANOS -->
+  <div id="admin-americanos-parejas-list">
+    <p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>
+  </div>
+</div>
+
+
+<!-- ── 4. SCRIPT (pegar antes de </body>) ────────────────────────── -->
+<script>
+// ── AMERICANO PAREJAS — Variables ─────────────────────────────────────
+let apCategoriasTemp = [];
+let americanoParejaActivo = null;
+
+function mostrarFormAmericanoPareja() {
+  const f = document.getElementById('form-americano-pareja');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  apCategoriasTemp = [];
+  renderCategoriasAP();
+}
+
+// Render categorías en el form
+function renderCategoriasAP() {
+  const el = document.getElementById('ap-categorias-lista');
+  if (!apCategoriasTemp.length) {
+    el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:12px">No hay categorías. Agregá al menos una.</p>';
+    return;
+  }
+  el.innerHTML = apCategoriasTemp.map((c, i) => `
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:10px;background:rgba(255,255,255,.03);border-radius:8px">
+      <input value="${c.nombre}" oninput="apCategoriasTemp[${i}].nombre=this.value" placeholder="Ej: 7/8 Masculino"
+        style="flex:2;padding:6px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px">
+      <select onchange="apCategoriasTemp[${i}].genero=this.value"
+        style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:12px">
+        <option value="masculino" ${c.genero==='masculino'?'selected':''}>♂ Masculino</option>
+        <option value="femenino" ${c.genero==='femenino'?'selected':''}>♀ Femenino</option>
+        <option value="mixto" ${c.genero==='mixto'?'selected':''}>⚥ Mixto</option>
+      </select>
+      <span style="color:rgba(255,255,255,.4);font-size:12px">Max:</span>
+      <input type="number" value="${c.cupo_max}" min="2" max="16" oninput="apCategoriasTemp[${i}].cupo_max=parseInt(this.value)"
+        style="width:52px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
+      <span style="color:rgba(255,255,255,.3);font-size:11px">parejas</span>
+      <button onclick="apCategoriasTemp.splice(${i},1);renderCategoriasAP()"
+        style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer">✕</button>
+    </div>`).join('');
+}
+
+function agregarCategoriaAP() {
+  apCategoriasTemp.push({ nombre: '', genero: 'masculino', cupo_max: 8 });
+  renderCategoriasAP();
+}
+
+async function crearAmericanoPareja() {
+  const msg = document.getElementById('ap-form-msg');
+  const nombre = document.getElementById('ap-nombre').value.trim();
+  const fecha  = document.getElementById('ap-fecha').value;
+  if (!nombre || !fecha) { msg.style.color='#f87171'; msg.textContent='Nombre y fecha son obligatorios.'; return; }
+  if (!apCategoriasTemp.length || apCategoriasTemp.some(c => !c.nombre)) {
+    msg.style.color='#f87171'; msg.textContent='Agregá al menos una categoría con nombre.'; return;
+  }
+  msg.style.color='rgba(255,255,255,.5)'; msg.textContent='Creando...';
+  try {
+    await apiAdmin('/americanos-parejas', {
+      method: 'POST',
+      body: JSON.stringify({
+        nombre,
+        sede:                     document.getElementById('ap-sede').value.trim(),
+        zona:                     document.getElementById('ap-zona').value || null,
+        fecha,
+        hora_inicio:              document.getElementById('ap-hora').value,
+        cantidad_canchas:         parseInt(document.getElementById('ap-canchas').value),
+        precio_inscripcion:       parseFloat(document.getElementById('ap-precio').value) || 0,
+        duracion_partido_min:     parseInt(document.getElementById('ap-duracion').value),
+        descanso_entre_rondas_min:parseInt(document.getElementById('ap-descanso').value),
+        formato:                  document.getElementById('ap-formato').value,
+        descripcion:              document.getElementById('ap-descripcion').value.trim(),
+        categorias:               apCategoriasTemp
+      })
+    });
+    msg.style.color='#22c55e'; msg.textContent='✅ Americano creado!';
+    setTimeout(() => { document.getElementById('form-americano-pareja').style.display='none'; cargarAmericanosParejas(); }, 1500);
+    mostrarModalWa(`🤝 Nuevo Pádel Americano por Parejas!\n\n${nombre}${document.getElementById('ap-sede').value?' · '+document.getElementById('ap-sede').value:''}\n📅 ${fecha}\n\n¡Inscribite con tu pareja en la app!`);
+  } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error al crear.'; }
+}
+
+// ── LISTAR AMERICANOS PAREJAS ─────────────────────────────────────────
+async function cargarAmericanosParejas() {
+  const el = document.getElementById('admin-americanos-parejas-list');
+  if (!el) return;
+  try {
+    const list = await apiAdmin('/americanos-parejas');
+    if (!list.length) { el.innerHTML='<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">No hay americanos por parejas creados.</p>'; return; }
+    const estadoColor = { abierto:'#22c55e', cerrado:'#fbbf24', en_curso:'#f87171', finalizado:'#94a3b8' };
+    const estadoLabel = { abierto:'Inscripciones abiertas', cerrado:'Cerrado', en_curso:'En curso', finalizado:'Finalizado' };
+    el.innerHTML = list.map(a => {
+      const catsHtml = (a.categorias||[]).map(c => `
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e">
+          ${c.nombre} (${c.inscriptos}/${c.cupo_max} parejas)
+        </span>`).join(' ');
+      return `
+      <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#22c55e">${a.nombre}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">
+              ${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${a.hora_inicio?a.hora_inicio.substring(0,5):''}
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${catsHtml}</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor[a.estado]||'#fff'};padding:3px 12px;border-radius:20px;border:1px solid ${estadoColor[a.estado]||'#fff'};white-space:nowrap">
+            ${estadoLabel[a.estado]||a.estado}
+          </span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="verAmericanoPareja(${a.id})" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:12px;cursor:pointer">👁 Ver detalle</button>
+          ${a.estado==='abierto'?`
+            <button onclick="cambiarEstadoAP(${a.id},'cerrado')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;font-size:12px;cursor:pointer">🔒 Cerrar inscripciones</button>`:''}
+          ${a.estado==='cerrado'?`
+            <button onclick="generarFixtureAP(${a.id})" style="padding:6px 14px;border-radius:20px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:12px;font-weight:700;cursor:pointer">⚡ Generar Fixture</button>`:''}
+          <button onclick="eliminarAmericanoPareja(${a.id},'${a.nombre}')" style="padding:6px 14px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#f87171;font-size:12px;cursor:pointer">🗑 Eliminar</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML='<p style="color:#f87171;font-size:13px;text-align:center;padding:20px">Error: '+e.message+'</p>'; }
+}
+
+async function cambiarEstadoAP(id, estado) {
+  if (!confirm('Confirmas cambiar el estado?')) return;
+  try {
+    await apiAdmin('/americanos-parejas/'+id+'/estado', { method:'PUT', body:JSON.stringify({ estado }) });
+    cargarAmericanosParejas();
+  } catch(e) { alert(e.message); }
+}
+
+async function generarFixtureAP(id) {
+  if (!confirm('¿Generar el fixture? Esto iniciará el americano y enviará emails a todos los jugadores.')) return;
+  try {
+    const r = await apiAdmin('/americanos-parejas/'+id+'/generar-fixture', { method:'POST' });
+    alert(`✅ Fixture generado: ${r.partidos} partidos`);
+    verAmericanoPareja(id);
+  } catch(e) { alert(e.message||'Error al generar fixture'); }
+}
+
+async function eliminarAmericanoPareja(id, nombre) {
+  if (!confirm('¿Eliminar "'+nombre+'"? Esta acción no se puede deshacer.')) return;
+  try {
+    await apiAdmin('/americanos-parejas/'+id, { method:'DELETE' });
+    cargarAmericanosParejas();
+  } catch(e) { alert(e.message); }
+}
+
+// ── VER DETALLE DEL AMERICANO PAREJAS ────────────────────────────────
+async function verAmericanoPareja(id) {
+  americanoParejaActivo = id;
+  const el = document.getElementById('admin-americanos-parejas-list');
+  el.innerHTML = '<p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando detalle...</p>';
+  try {
+    const a = await apiAdmin('/americanos-parejas/'+id);
+
+    // Tabs
+    el.innerHTML = `
+      <button onclick="cargarAmericanosParejas()" style="margin-bottom:14px;padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">← Volver</button>
+      <div style="font-size:17px;font-weight:700;color:#22c55e;margin-bottom:2px">${a.nombre}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''}</div>
+
+      <!-- TABS -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px">
+        ${['info','posiciones','fixture','bracket'].map(tab => `
+          <button id="ap-tab-${tab}" onclick="apMostrarTab('${tab}')"
+            style="flex:1;padding:9px;border-radius:9px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+            background:${tab==='info'?'rgba(34,197,94,.2)':'transparent'};
+            color:${tab==='info'?'#22c55e':'rgba(255,255,255,.4)'}">
+            ${{info:'📋 INFO',posiciones:'📊 POSICIONES',fixture:'🗓 FIXTURE',bracket:'🏆 BRACKET'}[tab]}
+          </button>`).join('')}
+      </div>
+
+      <div id="ap-tab-content"></div>
+    `;
+
+    // Guardar datos globalmente para los tabs
+    window._apActual = a;
+    apMostrarTab('info');
+
+  } catch(e) { el.innerHTML='<p style="color:#f87171;font-size:13px">Error: '+e.message+'</p>'; }
+}
+
+function apMostrarTab(tab) {
+  const a = window._apActual;
+  // Resaltar tab activo
+  ['info','posiciones','fixture','bracket'].forEach(t => {
+    const btn = document.getElementById('ap-tab-'+t);
+    if (!btn) return;
+    btn.style.background = t===tab ? 'rgba(34,197,94,.2)' : 'transparent';
+    btn.style.color      = t===tab ? '#22c55e' : 'rgba(255,255,255,.4)';
+  });
+  const content = document.getElementById('ap-tab-content');
+
+  if (tab === 'info') {
+    // Info + gestión de parejas inscriptas por categoría
+    const precio = a.precio_inscripcion > 0 ? '$'+Number(a.precio_inscripcion).toLocaleString('es-AR') : 'Gratis';
+    content.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Sede</div>
+          <div>${a.sede||'—'}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Fecha</div>
+          <div>${a.fecha?a.fecha.substring(0,10):''} ${a.hora_inicio?'· '+a.hora_inicio.substring(0,5):''}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Inscripción</div>
+          <div>${precio}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Estado</div>
+          <div style="color:#22c55e;font-weight:700">${a.estado.toUpperCase()}</div>
+        </div>
+      </div>
+      ${a.descripcion ? `<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px;margin-bottom:20px;color:rgba(255,255,255,.7)">${a.descripcion}</div>` : ''}
+
+      <!-- Categorías con parejas -->
+      ${(a.categorias||[]).map(cat => {
+        const parejasDecat = (a.parejas||[]).filter(p => p.categoria_id===cat.id);
+        return `
+        <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#22c55e">${cat.nombre}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.4)">Parejas: ${parejasDecat.length} / ${cat.cupo_max}</div>
+            </div>
+            ${a.estado==='abierto'?`
+            <button onclick="abrirModalInscribirParejaAdmin(${a.id},${cat.id},'${cat.nombre}')"
+              style="padding:6px 14px;border-radius:20px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:12px;font-weight:700;cursor:pointer">
+              + Inscribir pareja
+            </button>`:''}
+          </div>
+          ${parejasDecat.length ? parejasDecat.map((p,i) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:4px">
+              <div>
+                <span style="font-size:13px;font-weight:600">${i+1}. ${p.nombre_pareja}</span>
+                <span style="font-size:11px;color:rgba(255,255,255,.4);margin-left:8px">${p.jugador1_email} / ${p.jugador2_email}</span>
+              </div>
+              ${a.estado==='abierto'?`
+              <button onclick="quitarParejaAdmin(${a.id},${p.id})"
+                style="padding:3px 10px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:transparent;color:#f87171;font-size:11px;cursor:pointer">✕</button>`:''}
+            </div>`).join('') : '<p style="color:rgba(255,255,255,.3);font-size:12px;margin:0">Sin parejas inscriptas aún.</p>'}
+        </div>`;
+      }).join('')}
+    `;
+  }
+
+  else if (tab === 'posiciones') {
+    const cats = a.categorias || [];
+    if (!cats.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Sin categorías.</p>'; return; }
+    content.innerHTML = cats.map(cat => {
+      const pos = (a.posiciones||[]).filter(p => p.categoria_id===cat.id);
+      const grupos = [...new Set(pos.map(p=>p.grupo))].sort();
+      return `
+        <div style="margin-bottom:24px">
+          <div style="font-size:14px;font-weight:700;color:#22c55e;margin-bottom:10px">${cat.nombre}</div>
+          ${grupos.map(gr => {
+            const posGrupo = pos.filter(p=>p.grupo===gr).sort((a,b)=>b.puntos-a.puntos||b.diferencia-a.diferencia);
+            return `
+              <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;letter-spacing:1px">GRUPO ${gr}</div>
+                <div style="background:rgba(255,255,255,.03);border-radius:10px;overflow:hidden">
+                  <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <tr style="color:rgba(255,255,255,.4);background:rgba(255,255,255,.04)">
+                      <td style="padding:8px 10px">#</td>
+                      <td style="padding:8px 10px">Pareja</td>
+                      <td style="padding:8px 10px;text-align:center">PJ</td>
+                      <td style="padding:8px 10px;text-align:center">PG</td>
+                      <td style="padding:8px 10px;text-align:center">GF</td>
+                      <td style="padding:8px 10px;text-align:center">GC</td>
+                      <td style="padding:8px 10px;text-align:center">DIF</td>
+                      <td style="padding:8px 10px;text-align:center">PTS</td>
+                    </tr>
+                    ${posGrupo.map((p,i) => `
+                    <tr style="border-top:1px solid rgba(255,255,255,.05);color:${i===0?'#fbbf24':i===1?'rgba(255,255,255,.8)':'rgba(255,255,255,.5)'}">
+                      <td style="padding:8px 10px;font-weight:700">${i+1}</td>
+                      <td style="padding:8px 10px;font-weight:600">${p.nombre_pareja}</td>
+                      <td style="padding:8px 10px;text-align:center">${p.partidos_jugados}</td>
+                      <td style="padding:8px 10px;text-align:center">${p.partidos_ganados}</td>
+                      <td style="padding:8px 10px;text-align:center">${p.games_favor}</td>
+                      <td style="padding:8px 10px;text-align:center">${p.games_contra}</td>
+                      <td style="padding:8px 10px;text-align:center;color:${p.diferencia>=0?'#22c55e':'#f87171'}">${p.diferencia>=0?'+':''}${p.diferencia}</td>
+                      <td style="padding:8px 10px;text-align:center;font-weight:700;color:#22c55e">${p.puntos}</td>
+                    </tr>`).join('')}
+                  </table>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+    }).join('');
+  }
+
+  else if (tab === 'fixture') {
+    const partidos = (a.partidos||[]).filter(p=>p.fase==='grupos');
+    const cats = a.categorias || [];
+    if (!partidos.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Sin fixture generado aún.</p>'; return; }
+    content.innerHTML = cats.map(cat => {
+      const pCat = partidos.filter(p=>p.categoria_id===cat.id);
+      const grupos = [...new Set(pCat.map(p=>p.grupo))].sort();
+      return `
+        <div style="margin-bottom:24px">
+          <div style="font-size:14px;font-weight:700;color:#22c55e;margin-bottom:10px">${cat.nombre}</div>
+          ${grupos.map(gr => {
+            const pGr = pCat.filter(p=>p.grupo===gr);
+            const rondas = [...new Set(pGr.map(p=>p.ronda))].sort((a,b)=>a-b);
+            return `
+              <div style="margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px">GRUPO ${gr}</div>
+                ${rondas.map(r => `
+                  <div style="margin-bottom:8px">
+                    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">RONDA ${r}</div>
+                    ${pGr.filter(p=>p.ronda===r).map(p => `
+                      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:6px">
+                        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Cancha ${p.cancha} · ${p.hora_inicio?p.hora_inicio.substring(0,5):''}</div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                          <span style="font-size:13px;flex:1">${p.pareja1_nombre||'?'}</span>
+                          <span style="font-size:14px;font-weight:700;color:${p.estado==='jugado'?'#22c55e':'rgba(255,255,255,.3)'}">
+                            ${p.estado==='jugado'?`${p.games_pareja1} - ${p.games_pareja2}`:'vs'}
+                          </span>
+                          <span style="font-size:13px;flex:1;text-align:right">${p.pareja2_nombre||'?'}</span>
+                        </div>
+                        ${p.estado==='pendiente'?`
+                        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                          <input id="apg1-${p.id}" type="number" min="0" max="7" placeholder="G1"
+                            style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                          <span style="color:rgba(255,255,255,.3)">-</span>
+                          <input id="apg2-${p.id}" type="number" min="0" max="7" placeholder="G2"
+                            style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                          <input id="appass-${p.id}" type="password" placeholder="🔐 Pass"
+                            style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                          <button onclick="cargarResultadoAP(${p.id},'grupos')"
+                            style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:11px;font-weight:700;cursor:pointer">✓ Cargar</button>
+                          <span id="apmsg-${p.id}" style="font-size:11px"></span>
+                        </div>`:
+                        `<div style="margin-top:6px">
+                          <button onclick="document.getElementById('apmodedit-${p.id}').style.display=document.getElementById('apmodedit-${p.id}').style.display==='none'?'flex':'none'"
+                            style="padding:3px 10px;border-radius:20px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06);color:#fbbf24;font-size:10px;cursor:pointer">✏️ Modificar</button>
+                          <div id="apmodedit-${p.id}" style="display:none;margin-top:6px;gap:6px;align-items:center;flex-wrap:wrap">
+                            <input id="apmg1-${p.id}" type="number" min="0" max="7" value="${p.games_pareja1||0}"
+                              style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                            <span style="color:rgba(255,255,255,.3)">-</span>
+                            <input id="apmg2-${p.id}" type="number" min="0" max="7" value="${p.games_pareja2||0}"
+                              style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                            <input id="apmodpass-${p.id}" type="password" placeholder="🔐 Pass"
+                              style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                            <button onclick="modificarResultadoAP(${p.id})"
+                              style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#d97706,#fbbf24);color:#000;font-size:11px;font-weight:700;cursor:pointer">✓ Guardar</button>
+                          </div>
+                        </div>`}
+                      </div>`).join('')}
+                  </div>`).join('')}
+              </div>`;
+          }).join('')}
+        </div>`;
+    }).join('');
+  }
+
+  else if (tab === 'bracket') {
+    const fases = ['semifinal','final','tercer_puesto'];
+    const bracketPartidos = (a.partidos||[]).filter(p=>fases.includes(p.fase));
+    const cats = a.categorias || [];
+    if (!bracketPartidos.length) {
+      content.innerHTML = `
+        <div style="text-align:center;padding:40px;color:rgba(255,255,255,.3)">
+          <div style="font-size:36px;margin-bottom:12px">🏆</div>
+          <div>El bracket se genera automáticamente cuando terminan los partidos de grupos.</div>
+        </div>`;
+      return;
+    }
+    content.innerHTML = cats.map(cat => {
+      const bp = bracketPartidos.filter(p=>p.categoria_id===cat.id);
+      if (!bp.length) return '';
+      const semis   = bp.filter(p=>p.fase==='semifinal');
+      const final_p = bp.filter(p=>p.fase==='final');
+      const tercero = bp.filter(p=>p.fase==='tercer_puesto');
+
+      const renderPartidoBracket = (p, label, color) => {
+        if (!p) return '';
+        return `
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(${color},.25);border-radius:12px;padding:14px;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:700;color:rgba(${color},.8);margin-bottom:8px;letter-spacing:1px">${label}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+              <span style="font-size:13px;flex:1;font-weight:${p.ganador_id===p.pareja1_id?'700':'400'}">${p.pareja1_nombre||'Por definir'}</span>
+              <span style="font-size:16px;font-weight:700;color:${p.estado==='jugado'?'#22c55e':'rgba(255,255,255,.3)'}">
+                ${p.estado==='jugado'?`${p.games_pareja1} - ${p.games_pareja2}`:'vs'}
+              </span>
+              <span style="font-size:13px;flex:1;text-align:right;font-weight:${p.ganador_id===p.pareja2_id?'700':'400'}">${p.pareja2_nombre||'Por definir'}</span>
+            </div>
+            ${p.ganador_id?`<div style="font-size:11px;color:#22c55e;text-align:center">🏆 ${p.ganador_id===p.pareja1_id?p.pareja1_nombre:p.pareja2_nombre}</div>`:''}
+            ${p.estado==='pendiente'&&p.pareja1_id&&p.pareja2_id?`
+            <div style="margin-top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <input id="apbg1-${p.id}" type="number" min="0" max="7" placeholder="G1"
+                style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+              <span style="color:rgba(255,255,255,.3)">-</span>
+              <input id="apbg2-${p.id}" type="number" min="0" max="7" placeholder="G2"
+                style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+              <input id="apbpass-${p.id}" type="password" placeholder="🔐 Pass"
+                style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+              <button onclick="cargarResultadoAP(${p.id},'bracket')"
+                style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:11px;font-weight:700;cursor:pointer">✓ Cargar</button>
+              <span id="apmsg-${p.id}" style="font-size:11px"></span>
+            </div>`:''}
+          </div>`;
+      };
+
+      return `
+        <div style="margin-bottom:28px">
+          <div style="font-size:14px;font-weight:700;color:#22c55e;margin-bottom:14px">${cat.nombre}</div>
+          ${semis.map((p,i)=>renderPartidoBracket(p,`SEMIFINAL ${i+1}`,'99,102,241')).join('')}
+          ${final_p.map(p=>renderPartidoBracket(p,'🏆 GRAN FINAL','251,191,36')).join('')}
+          ${tercero.map(p=>renderPartidoBracket(p,'3er PUESTO','148,163,184')).join('')}
+        </div>`;
+    }).join('');
+  }
+}
+
+// ── CARGAR RESULTADO PARTIDO AP ───────────────────────────────────────
+async function cargarResultadoAP(partidoId, tipo) {
+  const prefix = tipo==='bracket' ? 'apb' : 'ap';
+  const g1 = document.getElementById(`${prefix}g1-${partidoId}`)?.value;
+  const g2 = document.getElementById(`${prefix}g2-${partidoId}`)?.value;
+  const pass = document.getElementById(`${prefix}pass-${partidoId}`)?.value?.trim();
+  const msg = document.getElementById(`apmsg-${partidoId}`);
+  if (g1===''||g2==='') { if(msg){msg.style.color='#f87171';msg.textContent='Ingresá los games.';}return; }
+  if (!pass) { if(msg){msg.style.color='#f87171';msg.textContent='Ingresá la contraseña.';}return; }
+
+  // Verificar contraseña
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  try {
+    const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    if (!r.ok) { if(msg){msg.style.color='#f87171';msg.textContent='Contraseña incorrecta.';}return; }
+  } catch { if(msg){msg.style.color='#f87171';msg.textContent='Error.';}return; }
+
+  if(msg){msg.style.color='rgba(255,255,255,.4)';msg.textContent='Guardando...';}
+  try {
+    const endpoint = tipo==='bracket'
+      ? `/americanos-parejas/partidos/${partidoId}/resultado-bracket`
+      : `/americanos-parejas/partidos/${partidoId}/resultado`;
+    await apiAdmin(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify({ games_pareja1: parseInt(g1), games_pareja2: parseInt(g2) })
+    });
+    if(msg){msg.style.color='#22c55e';msg.textContent='✅ Guardado';}
+    setTimeout(() => verAmericanoPareja(americanoParejaActivo), 1000);
+  } catch(e) { if(msg){msg.style.color='#f87171';msg.textContent=e.message||'Error';} }
+}
+
+async function modificarResultadoAP(partidoId) {
+  const g1 = document.getElementById(`apmg1-${partidoId}`)?.value;
+  const g2 = document.getElementById(`apmg2-${partidoId}`)?.value;
+  const pass = document.getElementById(`apmodpass-${partidoId}`)?.value?.trim();
+  if (g1===''||g2==='') { alert('Ingresá los games.'); return; }
+  if (!pass) { alert('Ingresá la contraseña.'); return; }
+  const adminUser = JSON.parse(localStorage.getItem('admin_user')||'{}');
+  try {
+    const r = await fetch(API+'/superadmin/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:adminUser.email,password:pass})});
+    if (!r.ok) { alert('Contraseña incorrecta.'); return; }
+  } catch { alert('Error'); return; }
+  try {
+    await apiAdmin(`/americanos-parejas/partidos/${partidoId}/resultado`, {
+      method: 'PUT',
+      body: JSON.stringify({ games_pareja1: parseInt(g1), games_pareja2: parseInt(g2) })
+    });
+    verAmericanoPareja(americanoParejaActivo);
+  } catch(e) { alert(e.message); }
+}
+
+// ── INSCRIBIR PAREJA DESDE ADMIN ──────────────────────────────────────
+let _apModalCatId = null;
+let _apModalAmId = null;
+
+function abrirModalInscribirParejaAdmin(americanoId, catId, catNombre) {
+  _apModalAmId = americanoId;
+  _apModalCatId = catId;
+  document.getElementById('modal-title').textContent = `🤝 Inscribir pareja — ${catNombre}`;
+  document.getElementById('modal-body').innerHTML = `
+    <p style="color:rgba(255,255,255,.6);font-size:13px;margin-bottom:16px">
+      Buscá a los dos jugadores por nombre o email.
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label class="field-label">Jugador 1</label>
+        <input class="input-field" id="apadmin-buscar1" placeholder="Nombre o email..." oninput="buscarJugadorAdmin(1)" style="margin-bottom:4px">
+        <div id="apadmin-res1" style="max-height:160px;overflow-y:auto"></div>
+        <div id="apadmin-sel1" style="font-size:12px;color:#22c55e;margin-top:4px"></div>
+      </div>
+      <div>
+        <label class="field-label">Jugador 2</label>
+        <input class="input-field" id="apadmin-buscar2" placeholder="Nombre o email..." oninput="buscarJugadorAdmin(2)" style="margin-bottom:4px">
+        <div id="apadmin-res2" style="max-height:160px;overflow-y:auto"></div>
+        <div id="apadmin-sel2" style="font-size:12px;color:#22c55e;margin-top:4px"></div>
+      </div>
+    </div>
+    <div id="apadmin-msg" style="font-size:13px;margin-bottom:12px"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="inscribirParejaAdmin()">✅ INSCRIBIR PAREJA</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('show');
+  window._apadminSel = { j1: null, j2: null };
+}
+
+async function buscarJugadorAdmin(num) {
+  const q = document.getElementById(`apadmin-buscar${num}`)?.value.trim();
+  const resEl = document.getElementById(`apadmin-res${num}`);
+  if (!q || q.length < 2) { resEl.innerHTML=''; return; }
+  try {
+    const usuarios = await apiAdmin('/superadmin/usuarios');
+    const filtrados = usuarios.filter(u =>
+      u.nombre?.toLowerCase().includes(q.toLowerCase()) ||
+      u.email?.toLowerCase().includes(q.toLowerCase())
+    ).slice(0,5);
+    resEl.innerHTML = filtrados.map(u => `
+      <div onclick="seleccionarJugadorAdmin(${num},'${u.id}','${u.nombre}','${u.email}')"
+        style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:13px;display:flex;justify-content:space-between">
+        <span>${u.nombre}</span>
+        <span style="color:rgba(255,255,255,.4);font-size:11px">${u.email||''}</span>
+      </div>`).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px;padding:8px">Sin resultados</div>';
+  } catch(e) { resEl.innerHTML='<div style="color:#f87171;font-size:12px">Error</div>'; }
+}
+
+function seleccionarJugadorAdmin(num, id, nombre, email) {
+  window._apadminSel[`j${num}`] = { id, nombre, email };
+  document.getElementById(`apadmin-res${num}`).innerHTML = '';
+  document.getElementById(`apadmin-buscar${num}`).value = nombre;
+  document.getElementById(`apadmin-sel${num}`).textContent = `✅ ${nombre} (${email})`;
+}
+
+async function inscribirParejaAdmin() {
+  const msg = document.getElementById('apadmin-msg');
+  const { j1, j2 } = window._apadminSel || {};
+  if (!j1 || !j2) { msg.style.color='#f87171'; msg.textContent='Seleccioná ambos jugadores.'; return; }
+  if (j1.id === j2.id) { msg.style.color='#f87171'; msg.textContent='Los jugadores deben ser distintos.'; return; }
+  msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Inscribiendo...';
+  try {
+    await apiAdmin('/americanos-parejas/'+_apModalAmId+'/inscribir-admin', {
+      method: 'POST',
+      body: JSON.stringify({ categoria_id: _apModalCatId, jugador1_id: j1.id, jugador2_id: j2.id })
+    });
+    cerrarModal();
+    verAmericanoPareja(_apModalAmId);
+  } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error al inscribir.'; }
+}
+
+async function quitarParejaAdmin(americanoId, parejaId) {
+  if (!confirm('¿Quitar esta pareja?')) return;
+  try {
+    await apiAdmin('/americanos-parejas/'+americanoId+'/parejas/'+parejaId, { method:'DELETE' });
+    verAmericanoPareja(americanoId);
+  } catch(e) { alert(e.message); }
+}
+</script>
+
     </div>
   </div>
       </div>
@@ -827,6 +1446,7 @@ function navTo(page, btn) {
   if (page === 'profesores') cargarProfesoresAdmin('pendiente');
   if (page === 'torneos') cargarTorneosAdmin();
   if (page === 'americanos') cargarAmericanosAdmin();
+  if (page === 'americanos-parejas') cargarAmericanosParejas();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
