@@ -604,7 +604,7 @@ router.put('/partidos/:partidoId/resultado-bracket', authAdmin, async (req, res)
           [p.americano_id, p.categoria_id, perdedores[0], perdedores[1]]);
 
         // Email cuartos/semifinal finalizados
-        await enviarEmailEtapa(p.americano_id, 'cuartos');
+        await enviarEmailEtapa(p.americano_id, 'semifinal');
       }
     } else if (p.fase === 'final') {
       // Enviar email campeón
@@ -671,7 +671,7 @@ async function enviarEmailCampeon(americanoId, categoriaId, ganadorParejaId) {
 
 async function verificarYEnviarEmail(partidoId, p) {
   try {
-    if (p.fase === 'semifinal') await enviarEmailEtapa(p.americano_id, 'cuartos');
+    if (p.fase === 'semifinal') await enviarEmailEtapa(p.americano_id, 'semifinal');
     if (p.fase === 'final') await enviarEmailCampeon(p.americano_id, p.categoria_id, p.ganador_id);
   } catch(e) { /* silencioso */ }
 }
