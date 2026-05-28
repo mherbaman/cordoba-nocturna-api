@@ -728,72 +728,72 @@ if('serviceWorker' in navigator){
           <div id="am-form-msg" style="margin-top:10px;font-size:13px"></div>
         </div>
         <div id="admin-americanos-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
-<div class="page" id="page-americanos-parejas">
-  <div class="page-title">PÁDEL AMERICANO 🤝</div>
-  <div class="page-sub">Americanos por parejas fijas — categorías masculino y femenino</div>
-
-  <button onclick="mostrarFormAmericanoPareja()" 
-    style="margin-bottom:20px;padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">
-    + Nuevo Americano Parejas
-  </button>
-
+      <div class="page" id="page-americanos-parejas">
+        <div class="page-title">PÁDEL AMERICANO 🤝</div>
+        <div class="page-sub">Americanos por parejas fijas — categorías masculino y femenino</div>
+      
+        <button onclick="mostrarFormAmericanoPareja()" 
+          style="margin-bottom:20px;padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">
+          + Nuevo Americano Parejas
+        </button>
+      
   <!-- FORM CREAR -->
-  <div id="form-americano-pareja" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px;margin-bottom:20px">
-    <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:#22c55e">Nuevo Pádel Americano por Parejas</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label>
-        <input id="ap-nombre" type="text" placeholder="Americano Mayo 2026" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Sede</label>
-        <input id="ap-sede" type="text" placeholder="Club Córdoba Racket" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Zona</label>
-        <select id="ap-zona" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
-          <option value="">Sin zona (notificar a todos)</option>
-          <option>Centro</option><option>Nueva Córdoba</option><option>Güemes</option>
-          <option>Cerro de las Rosas</option><option>Villa Allende</option><option>Arguello</option>
-        </select></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Fecha</label>
-        <input id="ap-fecha" type="date" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;color-scheme:dark"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Hora inicio</label>
-        <input id="ap-hora" type="time" value="09:00" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Canchas disponibles</label>
-        <input id="ap-canchas" type="number" value="2" min="1" max="10" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Precio inscripción ($)</label>
-        <input id="ap-precio" type="number" value="0" min="0" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Duración partido (min)</label>
-        <input id="ap-duracion" type="number" value="20" min="10" max="60" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descanso entre rondas (min)</label>
-        <input id="ap-descanso" type="number" value="5" min="0" max="30" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-      <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Formato de partido</label>
-        <select id="ap-formato" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
-          <option value="mejor_de_7">Mejor de 7 games</option>
-          <option value="set">1 Set (primero en 6)</option>
-        </select></div>
-    </div>
-
-    <div style="margin-bottom:16px">
-      <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripción</label>
-      <textarea id="ap-descripcion" rows="2" placeholder="Info del americano..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea>
-    </div>
-
+        <div id="form-americano-pareja" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:#22c55e">Nuevo Pádel Americano por Parejas</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label>
+              <input id="ap-nombre" type="text" placeholder="Americano Mayo 2026" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Sede</label>
+              <input id="ap-sede" type="text" placeholder="Club Córdoba Racket" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Zona</label>
+              <select id="ap-zona" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
+                <option value="">Sin zona (notificar a todos)</option>
+                <option>Centro</option><option>Nueva Córdoba</option><option>Güemes</option>
+                <option>Cerro de las Rosas</option><option>Villa Allende</option><option>Arguello</option>
+              </select></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Fecha</label>
+              <input id="ap-fecha" type="date" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;color-scheme:dark"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Hora inicio</label>
+              <input id="ap-hora" type="time" value="09:00" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Canchas disponibles</label>
+              <input id="ap-canchas" type="number" value="2" min="1" max="10" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Precio inscripción ($)</label>
+              <input id="ap-precio" type="number" value="0" min="0" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Duración partido (min)</label>
+              <input id="ap-duracion" type="number" value="20" min="10" max="60" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descanso entre rondas (min)</label>
+              <input id="ap-descanso" type="number" value="5" min="0" max="30" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Formato de partido</label>
+              <select id="ap-formato" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
+                <option value="mejor_de_7">Mejor de 7 games</option>
+                <option value="set">1 Set (primero en 6)</option>
+              </select></div>
+          </div>
+      
+          <div style="margin-bottom:16px">
+            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripción</label>
+            <textarea id="ap-descripcion" rows="2" placeholder="Info del americano..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea>
+          </div>
+      
     <!-- CATEGORÍAS -->
-    <div style="margin-bottom:16px;background:rgba(255,255,255,.03);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
-      <div style="font-size:13px;font-weight:700;color:#22c55e;margin-bottom:12px">📋 Categorías del torneo</div>
-      <div id="ap-categorias-lista"></div>
-      <button onclick="agregarCategoriaAP()" style="margin-top:10px;padding:7px 16px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">+ Agregar categoría</button>
-    </div>
-
-    <div style="display:flex;gap:10px">
-      <button onclick="crearAmericanoPareja()" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">CREAR AMERICANO</button>
-      <button onclick="document.getElementById('form-americano-pareja').style.display='none'" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
-    </div>
-    <div id="ap-form-msg" style="margin-top:10px;font-size:13px"></div>
-  </div>
-
+          <div style="margin-bottom:16px;background:rgba(255,255,255,.03);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px">
+            <div style="font-size:13px;font-weight:700;color:#22c55e;margin-bottom:12px">📋 Categorías del torneo</div>
+            <div id="ap-categorias-lista"></div>
+            <button onclick="agregarCategoriaAP()" style="margin-top:10px;padding:7px 16px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">+ Agregar categoría</button>
+          </div>
+      
+          <div style="display:flex;gap:10px">
+            <button onclick="crearAmericanoPareja()" style="padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">CREAR AMERICANO</button>
+            <button onclick="document.getElementById('form-americano-pareja').style.display='none'" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+          </div>
+          <div id="ap-form-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+      
   <!-- LISTA DE AMERICANOS -->
-  <div id="admin-americanos-parejas-list">
-    <p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>
-  </div>
-</div>
+        <div id="admin-americanos-parejas-list">
+          <p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p>
+        </div>
+      </div>
 
 
 <!-- ── 4. SCRIPT (pegar antes de </body>) ────────────────────────── -->
