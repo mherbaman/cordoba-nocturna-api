@@ -347,23 +347,34 @@ router.post('/:id/generar-fixture', authAdmin, async (req, res) => {
           [americanoId, cat.id, p.id, p.grupo || (grupo1.includes(p) ? 1 : 2)]);
       }
 
-      // Generar round-robin dentro de cada grupo
-      const generarRondas = (grupo, numGrupo) => {
-        const matchups = [];
-        for (let i = 0; i < grupo.length; i++) {
-          for (let j = i + 1; j < grupo.length; j++) {
-            matchups.push({ p1: grupo[i], p2: grupo[j], grupo: numGrupo });
+      // Generar round-robin dentro de cada grupo con rondas correctas
+      // Algoritmo: en cada ronda, una pareja juega UNA sola vez
+      const generarRondasCorrect = (grupo, numGrupo) => {
+        const rondas = [];
+        const n = grupo.length;
+        const lista = [...grupo];
+        if (n % 2 !== 0) lista.push(null); // bye si impar
+        const total = lista.length;
+        for (let r = 0; r < total - 1; r++) {
+          const ronda = [];
+          for (let i = 0; i < total / 2; i++) {
+            const p1 = lista[i];
+            const p2 = lista[total - 1 - i];
+            if (p1 && p2) ronda.push({ p1, p2, grupo: numGrupo });
           }
+          rondas.push(ronda);
+          // Rotar: fijar el primero, rotar el resto
+          lista.splice(1, 0, lista.pop());
         }
-        return matchups;
+        return rondas;
       };
 
-      const matchupsG1 = generarRondas(grupo1, 1);
-      const matchupsG2 = generarRondas(grupo2, 2);
-      const todos = [...matchupsG1, ...matchupsG2];
+      const rondasG1 = generarRondasCorrect(grupo1, 1);
+      const rondasG2 = generarRondasCorrect(grupo2, 2);
 
-      // Calcular hora de cada partido
-      let [hh, mm] = horaBase.split(':').map(Number);
+      // Intercalar rondas de ambos grupos para usar canchas eficientemente
+      const maxRondas = Math.max(rondasG1.length, rondasG2.length);
+
       const addMin = (h, m, delta) => {
         m += delta;
         h += Math.floor(m / 60);
@@ -371,31 +382,31 @@ router.post('/:id/generar-fixture', authAdmin, async (req, res) => {
         return [`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`, h, m];
       };
 
-      let ronda = 1;
-      let canchaActual = 1;
-      let partidosEnRonda = 0;
+      let [hh, mm] = horaBase.split(':').map(Number);
+      let rondaNum = 1;
 
-      for (const m of todos) {
-        const [hi] = [`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`];
+      for (let r = 0; r < maxRondas; r++) {
+        const partidos = [...(rondasG1[r] || []), ...(rondasG2[r] || [])];
+        if (!partidos.length) continue;
+
+        const hi = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
         const [hf, nhh, nmm] = addMin(hh, mm, durMin);
 
-        await client.query(`
-          INSERT INTO americanos_parejas_partidos
-            (americano_id, categoria_id, fase, grupo, ronda, cancha, hora_inicio, hora_fin, pareja1_id, pareja2_id)
-          VALUES ($1,$2,'grupos',$3,$4,$5,$6,$7,$8,$9)`,
-          [americanoId, cat.id, m.grupo, ronda, canchaActual, hi, hf, m.p1.id, m.p2.id]);
-
-        totalPartidos++;
-        canchaActual++;
-        partidosEnRonda++;
-
-        if (canchaActual > canchas) {
-          canchaActual = 1;
-          ronda++;
-          hh = nhh; mm = nmm;
-          const [,ah,am] = addMin(hh, mm, descMin);
-          hh = ah; mm = am;
+        let canchaActual = 1;
+        for (const m of partidos) {
+          await client.query(`
+            INSERT INTO americanos_parejas_partidos
+              (americano_id, categoria_id, fase, grupo, ronda, cancha, hora_inicio, hora_fin, pareja1_id, pareja2_id)
+            VALUES ($1,$2,'grupos',$3,$4,$5,$6,$7,$8,$9)`,
+            [americanoId, cat.id, m.grupo, rondaNum, canchaActual, hi, hf, m.p1.id, m.p2.id]);
+          totalPartidos++;
+          canchaActual++;
         }
+
+        rondaNum++;
+        hh = nhh; mm = nmm;
+        const [,ah,am] = addMin(hh, mm, descMin);
+        hh = ah; mm = am;
       }
     }
 
