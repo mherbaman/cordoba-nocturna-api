@@ -759,6 +759,22 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 </div>
 
+
+<!-- AMERICANO PAREJAS DETALLE -->
+<div class="screen" id="americano-pareja-screen" style="justify-content:flex-start;padding:0">
+  <div class="pp-header" style="border-bottom:1px solid rgba(34,197,94,.2)">
+    <button class="back-btn" onclick="showScreen('competir-screen')" style="font-size:22px">←</button>
+    <div class="pp-title" style="color:#22c55e">Pádel <span style="color:#fff">Americano</span></div>
+  </div>
+  <div style="width:100%;max-width:420px;display:flex;gap:0;border-bottom:1px solid rgba(34,197,94,.15);background:rgba(34,197,94,.06)">
+    <button class="swipe-tab active" id="ap-jtab-info" onclick="switchApTab('info',this)" style="flex:1;font-size:11px;color:var(--green)">📋 INFO</button>
+    <button class="swipe-tab" id="ap-jtab-posiciones" onclick="switchApTab('posiciones',this)" style="flex:1;font-size:11px;color:rgba(255,255,255,.45)">📊 POS</button>
+    <button class="swipe-tab" id="ap-jtab-fixture" onclick="switchApTab('fixture',this)" style="flex:1;font-size:11px;color:rgba(255,255,255,.45)">🗓 FIXTURE</button>
+    <button class="swipe-tab" id="ap-jtab-bracket" onclick="switchApTab('bracket',this)" style="flex:1;font-size:11px;color:rgba(255,255,255,.45)">🏆 BRACKET</button>
+  </div>
+  <div id="ap-jtab-content" style="flex:1;width:100%;overflow-y:auto;padding:16px"></div>
+</div>
+
 <!-- AMERICANOS LISTA -->
 <div class="screen" id="americanos-screen" style="justify-content:flex-start;padding:0">
   <div class="pp-header" style="border-bottom:1px solid rgba(234,179,8,.2)">
@@ -1110,6 +1126,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     <button class="swipe-tab active" id="comp-tab-ranking" onclick="switchCompetirTab('ranking',this)" style="flex:1;color:var(--green)">🏆 Ranking</button>
     <button class="swipe-tab" id="comp-tab-torneos" onclick="switchCompetirTab('torneos',this)" style="flex:1;color:rgba(255,255,255,.45)">🎾 Torneos</button>
     <button class="swipe-tab" id="comp-tab-super8" onclick="switchCompetirTab('super8',this)" style="flex:1;color:rgba(255,255,255,.45)">⚡ Super 8</button>
+    <button class="swipe-tab" id="comp-tab-americano" onclick="switchCompetirTab('americano',this)" style="flex:1;color:rgba(255,255,255,.45)">🤝 Americano</button>
   </div>
   <div id="comp-content-ranking" style="flex:1;width:100%;overflow-y:auto">
     <div style="padding:14px 18px;display:flex;gap:8px;flex-wrap:wrap">
@@ -1133,6 +1150,9 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   <div id="comp-content-super8" style="display:none;flex:1;width:100%;overflow-y:auto;padding:16px">
     <div id="americanos-lista-2"></div>
   </div>
+  <div id="comp-content-americano" style="display:none;flex:1;width:100%;overflow-y:auto;padding:16px">
+    <div id="americanos-parejas-lista-jugador"></div>
+  </div>
 </div>
 <div class="screen" id="swipe" style="padding:0">
   <div class="swipe-header">
@@ -1151,11 +1171,10 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <span class="badge" id="msg-badge">0</span>
     </button>
   </div>
-  <div style="width:100%;max-width:420px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
-    <button onclick="showScreen('proximos-partidos')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;font-size:10px;font-weight:700;cursor:pointer;text-align:center">⚡ Próximos Partidos</button>
+  <div style="width:100%;max-width:420px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
+    <button onclick="showScreen('proximos-partidos')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;font-size:10px;font-weight:700;cursor:pointer;text-align:center">⚡ Próximos</button>
     <button onclick="showScreen('clases-screen')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(99,102,241,.3);background:rgba(99,102,241,.08);color:#a5b4fc;font-size:10px;font-weight:700;cursor:pointer;text-align:center">📚 Clases</button>
-    <button onclick="irAAmericanos()" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(234,179,8,.3);background:rgba(234,179,8,.08);color:#fbbf24;font-size:10px;font-weight:700;cursor:pointer;text-align:center">🎾 Super 8</button>
-    <button onclick="irATorneos()" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:10px;font-weight:700;cursor:pointer;text-align:center">🏆 Torneos</button>
+    <button onclick="showScreen('competir-screen')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:10px;font-weight:700;cursor:pointer;text-align:center">🏆 Competir</button>
   </div>
   <div class="swipe-tabs" id="swipe-tabs">
     <div class="swipe-tab active" onclick="switchTab('jugar',this)">🎾 Jugar</div>
@@ -2375,6 +2394,8 @@ function switchCompetirTab(tab, btn) {
   document.getElementById('comp-content-ranking').style.display = tab === 'ranking' ? 'flex' : 'none';
   document.getElementById('comp-content-torneos').style.display = tab === 'torneos' ? 'block' : 'none';
   document.getElementById('comp-content-super8').style.display = tab === 'super8' ? 'block' : 'none';
+  document.getElementById('comp-content-americano').style.display = tab === 'americano' ? 'block' : 'none';
+  if (tab === 'americano') cargarAmericanosParejaJugador();
   if (tab === 'ranking') cargarRankingCompetir();
   if (tab === 'torneos') cargarTorneosCompetir();
   if (tab === 'super8') cargarSuper8Competir();
@@ -2442,6 +2463,276 @@ async function cargarSuper8Competir() {
   } catch(e) {
     el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar Super 8.</div>';
   }
+}
+
+async function cargarAmericanosParejaJugador() {
+  const el = document.getElementById("americanos-parejas-lista-jugador");
+  if (!el) return;
+  el.innerHTML = "<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>";
+  try {
+    const data = await api("/americanos-parejas");
+    if (!data.length) { el.innerHTML = "<div style="text-align:center;padding:40px;color:var(--muted)">No hay americanos por parejas disponibles.</div>"; return; }
+    const estadoColor = { abierto:"#22c55e", cerrado:"#fbbf24", en_curso:"#f87171", finalizado:"rgba(255,255,255,.3)" };
+    const estadoLabel = { abierto:"Inscripciones abiertas", cerrado:"Cerrado", en_curso:"En curso", finalizado:"Finalizado" };
+    el.innerHTML = data.map(a => `
+      <div onclick="abrirAmericanoPareja(${a.id})" style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-family:Bebas Neue,cursive;font-size:20px;color:#22c55e">${a.nombre}</div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor[a.estado]||"#fff"};background:rgba(0,0,0,.3);padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[a.estado]||"#fff"}">${estadoLabel[a.estado]||a.estado}</span>
+        </div>
+        ${a.sede ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📍 ${a.sede}</div>` : ""}
+        ${a.fecha ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">📅 ${a.fecha.substring(0,10)}</div>` : ""}
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${(a.categorias||[]).map(c => `<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e">${c.nombre} ${c.genero==="masculino"?"♂":c.genero==="femenino"?"♀":"⚥"} (${c.inscriptos}/${c.cupo_max})</span>`).join("")}
+        </div>
+      </div>`).join("");
+  } catch(e) {
+    el.innerHTML = "<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>";
+  }
+}
+
+async function abrirAmericanoPareja(id) {
+  showScreen("americano-pareja-screen");
+  cargarDetalleAmericanoPareja(id);
+}
+
+let _apJugadorActual = null;
+
+async function cargarDetalleAmericanoPareja(id) {
+  _apJugadorActual = id;
+  const el = document.getElementById('ap-jtab-content');
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  try {
+    const data = await api('/americanos-parejas/' + id);
+    window._apJugadorData = data;
+    switchApTab('info', document.getElementById('ap-jtab-info'));
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>';
+  }
+}
+
+function switchApTab(tab, btn) {
+  ['info','posiciones','fixture','bracket'].forEach(t => {
+    const b = document.getElementById('ap-jtab-'+t);
+    if (b) { b.classList.remove('active'); b.style.color = 'rgba(255,255,255,.45)'; }
+  });
+  if (btn) { btn.classList.add('active'); btn.style.color = 'var(--green)'; }
+  const a = window._apJugadorData;
+  const el = document.getElementById('ap-jtab-content');
+  if (!a) return;
+
+  if (tab === 'info') {
+    const precio = a.precio_inscripcion > 0 ? '$'+Number(a.precio_inscripcion).toLocaleString('es-AR') : 'Gratis';
+    const usuarioActual = JSON.parse(localStorage.getItem('cl_usuario')||'{}');
+    el.innerHTML = `
+      <div style="font-size:20px;font-weight:900;color:#22c55e;margin-bottom:4px">${a.nombre}</div>
+      ${a.sede ? `<div style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:4px">📍 ${a.sede}</div>` : ''}
+      ${a.fecha ? `<div style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:4px">📅 ${new Date(a.fecha).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</div>` : ''}
+      <div style="color:rgba(255,255,255,.5);font-size:13px;margin-bottom:16px">💰 ${precio}</div>
+      ${a.descripcion ? `<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px;margin-bottom:16px;color:rgba(255,255,255,.7);font-size:13px">${a.descripcion}</div>` : ''}
+      ${(a.categorias||[]).map(cat => {
+        const parejasDeCat = (a.parejas||[]).filter(p => p.categoria_id === cat.id);
+        const generoIcon = cat.genero === 'masculino' ? '♂' : cat.genero === 'femenino' ? '♀' : '⚥';
+        const yoInscripto = parejasDeCat.some(p => p.jugador1_id === usuarioActual.id || p.jugador2_id === usuarioActual.id);
+        return `
+        <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-weight:700;color:#22c55e">${cat.nombre} ${generoIcon}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">${parejasDeCat.length}/${cat.cupo_max} parejas</div>
+          </div>
+          ${parejasDeCat.map((p,i) => `
+            <div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;color:${(p.jugador1_id===usuarioActual.id||p.jugador2_id===usuarioActual.id)?'#22c55e':'rgba(255,255,255,.7)'}">
+              ${i+1}. ${p.nombre_pareja} ${(p.jugador1_id===usuarioActual.id||p.jugador2_id===usuarioActual.id)?'✅ (vos)':''}
+            </div>`).join('')}
+          ${a.estado==='abierto' && !yoInscripto && parejasDeCat.length < cat.cupo_max ? `
+            <button onclick="abrirModalInscripcionPareja(${a.id},${cat.id},'${cat.nombre}')"
+              style="width:100%;margin-top:12px;padding:10px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:13px;font-weight:700;cursor:pointer">
+              + Inscribirme con mi pareja
+            </button>` : ''}
+          ${yoInscripto ? `<div style="text-align:center;margin-top:10px;color:#22c55e;font-size:12px;font-weight:700">✅ Ya estás inscripto en esta categoría</div>` : ''}
+          ${parejasDeCat.length >= cat.cupo_max && !yoInscripto ? `<div style="text-align:center;margin-top:10px;color:rgba(255,255,255,.3);font-size:12px">Categoría completa</div>` : ''}
+        </div>`;
+      }).join('')}`;
+  }
+
+  else if (tab === 'posiciones') {
+    const cats = a.categorias || [];
+    if (!cats.length || !(a.posiciones||[]).length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Las posiciones aparecen cuando empiezan los partidos.</div>';
+      return;
+    }
+    el.innerHTML = cats.map(cat => {
+      const pos = (a.posiciones||[]).filter(p => p.categoria_id === cat.id);
+      const grupos = [...new Set(pos.map(p=>p.grupo))].sort();
+      return `
+        <div style="margin-bottom:20px">
+          <div style="font-weight:700;color:#22c55e;margin-bottom:10px">${cat.nombre}</div>
+          ${grupos.map(gr => {
+            const pg = pos.filter(p=>p.grupo===gr).sort((a,b)=>b.puntos-a.puntos||b.diferencia-a.diferencia);
+            return `
+              <div style="margin-bottom:10px">
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">GRUPO ${gr}</div>
+                <div style="background:rgba(255,255,255,.03);border-radius:10px;overflow:hidden">
+                  <table style="width:100%;border-collapse:collapse;font-size:12px">
+                    <tr style="color:rgba(255,255,255,.4);background:rgba(255,255,255,.04)">
+                      <td style="padding:6px 8px">#</td><td style="padding:6px 8px">Pareja</td>
+                      <td style="padding:6px 8px;text-align:center">PJ</td><td style="padding:6px 8px;text-align:center">PG</td>
+                      <td style="padding:6px 8px;text-align:center">DIF</td><td style="padding:6px 8px;text-align:center">PTS</td>
+                    </tr>
+                    ${pg.map((p,i) => `
+                    <tr style="border-top:1px solid rgba(255,255,255,.05);color:${i===0?'#fbbf24':'rgba(255,255,255,.7)'}">
+                      <td style="padding:6px 8px;font-weight:700">${i+1}</td>
+                      <td style="padding:6px 8px">${p.nombre_pareja}</td>
+                      <td style="padding:6px 8px;text-align:center">${p.partidos_jugados}</td>
+                      <td style="padding:6px 8px;text-align:center">${p.partidos_ganados}</td>
+                      <td style="padding:6px 8px;text-align:center;color:${p.diferencia>=0?'#22c55e':'#f87171'}">${p.diferencia>=0?'+':''}${p.diferencia}</td>
+                      <td style="padding:6px 8px;text-align:center;font-weight:700;color:#22c55e">${p.puntos}</td>
+                    </tr>`).join('')}
+                  </table>
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+    }).join('');
+  }
+
+  else if (tab === 'fixture') {
+    const partidos = (a.partidos||[]).filter(p=>p.fase==='grupos');
+    if (!partidos.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">El fixture aparece cuando empieza el torneo.</div>';
+      return;
+    }
+    const cats = a.categorias || [];
+    el.innerHTML = cats.map(cat => {
+      const pCat = partidos.filter(p=>p.categoria_id===cat.id);
+      const grupos = [...new Set(pCat.map(p=>p.grupo))].sort();
+      return `
+        <div style="margin-bottom:20px">
+          <div style="font-weight:700;color:#22c55e;margin-bottom:10px">${cat.nombre}</div>
+          ${grupos.map(gr => {
+            const pGr = pCat.filter(p=>p.grupo===gr);
+            return `
+              <div style="margin-bottom:10px">
+                <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">GRUPO ${gr}</div>
+                ${pGr.map(p => `
+                  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:6px">
+                    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Cancha ${p.cancha} · ${p.hora_inicio?p.hora_inicio.substring(0,5):''}</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+                      <span style="font-size:12px;flex:1">${p.pareja1_nombre||'?'}</span>
+                      <span style="font-size:14px;font-weight:700;color:${p.estado==='jugado'?'#22c55e':'rgba(255,255,255,.3)'}">
+                        ${p.estado==='jugado'?`${p.games_pareja1}-${p.games_pareja2}`:'vs'}
+                      </span>
+                      <span style="font-size:12px;flex:1;text-align:right">${p.pareja2_nombre||'?'}</span>
+                    </div>
+                  </div>`).join('')}
+              </div>`;
+          }).join('')}
+        </div>`;
+    }).join('');
+  }
+
+  else if (tab === 'bracket') {
+    const fases = ['semifinal','final','tercer_puesto'];
+    const bp = (a.partidos||[]).filter(p=>fases.includes(p.fase));
+    if (!bp.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:36px;margin-bottom:12px">🏆</div>El bracket aparece cuando terminan los grupos.</div>';
+      return;
+    }
+    const cats = a.categorias || [];
+    const faseLabel = { semifinal:'SEMIFINAL', final:'🏆 GRAN FINAL', tercer_puesto:'3er PUESTO' };
+    const faseColor = { semifinal:'99,102,241', final:'251,191,36', tercer_puesto:'148,163,184' };
+    el.innerHTML = cats.map(cat => {
+      const bpCat = bp.filter(p=>p.categoria_id===cat.id);
+      if (!bpCat.length) return '';
+      return `
+        <div style="margin-bottom:20px">
+          <div style="font-weight:700;color:#22c55e;margin-bottom:12px">${cat.nombre}</div>
+          ${bpCat.map(p => `
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(${faseColor[p.fase]||'255,255,255'},.2);border-radius:12px;padding:12px;margin-bottom:10px">
+              <div style="font-size:10px;font-weight:700;color:rgba(${faseColor[p.fase]||'255,255,255'},.8);margin-bottom:8px">${faseLabel[p.fase]||p.fase}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+                <span style="font-size:12px;flex:1;font-weight:${p.ganador_id===p.pareja1_id?'700':'400'}">${p.pareja1_nombre||'Por definir'}</span>
+                <span style="font-size:14px;font-weight:700;color:${p.estado==='jugado'?'#22c55e':'rgba(255,255,255,.3)'}">
+                  ${p.estado==='jugado'?`${p.games_pareja1}-${p.games_pareja2}`:'vs'}
+                </span>
+                <span style="font-size:12px;flex:1;text-align:right;font-weight:${p.ganador_id===p.pareja2_id?'700':'400'}">${p.pareja2_nombre||'Por definir'}</span>
+              </div>
+              ${p.ganador_id?`<div style="text-align:center;margin-top:6px;font-size:11px;color:#22c55e">🏆 ${p.ganador_id===p.pareja1_id?p.pareja1_nombre:p.pareja2_nombre}</div>`:''}
+            </div>`).join('')}
+        </div>`;
+    }).join('');
+  }
+}
+
+// Modal inscripción pareja jugador
+let _apInscCatId = null;
+let _apInscAmId = null;
+
+function abrirModalInscripcionPareja(americanoId, catId, catNombre) {
+  _apInscAmId = americanoId;
+  _apInscCatId = catId;
+  const modal = document.createElement('div');
+  modal.id = 'modal-inscripcion-pareja';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML = `
+    <div style="background:#0d1f0d;border:1px solid rgba(34,197,94,.35);border-radius:20px;padding:24px;max-width:420px;width:100%">
+      <div style="font-size:22px;font-weight:900;color:#22c55e;margin-bottom:4px">🤝 Inscribirse</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px">${catNombre}</div>
+      <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:6px">BUSCAR COMPAÑERO/A</label>
+      <input id="ap-buscar-companero" placeholder="Nombre o email..." oninput="buscarCompaneroPareja()"
+        style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(34,197,94,.3);background:rgba(255,255,255,.04);color:#fff;font-size:14px;box-sizing:border-box;margin-bottom:8px">
+      <div id="ap-resultados-companero" style="max-height:200px;overflow-y:auto;margin-bottom:12px"></div>
+      <div id="ap-companero-seleccionado" style="font-size:13px;color:#22c55e;min-height:20px;margin-bottom:16px"></div>
+      <div id="ap-inscripcion-msg" style="font-size:13px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('modal-inscripcion-pareja').remove()"
+          style="flex:1;padding:12px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:14px;cursor:pointer">Cancelar</button>
+        <button onclick="confirmarInscripcionPareja()"
+          style="flex:1;padding:12px;border-radius:50px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:14px;font-weight:700;cursor:pointer">✅ Inscribirme</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  window._apCompaneroSeleccionado = null;
+}
+
+async function buscarCompaneroPareja() {
+  const q = document.getElementById('ap-buscar-companero')?.value.trim();
+  const el = document.getElementById('ap-resultados-companero');
+  if (!q || q.length < 2) { el.innerHTML = ''; return; }
+  try {
+    const data = await api('/americanos-parejas/' + _apInscAmId + '/buscar-jugador?q=' + encodeURIComponent(q));
+    if (!data.length) { el.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:12px;padding:8px">Sin resultados</div>'; return; }
+    el.innerHTML = data.map(u => `
+      <div onclick="seleccionarCompanero('${u.id}','${u.nombre}')"
+        style="padding:10px 12px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600">${u.nombre}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4)">${u.email||''} ${u.nivel?'· Nivel: '+u.nivel:''}</div>
+        </div>
+        <span style="font-size:11px;color:#22c55e">+ Elegir</span>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="color:#f87171;font-size:12px">Error</div>'; }
+}
+
+function seleccionarCompanero(id, nombre) {
+  window._apCompaneroSeleccionado = { id, nombre };
+  document.getElementById('ap-resultados-companero').innerHTML = '';
+  document.getElementById('ap-buscar-companero').value = nombre;
+  document.getElementById('ap-companero-seleccionado').textContent = '✅ Compañero: ' + nombre;
+}
+
+async function confirmarInscripcionPareja() {
+  const msg = document.getElementById('ap-inscripcion-msg');
+  if (!window._apCompaneroSeleccionado) { msg.style.color='#f87171'; msg.textContent='Seleccioná tu compañero/a primero.'; return; }
+  msg.style.color='rgba(255,255,255,.4)'; msg.textContent='Inscribiendo...';
+  try {
+    await api('/americanos-parejas/' + _apInscAmId + '/inscribir', {
+      method: 'POST',
+      body: JSON.stringify({ categoria_id: _apInscCatId, jugador2_id: window._apCompaneroSeleccionado.id })
+    });
+    document.getElementById('modal-inscripcion-pareja').remove();
+    cargarDetalleAmericanoPareja(_apInscAmId);
+  } catch(e) { msg.style.color='#f87171'; msg.textContent=e.message||'Error al inscribirse.'; }
 }
 function irATorneos() {
   showScreen('torneos-screen');
