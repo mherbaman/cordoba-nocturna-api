@@ -3271,13 +3271,12 @@ function filtrarCompaneros(q) {
 
 function seleccionarCompanero(uid, nombre, email, nivel, elo) {
   _companeroSeleccionado = { uid, nombre, email };
-  document.getElementById('inscripcion-compañero-email').value = email;
-  document.getElementById('inscripcion-compañero-nombre').value = nombre;
-  document.getElementById('buscar-companero').value = nombre;
-  document.getElementById('companeros-lista').style.display = 'none';
-  const sel = document.getElementById('companero-seleccionado');
-  sel.style.display = 'block';
-  document.getElementById('companero-seleccionado-nombre').textContent = nombre + ' · ' + (nivel||'sin nivel') + ' · ELO ' + elo;
+  const buscar = document.getElementById('ap-buscar-companero');
+  if (buscar) buscar.value = nombre;
+  const lista = document.getElementById('ap-companeros-lista') || document.getElementById('companeros-lista');
+  if (lista) lista.style.display = 'none';
+  const sel = document.getElementById('ap-companero-seleccionado');
+  if (sel) sel.textContent = '✅ Compañero: ' + nombre + ' · ' + (nivel||'sin nivel') + ' · ELO ' + elo;
 }
 
 function cerrarModalInscripcion() {
