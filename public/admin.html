@@ -1297,12 +1297,13 @@ async function buscarJugadorAdmin(num) {
     const usuarios = await apiAdmin('/superadmin/usuarios');
     const filtrados = usuarios.filter(u =>
       u.nombre?.toLowerCase().includes(q.toLowerCase()) ||
+      u.apellido?.toLowerCase().includes(q.toLowerCase()) ||
       u.email?.toLowerCase().includes(q.toLowerCase())
     ).slice(0,5);
     resEl.innerHTML = filtrados.map(u => `
-      <div onclick="seleccionarJugadorAdmin(${num},'${u.id}','${u.nombre}','${u.email}')"
+      <div onclick="seleccionarJugadorAdmin(${num},'${u.id}','${(u.nombre||'') + (u.apellido ? ' ' + u.apellido : '')}','${u.email}')"
         style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:13px;display:flex;justify-content:space-between">
-        <span>${u.nombre}</span>
+        <span>${u.nombre}${u.apellido ? ' ' + u.apellido : ''}</span>
         <span style="color:rgba(255,255,255,.4);font-size:11px">${u.email||''}</span>
       </div>`).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px;padding:8px">Sin resultados</div>';
   } catch(e) { resEl.innerHTML='<div style="color:#f87171;font-size:12px">Error</div>'; }

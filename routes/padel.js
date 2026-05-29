@@ -937,7 +937,7 @@ router.get('/ranking', async (req, res) => {
   const { nivel } = req.query;
   try {
     const result = await pool.query(`
-      SELECT u.id, u.nombre, u.foto_url,
+      SELECT u.id, u.nombre, u.apellido, u.foto_url,
              jp.nivel, jp.ranking_puntos AS ranking,
              ROW_NUMBER() OVER (ORDER BY jp.ranking_puntos DESC NULLS LAST) AS posicion
       FROM jugadores_padel jp

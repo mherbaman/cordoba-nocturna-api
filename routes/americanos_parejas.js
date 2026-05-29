@@ -193,7 +193,7 @@ router.get('/:id/buscar-jugador', authUsuario, async (req, res) => {
 
     // Buscar en jugadores_padel JOIN usuarios, excluyendo al que busca
     const { rows } = await pool.query(`
-      SELECT u.id, u.nombre, u.email, u.foto_url, jp.nivel, jp.zona
+      SELECT u.id, u.nombre, u.apellido, u.email, u.foto_url, jp.nivel, jp.zona
       FROM usuarios u
       LEFT JOIN jugadores_padel jp ON jp.usuario_id = u.id
       WHERE u.activo = true
