@@ -7,31 +7,7 @@ const router  = express.Router();
 const { pool } = require('../database');
 const { Resend } = require('resend');
 const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
-
-// Middleware auth admin
-const authAdmin = (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'No autorizado' });
-  try {
-    const jwt = require('jsonwebtoken');
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'secreto');
-    if (!payload.admin) return res.status(403).json({ error: 'Solo admin' });
-    req.admin = payload;
-    next();
-  } catch { return res.status(401).json({ error: 'Token inválido' }); }
-};
-
-// Middleware auth usuario (jugador)
-const authUsuario = (req, res, next) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'No autorizado' });
-  try {
-    const jwt = require('jsonwebtoken');
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'secreto');
-    req.usuario = payload;
-    next();
-  } catch { return res.status(401).json({ error: 'Token inválido' }); }
-};
+const { authAdmin, authUsuario } = require('../middleware/auth');
 
 // ── CREAR TABLAS (ejecutar una vez) ─────────────────────────────────
 router.post('/setup', authAdmin, async (req, res) => {
