@@ -236,8 +236,8 @@ router.post('/:id/inscribir', authUsuario, async (req, res) => {
     if (yaInscripto.length) return res.status(400).json({ error: 'Ya estás inscripto en esta categoría' });
 
     // Verificar que el jugador2 exista y no esté inscripto
-    const { rows: [u1] } = await pool.query('SELECT id, nombre, email FROM usuarios WHERE id=$1', [req.usuario.id]);
-    const { rows: [u2] } = await pool.query('SELECT id, nombre, email FROM usuarios WHERE id=$1', [jugador2_id]);
+    const { rows: [u1] } = await pool.query('SELECT id, nombre, apellido, email FROM usuarios WHERE id=$1', [req.usuario.id]);
+    const { rows: [u2] } = await pool.query('SELECT id, nombre, apellido, email FROM usuarios WHERE id=$1', [jugador2_id]);
     if (!u2) return res.status(404).json({ error: 'El compañero seleccionado no existe' });
 
     const { rows: yaInscripto2 } = await pool.query(
@@ -245,15 +245,15 @@ router.post('/:id/inscribir', authUsuario, async (req, res) => {
       [americanoId, categoria_id, jugador2_id]);
     if (yaInscripto2.length) return res.status(400).json({ error: 'Tu compañero ya está inscripto en esta categoría' });
 
-    const nombre_pareja = `${u1.nombre} / ${u2.nombre}`;
+    const nombre_pareja = `${u1.nombre}${u1.apellido?' '+u1.apellido:''} / ${u2.nombre}${u2.apellido?' '+u2.apellido:''}`;
 
     const { rows: [ins] } = await pool.query(`
       INSERT INTO americanos_parejas_inscripciones 
         (americano_id, categoria_id, jugador1_id, jugador1_nombre, jugador1_email,
          jugador2_id, jugador2_nombre, jugador2_email, nombre_pareja)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [americanoId, categoria_id, u1.id, u1.nombre, u1.email,
-       u2.id, u2.nombre, u2.email, nombre_pareja]);
+      [americanoId, categoria_id, u1.id, u1.nombre+(u1.apellido?' '+u1.apellido:''), u1.email,
+       u2.id, u2.nombre+(u2.apellido?' '+u2.apellido:''), u2.email, nombre_pareja]);
 
     res.json(ins);
   } catch (e) {
@@ -272,14 +272,14 @@ router.post('/:id/inscribir-admin', authAdmin, async (req, res) => {
     const { rows: [u2] } = await pool.query('SELECT id, nombre, email FROM usuarios WHERE id=$1', [jugador2_id]);
     if (!u1 || !u2) return res.status(404).json({ error: 'Uno o ambos usuarios no encontrados' });
 
-    const nombre_pareja = `${u1.nombre} / ${u2.nombre}`;
+    const nombre_pareja = `${u1.nombre}${u1.apellido?' '+u1.apellido:''} / ${u2.nombre}${u2.apellido?' '+u2.apellido:''}`;
     const { rows: [ins] } = await pool.query(`
       INSERT INTO americanos_parejas_inscripciones 
         (americano_id, categoria_id, jugador1_id, jugador1_nombre, jugador1_email,
          jugador2_id, jugador2_nombre, jugador2_email, nombre_pareja)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-      [americanoId, categoria_id, u1.id, u1.nombre, u1.email,
-       u2.id, u2.nombre, u2.email, nombre_pareja]);
+      [americanoId, categoria_id, u1.id, u1.nombre+(u1.apellido?' '+u1.apellido:''), u1.email,
+       u2.id, u2.nombre+(u2.apellido?' '+u2.apellido:''), u2.email, nombre_pareja]);
 
     res.json(ins);
   } catch (e) {
