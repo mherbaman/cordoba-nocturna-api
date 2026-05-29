@@ -3261,7 +3261,7 @@ function filtrarCompaneros(q) {
   if (!filtrados.length) { lista.style.display = 'none'; return; }
   lista.style.display = 'block';
   lista.innerHTML = filtrados.map(j => `
-    <div onclick="seleccionarCompanero('${j.usuario_id}','${(j.nombre||'').replace(/'/g,"\'")}','${(j.email||'').replace(/'/g,"\'")}','${j.nivel||''}',${j.ranking_puntos||1000})"
+    <div onclick="seleccionarCompaneroSuper8('${j.usuario_id}','${(j.nombre||'').replace(/'/g,"\'")}','${(j.email||'').replace(/'/g,"\'")}','${j.nivel||''}',${j.ranking_puntos||1000})"
       style="padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;background:rgba(15,20,15,.95)"
       onmouseover="this.style.background='rgba(239,68,68,.1)'" onmouseout="this.style.background='rgba(15,20,15,.95)'">
       <span style="color:#fff;font-size:13px">${j.nombre}${j.apellido ? ' ' + j.apellido : ''}</span>
@@ -3269,7 +3269,7 @@ function filtrarCompaneros(q) {
     </div>`).join('');
 }
 
-function seleccionarCompanero(uid, nombre, email, nivel, elo) {
+function seleccionarCompaneroSuper8(uid, nombre, email, nivel, elo) {
   _companeroSeleccionado = { uid, nombre, email };
   const buscar = document.getElementById('ap-buscar-companero');
   if (buscar) buscar.value = nombre;
