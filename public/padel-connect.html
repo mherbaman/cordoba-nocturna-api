@@ -2468,10 +2468,10 @@ async function cargarSuper8Competir() {
 async function cargarAmericanosParejaJugador() {
   const el = document.getElementById("americanos-parejas-lista-jugador");
   if (!el) return;
-  el.innerHTML = "<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>";
+  el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
   try {
     const data = await api("/americanos-parejas");
-    if (!data.length) { el.innerHTML = "<div style="text-align:center;padding:40px;color:var(--muted)">No hay americanos por parejas disponibles.</div>"; return; }
+    if (!data.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay americanos por parejas disponibles.</div>'; return; }
     const estadoColor = { abierto:"#22c55e", cerrado:"#fbbf24", en_curso:"#f87171", finalizado:"rgba(255,255,255,.3)" };
     const estadoLabel = { abierto:"Inscripciones abiertas", cerrado:"Cerrado", en_curso:"En curso", finalizado:"Finalizado" };
     el.innerHTML = data.map(a => `
@@ -2487,7 +2487,7 @@ async function cargarAmericanosParejaJugador() {
         </div>
       </div>`).join("");
   } catch(e) {
-    el.innerHTML = "<div style="text-align:center;padding:32px;color:var(--muted)">Error al cargar.</div>";
+    el.innerHTML = "<div style=\"text-align:center;padding:32px;color:var(--muted)\">Error al cargar.</div>";
   }
 }
 
