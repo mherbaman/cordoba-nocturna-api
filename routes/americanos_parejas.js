@@ -558,8 +558,8 @@ async function generarBracket(client, americanoId, categoriaId) {
     ORDER BY grupo, puntos DESC, diferencia DESC, games_favor DESC`,
     [americanoId, categoriaId]);
 
-  const grupo1 = pos.filter(p => p.grupo === 1);
-  const grupo2 = pos.filter(p => p.grupo === 2);
+  const grupo1 = pos.filter(p => parseInt(p.grupo) === 1);
+  const grupo2 = pos.filter(p => parseInt(p.grupo) === 2);
 
   if (!grupo1.length || !grupo2.length) return;
 
