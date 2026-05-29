@@ -2483,7 +2483,7 @@ async function cargarAmericanosParejaJugador() {
         ${a.sede ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:4px">📍 ${a.sede}</div>` : ""}
         ${a.fecha ? `<div style="color:rgba(255,255,255,.5);font-size:12px;margin-bottom:8px">📅 ${a.fecha.substring(0,10)}</div>` : ""}
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${(a.categorias||[]).map(c => `<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e">${c.nombre} ${c.genero==="masculino"?"♂":c.genero==="femenino"?"♀":"⚥"} (${c.inscriptos}/${c.cupo_max})</span>`).join("")}
+          ${(a.categorias||[]).map(c => `<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#22c55e">${c.nombre} ${c.genero==="masculino"?"Masculino":c.genero==="femenino"?"Femenino":"Mixto"} (${c.inscriptos}/${c.cupo_max})</span>`).join("")}
         </div>
       </div>`).join("");
   } catch(e) {
@@ -2532,7 +2532,7 @@ function switchApTab(tab, btn) {
       ${a.descripcion ? `<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px;margin-bottom:16px;color:rgba(255,255,255,.7);font-size:13px">${a.descripcion}</div>` : ''}
       ${(a.categorias||[]).map(cat => {
         const parejasDeCat = (a.parejas||[]).filter(p => p.categoria_id === cat.id);
-        const generoIcon = cat.genero === 'masculino' ? '♂' : cat.genero === 'femenino' ? '♀' : '⚥';
+        const generoIcon = cat.genero === 'masculino' ? 'Masculino' : cat.genero === 'femenino' ? 'Femenino' : 'Mixto';
         const yoInscripto = parejasDeCat.some(p => p.jugador1_id === usuarioActual.id || p.jugador2_id === usuarioActual.id);
         return `
         <div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px;margin-bottom:12px">
