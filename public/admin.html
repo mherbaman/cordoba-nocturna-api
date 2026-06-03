@@ -1226,7 +1226,7 @@ function apMostrarTab(tab) {
             <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(0,0,0,.3);border:1px solid ${estadoColor[i.pago_estado]||'#fff'};color:${estadoColor[i.pago_estado]||'#fff'}">${estadoLabel[i.pago_estado]||i.pago_estado||'pendiente'}</span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <select id="pago-estado-${i.id}" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+            <select id="pago-estado-${i.id}" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:12px">
               <option value="pendiente" ${(i.pago_estado||'pendiente')==='pendiente'?'selected':''}>⏳ Pendiente</option>
               <option value="parcial" ${i.pago_estado==='parcial'?'selected':''}>⚠️ Parcial</option>
               <option value="confirmado" ${i.pago_estado==='confirmado'?'selected':''}>✅ Confirmado</option>
