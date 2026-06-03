@@ -1654,6 +1654,8 @@ async function doRegister(){
     token=d.token;usuario=d.usuario;
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
+    // Asociar OneSignal al usuario logueado
+    if (window.OneSignal && usuario?.id) { try { await window.OneSignal.login(usuario.id); await window.OneSignal.Notifications.requestPermission(); } catch(e){} }
     await cargarZonasPadel();
     showScreen('perfil-padel');
   }catch(e){
@@ -1676,6 +1678,8 @@ async function doLogin(){
     token=data.token;usuario=data.usuario;
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
+    // Asociar OneSignal al usuario logueado
+    if (window.OneSignal && usuario?.id) { try { await window.OneSignal.login(usuario.id); await window.OneSignal.Notifications.requestPermission(); } catch(e){} }
     const tienePerfil = await verificarPerfilPadel();
     if(tienePerfil === 'incompleto'){ mostrarModalPerfilIncompleto(); return; }
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
