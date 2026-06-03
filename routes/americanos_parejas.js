@@ -731,4 +731,16 @@ router.delete('/:id', authAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── PUT /americanos-parejas/inscripciones/:id/pago ───────────────────
+router.put('/inscripciones/:id/pago', authAdmin, async (req, res) => {
+  const { pago_estado, monto_pagado, pago_notas } = req.body;
+  try {
+    await pool.query(
+      `UPDATE americanos_parejas_inscripciones SET pago_estado=$1, monto_pagado=$2, pago_notas=$3 WHERE id=$4`,
+      [pago_estado||'pendiente', monto_pagado||0, pago_notas||null, req.params.id]
+    );
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
 module.exports = router;
