@@ -1203,7 +1203,7 @@ function apMostrarTab(tab) {
     }).join('');
   }
   else if (tab === 'pagos') {
-    const inscriptos = a.inscripciones || [];
+    const inscriptos = a.parejas || [];
     const precio = Number(a.precio_inscripcion) || 0;
     if (!inscriptos.length) {
       content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.3)"><div style="font-size:36px;margin-bottom:12px">💰</div><div>No hay parejas inscriptas aún.</div></div>';
