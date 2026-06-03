@@ -546,4 +546,25 @@ router.delete('/americanos/:id/delegados/:usuario_id', authSuperAdmin, async (re
   } catch(err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+
+// ── PUT /superadmin/usuarios/:id/email ───────────────────────────────
+router.put('/usuarios/:id/email', authSuperAdmin, async (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Email inválido' });
+  try {
+    const existe = await pool.query('SELECT id FROM usuarios WHERE email = $1 AND id != $2', [email, req.params.id]);
+    if (existe.rows.length) return res.status(400).json({ error: 'Ese email ya está en uso' });
+    await pool.query('UPDATE usuarios SET email = $1 WHERE id = $2', [email, req.params.id]);
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
+// ── DELETE /superadmin/usuarios/:id ─────────────────────────────────
+router.delete('/usuarios/:id', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: 'Error interno' }); }
+});
+
 module.exports = router;

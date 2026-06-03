@@ -2272,6 +2272,8 @@ function renderUsuarios(usuarios) {
           ? `<button onclick="enviarBienvenida('${u.id}','${u.nombre}',this)" style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#22c55e;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer" title="Ya recibió el email">✅ Reenviar</button>`
           : `<button onclick="enviarBienvenida('${u.id}','${u.nombre}',this)" style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:#22c55e;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">📧 Enviar</button>`
         }
+        <button onclick="editarEmailUsuario('${u.id}','${u.nombre}','${u.email||''}')" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);color:#fbbf24;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">✏️ Email</button>
+        <button onclick="borrarUsuario('${u.id}','${u.nombre}')" style="background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.2);color:rgba(255,45,120,.6);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">🗑 Borrar</button>
       </td>
     </tr>`;
   }).join('');
@@ -2293,6 +2295,50 @@ async function enviarBienvenida(id, nombre, btn) {
     btn.disabled = false;
   }
 }
+async function editarEmailUsuario(id, nombre, emailActual) {
+  const nuevoEmail = prompt(`Nuevo email para ${nombre}:`, emailActual);
+  if (!nuevoEmail || nuevoEmail === emailActual) return;
+  if (!nuevoEmail.includes('@')) { alert('Email inválido'); return; }
+  try {
+    await apiAdmin(`/superadmin/usuarios/${id}/email`, { method:'PUT', body: JSON.stringify({ email: nuevoEmail }) });
+    alert(`✅ Email actualizado a: ${nuevoEmail}`);
+    cargarUsuarios();
+  } catch(err) { alert('Error: ' + err.message); }
+}
+
+async function borrarUsuario(id, nombre) {
+  if (!confirm(`⚠️ ¿Borrar al usuario ${nombre}?\nEsta acción no se puede deshacer.`)) return;
+  const conf2 = prompt(`Escribí BORRAR para confirmar:`);
+  if (conf2 !== 'BORRAR') { alert('Cancelado'); return; }
+  try {
+    await apiAdmin(`/superadmin/usuarios/${id}`, { method:'DELETE' });
+    alert(`✅ Usuario ${nombre} eliminado`);
+    cargarUsuarios();
+  } catch(err) { alert('Error: ' + err.message); }
+}
+
+async function editarEmailUsuario(id, nombre, emailActual) {
+  const nuevoEmail = prompt(`Nuevo email para ${nombre}:`, emailActual);
+  if (!nuevoEmail || nuevoEmail === emailActual) return;
+  if (!nuevoEmail.includes('@')) { alert('Email inválido'); return; }
+  try {
+    await apiAdmin(`/superadmin/usuarios/${id}/email`, { method:'PUT', body: JSON.stringify({ email: nuevoEmail }) });
+    alert(`✅ Email actualizado a: ${nuevoEmail}`);
+    cargarUsuarios();
+  } catch(err) { alert('Error: ' + err.message); }
+}
+
+async function borrarUsuario(id, nombre) {
+  if (!confirm(`⚠️ ¿Borrar al usuario ${nombre}?\nEsta acción no se puede deshacer.`)) return;
+  const conf2 = prompt(`Escribí BORRAR para confirmar:`);
+  if (conf2 !== 'BORRAR') { alert('Cancelado'); return; }
+  try {
+    await apiAdmin(`/superadmin/usuarios/${id}`, { method:'DELETE' });
+    alert(`✅ Usuario ${nombre} eliminado`);
+    cargarUsuarios();
+  } catch(err) { alert('Error: ' + err.message); }
+}
+
 async function resetPassword(id, nombre) {
   if (!confirm(`¿Resetear contraseña de ${nombre}? Se le asignará la contraseña temporal: Padel1234`)) return;
   try {
