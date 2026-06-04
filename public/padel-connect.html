@@ -712,6 +712,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
     </div>
   </div>
   <div style="width:100%;max-width:420px;padding:4px 20px 24px">
+    <button onclick="activarNotificaciones()" style="width:100%;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">🔔 Activar Notificaciones</button>
     <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </div>
@@ -1409,6 +1410,7 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       </div>
     </div>
         <button onclick="guardarPerfilCompleto()" style="width:100%;background:linear-gradient(135deg,var(--green-dark),var(--green));border:none;color:#fff;padding:13px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">GUARDAR CAMBIOS ✓</button>
+    <button onclick="activarNotificaciones()" style="width:100%;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">🔔 Activar Notificaciones</button>
     <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
     <button class="profile-close-btn" onclick="closeProfile()">Cancelar</button>
   </div>
@@ -1690,6 +1692,14 @@ async function doLogin(){
   }finally{hideLoader();}
 }
 
+async function activarNotificaciones(){
+  try {
+    if (!window.OneSignal) { alert("OneSignal no disponible"); return; }
+    const permission = await window.OneSignal.Notifications.requestPermission();
+    if (usuario?.id) await window.OneSignal.login(usuario.id);
+    alert(permission ? "Notificaciones activadas" : "Permiso denegado — habilitalo desde la configuracion del navegador");
+  } catch(e) { alert("Error: "+e.message); }
+}
 function doLogout(){
   token=null;usuario=null;sesionId=null;
   localStorage.removeItem(APPKEY+'_sesion');
