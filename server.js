@@ -41,6 +41,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: '*' }));
 
 // ── HTML estático ────────────────────────────────────────────────────
+// Service Worker con scope amplio para PWA en /padel/
+app.get('/OneSignalSDKWorker.js', (req, res) => {
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(require('path').join(__dirname, 'public', 'OneSignalSDKWorker.js'));
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Rutas ────────────────────────────────────────────────────────────
