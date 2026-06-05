@@ -328,16 +328,40 @@ router.post('/:id/generar-fixture', authAdmin, async (req, res) => {
     const canchas = a.cantidad_canchas || 2;
     const horaBase = a.hora_inicio || '09:00';
 
+    // Calcular canchas por categoria
+    let canchaOffset = 0;
+    const canchasPorCat = [];
     for (const cat of categorias) {
+      const { rows: pCat } = await client.query('SELECT COUNT(*) as cnt FROM americanos_parejas_inscripciones WHERE categoria_id=$1', [cat.id]);
+      const nP = parseInt(pCat[0].cnt);
+      const nC = nP <= 4 ? 1 : Math.floor(canchas * (nP <= 4 ? 1 : 3) / (canchas));
+      canchasPorCat.push({ catId: cat.id, offset: canchaOffset, ncanchas: Math.max(1, Math.round(canchas * (nP / (nP + 4)))) });
+      canchaOffset += canchasPorCat[canchasPorCat.length-1].ncanchas;
+    }
+    // Ajustar para que sumen exactamente canchas totales
+    const totalAsignadas = canchasPorCat.reduce((s,c) => s+c.ncanchas, 0);
+    if (totalAsignadas !== canchas && canchasPorCat.length > 0) {
+      canchasPorCat[0].ncanchas += canchas - totalAsignadas;
+    }
+    // Recalcular offsets
+    let off = 0;
+    for (const c of canchasPorCat) { c.offset = off; off += c.ncanchas; }
+
+    for (const cat of categorias) {
+      const catInfo = canchasPorCat.find(c => c.catId === cat.id) || { offset: 0, ncanchas: canchas };
+      const canchaStart = catInfo.offset + 1;
+      const nCanchasCat = catInfo.ncanchas;
+
       const { rows: parejas } = await client.query(
         'SELECT * FROM americanos_parejas_inscripciones WHERE categoria_id=$1 ORDER BY id', [cat.id]);
 
       if (parejas.length < 2) continue;
 
-      // Dividir en 2 grupos (si hay suficientes)
-      const mitad = Math.ceil(parejas.length / 2);
+      // Si hay 4 o menos parejas, un solo grupo (todas contra todas)
+      const unSoloGrupo = parejas.length <= 4;
+      const mitad = unSoloGrupo ? parejas.length : Math.ceil(parejas.length / 2);
       const grupo1 = parejas.slice(0, mitad);
-      const grupo2 = parejas.slice(mitad);
+      const grupo2 = unSoloGrupo ? [] : parejas.slice(mitad);
 
       // Asignar grupo a cada pareja
       for (const p of grupo1) {
@@ -403,7 +427,7 @@ router.post('/:id/generar-fixture', authAdmin, async (req, res) => {
         const hi = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
         const [hf, nhh, nmm] = addMin(hh, mm, durMin);
 
-        let canchaActual = 1;
+        let canchaActual = canchaStart;
         for (const m of partidos) {
           await client.query(`
             INSERT INTO americanos_parejas_partidos
@@ -412,6 +436,7 @@ router.post('/:id/generar-fixture', authAdmin, async (req, res) => {
             [americanoId, cat.id, m.grupo, rondaNum, canchaActual, hi, hf, m.p1.id, m.p2.id]);
           totalPartidos++;
           canchaActual++;
+          if (canchaActual > canchaStart + nCanchasCat - 1) canchaActual = canchaStart;
         }
 
         rondaNum++;
