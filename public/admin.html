@@ -1084,7 +1084,141 @@ function apMostrarTab(tab) {
     const partidos = (a.partidos||[]).filter(p=>p.fase==='grupos');
     const cats = a.categorias || [];
     if (!partidos.length) { content.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Sin fixture generado aún.</p>'; return; }
-    content.innerHTML = cats.map(cat => {
+    content.innerHTML = `
+      <div style="margin-bottom:16px">
+        <input id="fixture-search" type="text" placeholder="🔍 Buscar jugador o pareja..."
+          style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px"
+          oninput="filtrarFixture(this.value)">
+      </div>
+      <div id="fixture-lista"></div>`;
+
+    window._fixturePartidos = partidos;
+    window._fixtureCats = cats;
+    window._fixtureAmericano = a;
+
+    window.filtrarFixture = function(q) {
+      const lista = document.getElementById('fixture-lista');
+      if (!lista) return;
+      const qLower = q.toLowerCase().trim();
+      const filtrados = qLower
+        ? partidos.filter(p =>
+            (p.pareja1_nombre||'').toLowerCase().includes(qLower) ||
+            (p.pareja2_nombre||'').toLowerCase().includes(qLower))
+        : partidos;
+
+      if (!filtrados.length) {
+        lista.innerHTML = '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">Sin resultados.</p>';
+        return;
+      }
+
+      if (qLower) {
+        // Vista plana cuando hay búsqueda
+        lista.innerHTML = filtrados.map(p => `
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:6px">
+            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Cancha ${p.cancha} · ${p.hora_inicio?p.hora_inicio.substring(0,5):''} · Ronda ${p.ronda} · Grupo ${p.grupo}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <span style="font-size:13px;flex:1">${p.pareja1_nombre||'?'}</span>
+              <span style="font-size:14px;font-weight:700;color:${p.estado==='jugado'?'#22c55e':'rgba(255,255,255,.3)'}">
+                ${p.estado==='jugado'?`${p.games_pareja1} - ${p.games_pareja2}`:'vs'}
+              </span>
+              <span style="font-size:13px;flex:1;text-align:right">${p.pareja2_nombre||'?'}</span>
+            </div>
+            ${p.estado==='pendiente'?`
+            <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <input id="apg1-${p.id}" type="number" min="0" max="7" placeholder="G1"
+                style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+              <span style="color:rgba(255,255,255,.3)">-</span>
+              <input id="apg2-${p.id}" type="number" min="0" max="7" placeholder="G2"
+                style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+              <input id="appass-${p.id}" type="password" placeholder="🔐 Pass"
+                style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+              <button onclick="cargarResultadoAP(${p.id},'grupos')"
+                style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:11px;font-weight:700;cursor:pointer">✓ Cargar</button>
+              <span id="apmsg-${p.id}" style="font-size:11px"></span>
+            </div>`:
+            `<div style="margin-top:6px">
+              <button onclick="document.getElementById('apmodedit-${p.id}').style.display=document.getElementById('apmodedit-${p.id}').style.display==='none'?'flex':'none'"
+                style="padding:3px 10px;border-radius:20px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06);color:#fbbf24;font-size:10px;cursor:pointer">✏️ Modificar</button>
+              <div id="apmodedit-${p.id}" style="display:none;margin-top:6px;gap:6px;align-items:center;flex-wrap:wrap">
+                <input id="apmg1-${p.id}" type="number" min="0" max="7" value="${p.games_pareja1||0}"
+                  style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                <span style="color:rgba(255,255,255,.3)">-</span>
+                <input id="apmg2-${p.id}" type="number" min="0" max="7" value="${p.games_pareja2||0}"
+                  style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                <input id="apmodpass-${p.id}" type="password" placeholder="🔐 Pass"
+                  style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                <button onclick="modificarResultadoAP(${p.id})"
+                  style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#d97706,#fbbf24);color:#000;font-size:11px;font-weight:700;cursor:pointer">✓ Guardar</button>
+              </div>
+            </div>`}
+          </div>`).join('');
+        return;
+      }
+
+      // Vista agrupada por categoría/grupo/ronda cuando no hay búsqueda
+      lista.innerHTML = cats.map(cat => {
+        const pCat = filtrados.filter(p=>p.categoria_id===cat.id);
+        if (!pCat.length) return '';
+        const grupos = [...new Set(pCat.map(p=>p.grupo))].sort();
+        return `
+          <div style="margin-bottom:24px">
+            <div style="font-size:14px;font-weight:700;color:#22c55e;margin-bottom:10px">${cat.nombre}</div>
+            ${grupos.map(gr => {
+              const pGr = pCat.filter(p=>p.grupo===gr);
+              const rondas = [...new Set(pGr.map(p=>p.ronda))].sort((a,b)=>a-b);
+              return `
+                <div style="margin-bottom:12px">
+                  <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px">GRUPO ${gr}</div>
+                  ${rondas.map(r => `
+                    <div style="margin-bottom:8px">
+                      <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">RONDA ${r}</div>
+                      ${pGr.filter(p=>p.ronda===r).map(p => `
+                        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:6px">
+                          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Cancha ${p.cancha} · ${p.hora_inicio?p.hora_inicio.substring(0,5):''}</div>
+                          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                            <span style="font-size:13px;flex:1">${p.pareja1_nombre||'?'}</span>
+                            <span style="font-size:14px;font-weight:700;color:${p.estado==='jugado'?'#22c55e':'rgba(255,255,255,.3)'}">
+                              ${p.estado==='jugado'?`${p.games_pareja1} - ${p.games_pareja2}`:'vs'}
+                            </span>
+                            <span style="font-size:13px;flex:1;text-align:right">${p.pareja2_nombre||'?'}</span>
+                          </div>
+                          ${p.estado==='pendiente'?`
+                          <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                            <input id="apg1-${p.id}" type="number" min="0" max="7" placeholder="G1"
+                              style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                            <span style="color:rgba(255,255,255,.3)">-</span>
+                            <input id="apg2-${p.id}" type="number" min="0" max="7" placeholder="G2"
+                              style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                            <input id="appass-${p.id}" type="password" placeholder="🔐 Pass"
+                              style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                            <button onclick="cargarResultadoAP(${p.id},'grupos')"
+                              style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:11px;font-weight:700;cursor:pointer">✓ Cargar</button>
+                            <span id="apmsg-${p.id}" style="font-size:11px"></span>
+                          </div>`:
+                          `<div style="margin-top:6px">
+                            <button onclick="document.getElementById('apmodedit-${p.id}').style.display=document.getElementById('apmodedit-${p.id}').style.display==='none'?'flex':'none'"
+                              style="padding:3px 10px;border-radius:20px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06);color:#fbbf24;font-size:10px;cursor:pointer">✏️ Modificar</button>
+                            <div id="apmodedit-${p.id}" style="display:none;margin-top:6px;gap:6px;align-items:center;flex-wrap:wrap">
+                              <input id="apmg1-${p.id}" type="number" min="0" max="7" value="${p.games_pareja1||0}"
+                                style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                              <span style="color:rgba(255,255,255,.3)">-</span>
+                              <input id="apmg2-${p.id}" type="number" min="0" max="7" value="${p.games_pareja2||0}"
+                                style="width:48px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">
+                              <input id="apmodpass-${p.id}" type="password" placeholder="🔐 Pass"
+                                style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+                              <button onclick="modificarResultadoAP(${p.id})"
+                                style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#d97706,#fbbf24);color:#000;font-size:11px;font-weight:700;cursor:pointer">✓ Guardar</button>
+                            </div>
+                          </div>`}
+                        </div>`).join('')}
+                    </div>`).join('')}
+                </div>`;
+            }).join('')}
+          </div>`;
+    }).join('');
+    };
+    window.filtrarFixture('');
+    cats.map(cat => {
       const pCat = partidos.filter(p=>p.categoria_id===cat.id);
       const grupos = [...new Set(pCat.map(p=>p.grupo))].sort();
       return `
@@ -1211,12 +1345,59 @@ function apMostrarTab(tab) {
     }
     const estadoColor = { pendiente:'#f87171', parcial:'#fbbf24', confirmado:'#22c55e' };
     const estadoLabel = { pendiente:'⏳ Pendiente', parcial:'⚠️ Parcial', confirmado:'✅ Confirmado' };
+    window._pagosInscriptos = inscriptos;
+    window._pagosPrecio = precio;
+    window._estadoColor = estadoColor;
+    window._estadoLabel = estadoLabel;
+
+    window.filtrarPagos = function(q) {
+      const lista = document.getElementById('pagos-lista');
+      if (!lista) return;
+      const qLower = q.toLowerCase().trim();
+      const filtrados = qLower
+        ? inscriptos.filter(i =>
+            (i.nombre_pareja||'').toLowerCase().includes(qLower) ||
+            (i.jugador1_nombre||'').toLowerCase().includes(qLower) ||
+            (i.jugador2_nombre||'').toLowerCase().includes(qLower))
+        : inscriptos;
+      lista.innerHTML = filtrados.map(i => `
+        <div id="pago-card-${i.id}" style="background:${{pendiente:'rgba(248,113,113,.06)',parcial:'rgba(251,191,36,.12)',confirmado:'rgba(34,197,94,.12)'}[i.pago_estado]||'rgba(248,113,113,.06)'};border:1px solid ${{pendiente:'rgba(248,113,113,.2)',parcial:'rgba(251,191,36,.4)',confirmado:'rgba(34,197,94,.4)'}[i.pago_estado]||'rgba(248,113,113,.2)'};border-radius:12px;padding:14px;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <div style="font-weight:700;font-size:14px;color:#fff;margin-bottom:2px">${i.nombre_pareja||'Sin nombre'}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4)">${i.jugador1_nombre||''} · ${i.jugador2_nombre||''}</div>
+            </div>
+            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(0,0,0,.3);border:1px solid ${estadoColor[i.pago_estado]||'#fff'};color:${estadoColor[i.pago_estado]||'#fff'}">${estadoLabel[i.pago_estado]||i.pago_estado||'pendiente'}</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select id="pago-estado-${i.id}" style="padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:12px">
+              <option value="pendiente" ${(i.pago_estado||'pendiente')==='pendiente'?'selected':''}>⏳ Pendiente</option>
+              <option value="parcial" ${i.pago_estado==='parcial'?'selected':''}>⚠️ Parcial</option>
+              <option value="confirmado" ${i.pago_estado==='confirmado'?'selected':''}>✅ Confirmado</option>
+            </select>
+            <input id="pago-monto-${i.id}" type="number" value="${i.monto_pagado||0}" placeholder="Monto $"
+              style="width:100px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+            <input id="pago-nota-${i.id}" type="text" value="${i.pago_notas||''}" placeholder="Nota..."
+              style="flex:1;min-width:120px;padding:5px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
+            <button onclick="guardarPagoInscripcion(${i.id})"
+              style="padding:5px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:12px;font-weight:700;cursor:pointer">💾 Guardar</button>
+          </div>
+        </div>`).join('');
+    };
+
     content.innerHTML = `
-      <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
         <div style="font-size:13px;color:rgba(255,255,255,.4)">Precio inscripción: <span style="color:#22c55e;font-weight:700">$${precio.toLocaleString('es-AR')} por jugador</span></div>
         <div style="font-size:13px;color:rgba(255,255,255,.4)">${inscriptos.length} parejas</div>
       </div>
-      ${inscriptos.map(i => `
+      <div style="margin-bottom:14px">
+        <input type="text" placeholder="🔍 Buscar pareja o jugador..."
+          style="width:100%;box-sizing:border-box;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px"
+          oninput="filtrarPagos(this.value)">
+      </div>
+      <div id="pagos-lista"></div>`;
+    filtrarPagos('');
+    const _dummy = inscriptos.map(i => `
         <div id="pago-card-${i.id}" style="background:${{pendiente:'rgba(248,113,113,.06)',parcial:'rgba(251,191,36,.12)',confirmado:'rgba(34,197,94,.12)'}[i.pago_estado]||'rgba(248,113,113,.06)'};border:1px solid ${{pendiente:'rgba(248,113,113,.2)',parcial:'rgba(251,191,36,.4)',confirmado:'rgba(34,197,94,.4)'}[i.pago_estado]||'rgba(248,113,113,.2)'};border-radius:12px;padding:14px;margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
             <div>
