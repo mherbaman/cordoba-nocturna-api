@@ -517,4 +517,16 @@ router.put('/partidos/:pid/resultado', async (req, res) => {
   } catch(err) { console.error('PUT resultado:', err); res.status(500).json({ error: err.message }); }
 });
 
+
+// ── PUT /americanos/jugadores/:id/pago ────────────────────────────────
+router.put('/jugadores/:id/pago', async (req, res) => {
+  try {
+    const { pago_estado, monto_pagado, pago_notas } = req.body;
+    await pool.query(
+      'UPDATE americanos_jugadores SET pago_estado=$1, monto_pagado=$2, pago_notas=$3 WHERE id=$4',
+      [pago_estado, monto_pagado||0, pago_notas||'', req.params.id]);
+    res.json({ ok: true });
+  } catch(err) { res.status(500).json({ error: err.message }); }
+});
+
 module.exports = router;
