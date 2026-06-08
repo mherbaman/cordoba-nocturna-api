@@ -555,7 +555,24 @@ router.put('/partidos/:partidoId/resultado', authAdmin, async (req, res) => {
       WHERE id=$4`,
       [games_pareja1, games_pareja2, ganador_id, partidoId]);
 
-    // Actualizar posiciones
+    // Actualizar posiciones — restar resultado anterior si el partido ya estaba jugado
+    if (p.estado === 'jugado' && p.games_pareja1 != null) {
+      const prevGanador = p.ganador_id;
+      const restarPos = async (parejaId, gfavor, gcontra, gano) => {
+        await client.query(`
+          UPDATE americanos_parejas_posiciones SET
+            partidos_jugados = partidos_jugados - 1,
+            partidos_ganados = partidos_ganados - $1,
+            games_favor = games_favor - $2,
+            games_contra = games_contra - $3,
+            diferencia = diferencia - $4,
+            puntos = puntos - $5
+          WHERE americano_id=$6 AND categoria_id=$7 AND pareja_id=$8`,
+          [gano?1:0, gfavor, gcontra, gfavor-gcontra, gano?3:0, p.americano_id, p.categoria_id, parejaId]);
+      };
+      await restarPos(p.pareja1_id, p.games_pareja1, p.games_pareja2, prevGanador===p.pareja1_id);
+      await restarPos(p.pareja2_id, p.games_pareja2, p.games_pareja1, prevGanador===p.pareja2_id);
+    }
     const updatePos = async (parejaId, gfavor, gcontra, gano) => {
       await client.query(`
         UPDATE americanos_parejas_posiciones SET
