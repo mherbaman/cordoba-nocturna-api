@@ -2229,6 +2229,40 @@ router.put('/reservas/:id/estado', authAdmin, async (req, res) => {
   }
 });
 
+
+// ── PUT /padel/reservas/:id/editar ───────────────────────────────────
+// Editar reserva manual (no app)
+router.put('/reservas/:id/editar', authAdmin, async (req, res) => {
+  const { numero_cancha, fecha, hora_inicio, hora_fin, nombre_manual, canal, precio_cobrado, estado, notas } = req.body;
+  try {
+    // Verificar que no sea reserva de app
+    const check = await pool.query('SELECT canal, pago_por_app FROM reservas_padel WHERE id = $1', [req.params.id]);
+    if (check.rows.length === 0) return res.status(404).json({ error: 'Reserva no encontrada' });
+    if (check.rows[0].canal === 'app' || check.rows[0].pago_por_app) {
+      return res.status(403).json({ error: 'Las reservas de app no se pueden editar manualmente' });
+    }
+    const result = await pool.query(`
+      UPDATE reservas_padel SET
+        numero_cancha  = COALESCE($1, numero_cancha),
+        fecha          = COALESCE($2, fecha),
+        hora_inicio    = COALESCE($3, hora_inicio),
+        hora_fin       = COALESCE($4, hora_fin),
+        nombre_manual  = COALESCE($5, nombre_manual),
+        canal          = COALESCE($6, canal),
+        precio_cobrado = COALESCE($7, precio_cobrado),
+        estado         = COALESCE($8, estado),
+        notas          = COALESCE($9, notas),
+        respondido_en  = NOW()
+      WHERE id = $10
+      RETURNING *
+    `, [numero_cancha, fecha, hora_inicio, hora_fin, nombre_manual, canal, precio_cobrado, estado, notas, req.params.id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('PUT /padel/reservas/:id/editar:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────

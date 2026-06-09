@@ -213,6 +213,23 @@
     /* Filtros */
     .cf-btn.active,.cp-btn.active{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:var(--green)}
 
+    /* AGENDA SEMANAL */
+    .agenda-table{width:100%;border-collapse:collapse;min-width:600px}
+    .agenda-th{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);padding:8px 6px;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-align:center;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+    .agenda-th.hoy{background:rgba(34,197,94,.08);color:var(--green);border-color:rgba(34,197,94,.2)}
+    .agenda-hora{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);padding:6px 8px;font-size:11px;color:rgba(255,255,255,.3);text-align:right;white-space:nowrap;width:52px}
+    .agenda-cell{border:1px solid rgba(255,255,255,.04);padding:3px;vertical-align:top;width:auto}
+    .agenda-cell.hoy{background:rgba(34,197,94,.02)}
+    .slot-libre{background:rgba(34,197,94,.04);border:1px dashed rgba(34,197,94,.15);border-radius:6px;padding:4px 6px;font-size:10px;color:rgba(34,197,94,.4);cursor:pointer;text-align:center;transition:all .15s;margin:1px}
+    .slot-libre:hover{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:var(--green)}
+    .slot-ocupado{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:6px;padding:4px 6px;font-size:10px;color:#fff;cursor:pointer;transition:all .15s;margin:1px}
+    .slot-ocupado:hover{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.5)}
+    .slot-ocupado.app{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#a78bfa}
+    .slot-ocupado.whatsapp{background:rgba(14,165,233,.1);border-color:rgba(14,165,233,.3);color:#38bdf8}
+    .slot-ocupado.cancelado{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.15);color:rgba(239,68,68,.5);text-decoration:line-through}
+    .slot-nombre{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
+    .slot-info{opacity:.7;font-size:9px;margin-top:1px}
+
   </style>
 </head>
 <body>
@@ -827,6 +844,11 @@ function showCanchaTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
   if (tab === 'gestion') cargarCanchasConfig();
+  if (tab === 'agenda') {
+    agendaFechaBase = agendaFechaBase || lunesDe(new Date());
+    renderAgendaNav();
+    cargarAgenda();
+  }
   if (tab === 'turnos') {
     turnosFechaActual = turnosFechaActual || new Date().toISOString().split('T')[0];
     const picker = document.getElementById('turnos-fecha-picker');
@@ -1369,6 +1391,269 @@ async function cerrarCajaDia() {
 // Cargar canchas cuando se abre la pagina
 const _origShowPage = typeof showPage === 'function' ? showPage : null;
 
+// ── AGENDA SEMANAL ──────────────────────────────────────────
+
+let agendaFechaBase = null; // lunes de la semana visible
+let agendaReservas = [];
+let agendaDisponibles = [];
+
+function lunesDe(fecha) {
+  const d = new Date(fecha);
+  const dia = d.getDay();
+  const diff = dia === 0 ? -6 : 1 - dia;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function fmtFecha(d) {
+  return d.toISOString().split('T')[0];
+}
+
+function fmtFechaCorta(d) {
+  const DIAS = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()];
+}
+
+function irSemanaActual() {
+  agendaFechaBase = lunesDe(new Date());
+  renderAgendaNav();
+  cargarAgenda();
+}
+
+function cambiarSemana(delta) {
+  if (!agendaFechaBase) agendaFechaBase = lunesDe(new Date());
+  agendaFechaBase = new Date(agendaFechaBase);
+  agendaFechaBase.setDate(agendaFechaBase.getDate() + delta * 7);
+  renderAgendaNav();
+  cargarAgenda();
+}
+
+function renderAgendaNav() {
+  const lbl = document.getElementById('agenda-semana-lbl');
+  if (!lbl || !agendaFechaBase) return;
+  const fin = new Date(agendaFechaBase);
+  fin.setDate(fin.getDate() + 6);
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  lbl.textContent = agendaFechaBase.getDate() + ' ' + MESES[agendaFechaBase.getMonth()] + ' — ' + fin.getDate() + ' ' + MESES[fin.getMonth()] + ' ' + fin.getFullYear();
+}
+
+async function cargarAgenda() {
+  const nid = getCanchasNegocioId();
+  if (!nid || !agendaFechaBase) return;
+  const cont = document.getElementById('agenda-container');
+  cont.innerHTML = '<div class="loader"></div>';
+
+  // Cargar los 7 dias de la semana en paralelo
+  const dias = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(agendaFechaBase);
+    d.setDate(d.getDate() + i);
+    dias.push(fmtFecha(d));
+  }
+
+  try {
+    const [todasReservas, disponibles] = await Promise.all([
+      // Cargar reservas de toda la semana
+      Promise.all(dias.map(f =>
+        apiAdmin('/padel/club/turnos-del-dia?negocio_id=' + nid + '&fecha=' + f).catch(()=>[])
+      )),
+      // Disponibilidad base
+      apiAdmin('/padel/disponibilidad/' + nid).catch(()=>[])
+    ]);
+
+    agendaDisponibles = disponibles;
+
+    // Flatten reservas con fecha
+    agendaReservas = [];
+    todasReservas.forEach((reservasDia, idx) => {
+      reservasDia.forEach(r => { agendaReservas.push({...r, _fecha: dias[idx]}); });
+    });
+
+    renderAgenda(dias, disponibles, agendaReservas);
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message||e) + '</div>';
+  }
+}
+
+function renderAgenda(dias, disponibles, reservas) {
+  const cont = document.getElementById('agenda-container');
+  const hoy = fmtFecha(new Date());
+
+  // Obtener canchas unicas
+  const canchas = [...new Set(disponibles.map(d => d.numero_cancha||1))].sort((a,b)=>a-b);
+  if (!canchas.length) {
+    cont.innerHTML = '<div class="empty-state">No hay canchas configuradas.</div>';
+    return;
+  }
+
+  // Obtener horas unicas ordenadas
+  const horasSet = new Set(disponibles.map(d => String(d.hora_inicio).substring(0,5)));
+  const horas = [...horasSet].sort();
+
+  // Construir tabla
+  let html = '<table class="agenda-table"><thead><tr>';
+  html += '<th class="agenda-th" style="width:52px">Hora</th>';
+
+  dias.forEach(f => {
+    const d = new Date(f + 'T12:00:00');
+    const esHoy = f === hoy;
+    html += '<th class="agenda-th ' + (esHoy ? 'hoy' : '') + '" colspan="' + canchas.length + '">' + fmtFechaCorta(d) + '</th>';
+  });
+  html += '</tr>';
+
+  // Fila sub-header con canchas
+  html += '<tr><th class="agenda-hora"></th>';
+  dias.forEach(f => {
+    const esHoy = f === hoy;
+    canchas.forEach(n => {
+      html += '<th class="agenda-th ' + (esHoy ? 'hoy' : '') + '" style="font-size:10px;padding:4px 2px">C' + n + '</th>';
+    });
+  });
+  html += '</tr></thead><tbody>';
+
+  // Filas por hora
+  horas.forEach(hora => {
+    html += '<tr>';
+    html += '<td class="agenda-hora">' + hora + '</td>';
+
+    dias.forEach(f => {
+      const esHoy = f === hoy;
+      const diaSem = new Date(f + 'T12:00:00').getDay();
+
+      canchas.forEach(num => {
+        // Ver si hay disponibilidad para este slot
+        const hayDisp = disponibles.some(d =>
+          (d.numero_cancha||1) == num &&
+          String(d.hora_inicio).substring(0,5) === hora &&
+          d.activo &&
+          (d.dia_semana === diaSem || (d.fecha_especifica && String(d.fecha_especifica).substring(0,10) === f))
+        );
+
+        // Ver si hay reserva
+        const reserva = reservas.find(r =>
+          parseInt(r.numero_cancha||1) === parseInt(num) &&
+          String(r.hora_inicio).substring(0,5) === hora &&
+          r._fecha === f
+        );
+
+        html += '<td class="agenda-cell ' + (esHoy ? 'hoy' : '') + '">';
+
+        if (reserva) {
+          const canal = reserva.canal || 'presencial';
+          const nombre = (reserva.jugador_nombre || reserva.nombre_manual || 'Reservado').split(' ')[0];
+          const isCancelada = reserva.estado === 'cancelado' || reserva.estado === 'rechazado';
+          const cls = isCancelada ? 'cancelado' : (canal === 'app' ? 'app' : canal === 'whatsapp' ? 'whatsapp' : '');
+          html += '<div class="slot-ocupado ' + cls + '" onclick="abrirEditarReserva(' + JSON.stringify(reserva).replace(/"/g,'&quot;') + ')">';
+          html += '<div class="slot-nombre">' + nombre + '</div>';
+          html += '<div class="slot-info">' + (canal === 'app' ? '&#128241;' : canal === 'whatsapp' ? '&#128172;' : '&#127968;') + ' ARS ' + Math.round(parseFloat(reserva.precio_cobrado||0)/1000) + 'K</div>';
+          html += '</div>';
+        } else if (hayDisp) {
+          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos('' + num + '','' + f + '','' + hora + '')">';
+          html += '+ libre';
+          html += '</div>';
+        } else {
+          html += '<div style="height:36px"></div>';
+        }
+
+        html += '</td>';
+      });
+    });
+
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+// ── EDITAR RESERVA ──────────────────────────────────────────
+
+function abrirEditarReserva(reserva) {
+  // No editar reservas de app
+  if (reserva.canal === 'app' || reserva.pago_por_app) {
+    alert('Las reservas realizadas por la app no se pueden modificar manualmente.');
+    return;
+  }
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.value=v||''; };
+  set('er-id', reserva.id);
+  set('er-fecha', reserva._fecha || reserva.fecha || '');
+  set('er-hinicio', String(reserva.hora_inicio).substring(0,5));
+  set('er-hfin', String(reserva.hora_fin).substring(0,5));
+  set('er-jugador', reserva.jugador_nombre || reserva.nombre_manual || '');
+  set('er-canal', reserva.canal || 'presencial');
+  set('er-monto', Math.round(parseFloat(reserva.precio_cobrado||0)));
+  set('er-estado', reserva.estado || 'confirmado');
+  set('er-notas', reserva.notas || '');
+
+  // Poblar select canchas
+  const sel = document.getElementById('er-cancha');
+  if (sel && canchasData.length) {
+    const nums = [...new Set(canchasData.map(t => t.numero_cancha))].sort((a,b)=>a-b);
+    sel.innerHTML = nums.map(n => '<option value="' + n + '" style="background:#1a0030"' + (n==reserva.numero_cancha?' selected':'') + '>Cancha ' + n + '</option>').join('');
+  }
+
+  document.getElementById('modal-editar-reserva').style.display = 'flex';
+}
+
+function cerrarModalEditarReserva() {
+  document.getElementById('modal-editar-reserva').style.display = 'none';
+}
+
+async function confirmarEditarReserva() {
+  const id = document.getElementById('er-id').value;
+  if (!id) return;
+  const body = {
+    numero_cancha: document.getElementById('er-cancha').value,
+    fecha: document.getElementById('er-fecha').value,
+    hora_inicio: document.getElementById('er-hinicio').value,
+    hora_fin: document.getElementById('er-hfin').value,
+    nombre_manual: document.getElementById('er-jugador').value,
+    canal: document.getElementById('er-canal').value,
+    precio_cobrado: parseFloat(document.getElementById('er-monto').value)||0,
+    estado: document.getElementById('er-estado').value,
+    notas: document.getElementById('er-notas').value
+  };
+  try {
+    await apiAdmin('/padel/reservas/' + id + '/editar', { method: 'PUT', body: JSON.stringify(body) });
+    cerrarModalEditarReserva();
+    cargarAgenda();
+    cargarTurnosDia(turnosFechaActual);
+  } catch(e) { alert('Error: ' + (e.message||e)); }
+}
+
+async function cancelarReservaDesdeModal() {
+  const id = document.getElementById('er-id').value;
+  if (!id) return;
+  if (!confirm('Confirmas cancelar este turno? El slot quedara disponible nuevamente.')) return;
+  try {
+    await apiAdmin('/padel/reservas/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado: 'cancelado' }) });
+    cerrarModalEditarReserva();
+    cargarAgenda();
+    cargarTurnosDia(turnosFechaActual);
+  } catch(e) { alert('Error: ' + (e.message||e)); }
+}
+
+// Abrir modal turno manual pre-cargado desde agenda
+function abrirModalTurnoManualConDatos(cancha, fecha, hora) {
+  abrirModalTurnoManual();
+  setTimeout(function() {
+    const sel = document.getElementById('tm-cancha');
+    if (sel) sel.value = cancha;
+    const fi = document.getElementById('tm-fecha');
+    if (fi) fi.value = fecha;
+    const hi = document.getElementById('tm-hinicio');
+    if (hi) hi.value = hora;
+    // Calcular hora fin automaticamente (+1h)
+    const hf = document.getElementById('tm-hfin');
+    if (hf) {
+      const [h,m] = hora.split(':').map(Number);
+      hf.value = String(h+1).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    }
+  }, 50);
+}
+
 </script>
 
 <!-- LOGIN -->
@@ -1570,7 +1855,8 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
     <div class="page" id="page-canchas">
       <div class="canchas-inner-nav">
         <button class="ci-tab active" id="cit-gestion" onclick="showCanchaTab('gestion')">&#9881; Gestionar Canchas</button>
-        <button class="ci-tab" id="cit-turnos" onclick="showCanchaTab('turnos')">&#128197; Turnos de Hoy</button>
+        <button class="ci-tab" id="cit-agenda" onclick="showCanchaTab('agenda')">&#128198; Agenda Semanal</button>
+        <button class="ci-tab" id="cit-turnos" onclick="showCanchaTab('turnos')">&#128197; Turnos del Dia</button>
         <button class="ci-tab" id="cit-caja" onclick="showCanchaTab('caja')">&#128181; Cierre de Caja</button>
       </div>
 
@@ -1580,6 +1866,19 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
           <button class="btn-export" onclick="abrirModalNuevaCancha()">+ Nueva cancha / turno</button>
         </div>
         <div id="canchas-config-list"><div class="loader"></div></div>
+      </div>
+
+      <div id="ci-agenda" class="ci-sec" style="display:none">
+        <div class="section-hdr" style="flex-wrap:wrap;gap:10px">
+          <div class="section-title">&#128198; Agenda Semanal</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button onclick="cambiarSemana(-1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8249;</button>
+            <span id="agenda-semana-lbl" style="font-size:13px;color:#fff;font-weight:600;min-width:200px;text-align:center"></span>
+            <button onclick="cambiarSemana(1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8250;</button>
+            <button onclick="irSemanaActual()" class="btn-sm" style="margin-left:4px">Hoy</button>
+          </div>
+        </div>
+        <div id="agenda-container" style="overflow-x:auto"><div class="loader"></div></div>
       </div>
 
       <div id="ci-turnos" class="ci-sec" style="display:none">
@@ -1745,7 +2044,6 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
         <select class="input-field" id="tm-canal" style="color:#fff;background:#1a0030;margin:0">
           <option value="presencial" style="background:#1a0030">Presencial</option>
           <option value="whatsapp" style="background:#1a0030">WhatsApp</option>
-          <option value="app" style="background:#1a0030">App</option>
         </select>
       </div>
       <div>
@@ -1763,6 +2061,64 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onclick="cerrarModalTurnoManual()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
       <button onclick="confirmarTurnoManual()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR RESERVA -->
+<div id="modal-editar-reserva" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner">
+    <div class="modal-title">&#9998; Editar Reserva</div>
+    <input type="hidden" id="er-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label class="field-label">Cancha</label>
+        <select class="input-field" id="er-cancha" style="color:#fff;background:#1a0030;margin:0"></select>
+      </div>
+      <div>
+        <label class="field-label">Fecha</label>
+        <input class="input-field" id="er-fecha" type="date" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <input class="input-field" id="er-hinicio" type="time" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <input class="input-field" id="er-hfin" type="time" style="margin:0;color-scheme:dark">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">Jugador / Referencia</label>
+        <input class="input-field" id="er-jugador" placeholder="Nombre" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Canal</label>
+        <select class="input-field" id="er-canal" style="color:#fff;background:#1a0030;margin:0">
+          <option value="presencial" style="background:#1a0030">Presencial</option>
+          <option value="whatsapp" style="background:#1a0030">WhatsApp</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Monto (ARS)</label>
+        <input class="input-field" id="er-monto" type="number" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Estado</label>
+        <select class="input-field" id="er-estado" style="color:#fff;background:#1a0030;margin:0">
+          <option value="confirmado" style="background:#1a0030">Confirmado / Pagado</option>
+          <option value="pendiente" style="background:#1a0030">Pendiente</option>
+          <option value="cancelado" style="background:#1a0030">Cancelado</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">Notas</label>
+        <input class="input-field" id="er-notas" placeholder="Opcional..." style="margin:0">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarModalEditarReserva()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="cancelarReservaDesdeModal()" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:12px 20px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar turno</button>
+      <button onclick="confirmarEditarReserva()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">GUARDAR</button>
     </div>
   </div>
 </div>
