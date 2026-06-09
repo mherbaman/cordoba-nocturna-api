@@ -1983,8 +1983,25 @@ router.get('/club/canchas', authAdmin, async (req, res) => {
   }
 });
 
+// ── PUT /padel/club/canchas/numero/:num/toggle-todos ─────────────────
+// Activar o desactivar TODOS los turnos de una cancha por numero_cancha
+// DEBE ir ANTES de /:id para evitar conflicto de rutas en Express
+router.put('/club/canchas/numero/:num/toggle-todos', authAdmin, async (req, res) => {
+  const { negocio_id, activo } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE disponibilidad_padel SET activo = $1 WHERE negocio_id = $2 AND numero_cancha = $3 RETURNING id',
+      [activo, negocio_id, req.params.num]
+    );
+    res.json({ actualizados: result.rowCount });
+  } catch (err) {
+    console.error('PUT /padel/club/canchas/numero/:num/toggle-todos:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // ── PUT /padel/club/canchas/:id/toggle ───────────────────────────────
-// Activar o desactivar una cancha/turno
+// Activar o desactivar un turno individual por UUID
 router.put('/club/canchas/:id/toggle', authAdmin, async (req, res) => {
   const { activo } = req.body;
   try {
@@ -2021,22 +2038,6 @@ router.put('/club/canchas/:id/precios', authAdmin, async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error('PUT /padel/club/canchas/:id/precios:', err);
-    res.status(500).json({ error: 'Error interno' });
-  }
-});
-
-// ── PUT /padel/club/canchas/numero/:num/toggle-todos ─────────────────
-// Activar o desactivar TODOS los turnos de una cancha por numero_cancha
-router.put('/club/canchas/numero/:num/toggle-todos', authAdmin, async (req, res) => {
-  const { negocio_id, activo } = req.body;
-  try {
-    const result = await pool.query(
-      'UPDATE disponibilidad_padel SET activo = $1 WHERE negocio_id = $2 AND numero_cancha = $3 RETURNING id',
-      [activo, negocio_id, req.params.num]
-    );
-    res.json({ actualizados: result.rowCount });
-  } catch (err) {
-    console.error('PUT /padel/club/canchas/numero/:num/toggle-todos:', err);
     res.status(500).json({ error: 'Error interno' });
   }
 });
