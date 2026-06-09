@@ -806,12 +806,13 @@ const _origInit = typeof initApp === 'function' ? initApp : null;
 
 function getCanchasNegocioId() {
   try {
-    const admin = JSON.parse(localStorage.getItem('neg_admin') || 'null');
-    if (admin && admin.id) return admin.id;
+    // neg_negocio tiene el ID del club — siempre usar primero
     const negocio = JSON.parse(localStorage.getItem('neg_negocio') || 'null');
     if (negocio && negocio.id) return negocio.id;
+    // fallback: negocioData global
+    if (typeof negocioData !== 'undefined' && negocioData && negocioData.id) return negocioData.id;
   } catch(e) {}
-  return negocioId;
+  return null;
 }
 function getCanchasToken() {
   return localStorage.getItem('neg_token') || negocioToken;
