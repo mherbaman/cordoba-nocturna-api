@@ -1,0 +1,956 @@
+
+<h2 class="sr-only">Panel de administración integral para clubes de pádel en PadelConnect — gestión de canchas, precios, turnos, cierre de caja y eventos</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:var(--font-sans,'Inter',sans-serif)}
+.shell{background:#0a0a0a;border-radius:12px;overflow:hidden;border:0.5px solid #1e1e1e}
+.topnav{background:#0f0f0f;border-bottom:0.5px solid #1e1e1e;padding:0 16px;display:flex;align-items:center;height:48px;gap:0}
+.nav-logo{display:flex;align-items:center;gap:8px;margin-right:20px;flex-shrink:0}
+.nav-mark{width:26px;height:26px;background:#22c55e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#052e16}
+.nav-name{font-size:13px;font-weight:500;color:#fff}
+.nav-club{font-size:11px;color:#6b7280;margin-left:4px}
+.nav-badge{font-size:10px;background:#052010;color:#22c55e;padding:1px 7px;border-radius:4px;font-weight:500;margin-left:6px;border:0.5px solid #15803d}
+.nav-tabs{display:flex;flex:1;overflow-x:auto}
+.ntab{padding:0 12px;height:48px;display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;background:transparent;border-left:none;border-right:none;border-top:none;transition:color .15s}
+.ntab.active{color:#22c55e;border-bottom-color:#22c55e}
+.ntab:hover:not(.active){color:#9ca3af}
+.ntab i{font-size:14px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.free-badge{display:flex;align-items:center;gap:4px;font-size:10px;color:#f59e0b;background:#1c1400;border:0.5px solid #854f0b;padding:3px 8px;border-radius:20px;font-weight:500}
+.sec{display:none;padding:16px}
+.sec.active{display:block}
+.kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:#111;border:0.5px solid #1e1e1e;border-radius:8px;padding:12px}
+.kpi-lbl{font-size:11px;color:#6b7280;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.kpi-lbl i{font-size:13px}
+.kpi-val{font-size:19px;font-weight:500;color:#fff;line-height:1}
+.kpi-val.g{color:#22c55e}
+.kpi-val.gold{color:#f59e0b}
+.kpi-sub{font-size:11px;color:#22c55e;margin-top:3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.one{margin-bottom:10px}
+.panel{background:#111;border:0.5px solid #1e1e1e;border-radius:12px;padding:12px 14px}
+.phdr{font-size:11px;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.phdr span{font-size:10px;color:#22c55e;font-weight:400;text-transform:none;letter-spacing:0}
+.phdr span.gold{color:#f59e0b}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-lbl{font-size:11px;color:#9ca3af;width:60px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:7px;background:#1a1a1a;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:#22c55e;transition:width .5s ease}
+.bar-val{font-size:11px;font-weight:500;color:#fff;width:52px;text-align:right;flex-shrink:0}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid #1a1a1a}
+.rrow:last-child{border-bottom:none}
+.rrow.tot{padding-top:10px;margin-top:2px;border-top:1px solid #22c55e;border-bottom:none}
+.rlbl{font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:5px}
+.rlbl i{font-size:14px}
+.ramt{font-size:12px;font-weight:500;color:#fff}
+.ramt.g{color:#22c55e}
+.rpct{font-size:10px;color:#22c55e;background:#052010;padding:2px 6px;border-radius:10px}
+.ev-card{background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:8px;padding:9px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
+.ev-card:last-child{margin-bottom:0}
+.ev-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.t{background:#1a1a2e;color:#7c3aed}
+.s{background:#052010;color:#22c55e}
+.a{background:#1c1400;color:#f59e0b}
+.pp{background:#001a2e;color:#0ea5e9}
+.ev-info{flex:1;min-width:0}
+.ev-name{font-size:12px;font-weight:500;color:#fff}
+.ev-meta{font-size:11px;color:#6b7280;margin-top:1px}
+.ev-amt{font-size:12px;font-weight:500;color:#22c55e;flex-shrink:0}
+.ev-st{font-size:10px;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.sok{background:#052010;color:#22c55e;border:0.5px solid #15803d}
+.sw{background:#1c1400;color:#f59e0b;border:0.5px solid #854f0b}
+.sr{background:#1a0a0a;color:#ef4444;border:0.5px solid #7f1d1d}
+.act-item{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid #1a1a1a;align-items:flex-start}
+.act-item:last-child{border-bottom:none}
+.adot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:4px}
+.adot.w{background:#f59e0b}
+.adot.b{background:#7c3aed}
+.adot.r{background:#ef4444}
+.atxt{font-size:12px;color:#9ca3af;flex:1;line-height:1.5}
+.atime{font-size:11px;color:#4b5563;flex-shrink:0}
+.rank-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #1a1a1a}
+.rank-row:last-child{border-bottom:none}
+.rpos{width:18px;font-size:11px;font-weight:500;color:#6b7280;text-align:center;flex-shrink:0}
+.rpos.g{color:#22c55e}
+.rname{font-size:12px;color:#fff;flex:1}
+.rval{font-size:12px;font-weight:500;color:#22c55e}
+.rniv{font-size:10px;padding:2px 6px;border-radius:10px;flex-shrink:0;background:#111;color:#6b7280;border:0.5px solid #1e1e1e}
+.desg{background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:8px;padding:11px 13px;margin-bottom:8px}
+.desg:last-child{margin-bottom:0}
+.dtitle{font-size:10px;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.drow{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.drow.tot{border-top:0.5px solid #1e1e1e;margin-top:4px;padding-top:7px;font-weight:500}
+.dl{color:#6b7280}
+.dv{color:#fff}
+.dv.g{color:#22c55e}
+.btn-g{background:#22c55e;color:#052e16;border:none;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-g:hover{background:#16a34a}
+.btn-gh{background:transparent;color:#22c55e;border:0.5px solid #15803d;padding:7px 16px;border-radius:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-gh:hover{background:#052010}
+.btn-r{background:transparent;color:#ef4444;border:0.5px solid #7f1d1d;padding:7px 16px;border-radius:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-r:hover{background:#1a0a0a}
+.btn-amber{background:transparent;color:#f59e0b;border:0.5px solid #854f0b;padding:7px 16px;border-radius:8px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-amber:hover{background:#1c1400}
+.btn-sm{padding:4px 10px;font-size:11px}
+.free-banner{background:#1c1400;border:0.5px solid #854f0b;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.free-banner i{font-size:18px;color:#f59e0b;flex-shrink:0}
+.free-banner-text{font-size:12px;color:#fcd34d;line-height:1.5;flex:1}
+.free-banner-days{font-size:20px;font-weight:500;color:#f59e0b;flex-shrink:0}
+.stat-box{background:#052010;border:0.5px solid #15803d;border-radius:8px;padding:10px 13px;margin-bottom:7px}
+.stat-box:last-child{margin-bottom:0}
+.stat-box-row{display:flex;justify-content:space-between;align-items:center}
+.stat-box-lbl{font-size:12px;color:#86efac}
+.stat-box-val{font-size:15px;font-weight:500;color:#22c55e}
+.notif{display:flex;gap:8px;padding:8px 10px;background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:8px;margin-bottom:6px;align-items:flex-start}
+.notif:last-child{margin-bottom:0}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.notif-txt{font-size:12px;color:#9ca3af;flex:1;line-height:1.5}
+.notif-time{font-size:11px;color:#4b5563;flex-shrink:0}
+
+/* ===== CANCHAS SECTION ===== */
+.canchas-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.canchas-toolbar-title{font-size:13px;font-weight:500;color:#fff;flex:1}
+.ctab{padding:4px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:0.5px solid #374151;color:#6b7280;background:transparent;transition:all .15s}
+.ctab.active{background:#052010;color:#22c55e;border-color:#15803d}
+
+/* Cancha card full */
+.cancha-card{background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:10px;padding:14px;margin-bottom:10px;transition:border-color .15s}
+.cancha-card.activa{border-left:3px solid #22c55e}
+.cancha-card.inactiva{border-left:3px solid #374151;opacity:.65}
+.cancha-card.mantenimiento{border-left:3px solid #f59e0b}
+.cc-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cc-num{width:36px;height:36px;border-radius:8px;background:#111;border:0.5px solid #1e1e1e;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#fff;flex-shrink:0}
+.cc-name{flex:1}
+.cc-title{font-size:13px;font-weight:500;color:#fff}
+.cc-sub{font-size:11px;color:#6b7280;margin-top:1px}
+.cc-toggle{display:flex;align-items:center;gap:6px}
+.toggle-wrap{position:relative;width:38px;height:22px;cursor:pointer;flex-shrink:0}
+.toggle-wrap input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:#1e1e1e;border-radius:11px;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#6b7280;border-radius:50%;transition:.2s}
+.toggle-wrap input:checked + .toggle-slider{background:#052010;border:0.5px solid #15803d}
+.toggle-wrap input:checked + .toggle-slider::before{transform:translateX(16px);background:#22c55e}
+.toggle-label{font-size:11px;color:#6b7280}
+.toggle-label.on{color:#22c55e}
+
+/* Precios */
+.precio-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.precio-box{background:#111;border:0.5px solid #1e1e1e;border-radius:8px;padding:10px}
+.precio-box.app{border-color:#15803d;background:#052010}
+.precio-lbl{font-size:10px;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.precio-box.app .precio-lbl{color:#86efac}
+.precio-input{background:transparent;border:none;font-size:16px;font-weight:500;color:#fff;width:100%;outline:none;padding:0}
+.precio-box.app .precio-input{color:#22c55e}
+.precio-input:focus{color:#22c55e}
+.precio-prefix{font-size:11px;color:#4b5563;margin-bottom:2px}
+.descuento-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;background:#052010;color:#22c55e;padding:2px 7px;border-radius:10px;border:0.5px solid #15803d;margin-top:4px}
+.descuento-warn{display:inline-flex;align-items:center;gap:3px;font-size:10px;background:#1c1400;color:#f59e0b;padding:2px 7px;border-radius:10px;border:0.5px solid #854f0b;margin-top:4px}
+.descuento-err{display:inline-flex;align-items:center;gap:3px;font-size:10px;background:#1a0a0a;color:#ef4444;padding:2px 7px;border-radius:10px;border:0.5px solid #7f1d1d;margin-top:4px}
+
+/* Grilla horaria */
+.horario-section{margin-top:10px}
+.horario-section-title{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.slots-grid{display:flex;flex-wrap:wrap;gap:4px}
+.slot{width:52px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;cursor:pointer;border:0.5px solid transparent;transition:all .15s;flex-shrink:0;position:relative}
+.slot.activo{background:#052010;border-color:#15803d;color:#22c55e}
+.slot.inactivo{background:#111;border-color:#1e1e1e;color:#374151}
+.slot.reservado{background:#1a1a2e;border-color:#4338ca;color:#7c3aed;cursor:default}
+.slot.torneo{background:#1a1a2e;border-color:#4338ca;color:#7c3aed;cursor:default}
+.slot.mant{background:#1c1400;border-color:#854f0b;color:#f59e0b;cursor:default}
+.slot:hover:not(.reservado):not(.torneo):not(.mant){opacity:.8;transform:scale(1.05)}
+.slot-tooltip{position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1e1e1e;color:#fff;font-size:10px;padding:3px 7px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10}
+.slot:hover .slot-tooltip{opacity:1}
+
+/* Cierre de caja */
+.caja-header{background:#052010;border:0.5px solid #15803d;border-radius:10px;padding:14px;margin-bottom:12px}
+.caja-fecha{font-size:11px;color:#86efac;margin-bottom:4px}
+.caja-total{font-size:28px;font-weight:500;color:#22c55e;line-height:1}
+.caja-sub{font-size:12px;color:#86efac;margin-top:4px}
+.caja-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid #1a1a1a}
+.caja-row:last-child{border-bottom:none}
+.caja-row.total{border-top:1px solid #22c55e;border-bottom:none;padding-top:10px;margin-top:4px}
+.caja-label{font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:5px}
+.caja-label i{font-size:14px}
+.caja-val{font-size:13px;font-weight:500;color:#fff}
+.caja-val.g{color:#22c55e}
+.caja-val.r{color:#ef4444}
+.caja-canal{font-size:10px;padding:2px 6px;border-radius:10px}
+.canal-app{background:#052010;color:#22c55e;border:0.5px solid #15803d}
+.canal-pres{background:#1a1a2e;color:#7c3aed;border:0.5px solid #4338ca}
+.canal-wp{background:#001a2e;color:#0ea5e9;border:0.5px solid #0369a1}
+
+/* Turno row */
+.turno-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #1a1a1a}
+.turno-row:last-child{border-bottom:none}
+.turno-hora{font-size:12px;color:#6b7280;width:40px;flex-shrink:0}
+.turno-cancha{font-size:11px;padding:2px 7px;border-radius:10px;background:#111;border:0.5px solid #1e1e1e;color:#6b7280;flex-shrink:0}
+.turno-jugador{font-size:12px;color:#fff;flex:1}
+.turno-canal{font-size:10px;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.turno-monto{font-size:12px;font-weight:500;color:#22c55e;flex-shrink:0;width:72px;text-align:right}
+.turno-estado{font-size:10px;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.te-pago{background:#052010;color:#22c55e;border:0.5px solid #15803d}
+.te-pend{background:#1c1400;color:#f59e0b;border:0.5px solid #854f0b}
+.te-canc{background:#1a0a0a;color:#ef4444;border:0.5px solid #7f1d1d}
+
+/* Tabs dentro de canchas */
+.inner-tabs{display:flex;gap:0;border-bottom:0.5px solid #1e1e1e;margin-bottom:14px}
+.itab{padding:6px 14px;font-size:12px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;background:transparent;border-left:none;border-right:none;border-top:none;transition:color .15s;white-space:nowrap}
+.itab.active{color:#22c55e;border-bottom-color:#22c55e}
+.itab:hover:not(.active){color:#9ca3af}
+.isec{display:none}
+.isec.active{display:block}
+
+/* Modal overlay simulado */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:#111;border:0.5px solid #374151;border-radius:12px;padding:20px;width:400px;max-width:90vw}
+.modal-title{font-size:14px;font-weight:500;color:#fff;margin-bottom:16px}
+.form-row{margin-bottom:12px}
+.form-label{font-size:11px;color:#6b7280;margin-bottom:5px;display:block}
+.form-input{background:#0f0f0f;border:0.5px solid #374151;border-radius:6px;padding:7px 10px;font-size:12px;color:#fff;width:100%;outline:none}
+.form-input:focus{border-color:#22c55e}
+.form-row-two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.select-input{background:#0f0f0f;border:0.5px solid #374151;border-radius:6px;padding:7px 10px;font-size:12px;color:#fff;width:100%;outline:none}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+</style>
+
+<div class="shell">
+
+<div class="topnav">
+  <div class="nav-logo">
+    <div class="nav-mark">PC</div>
+    <span class="nav-name">PadelConnect</span>
+    <span class="nav-club">· Club Palermo Norte</span>
+    <span class="nav-badge">Panel del Club</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="ntab active" onclick="show('dashboard')"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</button>
+    <button class="ntab" onclick="show('canchas')"><i class="ti ti-map-pin" aria-hidden="true"></i>Mis Canchas</button>
+    <button class="ntab" onclick="show('torneos')"><i class="ti ti-trophy" aria-hidden="true"></i>Torneos</button>
+    <button class="ntab" onclick="show('jugadoras')"><i class="ti ti-users" aria-hidden="true"></i>Jugadoras</button>
+    <button class="ntab" onclick="show('ingresos')"><i class="ti ti-coin" aria-hidden="true"></i>Ingresos</button>
+    <button class="ntab" onclick="show('config')"><i class="ti ti-settings" aria-hidden="true"></i>Mi Club</button>
+  </div>
+  <div class="nav-right">
+    <div class="free-badge"><i class="ti ti-gift" style="font-size:11px" aria-hidden="true"></i>Mes 2 de 3 gratis</div>
+  </div>
+</div>
+
+<!-- ========== DASHBOARD ========== -->
+<div id="tab-dashboard" class="sec active">
+  <div class="free-banner">
+    <i class="ti ti-gift" aria-hidden="true"></i>
+    <div class="free-banner-text">
+      <strong style="color:#fbbf24">Estás en tu período gratuito.</strong> Quedan <strong style="color:#fbbf24">47 días</strong> sin costo. Después USD 55/mes — cancelás cuando querés.
+    </div>
+    <div class="free-banner-days">Día 44/90</div>
+  </div>
+
+  <div class="kgrid">
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-calendar-check" aria-hidden="true"></i>Reservas hoy</div><div class="kpi-val g" id="dash-reservas">18</div><div class="kpi-sub">6 canchas activas ahora</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-coin" aria-hidden="true"></i>Recaudado hoy</div><div class="kpi-val g" id="dash-hoy">ARS 720K</div><div class="kpi-sub" id="dash-hoy-sub">+3 reservas vs ayer</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-coin" aria-hidden="true"></i>Recaudado este mes</div><div class="kpi-val g">ARS 3.2M</div><div class="kpi-sub">+18% vs mes anterior</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-chart-pie" aria-hidden="true"></i>Ocupación promedio</div><div class="kpi-val gold">74%</div><div class="kpi-sub">Meta: 80%</div></div>
+  </div>
+
+  <!-- Cierre de caja rápido en Dashboard -->
+  <div class="one">
+    <div class="panel">
+      <div class="phdr">Cierre de caja — hoy <span id="dash-fecha">lunes 8 jun 2026</span>
+        <button class="btn-g btn-sm" onclick="show('canchas');showInnerTab('caja')"><i class="ti ti-receipt" style="font-size:11px"></i>Ver detalle completo</button>
+      </div>
+      <div class="two" style="margin-bottom:0">
+        <div>
+          <div class="rrow"><div class="rlbl"><span class="caja-canal canal-app">App</span> Reservas vía app (12)</div><div class="ramt g">ARS 504K</div></div>
+          <div class="rrow"><div class="rlbl"><span class="caja-canal canal-pres">Presencial</span> Reservas presenciales (4)</div><div class="ramt">ARS 160K</div></div>
+          <div class="rrow"><div class="rlbl"><span class="caja-canal canal-wp">WhatsApp</span> Reservas WhatsApp (2)</div><div class="ramt">ARS 80K</div></div>
+          <div class="rrow" style="border-top:1px solid #22c55e;margin-top:4px;padding-top:10px;border-bottom:none"><div class="rlbl" style="color:#fff;font-weight:500">Total recaudado hoy</div><div class="ramt g" style="font-size:15px">ARS 744K</div></div>
+        </div>
+        <div>
+          <div class="rrow"><div class="rlbl"><i class="ti ti-ball-tennis"></i>Canchas más rentables hoy</div><div class="ramt g">C1 → ARS 168K</div></div>
+          <div class="rrow"><div class="rlbl"><i class="ti ti-clock"></i>Horario pico hoy</div><div class="ramt">20:00–22:00hs</div></div>
+          <div class="rrow"><div class="rlbl"><i class="ti ti-device-mobile"></i>% reservas vía app</div><div class="ramt g">67%</div></div>
+          <div class="rrow"><div class="rlbl"><i class="ti ti-star"></i>Descuento app ahorrado</div><div class="ramt" style="color:#f59e0b">ARS 48K</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Ocupación por cancha <span>hoy</span></div>
+      <div class="bar-row"><span class="bar-lbl">Cancha 1</span><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div><span class="bar-val">9/10 hs</span></div>
+      <div class="bar-row"><span class="bar-lbl">Cancha 2</span><div class="bar-track"><div class="bar-fill" style="width:80%"></div></div><span class="bar-val">8/10 hs</span></div>
+      <div class="bar-row"><span class="bar-lbl">Cancha 3</span><div class="bar-track"><div class="bar-fill" style="width:70%"></div></div><span class="bar-val">7/10 hs</span></div>
+      <div class="bar-row"><span class="bar-lbl">Cancha 4</span><div class="bar-track"><div class="bar-fill" style="width:60%"></div></div><span class="bar-val">6/10 hs</span></div>
+      <div class="bar-row"><span class="bar-lbl">Cancha 5</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:#f59e0b"></div></div><span class="bar-val">5/10 hs</span></div>
+      <div class="bar-row"><span class="bar-lbl">Cancha 6</span><div class="bar-track"><div class="bar-fill" style="width:40%;background:#f59e0b"></div></div><span class="bar-val">4/10 hs</span></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Actividad reciente</div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">Cancha 1 — reserva 20:00hs confirmada vía app. Martín R. (Nivel 4)</span><span class="atime">hace 5min</span></div>
+      <div class="act-item"><div class="adot b"></div><span class="atxt">Torneo +45 — 32/32 inscriptas. Cupo completo.</span><span class="atime">hace 18min</span></div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">3 nuevas jugadoras se registraron desde tu perfil del club</span><span class="atime">hace 1h</span></div>
+      <div class="act-item"><div class="adot w"></div><span class="atxt">Cancha 5 — turno cancelado 19:00hs. Reemplazante notificado.</span><span class="atime">hace 2h</span></div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">Super 8 sábado — 8/8 confirmados. Pago procesado ARS 160K.</span><span class="atime">ayer</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MIS CANCHAS ========== -->
+<div id="tab-canchas" class="sec">
+  <div class="inner-tabs">
+    <button class="itab active" onclick="showInnerTab('gestion')"><i class="ti ti-settings" aria-hidden="true"></i> Gestión de Canchas</button>
+    <button class="itab" onclick="showInnerTab('turnos')"><i class="ti ti-calendar" aria-hidden="true"></i> Turnos de Hoy</button>
+    <button class="itab" onclick="showInnerTab('caja')"><i class="ti ti-receipt" aria-hidden="true"></i> Cierre de Caja</button>
+  </div>
+
+  <!-- SUB-TAB: GESTIÓN DE CANCHAS -->
+  <div id="isec-gestion" class="isec active">
+    <div class="canchas-toolbar">
+      <span class="canchas-toolbar-title">6 canchas configuradas — <span style="color:#22c55e">5 activas</span> · <span style="color:#f59e0b">1 en mantenimiento</span></span>
+      <button class="btn-g btn-sm" onclick="openModal('nueva-cancha')"><i class="ti ti-plus" style="font-size:11px"></i>Nueva cancha</button>
+    </div>
+
+    <!-- Cancha 1 -->
+    <div class="cancha-card activa" id="cc1">
+      <div class="cc-header">
+        <div class="cc-num" style="background:#052010;border-color:#15803d;color:#22c55e">C1</div>
+        <div class="cc-name">
+          <div class="cc-title">Cancha 1 — Cristal</div>
+          <div class="cc-sub">Techada · Piso sintético · Iluminación LED</div>
+        </div>
+        <div class="cc-toggle">
+          <label class="toggle-wrap" title="Activar/desactivar cancha">
+            <input type="checkbox" checked onchange="toggleCanchaCard(this,'cc1')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label on" id="lbl-cc1">Activa</span>
+        </div>
+      </div>
+      <div class="precio-grid">
+        <div class="precio-box">
+          <div class="precio-lbl">Precio presencial / WhatsApp</div>
+          <div class="precio-prefix">ARS</div>
+          <input class="precio-input" type="number" value="50000" id="p-pres-1" oninput="calcDescuento(1)" placeholder="50000">
+        </div>
+        <div class="precio-box app">
+          <div class="precio-lbl">Precio en la app</div>
+          <div class="precio-prefix">ARS</div>
+          <input class="precio-input" type="number" value="42000" id="p-app-1" oninput="calcDescuento(1)" placeholder="42000">
+          <div id="desc-badge-1" class="descuento-badge"><i class="ti ti-discount" style="font-size:10px"></i>-16% en app</div>
+        </div>
+        <div class="precio-box" style="background:#1a1a2e;border-color:#4338ca">
+          <div class="precio-lbl" style="color:#a5b4fc">Precio torneo / americano</div>
+          <div class="precio-prefix" style="color:#6366f1">ARS</div>
+          <input class="precio-input" type="number" value="35000" style="color:#818cf8" placeholder="35000">
+        </div>
+      </div>
+      <div class="horario-section">
+        <div class="horario-section-title">Turnos habilitados — hacé click para activar/desactivar</div>
+        <div class="slots-grid" id="slots-1">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn-gh btn-sm" onclick="toggleAllSlots(1,true)"><i class="ti ti-check" style="font-size:11px"></i>Activar todos</button>
+        <button class="btn-r btn-sm" onclick="toggleAllSlots(1,false)"><i class="ti ti-x" style="font-size:11px"></i>Desactivar todos</button>
+        <button class="btn-amber btn-sm" onclick="setPeakOff(1)"><i class="ti ti-moon" style="font-size:11px"></i>Solo horario pico</button>
+        <button class="btn-g btn-sm" style="margin-left:auto"><i class="ti ti-device-floppy" style="font-size:11px"></i>Guardar cambios</button>
+      </div>
+    </div>
+
+    <!-- Cancha 2 -->
+    <div class="cancha-card activa" id="cc2">
+      <div class="cc-header">
+        <div class="cc-num" style="background:#052010;border-color:#15803d;color:#22c55e">C2</div>
+        <div class="cc-name">
+          <div class="cc-title">Cancha 2 — Panorámica</div>
+          <div class="cc-sub">Al aire libre · Césped sintético · Iluminación estándar</div>
+        </div>
+        <div class="cc-toggle">
+          <label class="toggle-wrap">
+            <input type="checkbox" checked onchange="toggleCanchaCard(this,'cc2')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label on" id="lbl-cc2">Activa</span>
+        </div>
+      </div>
+      <div class="precio-grid">
+        <div class="precio-box">
+          <div class="precio-lbl">Precio presencial / WhatsApp</div>
+          <div class="precio-prefix">ARS</div>
+          <input class="precio-input" type="number" value="45000" id="p-pres-2" oninput="calcDescuento(2)" placeholder="45000">
+        </div>
+        <div class="precio-box app">
+          <div class="precio-lbl">Precio en la app</div>
+          <div class="precio-prefix">ARS</div>
+          <input class="precio-input" type="number" value="38000" id="p-app-2" oninput="calcDescuento(2)" placeholder="38000">
+          <div id="desc-badge-2" class="descuento-badge"><i class="ti ti-discount" style="font-size:10px"></i>-16% en app</div>
+        </div>
+        <div class="precio-box" style="background:#1a1a2e;border-color:#4338ca">
+          <div class="precio-lbl" style="color:#a5b4fc">Precio torneo / americano</div>
+          <div class="precio-prefix" style="color:#6366f1">ARS</div>
+          <input class="precio-input" type="number" value="30000" style="color:#818cf8" placeholder="30000">
+        </div>
+      </div>
+      <div class="horario-section">
+        <div class="horario-section-title">Turnos habilitados</div>
+        <div class="slots-grid" id="slots-2"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-gh btn-sm" onclick="toggleAllSlots(2,true)"><i class="ti ti-check" style="font-size:11px"></i>Activar todos</button>
+        <button class="btn-r btn-sm" onclick="toggleAllSlots(2,false)"><i class="ti ti-x" style="font-size:11px"></i>Desactivar todos</button>
+        <button class="btn-g btn-sm" style="margin-left:auto"><i class="ti ti-device-floppy" style="font-size:11px"></i>Guardar cambios</button>
+      </div>
+    </div>
+
+    <!-- Cancha 5 — mantenimiento -->
+    <div class="cancha-card mantenimiento" id="cc5">
+      <div class="cc-header">
+        <div class="cc-num" style="background:#1c1400;border-color:#854f0b;color:#f59e0b">C5</div>
+        <div class="cc-name">
+          <div class="cc-title">Cancha 5 — Central</div>
+          <div class="cc-sub" style="color:#854f0b">En mantenimiento — disponible desde mañana</div>
+        </div>
+        <div class="cc-toggle">
+          <label class="toggle-wrap">
+            <input type="checkbox" onchange="toggleCanchaCard(this,'cc5')">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="lbl-cc5">Inactiva</span>
+        </div>
+      </div>
+      <div style="background:#1c1400;border:0.5px solid #854f0b;border-radius:6px;padding:8px 12px;font-size:12px;color:#fcd34d;display:flex;align-items:center;gap:8px">
+        <i class="ti ti-tool" style="font-size:14px;color:#f59e0b"></i>
+        Esta cancha está desactivada y no aparece en la app. Activala cuando esté lista.
+        <button class="btn-g btn-sm" style="margin-left:auto" onclick="toggleCanchaManual('cc5')"><i class="ti ti-player-play" style="font-size:11px"></i>Activar ahora</button>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;font-size:11px;color:#4b5563;display:flex;align-items:center;gap:5px">
+      <i class="ti ti-info-circle" style="font-size:13px"></i>
+      Canchas 3, 4 y 6 tienen la misma configuración que C2.
+      <button style="background:transparent;border:none;color:#22c55e;font-size:11px;cursor:pointer;text-decoration:underline">Ver todas</button>
+    </div>
+  </div>
+
+  <!-- SUB-TAB: TURNOS DE HOY -->
+  <div id="isec-turnos" class="isec">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:500;color:#fff">Turnos de hoy — <span id="turnos-fecha">lunes 8 de junio 2026</span></span>
+      <div style="display:flex;gap:4px;margin-left:auto">
+        <button class="ctab active" onclick="filtrarTurnos('todos',this)">Todos (18)</button>
+        <button class="ctab" onclick="filtrarTurnos('app',this)"><span class="caja-canal canal-app">App</span> 12</button>
+        <button class="ctab" onclick="filtrarTurnos('presencial',this)"><span class="caja-canal canal-pres">Pres.</span> 4</button>
+        <button class="ctab" onclick="filtrarTurnos('whatsapp',this)"><span class="caja-canal canal-wp">WA</span> 2</button>
+      </div>
+      <button class="btn-g btn-sm" onclick="openModal('nuevo-turno')"><i class="ti ti-plus" style="font-size:11px"></i>Cargar turno</button>
+    </div>
+    <div class="panel" style="margin-bottom:0">
+      <div class="phdr">Lista de turnos <span>Actualizado a las <span id="hora-turnos"></span></span></div>
+      <div id="lista-turnos">
+        <div class="turno-row">
+          <span class="turno-hora">08:00</span>
+          <span class="turno-cancha">C1</span>
+          <span class="turno-jugador">Martín R. + 3</span>
+          <span class="turno-canal canal-app caja-canal">App</span>
+          <span class="turno-monto">ARS 42K</span>
+          <span class="turno-estado te-pago">Pagado</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">08:00</span>
+          <span class="turno-cancha">C2</span>
+          <span class="turno-jugador">Laura P. + 3</span>
+          <span class="turno-canal canal-app caja-canal">App</span>
+          <span class="turno-monto">ARS 38K</span>
+          <span class="turno-estado te-pago">Pagado</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">09:00</span>
+          <span class="turno-cancha">C3</span>
+          <span class="turno-jugador">Carlos F. + 3</span>
+          <span class="turno-canal canal-pres caja-canal">Presencial</span>
+          <span class="turno-monto">ARS 50K</span>
+          <span class="turno-estado te-pend">Pendiente</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">10:00</span>
+          <span class="turno-cancha">C1</span>
+          <span class="turno-jugador">Ana G. + 3</span>
+          <span class="turno-canal canal-app caja-canal">App</span>
+          <span class="turno-monto">ARS 42K</span>
+          <span class="turno-estado te-pago">Pagado</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">14:00</span>
+          <span class="turno-cancha">C4</span>
+          <span class="turno-jugador">Diego M. + 3</span>
+          <span class="turno-canal canal-wp caja-canal">WhatsApp</span>
+          <span class="turno-monto">ARS 45K</span>
+          <span class="turno-estado te-pend">Pendiente</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">16:00</span>
+          <span class="turno-cancha">C1</span>
+          <span class="turno-jugador">Super 8 — 8 jugadores</span>
+          <span class="turno-canal" style="background:#1a1a2e;color:#7c3aed;border:0.5px solid #4338ca;font-size:10px;padding:2px 7px;border-radius:10px">Torneo</span>
+          <span class="turno-monto">ARS 160K</span>
+          <span class="turno-estado te-pago">Pagado</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">20:00</span>
+          <span class="turno-cancha">C2</span>
+          <span class="turno-jugador">Reserva WA — sin confirmar</span>
+          <span class="turno-canal canal-wp caja-canal">WhatsApp</span>
+          <span class="turno-monto">ARS 45K</span>
+          <span class="turno-estado te-pend">Pendiente</span>
+        </div>
+        <div class="turno-row">
+          <span class="turno-hora">20:00</span>
+          <span class="turno-cancha">C1</span>
+          <span class="turno-jugador">Martín R. (reserva previa)</span>
+          <span class="turno-canal canal-app caja-canal">App</span>
+          <span class="turno-monto">ARS 42K</span>
+          <span class="turno-estado te-pago">Pagado</span>
+        </div>
+        <div class="turno-row" style="opacity:.5">
+          <span class="turno-hora">19:00</span>
+          <span class="turno-cancha">C5</span>
+          <span class="turno-jugador">Turno cancelado — sin reemplazo</span>
+          <span class="turno-canal" style="background:#1a0a0a;color:#ef4444;border:0.5px solid #7f1d1d;font-size:10px;padding:2px 7px;border-radius:10px">Cancelado</span>
+          <span class="turno-monto" style="color:#6b7280">—</span>
+          <span class="turno-estado te-canc">Cancelado</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUB-TAB: CIERRE DE CAJA -->
+  <div id="isec-caja" class="isec">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:500;color:#fff">Cierre de Caja Diaria</span>
+      <div style="display:flex;gap:4px;margin-left:auto">
+        <button class="ctab active">Hoy</button>
+        <button class="ctab">Ayer</button>
+        <button class="ctab">Esta semana</button>
+        <button class="ctab">Este mes</button>
+      </div>
+      <button class="btn-gh btn-sm"><i class="ti ti-download" style="font-size:11px"></i>Exportar PDF</button>
+    </div>
+
+    <div class="caja-header">
+      <div class="caja-fecha">Cierre del día — lunes 8 de junio de 2026</div>
+      <div class="caja-total">ARS 744.000</div>
+      <div class="caja-sub">18 turnos · 6 canchas · promedio ARS 41.333/turno</div>
+    </div>
+
+    <div class="three">
+      <div class="panel">
+        <div class="phdr">Por canal de venta</div>
+        <div class="caja-row">
+          <span class="caja-label"><span class="caja-canal canal-app">App</span> Reservas app (12)</span>
+          <span class="caja-val g">ARS 504K</span>
+        </div>
+        <div class="caja-row">
+          <span class="caja-label"><span class="caja-canal canal-pres">Presencial</span> En cancha (4)</span>
+          <span class="caja-val">ARS 160K</span>
+        </div>
+        <div class="caja-row">
+          <span class="caja-label"><span class="caja-canal canal-wp">WhatsApp</span> Reservas WA (2)</span>
+          <span class="caja-val">ARS 80K</span>
+        </div>
+        <div class="caja-row total">
+          <span class="caja-label" style="color:#fff;font-weight:500">Total</span>
+          <span class="caja-val g" style="font-size:16px">ARS 744K</span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="phdr">Por cancha</div>
+        <div class="caja-row"><span class="caja-label"><i class="ti ti-ball-tennis"></i>Cancha 1</span><span class="caja-val g">ARS 168K</span></div>
+        <div class="caja-row"><span class="caja-label"><i class="ti ti-ball-tennis"></i>Cancha 2</span><span class="caja-val">ARS 152K</span></div>
+        <div class="caja-row"><span class="caja-label"><i class="ti ti-ball-tennis"></i>Cancha 3</span><span class="caja-val">ARS 140K</span></div>
+        <div class="caja-row"><span class="caja-label"><i class="ti ti-ball-tennis"></i>Cancha 4</span><span class="caja-val">ARS 124K</span></div>
+        <div class="caja-row"><span class="caja-label"><i class="ti ti-ball-tennis"></i>Cancha 5</span><span class="caja-val r">—</span></div>
+        <div class="caja-row"><span class="caja-label"><i class="ti ti-ball-tennis"></i>Cancha 6</span><span class="caja-val">ARS 160K</span></div>
+        <div class="caja-row total"><span class="caja-label" style="color:#fff;font-weight:500">Total</span><span class="caja-val g" style="font-size:16px">ARS 744K</span></div>
+      </div>
+      <div class="panel">
+        <div class="phdr">Desglose de precios</div>
+        <div class="caja-row"><span class="caja-label">Precio promedio cobrado</span><span class="caja-val">ARS 41.3K</span></div>
+        <div class="caja-row"><span class="caja-label">Precio promedio presencial</span><span class="caja-val">ARS 48.5K</span></div>
+        <div class="caja-row"><span class="caja-label">Precio promedio app</span><span class="caja-val g">ARS 40.3K</span></div>
+        <div class="caja-row"><span class="caja-label">Descuento total otorgado app</span><span class="caja-val" style="color:#f59e0b">-ARS 97.2K</span></div>
+        <div class="caja-row"><span class="caja-label">Cancelaciones (1 turno)</span><span class="caja-val r">-ARS 42K</span></div>
+        <div class="caja-row total"><span class="caja-label" style="color:#fff;font-weight:500">Neto real cobrado</span><span class="caja-val g" style="font-size:16px">ARS 744K</span></div>
+      </div>
+    </div>
+
+    <div class="panel one">
+      <div class="phdr">Detalle de turnos cobrados hoy</div>
+      <div class="turno-row" style="border-bottom:0.5px solid #374151;padding-bottom:5px;margin-bottom:5px">
+        <span class="turno-hora" style="color:#6b7280;font-size:10px">Hora</span>
+        <span class="turno-cancha" style="background:transparent;border:none;color:#6b7280;font-size:10px">Cancha</span>
+        <span style="flex:1;font-size:10px;color:#6b7280">Jugador</span>
+        <span style="font-size:10px;color:#6b7280;width:60px">Canal</span>
+        <span style="font-size:10px;color:#6b7280;width:72px;text-align:right">Monto</span>
+        <span style="font-size:10px;color:#6b7280;width:60px;text-align:right">Estado</span>
+      </div>
+      <div class="turno-row"><span class="turno-hora">08:00</span><span class="turno-cancha">C1</span><span class="turno-jugador">Martín R. + 3</span><span class="turno-canal canal-app caja-canal" style="width:60px;text-align:center">App</span><span class="turno-monto">ARS 42K</span><span class="turno-estado te-pago" style="width:60px;text-align:center">Pagado</span></div>
+      <div class="turno-row"><span class="turno-hora">08:00</span><span class="turno-cancha">C2</span><span class="turno-jugador">Laura P. + 3</span><span class="turno-canal canal-app caja-canal" style="width:60px;text-align:center">App</span><span class="turno-monto">ARS 38K</span><span class="turno-estado te-pago" style="width:60px;text-align:center">Pagado</span></div>
+      <div class="turno-row"><span class="turno-hora">09:00</span><span class="turno-cancha">C3</span><span class="turno-jugador">Carlos F. + 3</span><span class="turno-canal canal-pres caja-canal" style="width:60px;text-align:center">Pres.</span><span class="turno-monto">ARS 50K</span><span class="turno-estado te-pend" style="width:60px;text-align:center">Pendiente</span></div>
+      <div class="turno-row"><span class="turno-hora">16:00</span><span class="turno-cancha">C1</span><span class="turno-jugador">Super 8 — 2hs</span><span class="turno-canal" style="background:#1a1a2e;color:#7c3aed;border:0.5px solid #4338ca;font-size:10px;padding:2px 7px;border-radius:10px;width:60px;text-align:center">Torneo</span><span class="turno-monto">ARS 160K</span><span class="turno-estado te-pago" style="width:60px;text-align:center">Pagado</span></div>
+      <div class="turno-row" style="border-top:1px solid #22c55e;padding-top:10px;margin-top:4px">
+        <span style="flex:1;font-size:12px;font-weight:500;color:#fff">Total del día (18 turnos)</span>
+        <span class="turno-monto" style="font-size:15px">ARS 744K</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+      <button class="btn-gh"><i class="ti ti-download" style="font-size:12px"></i>Exportar Excel</button>
+      <button class="btn-g"><i class="ti ti-check" style="font-size:12px"></i>Cerrar caja del día</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TORNEOS ========== -->
+<div id="tab-torneos" class="sec">
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Crear nuevo evento en tu club</div>
+      <div class="ev-card" style="cursor:pointer" onclick="sendPrompt('Cómo creo un torneo en mi club desde el panel PadelConnect?')">
+        <div class="ev-ic t"><i class="ti ti-trophy" aria-hidden="true"></i></div>
+        <div class="ev-info"><div class="ev-name">Torneo oficial</div><div class="ev-meta">8 a 64 jugadores · brackets automáticos · ranking</div></div>
+        <div class="ev-st sok">Crear ↗</div>
+      </div>
+      <div class="ev-card" style="cursor:pointer" onclick="sendPrompt('Cómo organizo un Super 8 en mi club desde PadelConnect?')">
+        <div class="ev-ic s"><i class="ti ti-users" aria-hidden="true"></i></div>
+        <div class="ev-info"><div class="ev-name">Super 8</div><div class="ev-meta">8 jugadores · rotación · listo en 2 minutos</div></div>
+        <div class="ev-st sok">Crear ↗</div>
+      </div>
+      <div class="ev-card" style="cursor:pointer" onclick="sendPrompt('Cómo organizo un Americano en mi club desde PadelConnect?')">
+        <div class="ev-ic a"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i></div>
+        <div class="ev-info"><div class="ev-name">Americano de Parejas</div><div class="ev-meta">parejas rotativas · todos contra todos</div></div>
+        <div class="ev-st sok">Crear ↗</div>
+      </div>
+      <div class="ev-card" style="cursor:pointer;opacity:.6">
+        <div class="ev-ic pp"><i class="ti ti-ball-tennis" aria-hidden="true"></i></div>
+        <div class="ev-info"><div class="ev-name">Partido simple</div><div class="ev-meta">4 jugadores · reserva directa de cancha</div></div>
+        <div class="ev-st sw">Próximamente</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Eventos activos en tu club</div>
+      <div class="ev-card"><div class="ev-ic t"><i class="ti ti-trophy" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Torneo +45 — Club Palermo</div><div class="ev-meta">Sáb 14 jun · 32/32 · ARS 22.500 c/u · 8 canchas</div></div><div class="ev-amt">ARS 720K</div></div>
+      <div class="ev-card"><div class="ev-ic s"><i class="ti ti-users" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Super 8 — Dom 15 jun</div><div class="ev-meta">8/8 jugadores · ARS 20.000 c/u · 2 canchas</div></div><div class="ev-amt">ARS 160K</div></div>
+      <div class="ev-card"><div class="ev-ic a"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Americano mixto — Vie 20 jun</div><div class="ev-meta">12/16 jugadores · ARS 20.000 c/u · 4 canchas</div></div><div class="ev-amt" style="text-align:right">ARS 320K<br><span style="font-size:10px;color:#f59e0b">4 cupos libres</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== JUGADORAS ========== -->
+<div id="tab-jugadoras" class="sec">
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Top jugadores de tu club <span>por reservas</span></div>
+      <div class="rank-row"><div class="rpos g">1</div><div class="rname">Laura P.</div><div style="flex:1;padding:0 8px"><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div></div><div class="rval">34 reservas</div><div class="rniv">Nivel 3</div></div>
+      <div class="rank-row"><div class="rpos g">2</div><div class="rname">Martín R.</div><div style="flex:1;padding:0 8px"><div class="bar-track"><div class="bar-fill" style="width:75%"></div></div></div><div class="rval">28 reservas</div><div class="rniv">Nivel 4</div></div>
+      <div class="rank-row"><div class="rpos g">3</div><div class="rname">Carlos F.</div><div style="flex:1;padding:0 8px"><div class="bar-track"><div class="bar-fill" style="width:65%"></div></div></div><div class="rval">24 reservas</div><div class="rniv">Nivel 5</div></div>
+      <div class="rank-row"><div class="rpos">4</div><div class="rname">Ana G.</div><div style="flex:1;padding:0 8px"><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div></div><div class="rval">19 reservas</div><div class="rniv">Nivel 3</div></div>
+      <div class="rank-row"><div class="rpos">5</div><div class="rname">Diego M.</div><div style="flex:1;padding:0 8px"><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div></div><div class="rval">15 reservas</div><div class="rniv">Nivel 4</div></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Perfil de tu comunidad</div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-users"></i>Jugadores registrados en tu club</div><div class="ramt g">284</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-calendar-check"></i>Activos este mes</div><div class="ramt">198</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-star"></i>Rating promedio del club</div><div class="ramt g">4.8 / 5</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-trending-up"></i>Nuevos este mes</div><div class="ramt">+32</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-repeat"></i>Tasa de retención mensual</div><div class="ramt g">87%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== INGRESOS ========== -->
+<div id="tab-ingresos" class="sec">
+  <div class="kgrid">
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-coin"></i>Este mes</div><div class="kpi-val g">ARS 3.2M</div><div class="kpi-sub">+18% vs anterior</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-calendar"></i>Promedio/día</div><div class="kpi-val">ARS 107K</div><div class="kpi-sub">18 reservas/día prom.</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-trophy"></i>Por torneos/eventos</div><div class="kpi-val g">ARS 880K</div><div class="kpi-sub">28% del total</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-chart-pie"></i>Turno promedio</div><div class="kpi-val">ARS 40K</div><div class="kpi-sub">ARS 42K precio presencial</div></div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Ingresos por canal <span>este mes</span></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-device-mobile"></i>Reservas vía app</div><div class="ramt g">ARS 1.960K</div><div class="rpct">61%</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-trophy"></i>Torneos y eventos</div><div class="ramt">ARS 880K</div><div class="rpct">28%</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-phone"></i>Presenciales / WA</div><div class="ramt">ARS 360K</div><div class="rpct">11%</div></div>
+      <div class="rrow tot"><div class="rlbl" style="font-weight:500;color:#fff">Total</div><div class="ramt g" style="font-size:15px">ARS 3.200K</div></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Últimos 6 meses</div>
+      <div class="bar-row"><span class="bar-lbl">Ene</span><div class="bar-track"><div class="bar-fill" style="width:45%;background:#374151"></div></div><span class="bar-val">ARS 1.4M</span></div>
+      <div class="bar-row"><span class="bar-lbl">Feb</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:#374151"></div></div><span class="bar-val">ARS 1.6M</span></div>
+      <div class="bar-row"><span class="bar-lbl">Mar</span><div class="bar-track"><div class="bar-fill" style="width:58%"></div></div><span class="bar-val">ARS 1.9M</span></div>
+      <div class="bar-row"><span class="bar-lbl">Abr</span><div class="bar-track"><div class="bar-fill" style="width:70%"></div></div><span class="bar-val">ARS 2.3M</span></div>
+      <div class="bar-row"><span class="bar-lbl">May</span><div class="bar-track"><div class="bar-fill" style="width:83%"></div></div><span class="bar-val">ARS 2.7M</span></div>
+      <div class="bar-row"><span class="bar-lbl">Jun</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">ARS 3.2M</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MI CLUB ========== -->
+<div id="tab-config" class="sec">
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Perfil del club</div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-building"></i>Nombre</div><div class="ramt">Club Palermo Norte</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-map-pin"></i>Zona</div><div class="ramt">Córdoba Capital — Zona Norte</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-ball-tennis"></i>Canchas</div><div class="ramt g">6 canchas (5 activas)</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-clock"></i>Horario</div><div class="ramt">08:00 a 23:00hs</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-coin"></i>Precio prom. app</div><div class="ramt g">ARS 40.000</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-star"></i>Rating</div><div class="ramt">4.8 / 5 (128 reseñas)</div></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Tu plan <span class="gold">3 meses gratis activo</span></div>
+      <div class="desg">
+        <div class="dtitle">Plan Club Pro</div>
+        <div class="drow"><div class="dl">Estado</div><div class="dv" style="color:#f59e0b">Período gratuito — Mes 2/3</div></div>
+        <div class="drow"><div class="dl">Días restantes gratis</div><div class="dv g">47 días</div></div>
+        <div class="drow"><div class="dl">Precio después del período</div><div class="dv">USD 55 / mes</div></div>
+        <div class="drow tot"><div class="dl">Jugadores activos</div><div class="dv g">284</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Modal nueva cancha -->
+<div class="modal-backdrop" id="modal-nueva-cancha">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-plus" style="margin-right:6px"></i>Nueva cancha</div>
+    <div class="form-row">
+      <label class="form-label">Nombre de la cancha</label>
+      <input class="form-input" type="text" placeholder="Ej: Cancha 7 — VIP">
+    </div>
+    <div class="form-row-two">
+      <div>
+        <label class="form-label">Tipo</label>
+        <select class="select-input">
+          <option>Cristal</option><option>Panorámica</option><option>Indoor</option><option>Outdoor</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Superficie</label>
+        <select class="select-input">
+          <option>Sintético</option><option>Césped artificial</option><option>Hormigón</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row-two">
+      <div>
+        <label class="form-label">Precio presencial (ARS)</label>
+        <input class="form-input" type="number" placeholder="50000">
+      </div>
+      <div>
+        <label class="form-label">Precio app (ARS)</label>
+        <input class="form-input" type="number" placeholder="42000">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-r" onclick="closeModal('nueva-cancha')">Cancelar</button>
+      <button class="btn-g">Crear cancha</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nuevo turno manual -->
+<div class="modal-backdrop" id="modal-nuevo-turno">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-calendar-plus" style="margin-right:6px"></i>Cargar turno manual</div>
+    <div class="form-row-two">
+      <div>
+        <label class="form-label">Cancha</label>
+        <select class="select-input">
+          <option>Cancha 1</option><option>Cancha 2</option><option>Cancha 3</option><option>Cancha 4</option><option>Cancha 6</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Horario</label>
+        <select class="select-input">
+          <option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option><option>22:00</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Jugador / Nombre</label>
+      <input class="form-input" type="text" placeholder="Nombre del jugador o referencia">
+    </div>
+    <div class="form-row-two">
+      <div>
+        <label class="form-label">Canal</label>
+        <select class="select-input">
+          <option>Presencial</option><option>WhatsApp</option><option>App</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Monto cobrado (ARS)</label>
+        <input class="form-input" type="number" placeholder="50000">
+      </div>
+    </div>
+    <div class="form-row-two">
+      <div>
+        <label class="form-label">Estado de pago</label>
+        <select class="select-input">
+          <option>Pagado</option><option>Pendiente</option><option>Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-r" onclick="closeModal('nuevo-turno')">Cancelar</button>
+      <button class="btn-g">Guardar turno</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const HORAS=['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00'];
+const RESERVADOS_1=['08:00','09:00','14:00','16:00','17:00','18:00','20:00'];
+const RESERVADOS_2=['08:00','09:00','14:00','20:00'];
+
+function buildSlots(containerId, reservados){
+  const cont=document.getElementById(containerId);
+  if(!cont)return;
+  cont.innerHTML='';
+  HORAS.forEach(h=>{
+    const isRes=reservados.includes(h);
+    const div=document.createElement('div');
+    div.className='slot '+(isRes?'reservado':'activo');
+    div.textContent=h;
+    div.setAttribute('data-hora',h);
+    if(!isRes){
+      div.onclick=function(){
+        this.classList.toggle('activo');
+        this.classList.toggle('inactivo');
+      };
+    }
+    const tip=document.createElement('span');
+    tip.className='slot-tooltip';
+    tip.textContent=isRes?'Reservado':'Click para desactivar';
+    div.appendChild(tip);
+    cont.appendChild(div);
+  });
+}
+
+buildSlots('slots-1',RESERVADOS_1);
+buildSlots('slots-2',RESERVADOS_2);
+
+function toggleAllSlots(n,activar){
+  const cont=document.getElementById('slots-'+n);
+  cont.querySelectorAll('.slot:not(.reservado):not(.torneo):not(.mant)').forEach(s=>{
+    s.className='slot '+(activar?'activo':'inactivo');
+  });
+}
+
+function setPeakOff(n){
+  const PICO=['19:00','20:00','21:00','22:00'];
+  const cont=document.getElementById('slots-'+n);
+  cont.querySelectorAll('.slot:not(.reservado):not(.torneo):not(.mant)').forEach(s=>{
+    const h=s.getAttribute('data-hora');
+    s.className='slot '+(PICO.includes(h)?'activo':'inactivo');
+  });
+}
+
+function calcDescuento(n){
+  const pres=parseInt(document.getElementById('p-pres-'+n).value)||0;
+  const app=parseInt(document.getElementById('p-app-'+n).value)||0;
+  const badge=document.getElementById('desc-badge-'+n);
+  if(!badge)return;
+  const diff=pres-app;
+  if(diff<3000){
+    badge.className='descuento-err';
+    badge.innerHTML='<i class="ti ti-alert-triangle" style="font-size:10px"></i>Descuento mínimo: ARS 3.000';
+  } else {
+    const pct=pres>0?Math.round((diff/pres)*100):0;
+    badge.className='descuento-badge';
+    badge.innerHTML='<i class="ti ti-discount" style="font-size:10px"></i>-'+pct+'% en app (ARS '+diff.toLocaleString('es-AR')+' menos)';
+  }
+}
+
+function toggleCanchaCard(input,id){
+  const card=document.getElementById(id);
+  const lbl=document.getElementById('lbl-'+id);
+  if(input.checked){
+    card.className='cancha-card activa';
+    if(lbl){lbl.className='toggle-label on';lbl.textContent='Activa';}
+  } else {
+    card.className='cancha-card inactiva';
+    if(lbl){lbl.className='toggle-label';lbl.textContent='Inactiva';}
+  }
+}
+
+function toggleCanchaManual(id){
+  const card=document.getElementById(id);
+  card.className='cancha-card activa';
+  const lbl=document.getElementById('lbl-'+id);
+  if(lbl){lbl.className='toggle-label on';lbl.textContent='Activa';}
+  const inp=card.querySelector('input[type=checkbox]');
+  if(inp)inp.checked=true;
+}
+
+function show(id){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const tabs=['dashboard','canchas','torneos','jugadoras','ingresos','config'];
+  const idx=tabs.indexOf(id);
+  if(idx>=0)document.querySelectorAll('.ntab')[idx].classList.add('active');
+}
+
+function showInnerTab(id){
+  document.querySelectorAll('.isec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.itab').forEach(t=>t.classList.remove('active'));
+  const sec=document.getElementById('isec-'+id);
+  if(sec)sec.classList.add('active');
+  const tabs=['gestion','turnos','caja'];
+  const idx=tabs.indexOf(id);
+  if(idx>=0)document.querySelectorAll('.itab')[idx].classList.add('active');
+}
+
+function filtrarTurnos(canal,btn){
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function openModal(id){
+  const m=document.getElementById('modal-'+id);
+  if(m)m.classList.add('open');
+}
+
+function closeModal(id){
+  const m=document.getElementById('modal-'+id);
+  if(m)m.classList.remove('open');
+}
+
+document.querySelectorAll('.modal-backdrop').forEach(m=>{
+  m.addEventListener('click',function(e){
+    if(e.target===this)this.classList.remove('open');
+  });
+});
+
+const now=new Date();
+const h=now.getHours().toString().padStart(2,'0');
+const mi=now.getMinutes().toString().padStart(2,'0');
+const el=document.getElementById('hora-turnos');
+if(el)el.textContent=h+':'+mi+'hs';
+
+const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const d=now;
+const fechaStr=dias[d.getDay()]+' '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear();
+['dash-fecha','turnos-fecha'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.textContent=fechaStr;
+});
+</script>
