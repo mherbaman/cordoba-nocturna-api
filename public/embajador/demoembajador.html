@@ -1,0 +1,489 @@
+
+
+<h2 class="sr-only">Portal embajadora PadelConnect — dashboard completo fondo oscuro con modelo de comisiones Caso A y Caso B nivel Plata</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:var(--font-sans)}
+
+.shell{background:#0a0a0a;border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid #1e1e1e}
+
+.topnav{background:#0f0f0f;border-bottom:0.5px solid #1e1e1e;padding:0 16px;display:flex;align-items:center;height:48px;gap:0}
+.nav-logo{display:flex;align-items:center;gap:8px;margin-right:20px;flex-shrink:0}
+.nav-mark{width:26px;height:26px;background:#22c55e;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#052e16}
+.nav-name{font-size:13px;font-weight:500;color:#fff}
+.nav-badge{font-size:10px;background:#1c1400;color:#f59e0b;padding:1px 7px;border-radius:var(--border-radius-md);font-weight:500;margin-left:4px;border:0.5px solid #854f0b}
+.nav-tabs{display:flex;flex:1;overflow-x:auto}
+.ntab{padding:0 12px;height:48px;display:flex;align-items:center;gap:5px;font-size:12px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;background:transparent;border-left:none;border-right:none;border-top:none}
+.ntab.active{color:#22c55e;border-bottom-color:#22c55e}
+.ntab:hover:not(.active){color:#9ca3af}
+.ntab i{font-size:14px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.shield{display:flex;align-items:center;gap:4px;font-size:10px;color:#22c55e;background:#052010;border:0.5px solid #15803d;padding:3px 8px;border-radius:20px}
+.avatar{width:26px;height:26px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#052e16;flex-shrink:0}
+
+.sec{display:none;padding:16px}
+.sec.active{display:block}
+
+.kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:#111;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-md);padding:12px}
+.kpi-lbl{font-size:11px;color:#6b7280;margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.kpi-lbl i{font-size:13px}
+.kpi-val{font-size:19px;font-weight:500;color:#fff;line-height:1}
+.kpi-val.g{color:#22c55e}
+.kpi-sub{font-size:11px;color:#22c55e;margin-top:3px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.one{margin-bottom:10px}
+.panel{background:#111;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-lg);padding:12px 14px}
+.phdr{font-size:11px;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.phdr span{font-size:10px;color:#22c55e;font-weight:400;text-transform:none;letter-spacing:0}
+
+.ev-card{background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-md);padding:9px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
+.ev-card:last-child{margin-bottom:0}
+.ev-ic{width:30px;height:30px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.t{background:#1a1a2e;color:#7c3aed}
+.s{background:#052010;color:#22c55e}
+.a{background:#1c1400;color:#f59e0b}
+.pp{background:#001a2e;color:#0ea5e9}
+.ev-info{flex:1;min-width:0}
+.ev-name{font-size:12px;font-weight:500;color:#fff}
+.ev-meta{font-size:11px;color:#6b7280;margin-top:1px}
+.ev-amt{font-size:12px;font-weight:500;color:#22c55e;flex-shrink:0}
+.ev-st{font-size:10px;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.sok{background:#052010;color:#22c55e;border:0.5px solid #15803d}
+.sw{background:#1c1400;color:#f59e0b;border:0.5px solid #854f0b}
+
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-lbl{font-size:11px;color:#9ca3af;width:52px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:7px;background:#1a1a1a;border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:#22c55e;transition:width .5s ease}
+.bar-val{font-size:11px;font-weight:500;color:#fff;width:70px;text-align:right;flex-shrink:0}
+
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid #1a1a1a}
+.rrow:last-child{border-bottom:none}
+.rrow.tot{padding-top:10px;margin-top:2px;border-top:1px solid #22c55e;border-bottom:none}
+.rlbl{font-size:12px;color:#9ca3af;display:flex;align-items:center;gap:5px}
+.rlbl i{font-size:14px}
+.ramt{font-size:12px;font-weight:500;color:#fff}
+.ramt.g{color:#22c55e}
+.rpct{font-size:10px;color:#22c55e;background:#052010;padding:2px 6px;border-radius:10px}
+
+.act-item{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid #1a1a1a;align-items:flex-start}
+.act-item:last-child{border-bottom:none}
+.adot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:4px}
+.adot.w{background:#f59e0b}
+.atxt{font-size:12px;color:#9ca3af;flex:1;line-height:1.5}
+.atime{font-size:11px;color:#4b5563;flex-shrink:0}
+
+.desg{background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-md);padding:11px 13px;margin-bottom:8px}
+.desg:last-child{margin-bottom:0}
+.dtitle{font-size:10px;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.drow{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.drow.tot{border-top:0.5px solid #1e1e1e;margin-top:4px;padding-top:7px;font-weight:500}
+.dl{color:#6b7280}
+.dv{color:#fff}
+.dv.g{color:#22c55e}
+
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.caseA{background:#052010;border:0.5px solid #15803d;border-radius:var(--border-radius-lg);padding:14px}
+.caseB{background:#1c1400;border:0.5px solid #854f0b;border-radius:var(--border-radius-lg);padding:14px}
+.caseB-lock{background:#111;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-lg);padding:14px;opacity:.5}
+.c-head{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.c-head.a{color:#22c55e}
+.c-head.b{color:#f59e0b}
+.c-head.lk{color:#6b7280}
+.c-amt{font-size:26px;font-weight:500;margin-bottom:4px}
+.c-amt.a{color:#22c55e}
+.c-amt.b{color:#f59e0b}
+.c-amt.lk{color:#6b7280}
+.c-desc{font-size:12px;line-height:1.6}
+.c-desc.a{color:#86efac}
+.c-desc.b{color:#fcd34d}
+.c-desc.lk{color:#6b7280}
+
+.level-card{background:#0f0f0f;padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-md)}
+.level-bar{width:4px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:44px}
+.level-info{flex:1;min-width:0}
+.level-name{font-size:13px;font-weight:500;color:#fff;margin-bottom:3px}
+.level-desc{font-size:11px;color:#6b7280;line-height:1.5}
+.level-earn{font-size:12px;font-weight:500;color:#22c55e;flex-shrink:0;text-align:right}
+
+.sim-wrap{background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-md);padding:13px;margin-bottom:10px}
+.sim-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.sim-row:last-child{margin-bottom:0}
+.sim-lbl{font-size:11px;color:#9ca3af;width:165px;flex-shrink:0;line-height:1.3}
+.sim-row input[type=range]{flex:1}
+.sim-out{font-size:12px;font-weight:500;color:#fff;width:90px;text-align:right;flex-shrink:0}
+.sim-result{background:#052010;border:0.5px solid #15803d;border-radius:var(--border-radius-md);padding:12px 14px;margin-top:8px}
+.sim-bkdn{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:10px}
+.sim-b{background:#111;border-radius:var(--border-radius-md);padding:9px;text-align:center;border:0.5px solid #1e1e1e}
+.sim-bv{font-size:13px;font-weight:500;color:#fff}
+.sim-bv.g{color:#22c55e}
+.sim-bv.locked{color:#6b7280}
+.sim-bl{font-size:10px;color:#6b7280;margin-top:2px;line-height:1.3}
+.sim-total-row{display:flex;justify-content:space-between;align-items:center}
+.sim-total-lbl{font-size:12px;color:#86efac}
+.sim-total-val{font-size:22px;font-weight:500;color:#22c55e}
+
+.pr-card{background:#111;padding:12px 14px;border-left:2px solid #22c55e;border-radius:0;margin-bottom:8px}
+.pr-card:last-child{margin-bottom:0}
+.pr-title{font-size:13px;font-weight:500;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.pr-title i{font-size:14px;color:#22c55e}
+.pr-desc{font-size:12px;color:#6b7280;line-height:1.5}
+
+.rank-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #1a1a1a}
+.rank-row:last-child{border-bottom:none}
+.rpos{width:18px;font-size:11px;font-weight:500;color:#6b7280;text-align:center;flex-shrink:0}
+.rpos.me{color:#f59e0b}
+.rname{font-size:12px;color:#fff;flex:1}
+.rbadge{font-size:10px;background:#1c1400;color:#f59e0b;padding:1px 5px;border-radius:var(--border-radius-md);margin-left:4px;border:0.5px solid #854f0b}
+.rval{font-size:12px;font-weight:500;color:#22c55e}
+.rlvl{font-size:10px;padding:2px 6px;border-radius:10px;flex-shrink:0}
+.rl-plata{background:#052010;color:#22c55e;border:0.5px solid #15803d}
+.rl-bronce{background:#111;color:#6b7280;border:0.5px solid #1e1e1e}
+
+.insig{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid #1a1a1a}
+.insig:last-child{border-bottom:none}
+.insig-ic{width:30px;height:30px;border-radius:var(--border-radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.insig-name{font-size:12px;font-weight:500;color:#fff}
+.insig-desc{font-size:11px;color:#6b7280;margin-top:1px}
+
+.c-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #1a1a1a}
+.c-row:last-child{border-bottom:none}
+.cav{width:26px;height:26px;border-radius:50%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#7c3aed;flex-shrink:0}
+.cname{font-size:12px;color:#fff;flex:1}
+.crole{font-size:11px;color:#6b7280}
+.clk{font-size:10px;background:#052010;color:#22c55e;padding:2px 6px;border-radius:10px;display:flex;align-items:center;gap:3px;flex-shrink:0}
+</style>
+
+<div class="shell">
+
+<div class="topnav">
+  <div class="nav-logo">
+    <div class="nav-mark">PC</div>
+    <span class="nav-name">PadelConnect</span>
+    <span class="nav-badge">Embajadora</span>
+  </div>
+  <div class="nav-tabs">
+    <div class="ntab active" onclick="show('dashboard')"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</div>
+    <div class="ntab" onclick="show('eventos')"><i class="ti ti-calendar-event" aria-hidden="true"></i>Mis eventos</div>
+    <div class="ntab" onclick="show('ganancias')"><i class="ti ti-coin" aria-hidden="true"></i>Ganancias</div>
+    <div class="ntab" onclick="show('comisiones')"><i class="ti ti-git-branch" aria-hidden="true"></i>Comisiones</div>
+    <div class="ntab" onclick="show('contactos')"><i class="ti ti-lock" aria-hidden="true"></i>Mis contactos</div>
+    <div class="ntab" onclick="show('ranking')"><i class="ti ti-trophy" aria-hidden="true"></i>Ranking</div>
+  </div>
+  <div class="nav-right">
+    <div class="shield"><i class="ti ti-shield-check" style="font-size:11px" aria-hidden="true"></i>Protegido</div>
+    <div class="avatar">MA</div>
+  </div>
+</div>
+
+<div id="tab-dashboard" class="sec active">
+  <div class="kgrid">
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-coin" aria-hidden="true"></i>Ganado este mes</div><div class="kpi-val g">ARS 2.184.000</div><div class="kpi-sub">+22% vs mes anterior</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-calendar-event" aria-hidden="true"></i>Eventos activos</div><div class="kpi-val">6</div><div class="kpi-sub">2 torneos · 4 Super 8</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-building" aria-hidden="true"></i>Reservas hoy (Caso A)</div><div class="kpi-val">11</div><div class="kpi-sub">Meta 10 — superada</div></div>
+    <div class="kpi"><div class="kpi-lbl"><i class="ti ti-users" aria-hidden="true"></i>Mi comunidad</div><div class="kpi-val">340</div><div class="kpi-sub">jugadoras en mi red</div></div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Ganancias — últimos 6 meses</div>
+      <div class="bar-row"><span class="bar-lbl">Ene</span><div class="bar-track"><div class="bar-fill" style="width:18%"></div></div><span class="bar-val">ARS 390K</span></div>
+      <div class="bar-row"><span class="bar-lbl">Feb</span><div class="bar-track"><div class="bar-fill" style="width:28%"></div></div><span class="bar-val">ARS 610K</span></div>
+      <div class="bar-row"><span class="bar-lbl">Mar</span><div class="bar-track"><div class="bar-fill" style="width:44%"></div></div><span class="bar-val">ARS 960K</span></div>
+      <div class="bar-row"><span class="bar-lbl">Abr</span><div class="bar-track"><div class="bar-fill" style="width:62%"></div></div><span class="bar-val">ARS 1.350K</span></div>
+      <div class="bar-row"><span class="bar-lbl">May</span><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div><span class="bar-val">ARS 1.790K</span></div>
+      <div class="bar-row"><span class="bar-lbl">Jun</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">ARS 2.184K</span></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Ingresos por fuente <span>este mes</span></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-trophy" aria-hidden="true"></i>Torneos (70%)</div><div class="ramt">ARS 1.058K</div><div class="rpct">48%</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-users" aria-hidden="true"></i>Super 8 / Americanos (75%)</div><div class="ramt">ARS 607K</div><div class="rpct">28%</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-building" aria-hidden="true"></i>Reservas — Caso A</div><div class="ramt">ARS 330K</div><div class="rpct">15%</div></div>
+      <div class="rrow"><div class="rlbl"><i class="ti ti-star" aria-hidden="true"></i>Red en eventos ajenos — Caso B</div><div class="ramt">ARS 189K</div><div class="rpct">9%</div></div>
+      <div class="rrow tot"><div class="rlbl" style="font-weight:500;color:#fff">Total</div><div class="ramt g" style="font-size:15px">ARS 2.184K</div></div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Próximos eventos</div>
+      <div class="ev-card"><div class="ev-ic t"><i class="ti ti-trophy" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Torneo +45 — Club Palermo</div><div class="ev-meta">Sáb 14 jun · 32 jugadoras · $22.500 c/u</div></div><div class="ev-amt">ARS 504K</div><div class="ev-st sok">Lleno</div></div>
+      <div class="ev-card"><div class="ev-ic s"><i class="ti ti-users" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Super 8 — Zona Norte</div><div class="ev-meta">Dom 15 jun · 7/8 jugadoras · $20.000 c/u</div></div><div class="ev-amt">ARS 120K</div><div class="ev-st sw">Falta 1</div></div>
+      <div class="ev-card"><div class="ev-ic a"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Americano mixto — Club Sur</div><div class="ev-meta">Vie 20 jun · 16 jugadoras · $20.000 c/u</div></div><div class="ev-amt">ARS 210K</div><div class="ev-st sok">Confirmado</div></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Actividad reciente</div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">Torneo +45 Palermo — 32 inscriptas · ARS 504K acreditados</span><span class="atime">hace 1h</span></div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">11 reservas de cancha hoy — ARS 11.000 Caso A acreditados</span><span class="atime">hace 2h</span></div>
+      <div class="act-item"><div class="adot w"></div><span class="atxt">Super 8 Zona Norte — falta 1 jugadora para completar</span><span class="atime">hace 4h</span></div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">189 inscripciones de tu red en eventos ajenos este mes — ARS 189K Caso B</span><span class="atime">ayer</span></div>
+      <div class="act-item"><div class="adot"></div><span class="atxt">18 nuevas jugadoras se sumaron a tu red esta semana</span><span class="atime">ayer</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-eventos" class="sec">
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Formatos y tu ganancia</div>
+      <div class="ev-card"><div class="ev-ic t"><i class="ti ti-trophy" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Torneo — 32 jugadoras</div><div class="ev-meta">$22.500 × 32 = $720K bruto · 70% tuyo</div></div><div class="ev-amt">ARS 504K</div></div>
+      <div class="ev-card"><div class="ev-ic t"><i class="ti ti-trophy" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Torneo — 20 jugadoras</div><div class="ev-meta">$22.500 × 20 = $450K bruto · 70% tuyo</div></div><div class="ev-amt">ARS 315K</div></div>
+      <div class="ev-card"><div class="ev-ic s"><i class="ti ti-users" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Super 8 — 8 jugadoras</div><div class="ev-meta">$20.000 × 8 = $160K bruto · 75% tuyo</div></div><div class="ev-amt">ARS 120K</div></div>
+      <div class="ev-card"><div class="ev-ic a"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Americano — 16 jugadoras</div><div class="ev-meta">$20.000 × 16 = $320K bruto · 75% tuyo</div></div><div class="ev-amt">ARS 240K</div></div>
+      <div class="ev-card"><div class="ev-ic pp"><i class="ti ti-ball-tennis" aria-hidden="true"></i></div><div class="ev-info"><div class="ev-name">Partido simple — 4 jugadoras</div><div class="ev-meta">Comisión ARS 1.000 × 4 reservas (Caso A)</div></div><div class="ev-amt">ARS 4K</div></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Cómo crear un evento</div>
+      <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:#fff">Elegís el formato</strong> — Torneo, Super 8, Americano o Partido</span></div>
+      <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:#fff">Seleccionás el club</strong> — cualquier club activo en la plataforma</span></div>
+      <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:#fff">Fijás precio y cupos</strong> — mínimo ARS 20.000 por jugadora</span></div>
+      <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:#fff">La app notifica y cobra</strong> — tus 340 jugadoras reciben la invitación sola</span></div>
+      <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:#fff">Tu 70-75% se acredita solo</strong> — al cerrar las inscripciones, aparece en tu billetera</span></div>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button onclick="sendPrompt('Cómo funciona la creación de torneos en PadelConnect para embajadoras?')">Nuevo torneo ↗</button>
+        <button onclick="sendPrompt('Cómo organizo un Super 8 en PadelConnect?')">Super 8 ↗</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-ganancias" class="sec">
+  <div class="panel one">
+    <div class="phdr">Simulador de ganancias <span>mové los sliders</span></div>
+    <div class="sim-wrap">
+      <div class="sim-row"><span class="sim-lbl">Torneos por mes</span><input type="range" id="s-torn" min="0" max="5" value="2" step="1"><span class="sim-out" id="v-torn">2 torneos</span></div>
+      <div class="sim-row"><span class="sim-lbl">Jugadoras por torneo</span><input type="range" id="s-jug" min="8" max="64" value="28" step="4"><span class="sim-out" id="v-jug">28 jugadoras</span></div>
+      <div class="sim-row"><span class="sim-lbl">Super 8 / Americanos / mes</span><input type="range" id="s-s8" min="0" max="12" value="4" step="1"><span class="sim-out" id="v-s8">4 eventos</span></div>
+      <div class="sim-row"><span class="sim-lbl">Reservas cancha / día (Caso A)</span><input type="range" id="s-res" min="0" max="25" value="11" step="1"><span class="sim-out" id="v-res">11 / día</span></div>
+      <div class="sim-row"><span class="sim-lbl">Nivel Plata activo (Caso B)</span><input type="range" id="s-plata" min="0" max="1" value="1" step="1"><span class="sim-out" id="v-plata">Sí — activo</span></div>
+      <div class="sim-row" id="row-red"><span class="sim-lbl">Inscripciones de tu red en eventos ajenos / mes</span><input type="range" id="s-red" min="0" max="400" value="189" step="10"><span class="sim-out" id="v-red">189</span></div>
+      <div class="sim-row"><span class="sim-lbl">Sponsors activos</span><input type="range" id="s-sp" min="0" max="5" value="2" step="1"><span class="sim-out" id="v-sp">2 sponsors</span></div>
+    </div>
+    <div class="sim-bkdn">
+      <div class="sim-b"><div class="sim-bv g" id="r-torn">ARS 0</div><div class="sim-bl">Torneos</div></div>
+      <div class="sim-b"><div class="sim-bv g" id="r-s8">ARS 0</div><div class="sim-bl">Super 8 / Amer.</div></div>
+      <div class="sim-b"><div class="sim-bv g" id="r-res">ARS 0</div><div class="sim-bl">Caso A — reservas</div></div>
+      <div class="sim-b"><div class="sim-bv" id="r-red">—</div><div class="sim-bl">Caso B — Plata</div></div>
+    </div>
+    <div class="sim-result">
+      <div class="sim-total-row">
+        <div>
+          <div class="sim-total-lbl">Tu ganancia mensual estimada</div>
+          <div style="font-size:11px;color:#86efac;margin-top:2px" id="sim-note">Nivel Plata activo — Caso B incluido</div>
+        </div>
+        <div class="sim-total-val" id="sim-total">ARS 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-comisiones" class="sec">
+
+  <div class="panel one" style="margin-bottom:10px">
+    <div class="phdr">Modelo de comisiones — cómo funciona</div>
+    <div class="case-grid">
+      <div class="caseA">
+        <div class="c-head a"><i class="ti ti-check" aria-hidden="true"></i>Caso A — todos los niveles</div>
+        <div class="c-amt a">ARS 1.000</div>
+        <div class="c-desc a">Cada vez que una jugadora de tu red reserva una cancha por la app, recibís ARS 1.000. Sin importar qué club ni quién organizó el partido. Activo desde el primer día.</div>
+      </div>
+      <div id="case-b-el" class="caseB">
+        <div class="c-head b"><i class="ti ti-star" aria-hidden="true"></i>Caso B — solo nivel Plata</div>
+        <div class="c-amt b">ARS 1.000</div>
+        <div class="c-desc b">Cuando una jugadora de tu red se anota en un torneo, Super 8 o Americano organizado por otro (un club, otra embajadora), recibís ARS 1.000 extra. Ingreso pasivo puro — sin hacer nada.</div>
+      </div>
+    </div>
+    <div style="background:#0f0f0f;border:0.5px solid #1e1e1e;border-radius:var(--border-radius-md);padding:10px 13px;margin-top:0">
+      <div style="font-size:11px;color:#6b7280;margin-bottom:4px">Diferencia clave entre niveles</div>
+      <div style="font-size:12px;color:#9ca3af;line-height:1.6">En <strong style="color:#fff">nivel Bronce</strong> solo te generan comisión las reservas de cancha de tu red (Caso A). En <strong style="color:#22c55e">nivel Plata</strong> además ganás ARS 1.000 cada vez que alguien de tu red se anota en un evento que organizó otra persona (Caso B) — tu red trabaja para vos mientras dormís.</div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Caso A — desglose por reserva</div>
+      <div class="desg">
+        <div class="dtitle">Distribución de un turno — ARS 42.000</div>
+        <div class="drow"><span class="dl">Jugadora paga por app</span><span class="dv">ARS 42.000</span></div>
+        <div class="drow"><span class="dl">Turno presencial (referencia)</span><span class="dv">ARS 45.000</span></div>
+        <div class="drow"><span class="dl">Ahorro para la jugadora</span><span class="dv" style="color:#22c55e">ARS 3.000 (−7%)</span></div>
+        <div class="drow"><span class="dl">Club recibe</span><span class="dv">ARS 40.000</span></div>
+        <div class="drow"><span class="dl">Embajadora (vos)</span><span class="dv g">ARS 1.000</span></div>
+        <div class="drow"><span class="dl">PadelConnect</span><span class="dv">ARS 1.000</span></div>
+        <div class="drow tot"><span class="dl">Total distribuido</span><span class="dv g">ARS 42.000 ✓</span></div>
+      </div>
+      <div class="desg">
+        <div class="dtitle">Meta diaria — 10 reservas</div>
+        <div class="drow"><span class="dl">ARS 1.000 × 10 turnos/día</span><span class="dv g">ARS 10.000 / día</span></div>
+        <div class="drow"><span class="dl">× 30 días</span><span class="dv g">ARS 300.000 / mes</span></div>
+        <div class="drow"><span class="dl">Aplica en</span><span class="dv">Todos los niveles</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Caso B — desglose <span id="b-lbl" style="color:#f59e0b">Solo nivel Plata</span></div>
+      <div class="desg">
+        <div class="dtitle">Cuando tu jugadora se anota en evento ajeno</div>
+        <div class="drow"><span class="dl">Quién organizó</span><span class="dv">Otro club o embajadora</span></div>
+        <div class="drow"><span class="dl">Inscripción que pagó tu jugadora</span><span class="dv">ARS 20.000 – 25.000</span></div>
+        <div class="drow"><span class="dl">Quién organizó recibe su 70%</span><span class="dv">ARS 14.000 – 17.500</span></div>
+        <div class="drow"><span class="dl">Vos recibís (Caso B — Plata)</span><span class="dv g">ARS 1.000</span></div>
+        <div class="drow"><span class="dl">¿Hiciste algo?</span><span class="dv" style="color:#22c55e">Nada. Puro pasivo.</span></div>
+      </div>
+      <div class="desg">
+        <div class="dtitle">Proyección mensual Caso B — nivel Plata</div>
+        <div class="drow"><span class="dl">Jugadoras activas en tu red</span><span class="dv">300+</span></div>
+        <div class="drow"><span class="dl">Inscripciones ajenas est./mes</span><span class="dv">~189</span></div>
+        <div class="drow"><span class="dl">× ARS 1.000 c/u</span><span class="dv g">ARS 189.000 / mes</span></div>
+        <div class="drow"><span class="dl">Aplica en</span><span class="dv" style="color:#f59e0b">Solo nivel Plata</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel one">
+    <div class="phdr">Niveles de embajadora</div>
+    <div class="level-card">
+      <div class="level-bar" style="background:#6b7280"></div>
+      <div class="level-info">
+        <div class="level-name" style="color:#9ca3af">Nivel Bronce</div>
+        <div class="level-desc">Caso A activo desde el día 1 — ARS 1.000 por cada reserva de tu red. Caso B bloqueado. Acceso completo para organizar torneos, Super 8 y Americanos.</div>
+      </div>
+      <div class="level-earn" style="color:#9ca3af">~ARS 700K</div>
+    </div>
+    <div class="level-card" style="border-color:#15803d">
+      <div class="level-bar" style="background:#22c55e"></div>
+      <div class="level-info">
+        <div class="level-name" style="color:#22c55e">Nivel Plata — se desbloquea el Caso B</div>
+        <div class="level-desc">Todo lo de Bronce más el Caso B: ARS 1.000 por cada inscripción de tu red en eventos de otros. Cuanto más grande tu red, más ingreso pasivo genera sola.</div>
+      </div>
+      <div class="level-earn">ARS 2M+</div>
+    </div>
+    <div class="level-card" style="border-color:#854f0b">
+      <div class="level-bar" style="background:#f59e0b"></div>
+      <div class="level-info">
+        <div class="level-name" style="color:#f59e0b">Nivel Oro</div>
+        <div class="level-desc">Zona exclusiva garantizada, co-marketing con PadelConnect y acceso a franquicia provincial con 30% de descuento sobre el canon de entrada.</div>
+      </div>
+      <div class="level-earn" style="color:#f59e0b">ARS 4M+</div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-contactos" class="sec">
+  <div class="panel one" style="margin-bottom:10px;border-left:2px solid #22c55e;border-radius:0">
+    <div style="font-size:14px;font-weight:500;color:#fff;margin-bottom:6px">Tu comunidad es tuya. PadelConnect administra la plataforma, vos administrás la relación.</div>
+    <div style="font-size:12px;color:#6b7280;line-height:1.7">Las jugadoras que sumaste están vinculadas a tu perfil de forma permanente. PadelConnect no envía comunicaciones directas a tu red sin pasar por vos. Si decidís salir, exportás tu base completa en un click.</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+    <div class="pr-card"><div class="pr-title"><i class="ti ti-lock" aria-hidden="true"></i>Tu vínculo es exclusivo</div><div class="pr-desc">Las jugadoras de tu red reciben comunicaciones firmadas con tu nombre. Vos sos su referente dentro de la plataforma, siempre.</div></div>
+    <div class="pr-card"><div class="pr-title"><i class="ti ti-shield-check" aria-hidden="true"></i>Sin contacto directo de PC</div><div class="pr-desc">PadelConnect no puede hacerle ofertas directas a tu comunidad que te salteen. Las notificaciones pasan por tu panel.</div></div>
+    <div class="pr-card"><div class="pr-title"><i class="ti ti-file-export" aria-hidden="true"></i>Exportación libre siempre</div><div class="pr-desc">Exportás tu base completa en CSV cuando quieras — nombre, nivel, zona, historial. Sin pedir permiso, sin esperas.</div></div>
+    <div class="pr-card" style="border-left-color:#f59e0b"><div class="pr-title"><i class="ti ti-contract" aria-hidden="true"></i>Respaldo contractual</div><div class="pr-desc">Las jugadoras incorporadas por vos son atribuidas permanentemente a tu cuenta. No se pueden reasignar.</div></div>
+  </div>
+  <div class="panel one">
+    <div class="phdr">Mi red <span>340 jugadoras · datos protegidos</span></div>
+    <div class="c-row"><div class="cav">MR</div><div style="flex:1"><div class="cname">Martín R.</div><div class="crole">Nivel 4 · Zona Norte · 34 reservas · 8 torneos</div></div><div class="clk"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i>Tuya siempre</div></div>
+    <div class="c-row"><div class="cav">LP</div><div style="flex:1"><div class="cname">Laura P.</div><div class="crole">Nivel 3 · Zona Centro · 21 reservas · 5 torneos</div></div><div class="clk"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i>Tuya siempre</div></div>
+    <div class="c-row"><div class="cav">CF</div><div style="flex:1"><div class="cname">Carlos F.</div><div class="crole">Nivel 5 · Zona Sur · 48 reservas · 12 torneos</div></div><div class="clk"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i>Tuya siempre</div></div>
+    <div class="c-row"><div class="cav">AG</div><div style="flex:1"><div class="cname">Ana G.</div><div class="crole">Nivel 3 · Zona Norte · 12 reservas · 3 torneos</div></div><div class="clk"><i class="ti ti-lock" style="font-size:11px" aria-hidden="true"></i>Tuya siempre</div></div>
+    <div style="margin-top:12px;text-align:center">
+      <button onclick="sendPrompt('Cómo funciona la protección de contactos para embajadoras en PadelConnect?')">Exportar mi base completa ↗</button>
+    </div>
+  </div>
+</div>
+
+<div id="tab-ranking" class="sec">
+  <div class="two">
+    <div class="panel">
+      <div class="phdr">Ranking embajadoras — Córdoba <span>Junio 2025</span></div>
+      <div class="rank-row"><div class="rpos">1</div><div class="rname">Javier M. — Zona Norte</div><div class="rval">ARS 3.8M</div><div class="rlvl rl-plata">Plata</div></div>
+      <div class="rank-row"><div class="rpos">2</div><div class="rname">Sofía G. — Zona Sur</div><div class="rval">ARS 2.9M</div><div class="rlvl rl-plata">Plata</div></div>
+      <div class="rank-row"><div class="rpos me">3</div><div class="rname">Marcos A. — Zona Centro<span class="rbadge">Vos</span></div><div class="rval">ARS 2.2M</div><div class="rlvl rl-plata">Plata</div></div>
+      <div class="rank-row"><div class="rpos">4</div><div class="rname">Lucas P. — Nueva Córdoba</div><div class="rval">ARS 890K</div><div class="rlvl rl-bronce">Bronce</div></div>
+      <div class="rank-row"><div class="rpos">5</div><div class="rname">Valentina R. — Cerro</div><div class="rval">ARS 710K</div><div class="rlvl rl-bronce">Bronce</div></div>
+      <div class="rank-row"><div class="rpos">6</div><div class="rname">Diego C. — Urca</div><div class="rval">ARS 540K</div><div class="rlvl rl-bronce">Bronce</div></div>
+    </div>
+    <div class="panel">
+      <div class="phdr">Tus insignias</div>
+      <div class="insig"><div class="insig-ic t"><i class="ti ti-trophy" aria-hidden="true"></i></div><div style="flex:1"><div class="insig-name">Organizadora elite</div><div class="insig-desc">+10 torneos exitosos organizados</div></div><div class="ev-st sok">Obtenida</div></div>
+      <div class="insig"><div class="insig-ic a"><i class="ti ti-users" aria-hidden="true"></i></div><div style="flex:1"><div class="insig-name">Comunidad 300+</div><div class="insig-desc">Más de 300 jugadoras en tu red</div></div><div class="ev-st sok">Obtenida</div></div>
+      <div class="insig"><div class="insig-ic s"><i class="ti ti-coins" aria-hidden="true"></i></div><div style="flex:1"><div class="insig-name">Nivel Plata — Caso B activo</div><div class="insig-desc">Ingreso pasivo por red desbloqueado</div></div><div class="ev-st sok">Obtenida</div></div>
+      <div class="insig" style="opacity:.5"><div class="insig-ic pp"><i class="ti ti-speakerphone" aria-hidden="true"></i></div><div style="flex:1"><div class="insig-name">Sponsor hunter</div><div class="insig-desc">3 sponsors activos simultáneos</div></div><div class="ev-st sw">2/3</div></div>
+    </div>
+  </div>
+  <div class="panel one">
+    <div class="phdr">Beneficios por nivel</div>
+    <div class="level-card"><div class="level-bar" style="background:#6b7280"></div><div class="level-info"><div class="level-name" style="color:#9ca3af">Bronce — hasta ARS 900K/mes</div><div class="level-desc">Caso A activo · organización de todos los formatos · soporte estándar</div></div></div>
+    <div class="level-card" style="border-color:#15803d"><div class="level-bar" style="background:#22c55e"></div><div class="level-info"><div class="level-name" style="color:#22c55e">Plata — ARS 900K a 3M/mes</div><div class="level-desc">Caso A + Caso B activo · zona preferencial · soporte prioritario</div></div><div class="level-earn">Tu nivel</div></div>
+    <div class="level-card" style="border-color:#854f0b"><div class="level-bar" style="background:#f59e0b"></div><div class="level-info"><div class="level-name" style="color:#f59e0b">Oro — más de ARS 3M/mes</div><div class="level-desc">Zona exclusiva garantizada · co-marketing · acceso a franquicia con 30% de descuento</div></div><div class="level-earn" style="color:#f59e0b">Próximo</div></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const tabs=['dashboard','eventos','ganancias','comisiones','contactos','ranking'];
+  const idx=tabs.indexOf(id);
+  if(idx>=0) document.querySelectorAll('.ntab')[idx].classList.add('active');
+}
+
+function fmtK(n){
+  const r=Math.round(n);
+  if(r>=1000000) return 'ARS '+(r/1000000).toFixed(2).replace('.',',')+' M';
+  if(r>=1000) return 'ARS '+(r/1000).toFixed(0)+'K';
+  return 'ARS '+r.toLocaleString('es-AR');
+}
+
+function calc(){
+  const torn=+document.getElementById('s-torn').value;
+  const jug=+document.getElementById('s-jug').value;
+  const s8=+document.getElementById('s-s8').value;
+  const res=+document.getElementById('s-res').value;
+  const plata=+document.getElementById('s-plata').value;
+  const red=+document.getElementById('s-red').value;
+  const sp=+document.getElementById('s-sp').value;
+
+  document.getElementById('v-torn').textContent=torn+' torneo'+(torn!==1?'s':'');
+  document.getElementById('v-jug').textContent=jug+' jugadoras';
+  document.getElementById('v-s8').textContent=s8+' evento'+(s8!==1?'s':'');
+  document.getElementById('v-res').textContent=res+' / día';
+  document.getElementById('v-plata').textContent=plata?'Sí — activo':'No aún';
+  document.getElementById('v-red').textContent=red+' inscripciones';
+  document.getElementById('v-sp').textContent=sp+' sponsor'+(sp!==1?'s':'');
+
+  const rowRed=document.getElementById('row-red');
+  rowRed.style.opacity=plata?'1':'0.3';
+  rowRed.style.pointerEvents=plata?'auto':'none';
+
+  const caseB=document.getElementById('case-b-el');
+  if(plata){
+    caseB.className='caseB';
+  } else {
+    caseB.className='caseB-lock';
+  }
+
+  const rRedEl=document.getElementById('r-red');
+  const ingTorn=Math.round(torn*jug*22500*0.70);
+  const ingS8=Math.round(s8*16*20000*0.75);
+  const ingRes=Math.round(res*1000*30);
+  const ingRed=plata?Math.round(red*1000):0;
+  const ingSp=Math.round(sp*70000*0.80);
+  const total=ingTorn+ingS8+ingRes+ingRed+ingSp;
+
+  document.getElementById('r-torn').textContent=fmtK(ingTorn);
+  document.getElementById('r-s8').textContent=fmtK(ingS8);
+  document.getElementById('r-res').textContent=fmtK(ingRes);
+  rRedEl.textContent=plata?fmtK(ingRed):'Bloqueado';
+  rRedEl.className=plata?'sim-bv g':'sim-bv locked';
+  document.getElementById('sim-total').textContent=fmtK(total);
+  document.getElementById('sim-note').textContent=plata?'Nivel Plata activo — Caso A + Caso B incluidos':'Nivel Bronce — activá Plata para desbloquear el Caso B';
+}
+
+['s-torn','s-jug','s-s8','s-res','s-plata','s-red','s-sp'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
+calc();
+</script>
