@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PadelConnect para Clubes — 3 meses gratis</title>
+<meta name="description" content="Sumá tu club a PadelConnect y empezá a crecer. Más reservas, más visibilidad y más jugadoras. Primeros 3 meses completamente gratis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:#050505;color:#fff;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+:root{
+  --g:#22c55e;--gd:#15803d;--gx:#052010;
+  --gold:#f59e0b;--gold-bg:#1c1400;--gold-border:#854f0b;
+  --dark:#050505;--card:#0f0f0f;--border:#1a1a1a;
+  --muted:#6b7280;--soft:#9ca3af;--radius:10px;--radius-lg:16px;
+}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(5,5,5,.92);backdrop-filter:blur(16px);border-bottom:0.5px solid var(--border);padding:0 40px;display:flex;align-items:center;height:56px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}
+.nav-mark{width:30px;height:30px;background:var(--g);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:#052e16;letter-spacing:1px}
+.nav-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff}
+.nav-sub{font-size:12px;color:var(--muted);margin-left:6px}
+.nav-links{display:flex;gap:2px}
+.nav-link{font-size:13px;color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;text-decoration:none;transition:color .15s,background .15s}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-cta{font-size:13px;font-weight:500;background:var(--g);color:#052e16;padding:8px 18px;border-radius:8px;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:background .15s;margin-left:12px}
+.nav-cta:hover{background:#16a34a}
+
+/* HERO */
+.hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:80px 40px 60px;position:relative;overflow:hidden;border-bottom:0.5px solid var(--border)}
+.hero-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(34,197,94,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,197,94,.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%)}
+.hero-glow{position:absolute;top:-200px;left:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(34,197,94,.06) 0%,transparent 70%);pointer-events:none}
+.hero-big{position:absolute;right:40px;top:50%;transform:translateY(-50%);font-family:'Bebas Neue',sans-serif;font-size:clamp(100px,18vw,200px);line-height:1;color:transparent;-webkit-text-stroke:1px rgba(34,197,94,.1);pointer-events:none;letter-spacing:-4px;user-select:none}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--gold-bg);border:0.5px solid var(--gold-border);color:var(--gold);font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;margin-bottom:28px;width:fit-content;animation:fadeUp .6s ease both}
+.hero-h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,8vw,84px);line-height:.95;letter-spacing:2px;margin-bottom:24px;max-width:680px;animation:fadeUp .6s .1s ease both}
+.hero-h1 em{font-style:normal;color:var(--g)}
+.hero-sub{font-size:17px;font-weight:300;color:var(--soft);line-height:1.75;margin-bottom:36px;max-width:520px;animation:fadeUp .6s .2s ease both}
+.hero-free-pill{display:inline-flex;align-items:center;gap:10px;background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--radius);padding:12px 20px;margin-bottom:28px;animation:fadeUp .6s .25s ease both;width:fit-content}
+.hero-free-pill-big{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:1px}
+.hero-free-pill-text{font-size:14px;color:#fcd34d;line-height:1.4;font-weight:300}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center;animation:fadeUp .6s .3s ease both}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--g);color:#052e16;border:none;padding:14px 28px;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 0 32px rgba(34,197,94,.2);text-decoration:none}
+.btn-primary:hover{background:#16a34a;transform:translateY(-1px);box-shadow:0 0 48px rgba(34,197,94,.3)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--soft);border:0.5px solid var(--border);padding:13px 24px;border-radius:var(--radius);font-size:15px;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-secondary:hover{color:#fff;border-color:var(--soft)}
+.hero-trust{margin-top:20px;font-size:12px;color:#374151;display:flex;align-items:center;gap:8px;animation:fadeUp .6s .4s ease both}
+.hero-trust i{color:var(--g);font-size:14px}
+
+/* TICKER */
+.ticker{background:var(--card);border-bottom:0.5px solid var(--border);padding:24px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.ticker-item{padding:0 24px;border-right:0.5px solid var(--border)}
+.ticker-item:first-child{padding-left:0}
+.ticker-item:last-child{border-right:none}
+.ticker-val{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;color:var(--g);line-height:1;margin-bottom:4px}
+.ticker-val.gold{color:var(--gold)}
+.ticker-lbl{font-size:12px;color:var(--muted);line-height:1.4;font-weight:300}
+
+/* SECTIONS */
+.section{padding:72px 40px;border-bottom:0.5px solid var(--border)}
+.section-alt{background:var(--card)}
+.section-label{font-size:11px;font-weight:600;color:var(--g);letter-spacing:4px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+.section-label.gold{color:var(--gold)}
+.section-label.gold::after{background:rgba(245,158,11,.2)}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(30px,5vw,48px);letter-spacing:1px;color:#fff;line-height:1.05;margin-bottom:12px}
+.section-sub{font-size:15px;font-weight:300;color:var(--muted);line-height:1.75;margin-bottom:40px;max-width:560px}
+
+/* FREE TIMELINE */
+.free-timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-top:8px}
+.free-step{padding:28px;border-right:0.5px solid var(--border);position:relative}
+.free-step:last-child{border-right:none}
+.free-step-num{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;margin-bottom:16px}
+.free-step-num.gold{color:var(--gold)}
+.free-step-num.green{color:var(--g)}
+.free-step-num.soft{color:var(--soft)}
+.free-step-title{font-size:17px;font-weight:500;color:#fff;margin-bottom:8px;line-height:1.3}
+.free-step-desc{font-size:13px;font-weight:300;color:var(--muted);line-height:1.6;margin-bottom:16px}
+.free-step-badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px}
+.badge-free{background:var(--gx);border:0.5px solid var(--gd);color:var(--g)}
+.badge-gold{background:var(--gold-bg);border:0.5px solid var(--gold-border);color:var(--gold)}
+.badge-soft{background:#111;border:0.5px solid #374151;color:var(--soft)}
+.free-arrow{position:absolute;right:-13px;top:50%;transform:translateY(-50%);width:24px;height:24px;background:var(--card);border:0.5px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2}
+.free-arrow i{font-size:13px;color:var(--g)}
+
+/* BENEFITS GRID */
+.benefits-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px}
+.benefit-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:border-color .2s,transform .2s;cursor:default}
+.benefit-card:hover{border-color:var(--gd);transform:translateY(-2px)}
+.benefit-icon{width:40px;height:40px;border-radius:10px;background:var(--gx);border:0.5px solid var(--gd);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.benefit-icon i{font-size:20px;color:var(--g)}
+.benefit-icon.gold-icon{background:var(--gold-bg);border-color:var(--gold-border)}
+.benefit-icon.gold-icon i{color:var(--gold)}
+.benefit-title{font-size:15px;font-weight:500;color:#fff;margin-bottom:8px;line-height:1.3}
+.benefit-desc{font-size:13px;font-weight:300;color:var(--muted);line-height:1.65}
+.benefit-tag{display:inline-flex;align-items:center;gap:4px;margin-top:12px;font-size:11px;color:var(--g);background:var(--gx);padding:3px 8px;border-radius:10px;border:0.5px solid var(--gd)}
+
+/* SIMULATOR */
+.sim-card{background:#111;border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:28px}
+.slider-row{display:flex;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:18px;border-bottom:0.5px solid rgba(255,255,255,.04)}
+.slider-row:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.slider-label{font-size:13px;font-weight:300;color:var(--soft);width:200px;flex-shrink:0;line-height:1.4}
+.slider-row input[type=range]{flex:1;-webkit-appearance:none;height:3px;background:var(--border);border-radius:2px;outline:none}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--g);cursor:pointer;box-shadow:0 0 8px rgba(34,197,94,.3);transition:box-shadow .15s}
+.slider-row input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 16px rgba(34,197,94,.5)}
+.slider-val{font-size:13px;font-weight:500;color:#fff;width:120px;text-align:right;flex-shrink:0}
+.sim-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:24px 0}
+.sim-b{background:#0f0f0f;border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.sim-b-val{font-size:16px;font-weight:500;color:var(--g);line-height:1}
+.sim-b-lbl{font-size:11px;color:var(--muted);margin-top:5px;font-weight:300;line-height:1.3}
+.sim-result{background:var(--gx);border:0.5px solid var(--gd);border-radius:var(--radius);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.sim-result-lbl{font-size:14px;color:#86efac;font-weight:300}
+.sim-result-note{font-size:12px;color:var(--gd);margin-top:3px;font-weight:300}
+.sim-result-val{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:1px;color:var(--g);line-height:1}
+.sim-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.sim-cmp{background:#0f0f0f;border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.sim-cmp-lbl{font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:300}
+.sim-cmp-val{font-size:15px;font-weight:500;color:#fff}
+.sim-cmp-val.g{color:var(--g)}
+.sim-cmp-val.muted{color:var(--muted)}
+
+/* PANEL PREVIEW */
+.panel-preview{background:var(--card);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.pp-header{background:#0a0a0a;border-bottom:0.5px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.pp-dot{width:8px;height:8px;border-radius:50%}
+.pp-title{font-size:12px;color:var(--muted);margin-left:8px}
+.pp-content{padding:16px}
+.pp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.pp-kpi{background:#0a0a0a;border:0.5px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.pp-kpi-val{font-size:16px;font-weight:500;color:var(--g);line-height:1}
+.pp-kpi-lbl{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* FAQ */
+.faq-list{margin-top:8px}
+.faq-item{border-bottom:0.5px solid var(--border)}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:20px 0;cursor:pointer;font-size:15px;font-weight:400;color:#fff;gap:20px;transition:color .15s}
+.faq-q:hover{color:var(--g)}
+.faq-q i{color:var(--muted);flex-shrink:0;font-size:20px;transition:transform .25s,color .15s}
+.faq-q.open i{transform:rotate(180deg);color:var(--g)}
+.faq-a{font-size:14px;font-weight:300;color:var(--muted);line-height:1.75;padding-bottom:20px;display:none}
+.faq-a.open{display:block}
+
+/* CTA */
+.cta-section{padding:80px 40px;text-align:center;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(34,197,94,.05) 0%,transparent 70%);border-bottom:0.5px solid var(--border)}
+.cta-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--gold-bg);border:0.5px solid var(--gold-border);color:var(--gold);font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;margin-bottom:24px}
+.cta-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,7vw,72px);letter-spacing:2px;color:#fff;line-height:1;margin-bottom:16px}
+.cta-sub{font-size:16px;font-weight:300;color:var(--muted);line-height:1.75;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto}
+.cta-pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:36px}
+.cta-pill{display:flex;align-items:center;gap:6px;background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:7px 16px;font-size:13px;font-weight:300;color:var(--soft)}
+.cta-pill i{font-size:14px;color:var(--g)}
+.cta-footer{margin-top:28px;font-size:13px;color:#374151;font-weight:300}
+.cta-footer a{color:var(--g);text-decoration:none}
+.cta-footer a:hover{text-decoration:underline}
+
+/* FOOTER */
+footer{padding:32px 40px;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-logo{display:flex;align-items:center;gap:10px}
+.footer-mark{width:28px;height:28px;background:var(--g);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;color:#052e16}
+.footer-name{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--soft)}
+.footer-links{display:flex;gap:24px}
+.footer-link{font-size:13px;color:var(--muted);text-decoration:none;font-weight:300;transition:color .15s}
+.footer-link:hover{color:#fff}
+.footer-note{font-size:12px;color:#374151;font-weight:300}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .hero{padding:60px 20px 48px}
+  .hero-big{display:none}
+  .ticker{grid-template-columns:1fr 1fr;padding:20px}
+  .ticker-item{padding:0 12px}
+  .section{padding:52px 20px}
+  .free-timeline{grid-template-columns:1fr}
+  .free-step{border-right:none;border-bottom:0.5px solid var(--border)}
+  .free-step:last-child{border-bottom:none}
+  .free-arrow{display:none}
+  .benefits-grid{grid-template-columns:1fr}
+  .sim-breakdown{grid-template-columns:1fr 1fr}
+  .sim-compare{grid-template-columns:1fr}
+  .cta-section{padding:60px 20px}
+  footer{padding:24px 20px}
+  .slider-label{width:130px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="nav-mark">PC</div>
+    <span class="nav-name">PadelConnect</span>
+    <span class="nav-sub">para Clubes</span>
+  </a>
+  <div class="nav-links">
+    <a href="#beneficios" class="nav-link">Beneficios</a>
+    <a href="#simulador" class="nav-link">Simulador</a>
+    <a href="#como-funciona" class="nav-link">Cómo funciona</a>
+    <a href="#faq" class="nav-link">Preguntas</a>
+  </div>
+  <a href="#contacto" class="nav-cta"><i class="ti ti-arrow-right"></i>Sumar mi club gratis</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-big">FREE</div>
+
+  <div class="hero-eyebrow"><i class="ti ti-gift"></i>Primeros 3 meses completamente gratis</div>
+  <h1 class="hero-h1">Más jugadoras.<br>Más reservas.<br><em>Más ingresos.</em></h1>
+  <p class="hero-sub">PadelConnect pone tu club frente a miles de jugadoras de Córdoba que hoy están buscando cancha. Sin WhatsApp, sin planillas, sin llamados. Todo digital, todo automático.</p>
+
+  <div class="hero-free-pill reveal">
+    <div class="hero-free-pill-big">3 MESES</div>
+    <div class="hero-free-pill-text">completamente gratis<br>sin tarjeta · sin contrato · sin compromiso</div>
+  </div>
+
+  <div class="hero-btns">
+    <a href="#contacto" class="btn-primary"><i class="ti ti-arrow-right"></i>Sumar mi club ahora — es gratis</a>
+    <a href="#simulador" class="btn-secondary"><i class="ti ti-calculator"></i>Ver cuánto puedo ganar</a>
+  </div>
+  <p class="hero-trust"><i class="ti ti-shield-check"></i>Sin contrato mínimo. Después de los 3 meses, USD 55/mes. Cancelás cuando querés.</p>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-item">
+    <div class="ticker-val" id="cnt-jug">220K+</div>
+    <div class="ticker-lbl">jugadoras activas<br>en Córdoba</div>
+  </div>
+  <div class="ticker-item">
+    <div class="ticker-val" id="cnt-canchas">2.000+</div>
+    <div class="ticker-lbl">canchas en<br>Córdoba</div>
+  </div>
+  <div class="ticker-item">
+    <div class="ticker-val gold">ARS 42.000</div>
+    <div class="ticker-lbl">precio turno app<br>vos recibís ARS 40.000</div>
+  </div>
+  <div class="ticker-item">
+    <div class="ticker-val" style="color:#ef4444">0</div>
+    <div class="ticker-lbl">apps dominantes<br>en Córdoba hoy</div>
+  </div>
+</div>
+
+<!-- FREE TIMELINE -->
+<section class="section" id="como-funciona">
+  <div class="section-label gold">Los 3 meses gratis</div>
+  <h2 class="section-title reveal">¿Cómo funcionan los 3 meses gratis?</h2>
+  <p class="section-sub reveal">No hay letra chica. No hay cobro automático al final. Te mostramos exactamente qué pasa en cada etapa.</p>
+
+  <div class="free-timeline reveal">
+    <div class="free-step" style="background:rgba(245,158,11,.03)">
+      <div class="free-arrow"><i class="ti ti-chevron-right"></i></div>
+      <div class="free-step-num gold">MES 1 · GRATIS</div>
+      <div class="free-step-title">Arrancamos juntos</div>
+      <div class="free-step-desc">Cargamos el perfil completo de tu club — fotos, canchas, horarios y precios. En 24hs estás visible para todas las jugadoras de Córdoba. Soporte directo de nuestro equipo.</div>
+      <span class="free-step-badge badge-free"><i class="ti ti-check" style="font-size:12px"></i>Sin costo</span>
+    </div>
+    <div class="free-step" style="background:rgba(245,158,11,.04)">
+      <div class="free-arrow"><i class="ti ti-chevron-right"></i></div>
+      <div class="free-step-num gold">MES 2 · GRATIS</div>
+      <div class="free-step-title">Primeras reservas y torneos</div>
+      <div class="free-step-desc">Tu club empieza a recibir reservas digitales. Organizás tus primeros eventos — torneo, Super 8 o Americano. Ves el impacto real en tu ocupación y tus ingresos.</div>
+      <span class="free-step-badge badge-free"><i class="ti ti-check" style="font-size:12px"></i>Sin costo</span>
+    </div>
+    <div class="free-step">
+      <div class="free-step-num gold">MES 3 · GRATIS</div>
+      <div class="free-step-title">Evaluás con datos reales</div>
+      <div class="free-step-desc">Tenés 3 meses de estadísticas para decidir. Cuántas jugadoras nuevas llegaron, cuánto creció tu ocupación, qué eventos funcionaron mejor. Decidís con información, no con promesas.</div>
+      <span class="free-step-badge badge-gold"><i class="ti ti-chart-bar" style="font-size:12px"></i>Después: USD 55/mes</span>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="section section-alt" id="beneficios">
+  <div class="section-label">Por qué sí o sí</div>
+  <h2 class="section-title reveal">Lo que cambia para tu club desde el día 1</h2>
+  <p class="section-sub reveal">No son funcionalidades abstractas. Son cosas concretas que hoy te están costando tiempo, plata y jugadoras.</p>
+
+  <div class="benefits-grid reveal">
+    <div class="benefit-card">
+      <div class="benefit-icon"><i class="ti ti-eye"></i></div>
+      <div class="benefit-title">Tu club aparece frente a 220.000 jugadoras</div>
+      <div class="benefit-desc">Perfil completo visible para todas las jugadoras activas de Córdoba. Cuando buscan cancha, aparecés vos. No WhatsApp, no boca a boca — búsqueda digital directa.</div>
+      <div class="benefit-tag"><i class="ti ti-trending-up" style="font-size:12px"></i>+32 jugadoras nuevas / mes promedio</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon"><i class="ti ti-calendar-check"></i></div>
+      <div class="benefit-title">Reservas que se gestionan solas</div>
+      <div class="benefit-desc">Las jugadoras reservan desde la app, el pago se procesa automáticamente y vos recibís ARS 40.000 por turno sin hacer nada. Sin confirmaciones, sin llamados, sin WhatsApp.</div>
+      <div class="benefit-tag"><i class="ti ti-clock" style="font-size:12px"></i>Ahorrás 3hs de gestión por día</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon"><i class="ti ti-trophy"></i></div>
+      <div class="benefit-title">Torneos y eventos que llenan tus canchas</div>
+      <div class="benefit-desc">Creás torneos, Super 8 y Americanos desde tu panel en 2 minutos. La app notifica a todas las jugadoras de la zona, gestiona inscripciones y cobra solo.</div>
+      <div class="benefit-tag"><i class="ti ti-chart-bar" style="font-size:12px"></i>+40% ocupación en semanas de torneo</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon gold-icon"><i class="ti ti-chart-pie"></i></div>
+      <div class="benefit-title">Estadísticas reales de tu negocio</div>
+      <div class="benefit-desc">Dashboard con ocupación por cancha, ingresos por canal, jugadoras activas, horarios pico y rating. Tomás decisiones con datos, no con intuición.</div>
+      <div class="benefit-tag"><i class="ti ti-lock" style="font-size:12px"></i>Panel en cordobalux.com/padelclub</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon gold-icon"><i class="ti ti-users"></i></div>
+      <div class="benefit-title">Profesores con agenda digital</div>
+      <div class="benefit-desc">Los profes de tu club tienen su perfil en la app con horarios y calificaciones. Los alumnos reservan clases directamente — sin que vos tengas que coordinar nada.</div>
+      <div class="benefit-tag"><i class="ti ti-star" style="font-size:12px"></i>Rating público que genera confianza</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon"><i class="ti ti-speakerphone"></i></div>
+      <div class="benefit-title">Embajadoras que traen jugadoras a tu cancha</div>
+      <div class="benefit-desc">Las embajadoras de PadelConnect organizan eventos en tu club y traen su red de jugadoras. Vos ponés las canchas, ellas ponen la comunidad. Ganan las dos partes.</div>
+      <div class="benefit-tag"><i class="ti ti-users" style="font-size:12px"></i>Acceso a la red de embajadoras</div>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section class="section" id="simulador">
+  <div class="section-label">Simulador</div>
+  <h2 class="section-title reveal">¿Cuánto puede crecer tu ocupación?</h2>
+  <p class="section-sub reveal">Ajustá los valores de tu club y mirá el impacto real en tus ingresos mensuales.</p>
+
+  <div class="sim-card reveal">
+    <div class="slider-row">
+      <span class="slider-label">Canchas activas en tu club</span>
+      <input type="range" id="s-canchas" min="2" max="16" value="6" step="1">
+      <span class="slider-val" id="v-canchas">6 canchas</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Ocupación actual sin app (%)</span>
+      <input type="range" id="s-ocup-actual" min="20" max="80" value="50" step="5">
+      <span class="slider-val" id="v-ocup-actual">50%</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Horas operativas por día</span>
+      <input type="range" id="s-horas" min="8" max="16" value="12" step="1">
+      <span class="slider-val" id="v-horas">12 horas</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Torneos / eventos por mes</span>
+      <input type="range" id="s-eventos" min="0" max="8" value="2" step="1">
+      <span class="slider-val" id="v-eventos">2 eventos</span>
+    </div>
+
+    <div class="sim-breakdown">
+      <div class="sim-b"><div class="sim-b-val" id="r-reservas">—</div><div class="sim-b-lbl">Ingresos por reservas app</div></div>
+      <div class="sim-b"><div class="sim-b-val" id="r-eventos">—</div><div class="sim-b-lbl">Ingresos por eventos</div></div>
+      <div class="sim-b"><div class="sim-b-val" id="r-nuevas">—</div><div class="sim-b-lbl">Jugadoras nuevas / mes</div></div>
+    </div>
+
+    <div class="sim-result">
+      <div>
+        <div class="sim-result-lbl">Ingresos mensuales estimados con la app</div>
+        <div class="sim-result-note" id="sim-note">Basado en ocupación actual + impacto app</div>
+      </div>
+      <div class="sim-result-val" id="sim-total">—</div>
+    </div>
+
+    <div class="sim-compare">
+      <div class="sim-cmp">
+        <div class="sim-cmp-lbl">Sin PadelConnect (hoy)</div>
+        <div class="sim-cmp-val muted" id="r-sin">—</div>
+      </div>
+      <div class="sim-cmp">
+        <div class="sim-cmp-lbl">Con PadelConnect (proyección)</div>
+        <div class="sim-cmp-val g" id="r-con">—</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PANEL PREVIEW -->
+<section class="section section-alt">
+  <div class="section-label">El panel</div>
+  <h2 class="section-title reveal">Tu club en tiempo real — desde el celular</h2>
+  <p class="section-sub reveal">Panel exclusivo en <strong style="color:#fff">cordobalux.com/padelclub</strong> — ve reservas, ingresos, jugadoras y estadísticas de un vistazo.</p>
+
+  <div class="panel-preview reveal">
+    <div class="pp-header">
+      <div class="pp-dot" style="background:#ef4444"></div>
+      <div class="pp-dot" style="background:#f59e0b"></div>
+      <div class="pp-dot" style="background:#22c55e"></div>
+      <span class="pp-title">cordobalux.com/padelclub — Club Palermo Norte</span>
+    </div>
+    <div class="pp-content">
+      <div class="pp-grid">
+        <div class="pp-kpi"><div class="pp-kpi-val">18</div><div class="pp-kpi-lbl">Reservas hoy</div></div>
+        <div class="pp-kpi"><div class="pp-kpi-val">284</div><div class="pp-kpi-lbl">Jugadoras activas</div></div>
+        <div class="pp-kpi"><div class="pp-kpi-val" style="color:#f59e0b">74%</div><div class="pp-kpi-lbl">Ocupación</div></div>
+      </div>
+      <div style="background:#0a0a0a;border:0.5px solid var(--border);border-radius:8px;padding:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Ocupación por cancha — hoy</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--muted);width:50px;text-align:right">Cancha 1</span><div style="flex:1;height:6px;background:#1a1a1a;border-radius:3px"><div style="width:90%;height:100%;background:var(--g);border-radius:3px"></div></div><span style="font-size:11px;color:#fff;width:30px">9hs</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--muted);width:50px;text-align:right">Cancha 2</span><div style="flex:1;height:6px;background:#1a1a1a;border-radius:3px"><div style="width:80%;height:100%;background:var(--g);border-radius:3px"></div></div><span style="font-size:11px;color:#fff;width:30px">8hs</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--muted);width:50px;text-align:right">Cancha 3</span><div style="flex:1;height:6px;background:#1a1a1a;border-radius:3px"><div style="width:70%;height:100%;background:var(--g);border-radius:3px"></div></div><span style="font-size:11px;color:#fff;width:30px">7hs</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--muted);width:50px;text-align:right">Cancha 4</span><div style="flex:1;height:6px;background:#1a1a1a;border-radius:3px"><div style="width:50%;height:100%;background:#f59e0b;border-radius:3px"></div></div><span style="font-size:11px;color:#fff;width:30px">5hs</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="section-label">Preguntas frecuentes</div>
+  <h2 class="section-title reveal">Lo que siempre preguntan los clubes</h2>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Los 3 meses son realmente gratis? ¿Qué pasa al terminar?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Sí, completamente gratis. Sin tarjeta de crédito, sin cobro automático al terminar. Al finalizar los 3 meses te contactamos para que decidas si querés continuar. Si sí, USD 55/mes. Si no, sin problemas — sin penalidades.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Cuánto recibe el club por cada turno reservado por la app?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">El jugador paga ARS 42.000 por la app (vs ARS 45.000 presencial — el descuento es el incentivo para que usen la plataforma). De esos ARS 42.000, el club recibe ARS 40.000. ARS 1.000 va a PadelConnect y ARS 1.000 a la embajadora si el jugador es de su red.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Tengo que cambiar cómo gestiono mis reservas presenciales?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">No. La app es un canal adicional — no reemplaza nada de lo que hacés hoy. Las reservas presenciales, por teléfono o WhatsApp siguen igual. La app te suma un canal digital nuevo que opera en paralelo.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Puedo organizar mis propios torneos o solo aparezco como venue?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Las dos cosas. Podés ser venue de torneos organizados por embajadoras (y recibir el ingreso por uso de canchas) y también crear tus propios torneos, Super 8 y Americanos directamente desde tu panel.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Cómo se hace el onboarding? ¿Cuánto tiempo lleva?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Nosotros cargamos el perfil completo de tu club — solo necesitás mandarnos fotos, horarios y precios. En 24 horas estás visible en la app. No necesitás hacer nada técnico.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Qué pasa si decido dejar de usar la app?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Cancelás cuando querés, sin penalidades. Tu perfil se da de baja y no recibís más reservas por la plataforma. No hay contratos de permanencia ni cláusulas de salida.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contacto">
+  <div class="cta-eyebrow"><i class="ti ti-gift"></i>3 meses gratis · sin tarjeta · sin contrato</div>
+  <h2 class="cta-title reveal">¿Sumamos<br>tu club?</h2>
+  <p class="cta-sub reveal">En 24hs tu club está visible para 220.000 jugadoras en Córdoba. Sin costo, sin riesgo, sin letra chica.</p>
+  <div class="cta-pills reveal">
+    <div class="cta-pill"><i class="ti ti-check"></i>3 meses gratis</div>
+    <div class="cta-pill"><i class="ti ti-check"></i>Sin contrato</div>
+    <div class="cta-pill"><i class="ti ti-check"></i>Onboarding incluido</div>
+    <div class="cta-pill"><i class="ti ti-check"></i>Cancelás cuando querés</div>
+    <div class="cta-pill"><i class="ti ti-check"></i>Panel exclusivo del club</div>
+  </div>
+  <a href="https://wa.me/5493510000000?text=Hola!%20Quiero%20sumar%20mi%20club%20a%20PadelConnect%20%F0%9F%8E%BE" class="btn-primary reveal" style="display:inline-flex;text-decoration:none;margin:0 auto" target="_blank">
+    <i class="ti ti-brand-whatsapp"></i>Sumar mi club ahora — es gratis
+  </a>
+  <p class="cta-footer reveal">
+    <a href="https://cordobalux.com/padel">cordobalux.com/padel</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:contacto@padelconnect.com.ar">contacto@padelconnect.com.ar</a>
+    &nbsp;·&nbsp;
+    <a href="https://instagram.com/padelconnect">@padelconnect</a>
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="footer-mark">PC</div>
+    <span class="footer-name">PADELCONNECT</span>
+  </div>
+  <div class="footer-links">
+    <a href="https://cordobalux.com" class="footer-link">cordobalux.com</a>
+    <a href="https://cordobalux.com/padelclub" class="footer-link">Panel del club</a>
+    <a href="https://cordobalux.com/padel/embajadora" class="footer-link">Embajadoras</a>
+  </div>
+  <div class="footer-note">© 2025 PadelConnect · Córdoba, Argentina</div>
+</footer>
+
+<script>
+function animCount(id,target,suffix,duration){
+  const el=document.getElementById(id);if(!el)return;
+  const start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/duration,1);
+    const ease=1-Math.pow(1-p,3);
+    const val=Math.round(ease*target);
+    el.textContent=(target>=1000?(val/1000).toFixed(0)+'K+':val)+suffix;
+    if(p<1)requestAnimationFrame(step);
+    else el.textContent=(target>=1000?(target/1000).toFixed(0)+'K+':target)+suffix;
+  }
+  requestAnimationFrame(step);
+}
+setTimeout(()=>{
+  animCount('cnt-jug',220000,'',1400);
+  animCount('cnt-canchas',2000,'',1000);
+},400);
+
+const reveals=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});
+},{threshold:.1});
+reveals.forEach(el=>io.observe(el));
+
+function fmtARS(n){
+  const r=Math.round(n);
+  if(r>=1000000)return'ARS '+(r/1000000).toFixed(1).replace('.',',')+' M';
+  if(r>=1000)return'ARS '+(r/1000).toFixed(0)+'K';
+  return'ARS '+r.toLocaleString('es-AR');
+}
+
+function calc(){
+  const canchas=+document.getElementById('s-canchas').value;
+  const ocupActual=+document.getElementById('s-ocup-actual').value/100;
+  const horas=+document.getElementById('s-horas').value;
+  const eventos=+document.getElementById('s-eventos').value;
+
+  document.getElementById('v-canchas').textContent=canchas+' cancha'+(canchas!==1?'s':'');
+  document.getElementById('v-ocup-actual').textContent=Math.round(ocupActual*100)+'%';
+  document.getElementById('v-horas').textContent=horas+' horas';
+  document.getElementById('v-eventos').textContent=eventos+' evento'+(eventos!==1?'s':'');
+
+  const ocupApp=Math.min(ocupActual+0.25,0.95);
+  const turnoClub=40000;
+  const diasMes=26;
+
+  const reservasSin=Math.round(canchas*horas*ocupActual*diasMes);
+  const reservasCon=Math.round(canchas*horas*ocupApp*diasMes);
+
+  const ingresoReservas=reservasCon*turnoClub;
+  const ingresoEventos=eventos*24*turnoClub;
+  const totalCon=ingresoReservas+ingresoEventos;
+  const totalSin=reservasSin*turnoClub;
+  const nuevas=Math.round(canchas*4+eventos*12);
+
+  document.getElementById('r-reservas').textContent=fmtARS(ingresoReservas);
+  document.getElementById('r-eventos').textContent=fmtARS(ingresoEventos);
+  document.getElementById('r-nuevas').textContent='+'+nuevas+' aprox.';
+  document.getElementById('sim-total').textContent=fmtARS(totalCon);
+  document.getElementById('r-sin').textContent=fmtARS(totalSin);
+  document.getElementById('r-con').textContent=fmtARS(totalCon);
+  document.getElementById('sim-note').textContent='Ocupación actual '+Math.round(ocupActual*100)+'% → con app '+Math.round(ocupApp*100)+'%';
+}
+
+['s-canchas','s-ocup-actual','s-horas','s-eventos'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
+calc();
+
+function toggleFaq(el){
+  const a=el.nextElementSibling;
+  const isOpen=a.classList.contains('open');
+  document.querySelectorAll('.faq-a.open').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.faq-q.open').forEach(x=>x.classList.remove('open'));
+  if(!isOpen){a.classList.add('open');el.classList.add('open');}
+}
+</script>
+</body>
+</html>
