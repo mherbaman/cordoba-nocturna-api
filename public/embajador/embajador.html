@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embajadora PadelConnect — Córdoba</title>
+<meta name="description" content="Programa de embajadoras PadelConnect Córdoba. Organizás pádel, nosotros te ayudamos a ganar más de ARS 3 millones por mes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/tabler-icons.min.css">
+<style>
+/* ── RESET & BASE ──────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#050505;
+  color:#fff;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── CSS VARIABLES ─────────────────────────────────────────────── */
+:root{
+  --g:#22c55e;
+  --gd:#15803d;
+  --gx:#052010;
+  --gold:#f59e0b;
+  --dark:#050505;
+  --card:#0f0f0f;
+  --border:#1a1a1a;
+  --muted:#6b7280;
+  --soft:#9ca3af;
+  --white:#ffffff;
+  --radius:10px;
+  --radius-lg:16px;
+}
+
+/* ── NOISE TEXTURE ─────────────────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:.5;
+}
+body>*{position:relative;z-index:1}
+
+/* ── NAV ───────────────────────────────────────────────────────── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,5,5,.9);
+  backdrop-filter:blur(16px);
+  border-bottom:0.5px solid var(--border);
+  padding:0 40px;
+  display:flex;align-items:center;height:56px;gap:0;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:auto}
+.nav-mark{
+  width:30px;height:30px;background:var(--g);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;color:#052e16;letter-spacing:1px;
+}
+.nav-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#fff}
+.nav-badge{font-size:11px;background:#1c1400;color:var(--gold);padding:2px 8px;border-radius:6px;border:0.5px solid #854f0b;margin-left:6px;font-weight:500}
+.nav-links{display:flex;gap:2px}
+.nav-link{font-size:13px;color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;text-decoration:none;transition:color .15s,background .15s}
+.nav-link:hover{color:#fff;background:rgba(255,255,255,.05)}
+.nav-cta{
+  font-size:13px;font-weight:500;background:var(--g);color:#052e16;
+  padding:8px 18px;border-radius:8px;cursor:pointer;border:none;
+  display:inline-flex;align-items:center;gap:6px;text-decoration:none;
+  transition:background .15s;margin-left:12px;
+}
+.nav-cta:hover{background:#16a34a}
+
+/* ── HERO ──────────────────────────────────────────────────────── */
+.hero{
+  min-height:90vh;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:80px 40px 60px;
+  position:relative;overflow:hidden;
+  border-bottom:0.5px solid var(--border);
+}
+.hero-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(34,197,94,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34,197,94,.04) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+.hero-glow{
+  position:absolute;top:-200px;left:-200px;
+  width:700px;height:700px;
+  background:radial-gradient(circle, rgba(34,197,94,.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--gx);border:0.5px solid var(--gd);color:var(--g);
+  font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;
+  margin-bottom:28px;width:fit-content;
+  animation:fadeUp .6s ease both;
+}
+.hero-h1{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(52px, 8vw, 88px);
+  line-height:.95;
+  letter-spacing:2px;
+  margin-bottom:24px;
+  max-width:700px;
+  animation:fadeUp .6s .1s ease both;
+}
+.hero-h1 em{
+  font-style:normal;
+  color:transparent;
+  -webkit-text-stroke:2px var(--g);
+  display:block;
+}
+.hero-sub{
+  font-size:17px;font-weight:300;color:var(--soft);
+  line-height:1.75;margin-bottom:36px;max-width:520px;
+  animation:fadeUp .6s .2s ease both;
+}
+.hero-btns{
+  display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  animation:fadeUp .6s .3s ease both;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--g);color:#052e16;
+  border:none;padding:14px 28px;border-radius:var(--radius);
+  font-size:15px;font-weight:600;cursor:pointer;
+  transition:all .2s;box-shadow:0 0 32px rgba(34,197,94,.25);
+}
+.btn-primary:hover{background:#16a34a;transform:translateY(-1px);box-shadow:0 0 48px rgba(34,197,94,.35)}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--soft);
+  border:0.5px solid var(--border);padding:13px 24px;border-radius:var(--radius);
+  font-size:15px;cursor:pointer;transition:all .2s;
+}
+.btn-secondary:hover{color:#fff;border-color:var(--soft)}
+.hero-trust{
+  margin-top:28px;font-size:12px;color:#374151;
+  display:flex;align-items:center;gap:8px;
+  animation:fadeUp .6s .4s ease both;
+}
+.hero-trust i{color:var(--g);font-size:14px}
+.hero-number{
+  position:absolute;right:40px;top:50%;transform:translateY(-50%);
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(120px,20vw,220px);
+  line-height:1;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(34,197,94,.12);
+  pointer-events:none;
+  letter-spacing:-4px;
+  user-select:none;
+}
+
+/* ── STATS TICKER ──────────────────────────────────────────────── */
+.ticker{
+  background:var(--card);
+  border-bottom:0.5px solid var(--border);
+  padding:24px 40px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+}
+.ticker-item{
+  padding:0 24px;
+  border-right:0.5px solid var(--border);
+}
+.ticker-item:first-child{padding-left:0}
+.ticker-item:last-child{border-right:none}
+.ticker-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;letter-spacing:1px;color:var(--g);
+  line-height:1;margin-bottom:4px;
+}
+.ticker-lbl{font-size:12px;color:var(--muted);line-height:1.4;font-weight:300}
+
+/* ── SECTIONS ──────────────────────────────────────────────────── */
+.section{padding:72px 40px;border-bottom:0.5px solid var(--border)}
+.section-label{
+  font-size:11px;font-weight:600;color:var(--g);
+  letter-spacing:4px;text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label::after{
+  content:'';flex:1;height:0.5px;background:var(--border);
+}
+.section-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(32px,5vw,48px);letter-spacing:1px;
+  color:#fff;line-height:1.05;margin-bottom:12px;
+}
+.section-sub{
+  font-size:15px;font-weight:300;color:var(--muted);
+  line-height:1.75;margin-bottom:40px;max-width:560px;
+}
+
+/* ── INCOME STEPS ──────────────────────────────────────────────── */
+.income-steps{border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.income-step{
+  display:flex;gap:24px;padding:28px 32px;
+  border-bottom:0.5px solid var(--border);
+  align-items:flex-start;cursor:pointer;
+  transition:background .2s;
+  position:relative;overflow:hidden;
+}
+.income-step::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--g);opacity:0;transition:opacity .2s;
+}
+.income-step:hover{background:rgba(34,197,94,.03)}
+.income-step:hover::before{opacity:1}
+.income-step:last-child{border-bottom:none}
+.step-num{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--gx);border:0.5px solid var(--gd);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--g);
+  flex-shrink:0;margin-top:2px;
+}
+.step-body{flex:1;min-width:0}
+.step-title{font-size:16px;font-weight:500;color:#fff;margin-bottom:8px}
+.step-desc{font-size:14px;font-weight:300;color:var(--muted);line-height:1.65;margin-bottom:12px}
+.step-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--gx);border:0.5px solid var(--gd);color:var(--g);
+  font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;
+}
+.step-pill.gold{background:#1c1400;border-color:#854f0b;color:var(--gold)}
+.step-amount{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:28px;letter-spacing:1px;color:var(--g);
+  flex-shrink:0;text-align:right;min-width:110px;line-height:1;
+}
+.step-amount small{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;color:var(--muted);display:block;
+  font-weight:300;text-align:right;letter-spacing:0;margin-top:4px;
+}
+.income-total{
+  background:var(--gx);border:0.5px solid var(--gd);
+  padding:20px 32px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;border-radius:0 0 var(--radius-lg) var(--radius-lg);
+}
+.income-total-lbl{font-size:14px;color:#86efac;font-weight:300}
+.income-total-note{font-size:12px;color:var(--gd);margin-top:2px;font-weight:300}
+.income-total-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:40px;letter-spacing:1px;color:var(--g);
+}
+
+/* ── TIMELINE ──────────────────────────────────────────────────── */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl{
+  display:flex;gap:20px;padding:28px 0;
+  border-bottom:0.5px solid var(--border);
+  align-items:flex-start;
+}
+.tl:last-child{border-bottom:none}
+.tl-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:44px}
+.tl-dot{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:15px;flex-shrink:0;
+}
+.tl-dot.done{background:var(--gx);color:var(--g);border:0.5px solid var(--gd)}
+.tl-dot.soon{background:#1c1400;color:var(--gold);border:0.5px solid #854f0b}
+.tl-dot.future{background:#111;color:var(--muted);border:0.5px solid var(--border)}
+.tl-line{width:1px;flex:1;min-height:20px;margin-top:4px}
+.tl-line.done{background:linear-gradient(to bottom, var(--gd), transparent)}
+.tl-line.faded{background:var(--border)}
+.tl:last-child .tl-line{display:none}
+.tl-month{
+  font-size:11px;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:6px;
+}
+.tl-month.done{color:var(--g)}
+.tl-month.soon{color:var(--gold)}
+.tl-month.future{color:var(--muted)}
+.tl-title{font-size:16px;font-weight:500;color:#fff;margin-bottom:6px}
+.tl-desc{font-size:13px;font-weight:300;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.tl-bar-wrap{margin-top:4px}
+.tl-bar-labels{display:flex;justify-content:space-between;font-size:11px;color:#374151;margin-bottom:5px}
+.tl-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.tl-bar-fill{height:100%;border-radius:2px;background:var(--g);width:0;transition:width 1.2s ease}
+.tl-earn{font-size:14px;font-weight:500;margin-top:10px}
+.tl-earn.done{color:var(--g)}
+.tl-earn.soon{color:var(--gold)}
+.tl-earn.future{color:var(--muted)}
+.tl-right{
+  text-align:right;flex-shrink:0;min-width:90px;
+}
+.tl-target{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:26px;letter-spacing:1px;line-height:1;
+}
+.tl-target.done{color:var(--g)}
+.tl-target.soon{color:var(--gold)}
+.tl-target.future{color:var(--muted)}
+.tl-target-lbl{font-size:11px;color:var(--muted);margin-top:3px;font-weight:300}
+
+/* ── SIMULATOR ─────────────────────────────────────────────────── */
+.sim-section{
+  padding:72px 40px;
+  border-bottom:0.5px solid var(--border);
+  background:var(--card);
+}
+.sim-card{
+  background:#0a0a0a;
+  border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:32px;
+}
+.slider-row{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:18px;
+  padding-bottom:18px;
+  border-bottom:0.5px solid rgba(255,255,255,.04);
+}
+.slider-row:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.slider-label{font-size:13px;font-weight:300;color:var(--soft);width:200px;flex-shrink:0;line-height:1.4}
+.slider-row input[type=range]{
+  flex:1;
+  -webkit-appearance:none;height:3px;
+  background:var(--border);border-radius:2px;outline:none;
+}
+.slider-row input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--g);cursor:pointer;
+  box-shadow:0 0 8px rgba(34,197,94,.4);
+  transition:box-shadow .15s;
+}
+.slider-row input[type=range]::-webkit-slider-thumb:hover{
+  box-shadow:0 0 16px rgba(34,197,94,.6);
+}
+.slider-val{
+  font-size:13px;font-weight:500;color:#fff;
+  width:110px;text-align:right;flex-shrink:0;
+}
+.plata-toggle{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;
+  background:#0f0f0f;
+  border:0.5px solid var(--border);
+  border-radius:var(--radius);
+  margin:24px 0;cursor:pointer;
+  transition:border-color .2s;
+}
+.plata-toggle:hover{border-color:var(--gd)}
+.toggle-switch{
+  width:44px;height:24px;background:#1a1a1a;border-radius:12px;
+  position:relative;flex-shrink:0;transition:background .2s;
+}
+.toggle-switch.on{background:var(--g)}
+.toggle-knob{
+  width:18px;height:18px;background:#fff;border-radius:50%;
+  position:absolute;top:3px;left:3px;
+  transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.toggle-knob.on{left:23px}
+.toggle-text{flex:1;font-size:13px;font-weight:300;color:var(--soft)}
+.toggle-text strong{color:#fff;font-weight:500}
+.toggle-badge{
+  font-size:11px;background:#1c1400;color:var(--gold);
+  padding:3px 10px;border-radius:6px;border:0.5px solid #854f0b;
+  font-weight:500;
+}
+.sim-breakdown{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+  margin:24px 0;
+}
+.sim-b{
+  background:var(--card);border:0.5px solid var(--border);
+  border-radius:var(--radius);padding:14px;text-align:center;
+}
+.sim-b-val{font-size:16px;font-weight:500;color:#fff;line-height:1}
+.sim-b-lbl{font-size:11px;color:var(--muted);margin-top:5px;font-weight:300;line-height:1.3}
+.sim-result{
+  background:var(--gx);border:0.5px solid var(--gd);
+  border-radius:var(--radius);padding:20px 24px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;
+}
+.sim-result-lbl{font-size:14px;color:#86efac;font-weight:300}
+.sim-result-note{font-size:12px;color:var(--gd);margin-top:3px;font-weight:300}
+.sim-result-val{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:44px;letter-spacing:1px;color:var(--g);line-height:1;
+}
+
+/* ── FEARS GRID ────────────────────────────────────────────────── */
+.fears-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.fear-card{
+  background:var(--card);border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);padding:24px;
+  transition:border-color .2s,transform .2s;
+}
+.fear-card:hover{border-color:var(--gd);transform:translateY(-2px)}
+.fear-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--gx);border:0.5px solid var(--gd);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;
+}
+.fear-icon i{font-size:20px;color:var(--g)}
+.fear-title{font-size:15px;font-weight:500;color:#fff;margin-bottom:8px;line-height:1.3}
+.fear-desc{font-size:13px;font-weight:300;color:var(--muted);line-height:1.65}
+.fear-guarantee{
+  display:inline-flex;align-items:center;gap:5px;margin-top:14px;
+  font-size:12px;color:var(--g);background:var(--gx);
+  padding:4px 10px;border-radius:20px;border:0.5px solid var(--gd);
+}
+
+/* ── FAQ ───────────────────────────────────────────────────────── */
+.faq-list{margin-top:8px}
+.faq-item{border-bottom:0.5px solid var(--border)}
+.faq-q{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 0;cursor:pointer;font-size:15px;font-weight:400;
+  color:#fff;gap:20px;transition:color .15s;
+}
+.faq-q:hover{color:var(--g)}
+.faq-q i{color:var(--muted);flex-shrink:0;font-size:20px;transition:transform .25s,color .15s}
+.faq-q.open i{transform:rotate(180deg);color:var(--g)}
+.faq-a{
+  font-size:14px;font-weight:300;color:var(--muted);
+  line-height:1.75;padding-bottom:20px;display:none;
+}
+.faq-a.open{display:block}
+
+/* ── CTA ───────────────────────────────────────────────────────── */
+.cta-section{
+  padding:80px 40px;
+  background:radial-gradient(ellipse 80% 60% at 50% 100%, rgba(34,197,94,.06) 0%, transparent 70%);
+  border-bottom:0.5px solid var(--border);
+  text-align:center;
+}
+.cta-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--gx);border:0.5px solid var(--gd);color:var(--g);
+  font-size:12px;font-weight:500;padding:5px 14px;border-radius:20px;
+  margin-bottom:24px;
+}
+.cta-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(40px,7vw,72px);letter-spacing:2px;
+  color:#fff;line-height:1;margin-bottom:16px;
+}
+.cta-sub{
+  font-size:16px;font-weight:300;color:var(--muted);
+  line-height:1.75;margin-bottom:36px;
+  max-width:460px;margin-left:auto;margin-right:auto;
+}
+.cta-guarantees{
+  display:flex;flex-wrap:wrap;gap:10px;
+  justify-content:center;margin-bottom:36px;
+}
+.cta-guarantee{
+  display:flex;align-items:center;gap:6px;
+  background:var(--card);border:0.5px solid var(--border);
+  border-radius:20px;padding:7px 16px;
+  font-size:13px;font-weight:300;color:var(--soft);
+}
+.cta-guarantee i{font-size:14px;color:var(--g)}
+.cta-footer{margin-top:28px;font-size:13px;color:#374151;font-weight:300}
+.cta-footer a{color:var(--g);text-decoration:none}
+.cta-footer a:hover{text-decoration:underline}
+
+/* ── FOOTER ────────────────────────────────────────────────────── */
+footer{
+  padding:32px 40px;
+  border-top:0.5px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:16px;
+}
+.footer-logo{display:flex;align-items:center;gap:10px}
+.footer-logo-mark{
+  width:28px;height:28px;background:var(--g);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:12px;color:#052e16;
+}
+.footer-logo-text{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--soft)}
+.footer-links{display:flex;gap:24px}
+.footer-link{font-size:13px;color:var(--muted);text-decoration:none;font-weight:300;transition:color .15s}
+.footer-link:hover{color:#fff}
+.footer-note{font-size:12px;color:#374151;font-weight:300}
+
+/* ── ANIMATIONS ────────────────────────────────────────────────── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.reveal{
+  opacity:0;transform:translateY(20px);
+  transition:opacity .6s ease,transform .6s ease;
+}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── RESPONSIVE ────────────────────────────────────────────────── */
+@media(max-width:700px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .hero{padding:60px 20px 48px}
+  .hero-number{display:none}
+  .ticker{grid-template-columns:1fr 1fr;padding:20px}
+  .ticker-item{padding:0 16px}
+  .section{padding:52px 20px}
+  .sim-section{padding:52px 20px}
+  .income-step{flex-wrap:wrap;padding:20px}
+  .step-amount{min-width:unset;text-align:left}
+  .fears-grid{grid-template-columns:1fr}
+  .sim-breakdown{grid-template-columns:1fr 1fr}
+  .cta-section{padding:60px 20px}
+  footer{padding:24px 20px}
+  .footer-links{gap:16px}
+  .slider-label{width:140px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="nav-mark">PC</div>
+    <span class="nav-name">PadelConnect</span>
+    <span class="nav-badge">Embajadora</span>
+  </a>
+  <div class="nav-links">
+    <a href="#como" class="nav-link">Cómo funciona</a>
+    <a href="#timeline" class="nav-link">Camino</a>
+    <a href="#simulador" class="nav-link">Simulador</a>
+    <a href="#faq" class="nav-link">Preguntas</a>
+  </div>
+  <a href="#contacto" class="nav-cta"><i class="ti ti-arrow-right"></i>Quiero ser embajadora</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-number">3M</div>
+
+  <div class="hero-eyebrow"><i class="ti ti-map-pin"></i>Córdoba · Posiciones limitadas</div>
+  <h1 class="hero-h1">
+    Organizás<br>pádel.
+    <em>Ganá más<br>de ARS 3M.</em>
+  </h1>
+  <p class="hero-sub">PadelConnect busca embajadoras que ya mueven jugadoras, organizan torneos y conocen el ambiente del pádel en Córdoba. Si eso sos vos, tenemos algo que cambia tu negocio para siempre.</p>
+  <div class="hero-btns">
+    <a href="#contacto" class="btn-primary"><i class="ti ti-arrow-right"></i>Quiero ser embajadora</a>
+    <a href="#simulador" class="btn-secondary"><i class="ti ti-calculator"></i>Calculá tus ingresos</a>
+  </div>
+  <p class="hero-trust"><i class="ti ti-shield-check"></i>Tu comunidad siempre es tuya. Sin contratos trampa. Podés salir cuando quieras.</p>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-item">
+    <div class="ticker-val" id="cnt-jugadoras">220K+</div>
+    <div class="ticker-lbl">jugadoras activas<br>en Córdoba</div>
+  </div>
+  <div class="ticker-item">
+    <div class="ticker-val" id="cnt-canchas">2.000+</div>
+    <div class="ticker-lbl">canchas en<br>Córdoba</div>
+  </div>
+  <div class="ticker-item">
+    <div class="ticker-val">+50%</div>
+    <div class="ticker-lbl">crecimiento anual<br>del pádel 2024→25</div>
+  </div>
+  <div class="ticker-item">
+    <div class="ticker-val" style="color:#ef4444">0</div>
+    <div class="ticker-lbl">apps dominantes<br>en el interior hoy</div>
+  </div>
+</div>
+
+<!-- INCOME STEPS -->
+<section class="section" id="como">
+  <div class="section-label">Cómo se construye</div>
+  <h2 class="section-title reveal">Los ARS 3.000.000 — fuente por fuente</h2>
+  <p class="section-sub reveal">No es un número inventado. Es el resultado de alcanzar cuatro objetivos en orden, uno por uno.</p>
+
+  <div class="income-steps reveal">
+    <div class="income-step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <div class="step-title">Organizás torneos, Super 8 y Americanos</div>
+        <div class="step-desc">La app gestiona inscripciones, cobros y notificaciones. Vos ponés la comunidad y la reputación. 70–75% de cada evento es tuyo.</div>
+        <span class="step-pill"><i class="ti ti-trophy" style="font-size:13px"></i>ARS 22.500 por jugadora · 70% tuyo</span>
+      </div>
+      <div class="step-amount">ARS 1.386K<small>2 torneos + 4 Super 8 / mes</small></div>
+    </div>
+    <div class="income-step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <div class="step-title">Tu red reserva canchas por la app</div>
+        <div class="step-desc">Cada turno reservado por alguien de tu comunidad te genera ARS 1.000. El turno sale ARS 42.000 (vs ARS 45.000 presencial). Meta: 10 turnos por día.</div>
+        <span class="step-pill"><i class="ti ti-building" style="font-size:13px"></i>ARS 1.000 por turno · ingreso pasivo</span>
+      </div>
+      <div class="step-amount">ARS 300K<small>10 reservas/día × 30 días</small></div>
+    </div>
+    <div class="income-step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <div class="step-title">Nivel Plata — tu red trabaja mientras dormís</div>
+        <div class="step-desc">En el nivel Plata, cada vez que alguien de tu red se anota en un evento organizado por otra persona (un club, otra embajadora), recibís ARS 1.000. Sin hacer absolutamente nada.</div>
+        <span class="step-pill gold"><i class="ti ti-lock" style="font-size:13px"></i>Solo nivel Plata · ingreso 100% pasivo</span>
+      </div>
+      <div class="step-amount">ARS 800K+<small>estimado red activa</small></div>
+    </div>
+    <div class="income-step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <div class="step-title">Sponsors locales para tus torneos</div>
+        <div class="step-desc">Conseguís marcas locales (paleta shops, gimnasios, bebidas deportivas). PadelConnect factura y te acredita el 80% del acuerdo.</div>
+        <span class="step-pill"><i class="ti ti-speakerphone" style="font-size:13px"></i>80% del acuerdo va a tu billetera</span>
+      </div>
+      <div class="step-amount">ARS 280K+<small>2 sponsors activos / mes</small></div>
+    </div>
+    <div class="income-total">
+      <div>
+        <div class="income-total-lbl">Total mensual nivel Plata — estimado conservador</div>
+        <div class="income-total-note">Sobre actividad real: 2 torneos + 4 Super 8 + 10 reservas diarias + 2 sponsors</div>
+      </div>
+      <div class="income-total-val">ARS 2.766.000+</div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section class="section" id="timeline" style="background:var(--card)">
+  <div class="section-label">Mes a mes</div>
+  <h2 class="section-title reveal">Tu camino hacia ARS 3M</h2>
+  <p class="section-sub reveal">No se llega de golpe. Se construye con objetivos claros, un paso por vez.</p>
+
+  <div class="timeline reveal">
+    <div class="tl">
+      <div class="tl-left">
+        <div class="tl-dot done">1</div>
+        <div class="tl-line done"></div>
+      </div>
+      <div style="flex:1">
+        <div class="tl-month done">Mes 1 — Lanzamiento</div>
+        <div class="tl-title">Primeros torneos y comunidad inicial</div>
+        <div class="tl-desc">2 torneos en la app. Tu comunidad empieza a reservar canchas digitalmente. Perfil de embajadora activo con soporte completo de PadelConnect.</div>
+        <div class="tl-bar-wrap">
+          <div class="tl-bar-labels"><span>Objetivo: 2 torneos + 3 reservas/día</span><span style="color:var(--g)">15%</span></div>
+          <div class="tl-bar"><div class="tl-bar-fill" data-width="15"></div></div>
+        </div>
+        <div class="tl-earn done">ARS 400.000 a 500.000 / mes</div>
+      </div>
+      <div class="tl-right">
+        <div class="tl-target done">ARS 450K</div>
+        <div class="tl-target-lbl">meta mes 1</div>
+      </div>
+    </div>
+    <div class="tl">
+      <div class="tl-left">
+        <div class="tl-dot done">2</div>
+        <div class="tl-line done"></div>
+      </div>
+      <div style="flex:1">
+        <div class="tl-month done">Mes 2-3 — Tracción</div>
+        <div class="tl-title">Meta de 10 reservas diarias + primeros sponsors</div>
+        <div class="tl-desc">Tu comunidad reserva sistemáticamente por la app. Sumás Super 8 y Americanos al calendario. Primer sponsor local. Las jugadoras empiezan a referir a otras.</div>
+        <div class="tl-bar-wrap">
+          <div class="tl-bar-labels"><span>Objetivo: 10 reservas/día + 4 Super 8</span><span style="color:var(--g)">40%</span></div>
+          <div class="tl-bar"><div class="tl-bar-fill" data-width="40"></div></div>
+        </div>
+        <div class="tl-earn done">ARS 900.000 a 1.300.000 / mes</div>
+      </div>
+      <div class="tl-right">
+        <div class="tl-target done">ARS 1.1M</div>
+        <div class="tl-target-lbl">meta mes 3</div>
+      </div>
+    </div>
+    <div class="tl">
+      <div class="tl-left">
+        <div class="tl-dot soon">3</div>
+        <div class="tl-line faded"></div>
+      </div>
+      <div style="flex:1">
+        <div class="tl-month soon">Mes 4-5 — Nivel Plata</div>
+        <div class="tl-title">Se desbloquea el ingreso pasivo de la red</div>
+        <div class="tl-desc">Alcanzás el nivel Plata. Desde acá, cada inscripción de tu red en eventos ajenos te genera ARS 1.000 sin que hagas nada. Tu comunidad trabaja para vos mientras dormís.</div>
+        <div class="tl-bar-wrap">
+          <div class="tl-bar-labels"><span>Objetivo: nivel Plata + 15 reservas/día</span><span style="color:var(--gold)">65%</span></div>
+          <div class="tl-bar"><div class="tl-bar-fill" data-width="65" style="background:var(--gold)"></div></div>
+        </div>
+        <div class="tl-earn soon">ARS 1.800.000 a 2.500.000 / mes</div>
+      </div>
+      <div class="tl-right">
+        <div class="tl-target soon">ARS 2.1M</div>
+        <div class="tl-target-lbl">meta mes 5</div>
+      </div>
+    </div>
+    <div class="tl">
+      <div class="tl-left">
+        <div class="tl-dot future">4</div>
+      </div>
+      <div style="flex:1">
+        <div class="tl-month future">Mes 6+ — Meta ARS 3M</div>
+        <div class="tl-title">Escala completa — el sistema trabaja con vos</div>
+        <div class="tl-desc">3 torneos al mes, Super 8 semanales, 20+ reservas diarias, 2-3 sponsors activos y el ingreso Plata consolidado. Tu negocio funciona aunque no estés.</div>
+        <div class="tl-bar-wrap">
+          <div class="tl-bar-labels"><span>Objetivo: operación completa consolidada</span><span style="color:var(--muted)">100%</span></div>
+          <div class="tl-bar"><div class="tl-bar-fill" data-width="100"></div></div>
+        </div>
+        <div class="tl-earn future">ARS 3.000.000+ / mes</div>
+      </div>
+      <div class="tl-right">
+        <div class="tl-target future">ARS 3M+</div>
+        <div class="tl-target-lbl">meta mes 6+</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section class="sim-section" id="simulador">
+  <div class="section-label">Simulador interactivo</div>
+  <h2 class="section-title reveal">Calculá tus ingresos</h2>
+  <p class="section-sub reveal">Ajustá los valores según tu nivel de actividad real y mirá el resultado en tiempo real.</p>
+
+  <div class="sim-card reveal">
+    <div class="slider-row">
+      <span class="slider-label">Torneos por mes</span>
+      <input type="range" id="s-torn" min="0" max="5" value="2" step="1">
+      <span class="slider-val" id="v-torn">2 torneos</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Jugadoras por torneo</span>
+      <input type="range" id="s-jug" min="8" max="64" value="28" step="4">
+      <span class="slider-val" id="v-jug">28 jugadoras</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Super 8 / Americanos / mes</span>
+      <input type="range" id="s-s8" min="0" max="12" value="4" step="1">
+      <span class="slider-val" id="v-s8">4 eventos</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Reservas de cancha / día</span>
+      <input type="range" id="s-res" min="0" max="25" value="10" step="1">
+      <span class="slider-val" id="v-res">10 / día</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-label">Sponsors activos</span>
+      <input type="range" id="s-sp" min="0" max="5" value="2" step="1">
+      <span class="slider-val" id="v-sp">2 sponsors</span>
+    </div>
+
+    <div class="plata-toggle" id="plata-toggle" onclick="togglePlata()">
+      <div class="toggle-switch" id="ts"><div class="toggle-knob" id="tk"></div></div>
+      <div class="toggle-text">Nivel Plata — <strong>comisión por inscripciones de tu red en eventos ajenos</strong></div>
+      <span class="toggle-badge">Solo nivel Plata</span>
+    </div>
+
+    <div id="plata-extra" style="display:none">
+      <div class="slider-row" style="border-bottom:none;padding-bottom:0;margin-bottom:24px">
+        <span class="slider-label">Inscripciones de tu red en eventos ajenos / mes</span>
+        <input type="range" id="s-red" min="0" max="400" value="189" step="10">
+        <span class="slider-val" id="v-red">189</span>
+      </div>
+    </div>
+
+    <div class="sim-breakdown">
+      <div class="sim-b">
+        <div class="sim-b-val" id="r-torn" style="color:var(--g)">—</div>
+        <div class="sim-b-lbl">Torneos</div>
+      </div>
+      <div class="sim-b">
+        <div class="sim-b-val" id="r-s8" style="color:var(--g)">—</div>
+        <div class="sim-b-lbl">Super 8 / Amer.</div>
+      </div>
+      <div class="sim-b">
+        <div class="sim-b-val" id="r-res" style="color:var(--g)">—</div>
+        <div class="sim-b-lbl">Reservas (Caso A)</div>
+      </div>
+      <div class="sim-b">
+        <div class="sim-b-val" id="r-plata" style="color:var(--muted)">Bloqueado</div>
+        <div class="sim-b-lbl">Plata (Caso B)</div>
+      </div>
+    </div>
+
+    <div class="sim-result">
+      <div>
+        <div class="sim-result-lbl">Tu ganancia mensual estimada</div>
+        <div class="sim-result-note" id="sim-note">Nivel Bronce activo · activá Plata para desbloquear el Caso B</div>
+      </div>
+      <div class="sim-result-val" id="sim-total">—</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEARS -->
+<section class="section">
+  <div class="section-label">Tus protecciones</div>
+  <h2 class="section-title reveal">Los cuatro miedos más comunes — resueltos</h2>
+  <p class="section-sub reveal">Si ya organizás pádel, sabemos exactamente qué te preocupa. Los ponemos sobre la mesa antes de que preguntes.</p>
+  <div class="fears-grid reveal">
+    <div class="fear-card">
+      <div class="fear-icon"><i class="ti ti-users"></i></div>
+      <div class="fear-title">"Me van a robar la comunidad"</div>
+      <div class="fear-desc">PadelConnect no puede contactar directamente a las jugadoras de tu red para ofrecerles lo que vos hacés. Tu vínculo es exclusivo e intransferible. Si decidís salir, exportás toda tu base en un click.</div>
+      <div class="fear-guarantee"><i class="ti ti-check" style="font-size:12px"></i>Respaldo contractual</div>
+    </div>
+    <div class="fear-card">
+      <div class="fear-icon"><i class="ti ti-replace"></i></div>
+      <div class="fear-title">"La tecnología me va a reemplazar"</div>
+      <div class="fear-desc">La tecnología gestiona la logística — cobros, confirmaciones, recordatorios. Vos gestionás las relaciones. Eso no se automatiza. Es exactamente por eso que necesitamos embajadoras reales, no solo algoritmos.</div>
+      <div class="fear-guarantee"><i class="ti ti-check" style="font-size:12px"></i>Roles complementarios</div>
+    </div>
+    <div class="fear-card">
+      <div class="fear-icon"><i class="ti ti-door-exit"></i></div>
+      <div class="fear-title">"¿Y si me va mal y quiero salir?"</div>
+      <div class="fear-desc">Sin penalidades. Sin contratos de permanencia mínima. Si la alianza no funciona por cualquier motivo, te desvinculás con todo tu historial, tu reputación y tu base de jugadoras completamente intactos.</div>
+      <div class="fear-guarantee"><i class="ti ti-check" style="font-size:12px"></i>Salida libre garantizada</div>
+    </div>
+    <div class="fear-card">
+      <div class="fear-icon"><i class="ti ti-device-mobile"></i></div>
+      <div class="fear-title">"No entiendo bien la tecnología"</div>
+      <div class="fear-desc">Si podés usar WhatsApp e Instagram, podés usar PadelConnect. El onboarding dura una tarde con soporte directo. La app está diseñada para que el foco sea el pádel, no aprender software.</div>
+      <div class="fear-guarantee"><i class="ti ti-check" style="font-size:12px"></i>Onboarding incluido</div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq" style="background:var(--card)">
+  <div class="section-label">Preguntas frecuentes</div>
+  <h2 class="section-title reveal">Lo que siempre preguntan</h2>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Tengo que dejar de organizar torneos por fuera de la app?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">No. No pedimos exclusividad de tu parte. Podés seguir organizando exactamente como lo hacés hoy. La app es una capa adicional que amplifica tu alcance y automatiza la logística, no reemplaza nada de lo que hacés.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Cuánto tiempo me demanda por semana?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">En el primer mes, unas 15-20 horas semanales para el lanzamiento y el onboarding de tu comunidad. A partir del mes 2, la operación baja porque la logística la gestiona la app. El foco se desplaza a relaciones, crecimiento y eventos.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Qué es el nivel Plata y cómo se desbloquea?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Es el nivel que se activa cuando tu actividad en la plataforma alcanza determinados objetivos de crecimiento. Una vez activo, cada vez que alguien de tu red se anota en un evento organizado por otra persona — un club, otra embajadora — vos recibís ARS 1.000 automáticamente, sin hacer nada.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Cuántas embajadoras habrá en Córdoba?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Un número muy limitado en la primera etapa. La idea es que cada embajadora tenga una zona o comunidad diferenciada para no competir entre sí. La calidad y la especificidad de cada red importa más que la cantidad de embajadoras. Eso también protege tu posición.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Cómo y cuándo cobro mis comisiones?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">Las comisiones se acreditan automáticamente en tu billetera dentro de la app al momento en que se procesa cada pago. Podés retirar a tu cuenta bancaria en cualquier momento, sin demoras ni montos mínimos de retiro.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">¿Puedo ser embajadora si soy principiante en el pádel?<i class="ti ti-chevron-down"></i></div>
+      <div class="faq-a">El requisito no es el nivel de juego sino la red de contactos y la capacidad de organización. Si ya organizás eventos, conocés jugadoras y tenés reputación en tu zona, el nivel técnico en la cancha no es determinante para este rol.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contacto">
+  <div class="cta-eyebrow"><i class="ti ti-clock"></i>Posiciones limitadas en Córdoba</div>
+  <h2 class="cta-title reveal">¿Tomamos un café?</h2>
+  <p class="cta-sub reveal">Sin formularios, sin contratos todavía, sin presión. Solo una charla para que veas la app, entiendas el rol y decidas con toda la información en la mano. Cuando quieras, donde quieras.</p>
+  <div class="cta-guarantees reveal">
+    <div class="cta-guarantee"><i class="ti ti-check"></i>Sin compromiso</div>
+    <div class="cta-guarantee"><i class="ti ti-check"></i>Sin contrato hoy</div>
+    <div class="cta-guarantee"><i class="ti ti-check"></i>15 minutos</div>
+    <div class="cta-guarantee"><i class="ti ti-check"></i>Donde vos elijas</div>
+    <div class="cta-guarantee"><i class="ti ti-check"></i>El primer paso lo das vos</div>
+  </div>
+  <a href="mailto:contacto@padelconnect.com.ar?subject=Quiero ser embajadora PadelConnect Córdoba" class="btn-primary reveal" style="display:inline-flex;text-decoration:none;margin:0 auto">
+    <i class="ti ti-calendar"></i>Coordinar reunión
+  </a>
+  <p class="cta-footer reveal">
+    <a href="https://cordobalux.com/padel">cordobalux.com/padel</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:contacto@padelconnect.com.ar">contacto@padelconnect.com.ar</a>
+    &nbsp;·&nbsp;
+    <a href="https://instagram.com/padelconnect">@padelconnect</a>
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="footer-logo-mark">PC</div>
+    <span class="footer-logo-text">PADELCONNECT</span>
+  </div>
+  <div class="footer-links">
+    <a href="https://cordobalux.com" class="footer-link">cordobalux.com</a>
+    <a href="https://cordobalux.com/padel" class="footer-link">PadelConnect</a>
+    <a href="mailto:contacto@padelconnect.com.ar" class="footer-link">Contacto</a>
+  </div>
+  <div class="footer-note">© 2025 PadelConnect · Córdoba, Argentina</div>
+</footer>
+
+<script>
+/* ── COUNTER ANIMATION ── */
+function animCount(id,target,suffix,duration){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/duration,1);
+    const ease=1-Math.pow(1-p,3);
+    const val=Math.round(ease*target);
+    if(target>=1000) el.textContent=(val/1000).toFixed(0)+'K+';
+    else el.textContent=val+suffix;
+    if(p<1)requestAnimationFrame(step);
+    else{
+      if(target>=1000) el.textContent=(target/1000).toFixed(0)+'K+';
+      else el.textContent=target+suffix;
+    }
+  }
+  requestAnimationFrame(step);
+}
+setTimeout(()=>{
+  animCount('cnt-jugadoras',220000,'',1400);
+  animCount('cnt-canchas',2000,'',1000);
+},400);
+
+/* ── REVEAL ON SCROLL ── */
+const reveals=document.querySelectorAll('.reveal');
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+},{threshold:.12});
+reveals.forEach(el=>io.observe(el));
+
+/* ── PROGRESS BARS ── */
+const barObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const w=e.target.dataset.width;
+      setTimeout(()=>{ e.target.style.width=w+'%'; },200);
+      barObs.unobserve(e.target);
+    }
+  });
+},{threshold:.3});
+document.querySelectorAll('.tl-bar-fill').forEach(el=>barObs.observe(el));
+
+/* ── SIMULATOR ── */
+function fmt(n){
+  const r=Math.round(n);
+  if(r>=1000000)return'ARS '+(r/1000000).toFixed(2).replace('.',',')+' M';
+  if(r>=1000)return'ARS '+(r/1000).toFixed(0)+'K';
+  return'ARS '+r.toLocaleString('es-AR');
+}
+let plataOn=false;
+function togglePlata(){
+  plataOn=!plataOn;
+  document.getElementById('ts').className='toggle-switch'+(plataOn?' on':'');
+  document.getElementById('tk').className='toggle-knob'+(plataOn?' on':'');
+  document.getElementById('plata-extra').style.display=plataOn?'block':'none';
+  calc();
+}
+function calc(){
+  const torn=+document.getElementById('s-torn').value;
+  const jug=+document.getElementById('s-jug').value;
+  const s8=+document.getElementById('s-s8').value;
+  const res=+document.getElementById('s-res').value;
+  const sp=+document.getElementById('s-sp').value;
+  const red=plataOn?+document.getElementById('s-red').value:0;
+
+  document.getElementById('v-torn').textContent=torn+' torneo'+(torn!==1?'s':'');
+  document.getElementById('v-jug').textContent=jug+' jugadoras';
+  document.getElementById('v-s8').textContent=s8+' evento'+(s8!==1?'s':'');
+  document.getElementById('v-res').textContent=res+' / día';
+  document.getElementById('v-sp').textContent=sp+' sponsor'+(sp!==1?'s':'');
+  if(plataOn)document.getElementById('v-red').textContent=red+' inscripciones';
+
+  const ingTorn=Math.round(torn*jug*22500*0.70);
+  const ingS8=Math.round(s8*16*20000*0.75);
+  const ingRes=Math.round(res*1000*30);
+  const ingRed=plataOn?Math.round(red*1000):0;
+  const ingSp=Math.round(sp*70000*0.80);
+  const total=ingTorn+ingS8+ingRes+ingRed+ingSp;
+
+  document.getElementById('r-torn').textContent=fmt(ingTorn);
+  document.getElementById('r-s8').textContent=fmt(ingS8);
+  document.getElementById('r-res').textContent=fmt(ingRes);
+  const rp=document.getElementById('r-plata');
+  rp.textContent=plataOn?fmt(ingRed):'Bloqueado';
+  rp.style.color=plataOn?'var(--g)':'var(--muted)';
+  document.getElementById('sim-total').textContent=fmt(total);
+  document.getElementById('sim-note').textContent=plataOn
+    ?'Nivel Plata activo — Caso A + Caso B incluidos'
+    :'Nivel Bronce activo · activá Plata para desbloquear el Caso B';
+}
+['s-torn','s-jug','s-s8','s-res','s-sp'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
+document.getElementById('s-red').addEventListener('input',calc);
+calc();
+
+/* ── FAQ ── */
+function toggleFaq(el){
+  const a=el.nextElementSibling;
+  const isOpen=a.classList.contains('open');
+  document.querySelectorAll('.faq-a.open').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.faq-q.open').forEach(x=>x.classList.remove('open'));
+  if(!isOpen){a.classList.add('open');el.classList.add('open');}
+}
+</script>
+</body>
+</html>
