@@ -316,23 +316,127 @@ function navTo(page, btn) {
 // ─── DASHBOARD ────────────────────────────────────────────────────────
 async function cargarDashboard() {
   if (!negocioData) return;
-  document.getElementById("dash-nombre").textContent = negocioData.nombre;
+
+  // Nombre y subtitulo
+  const elNombre = document.getElementById("dash-nombre");
+  if (elNombre) elNombre.textContent = negocioData.nombre;
   const fechaHoy = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
-  document.getElementById("hero-fecha").textContent = "Panel de gestión · Hoy es " + fechaHoy;
+  const elSub = document.getElementById("dash-sub");
+  if (elSub) elSub.textContent = "Panel de gestion · Hoy es " + fechaHoy;
+
+  // Badge plan
+  const topBadge = document.getElementById("top-plan-badge");
+  if (topBadge) {
+    const plan = negocioData.plan || "basico";
+    const estado = negocioData.estado_pago || "prueba";
+    topBadge.textContent = estado === "prueba" ? "Periodo gratuito" : "Plan " + plan;
+  }
+
+  // Banner plan gratuito
+  const banner = document.getElementById("dash-plan-banner");
+  if (banner && (negocioData.estado_pago === "prueba")) {
+    banner.style.display = "flex";
+    const venc = negocioData.vencimiento_plan ? new Date(negocioData.vencimiento_plan) : null;
+    const dias = venc ? Math.max(0, Math.ceil((venc - new Date()) / 86400000)) : "?";
+    const elDias = document.getElementById("dash-dias-gratis");
+    if (elDias) elDias.textContent = dias + " dias restantes gratis";
+  }
+
   try {
     const hoy = new Date().toISOString().split("T")[0];
-    const [reservas, turnos] = await Promise.all([
+
+    // Cargar reservas y caja en paralelo
+    const [reservas, caja, disponibilidad] = await Promise.all([
       apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[]),
+      apiAdmin("/padel/club/cierre-caja?negocio_id=" + negocioData.id + "&periodo=hoy").catch(()=>null),
       apiAdmin("/padel/disponibilidad/" + negocioData.id).catch(()=>[])
     ]);
+
     const confirmadas = reservas.filter(r => r.estado === "confirmado");
-    const ingresos    = confirmadas.reduce((s,r) => s + parseFloat(r.precio_cobrado||0), 0);
-    document.getElementById("kpi-reservas").textContent  = confirmadas.length;
-    document.getElementById("kpi-ingresos").textContent  = "$" + Math.round(ingresos).toLocaleString("es-AR");
-    document.getElementById("kpi-canchas").textContent   = turnos.length;
-    const ocup = turnos.length > 0 ? Math.round((confirmadas.length / turnos.length) * 100) : 0;
-    document.getElementById("kpi-ocupacion").textContent = ocup + "%";
-  } catch(e) {}
+    const ingresos = confirmadas.reduce((s,r) => s + parseFloat(r.precio_cobrado||0), 0);
+    const porApp = confirmadas.filter(r => r.canal === "app" || r.pago_por_app).length;
+    const pctApp = confirmadas.length > 0 ? Math.round((porApp/confirmadas.length)*100) : 0;
+
+    // Canchas unicas activas
+    const canchasActivas = [...new Set(disponibilidad.filter(d=>d.activo).map(d=>d.numero_cancha))].length;
+    const turnosHoy = disponibilidad.filter(d => {
+      const diaSem = new Date().getDay();
+      return d.activo && (d.dia_semana === diaSem || d.fecha_especifica === hoy);
+    }).length;
+    const ocup = turnosHoy > 0 ? Math.round((confirmadas.length / turnosHoy) * 100) : 0;
+
+    // KPIs
+    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+    set("kpi-reservas", confirmadas.length);
+    set("kpi-ingresos", "ARS " + Math.round(ingresos).toLocaleString("es-AR"));
+    set("kpi-ingresos-sub", canchasActivas + " canchas activas");
+    set("kpi-ocupacion", ocup + "%");
+    set("kpi-app-pct", pctApp + "%");
+
+    // Caja rapida
+    const cajaCont = document.getElementById("dash-caja-rapida");
+    if (cajaCont && caja && caja.resumen) {
+      const r = caja.resumen;
+      const total = parseFloat(r.total||0);
+      const tApp = parseFloat(r.total_app||0);
+      const tPres = parseFloat(r.total_presencial||0);
+      const tWA = parseFloat(r.total_whatsapp||0);
+      cajaCont.innerHTML =
+        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+          '<span style="font-size:12px;color:var(--muted)">&#128241; App (' + (r.turnos_app||0) + ')</span>' +
+          '<span style="font-size:12px;font-weight:600;color:var(--green)">ARS ' + Math.round(tApp).toLocaleString("es-AR") + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+          '<span style="font-size:12px;color:var(--muted)">Presencial (' + (r.turnos_presencial||0) + ')</span>' +
+          '<span style="font-size:12px;font-weight:600">ARS ' + Math.round(tPres).toLocaleString("es-AR") + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+          '<span style="font-size:12px;color:var(--muted)">WhatsApp (' + (r.turnos_whatsapp||0) + ')</span>' +
+          '<span style="font-size:12px;font-weight:600">ARS ' + Math.round(tWA).toLocaleString("es-AR") + '</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;padding:8px 0 0">' +
+          '<span style="font-size:13px;font-weight:700;color:#fff">Total</span>' +
+          '<span style="font-size:16px;font-weight:700;color:var(--green)">ARS ' + Math.round(total).toLocaleString("es-AR") + '</span>' +
+        '</div>';
+    } else if (cajaCont) {
+      cajaCont.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0">Sin movimientos hoy</div>';
+    }
+
+    // Ocupacion por cancha
+    const ocupCont = document.getElementById("dash-ocupacion");
+    if (ocupCont && disponibilidad.length) {
+      const porCancha = {};
+      disponibilidad.forEach(d => {
+        const n = d.numero_cancha||1;
+        if (!porCancha[n]) porCancha[n] = {total:0, reservadas:0};
+        const diaSem = new Date().getDay();
+        if (d.activo && (d.dia_semana===diaSem || d.fecha_especifica===hoy)) {
+          porCancha[n].total++;
+          const reservada = reservas.filter(r=>r.numero_cancha==n && r.estado==="confirmado").length;
+          porCancha[n].reservadas = reservada;
+        }
+      });
+      const nums = Object.keys(porCancha).sort((a,b)=>a-b).slice(0,6);
+      ocupCont.innerHTML = nums.map(n => {
+        const c = porCancha[n];
+        const pct = c.total > 0 ? Math.min(100, Math.round((c.reservadas/c.total)*100)) : 0;
+        const color = pct >= 80 ? "#22c55e" : pct >= 50 ? "#fbbf24" : "rgba(255,255,255,.3)";
+        return '<div style="margin-bottom:8px">' +
+          '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+            '<span style="color:var(--muted)">Cancha ' + n + '</span>' +
+            '<span style="color:' + color + ';font-weight:600">' + c.reservadas + '/' + c.total + ' hs</span>' +
+          '</div>' +
+          '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">' +
+            '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:3px;transition:width .5s"></div>' +
+          '</div></div>';
+      }).join("");
+    } else if (ocupCont) {
+      ocupCont.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0">Sin canchas configuradas</div>';
+    }
+
+  } catch(e) {
+    console.error("cargarDashboard:", e);
+  }
 }
 
 // ─── CANCHAS ──────────────────────────────────────────────────────────
@@ -1118,101 +1222,113 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
 
   <!-- TOP BAR -->
   <div class="top-bar">
-    <div class="top-logo">🎾 PADELCLUB</div>
+    <div class="top-logo">PC</div>
     <div class="top-negocio">
-      <div class="nombre" id="top-nombre">—</div>
-      <div class="tipo" id="top-tipo">Club de Pádel</div>
+      <div class="nombre" id="top-nombre">Cargando...</div>
+      <div class="tipo" id="top-tipo">Club de Padel</div>
     </div>
-    <span class="top-app-badge">🟢 En línea</span>
+    <span class="top-app-badge" id="top-plan-badge">Plan Pro</span>
     <button class="btn-logout" onclick="doLogout()">Salir</button>
   </div>
 
-  <!-- TABS -->
+  <!-- NAV TABS -->
   <div class="nav-tabs">
-    <button class="tab active" onclick="navTo('dashboard',this)">📊 Dashboard</button>
-    <button class="tab" onclick="navTo('canchas',this)">🏟️ Mis Canchas</button>
-    <button class="tab" onclick="navTo('reservas',this)">📋 Reservas</button>
-    <button class="tab" onclick="navTo('partidos',this)">⚡ Partidos</button>
-    <button class="tab" onclick="navTo('stats',this)">📈 Estadísticas</button>
-    <button class="tab" onclick="navTo('resenas',this)">⭐ Reseñas</button>
+    <button class="tab active" onclick="navTo('dashboard',this)">&#128202; Dashboard</button>
+    <button class="tab" onclick="navTo('canchas',this)">&#127955; Mis Canchas</button>
+    <button class="tab" onclick="navTo('reservas',this)">&#128197; Reservas</button>
+    <button class="tab" onclick="navTo('partidos',this)">&#9889; Partidos</button>
+    <button class="tab" onclick="navTo('stats',this)">&#128200; Estadisticas</button>
+    <button class="tab" onclick="navTo('resenas',this)">&#11088; Resenas</button>
   </div>
 
   <div class="main">
 
-    <!-- DASHBOARD -->
+    <!-- ===== DASHBOARD ===== -->
     <div class="page active" id="page-dashboard">
       <div class="dashboard-hero">
-        <div class="hero-greeting">Bienvenido de vuelta</div>
-        <div class="hero-name" id="dash-nombre">—</div>
-        <div class="hero-sub" id="hero-fecha">Panel de gestión</div>
+        <div class="hero-greeting">Panel del Club</div>
+        <div class="hero-name" id="dash-nombre">Bienvenido</div>
+        <div class="hero-sub" id="dash-sub">Cargando datos del club...</div>
       </div>
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-icon">📋</div>
-          <div class="kpi-num" id="kpi-reservas">—</div>
-          <div class="kpi-lbl">Reservas hoy</div>
+
+      <!-- Banner plan -->
+      <div id="dash-plan-banner" style="display:none;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:22px">&#127873;</span>
+        <div style="flex:1;font-size:13px;color:rgba(251,191,36,.9);line-height:1.5">
+          <strong>Estas en tu periodo gratuito.</strong> Despues USD 55/mes — cancelas cuando quieras.
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">💰</div>
-          <div class="kpi-num gold" id="kpi-ingresos">—</div>
-          <div class="kpi-lbl">Ingresos hoy</div>
+        <div id="dash-dias-gratis" style="font-size:20px;font-weight:700;color:#fbbf24"></div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid" id="dash-kpis">
+        <div class="kpi-card"><div class="kpi-icon">&#128197;</div><div class="kpi-num" id="kpi-reservas">—</div><div class="kpi-lbl">Reservas hoy</div></div>
+        <div class="kpi-card"><div class="kpi-icon">&#128176;</div><div class="kpi-num" id="kpi-ingresos" style="font-size:24px">—</div><div class="kpi-lbl">Recaudado hoy</div><div class="kpi-trend" id="kpi-ingresos-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-icon">&#128200;</div><div class="kpi-num gold" id="kpi-ocupacion">—</div><div class="kpi-lbl">Ocupacion promedio</div></div>
+        <div class="kpi-card"><div class="kpi-icon">&#9889;</div><div class="kpi-num" id="kpi-app-pct" style="color:var(--green)">—</div><div class="kpi-lbl">% reservas via app</div></div>
+      </div>
+
+      <!-- Caja rapida + ocupacion -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+            Caja de hoy
+            <button class="btn-sm" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(()=>showCanchaTab('caja'),100)" style="font-size:10px">Ver detalle</button>
+          </div>
+          <div id="dash-caja-rapida"><div class="loader"></div></div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">🏟️</div>
-          <div class="kpi-num" id="kpi-canchas">—</div>
-          <div class="kpi-lbl">Turnos activos</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon">📊</div>
-          <div class="kpi-num pink" id="kpi-ocupacion">—</div>
-          <div class="kpi-lbl">Ocupación</div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Ocupacion por cancha</div>
+          <div id="dash-ocupacion"><div class="loader"></div></div>
         </div>
       </div>
-      <div style="margin-bottom:14px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Accesos rápidos</div>
+
+      <!-- Accesos rapidos -->
       <div class="quick-grid">
         <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1])">
-          <div class="quick-icon">🏟️</div>
+          <div class="quick-icon">&#127955;</div>
           <div class="quick-label">Mis Canchas</div>
           <div class="quick-sub">Gestionar turnos</div>
         </div>
-        <div class="quick-card" onclick="navTo('reservas',document.querySelectorAll('.tab')[2])">
-          <div class="quick-icon">📋</div>
-          <div class="quick-label">Reservas</div>
-          <div class="quick-sub">Ver de hoy</div>
+        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(()=>showCanchaTab('turnos'),100)">
+          <div class="quick-icon">&#128197;</div>
+          <div class="quick-label">Turnos de Hoy</div>
+          <div class="quick-sub">Ver y cargar</div>
         </div>
-        <div class="quick-card" onclick="abrirCrearPartido()">
-          <div class="quick-icon">⚡</div>
+        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(()=>showCanchaTab('caja'),100)">
+          <div class="quick-icon">&#128181;</div>
+          <div class="quick-label">Cierre de Caja</div>
+          <div class="quick-sub">Resumen del dia</div>
+        </div>
+        <div class="quick-card" onclick="navTo('partidos',document.querySelectorAll('.tab')[3])">
+          <div class="quick-icon">&#9889;</div>
           <div class="quick-label">Crear Partido</div>
-          <div class="quick-sub">Partido público</div>
+          <div class="quick-sub">Partido publico</div>
         </div>
         <div class="quick-card" onclick="navTo('resenas',document.querySelectorAll('.tab')[5])">
-          <div class="quick-icon">⭐</div>
-          <div class="quick-label">Reseñas</div>
+          <div class="quick-icon">&#11088;</div>
+          <div class="quick-label">Resenas</div>
           <div class="quick-sub">Ver opiniones</div>
         </div>
       </div>
     </div>
 
-    <!-- MIS CANCHAS -->
+    <!-- ===== MIS CANCHAS ===== -->
     <div class="page" id="page-canchas">
-
-      <!-- Inner tabs -->
       <div class="canchas-inner-nav">
         <button class="ci-tab active" id="cit-gestion" onclick="showCanchaTab('gestion')">&#9881; Gestionar Canchas</button>
         <button class="ci-tab" id="cit-turnos" onclick="showCanchaTab('turnos')">&#128197; Turnos de Hoy</button>
         <button class="ci-tab" id="cit-caja" onclick="showCanchaTab('caja')">&#128181; Cierre de Caja</button>
       </div>
 
-      <!-- ===== GESTIONAR CANCHAS ===== -->
       <div id="ci-gestion" class="ci-sec">
         <div class="section-hdr">
           <div class="section-title">&#127955; Mis Canchas</div>
-          <button class="btn-export" onclick="abrirModalNuevaCancha()">+ Nueva cancha</button>
+          <button class="btn-export" onclick="abrirModalNuevaCancha()">+ Nueva cancha / turno</button>
         </div>
         <div id="canchas-config-list"><div class="loader"></div></div>
       </div>
 
-      <!-- ===== TURNOS DE HOY ===== -->
       <div id="ci-turnos" class="ci-sec" style="display:none">
         <div class="section-hdr">
           <div class="section-title">&#128197; Turnos de hoy</div>
@@ -1227,7 +1343,6 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
         <div id="turnos-dia-list"><div class="loader"></div></div>
       </div>
 
-      <!-- ===== CIERRE DE CAJA ===== -->
       <div id="ci-caja" class="ci-sec" style="display:none">
         <div class="section-hdr">
           <div class="section-title">&#128181; Cierre de Caja</div>
@@ -1240,164 +1355,150 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
         </div>
         <div id="caja-content"><div class="loader"></div></div>
       </div>
-
-    </div><!-- /page-canchas -->
-
-    <!-- MODAL NUEVA CANCHA -->
-    <div id="modal-nueva-cancha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
-      <div class="modal-inner" style="max-height:90vh;overflow-y:auto">
-        <div class="modal-title">Nueva Cancha</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div style="grid-column:1/-1">
-            <label class="field-label">Nombre de la cancha</label>
-            <input class="input-field" id="nc-nombre" placeholder="Ej: Cancha 1 — Cristal" style="margin:0">
-          </div>
-          <div>
-            <label class="field-label">Tipo</label>
-            <select class="input-field" id="nc-tipo" style="color:#fff;background:#1a0030;margin:0">
-              <option style="background:#1a0030">cristal</option>
-              <option style="background:#1a0030">panoramica</option>
-              <option style="background:#1a0030">indoor</option>
-              <option style="background:#1a0030">outdoor</option>
-            </select>
-          </div>
-          <div>
-            <label class="field-label">Numero de cancha</label>
-            <input class="input-field" id="nc-numero" type="number" value="1" min="1" style="margin:0">
-          </div>
-          <div>
-            <label class="field-label">Dia de semana (0=Dom, 1=Lun...)</label>
-            <input class="input-field" id="nc-dia" type="number" value="1" min="0" max="6" style="margin:0">
-          </div>
-          <div>
-            <label class="field-label">Hora inicio</label>
-            <input class="input-field" id="nc-hinicio" type="time" value="08:00" style="margin:0;color-scheme:dark">
-          </div>
-          <div>
-            <label class="field-label">Hora fin</label>
-            <input class="input-field" id="nc-hfin" type="time" value="09:00" style="margin:0;color-scheme:dark">
-          </div>
-          <div>
-            <label class="field-label">Precio presencial (ARS)</label>
-            <input class="input-field" id="nc-ppres" type="number" placeholder="50000" style="margin:0" oninput="validarDescNC()">
-          </div>
-          <div>
-            <label class="field-label">Precio app (ARS)</label>
-            <input class="input-field" id="nc-papp" type="number" placeholder="42000" style="margin:0" oninput="validarDescNC()">
-          </div>
-          <div style="grid-column:1/-1">
-            <div id="nc-desc-msg" style="font-size:12px;color:#22c55e;min-height:18px"></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:20px">
-          <button onclick="cerrarModalNuevaCancha()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
-          <button onclick="confirmarNuevaCancha()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR TURNO</button>
-        </div>
-      </div>
     </div>
 
-    <!-- MODAL TURNO MANUAL -->
-    <div id="modal-turno-manual" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
-      <div class="modal-inner">
-        <div class="modal-title">Cargar Turno Manual</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div>
-            <label class="field-label">Cancha</label>
-            <select class="input-field" id="tm-cancha" style="color:#fff;background:#1a0030;margin:0"></select>
-          </div>
-          <div>
-            <label class="field-label">Fecha</label>
-            <input class="input-field" id="tm-fecha" type="date" style="margin:0;color-scheme:dark">
-          </div>
-          <div>
-            <label class="field-label">Hora inicio</label>
-            <input class="input-field" id="tm-hinicio" type="time" style="margin:0;color-scheme:dark">
-          </div>
-          <div>
-            <label class="field-label">Hora fin</label>
-            <input class="input-field" id="tm-hfin" type="time" style="margin:0;color-scheme:dark">
-          </div>
-          <div style="grid-column:1/-1">
-            <label class="field-label">Jugador / Referencia</label>
-            <input class="input-field" id="tm-jugador" placeholder="Nombre del jugador o grupo" style="margin:0">
-          </div>
-          <div>
-            <label class="field-label">Canal</label>
-            <select class="input-field" id="tm-canal" style="color:#fff;background:#1a0030;margin:0">
-              <option value="presencial" style="background:#1a0030">Presencial</option>
-              <option value="whatsapp" style="background:#1a0030">WhatsApp</option>
-              <option value="app" style="background:#1a0030">App</option>
-            </select>
-          </div>
-          <div>
-            <label class="field-label">Monto cobrado (ARS)</label>
-            <input class="input-field" id="tm-monto" type="number" placeholder="50000" style="margin:0">
-          </div>
-          <div>
-            <label class="field-label">Estado de pago</label>
-            <select class="input-field" id="tm-estado" style="color:#fff;background:#1a0030;margin:0">
-              <option value="confirmado" style="background:#1a0030">Pagado</option>
-              <option value="pendiente" style="background:#1a0030">Pendiente</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:20px">
-          <button onclick="cerrarModalTurnoManual()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
-          <button onclick="confirmarTurnoManual()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">GUARDAR</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RESERVAS -->
+    <!-- ===== RESERVAS ===== -->
     <div class="page" id="page-reservas">
       <div class="section-hdr">
-        <div class="section-title">📋 Reservas de hoy</div>
+        <div class="section-title">&#128203; Reservas de hoy</div>
         <div style="display:flex;gap:8px">
-          <button class="btn-sm f-btn" id="f-confirmado" onclick="filtrarReservas('confirmado')" style="background:rgba(34,197,94,.2)">✅ Confirmadas</button>
-          <button class="btn-sm f-btn" id="f-todas" onclick="filtrarReservas('todas')">📋 Todas</button>
+          <button class="btn-sm f-btn" id="f-confirmado" onclick="filtrarReservas('confirmado')" style="background:rgba(34,197,94,.2)">&#9989; Confirmadas</button>
+          <button class="btn-sm f-btn" id="f-todas" onclick="filtrarReservas('todas')">&#128203; Todas</button>
         </div>
       </div>
       <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.8)">
-        ✅ <strong>Las reservas se confirman automáticamente.</strong> El jugador recibe confirmación al instante.
+        &#9989; <strong>Las reservas se confirman automaticamente.</strong> El jugador recibe confirmacion al instante.
       </div>
       <div id="reservas-list"><div class="loader"></div></div>
     </div>
 
-    <!-- PARTIDOS -->
+    <!-- ===== PARTIDOS ===== -->
     <div class="page" id="page-partidos">
       <div class="section-hdr">
-        <div class="section-title">⚡ Partidos públicos</div>
+        <div class="section-title">&#9889; Partidos publicos</div>
         <button class="btn-export" onclick="abrirCrearPartido()">+ Crear partido</button>
       </div>
       <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:16px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.75)">
-        ⚡ Creá partidos públicos para que los jugadores se inscriban desde Padel Connect.
+        &#9889; Crea partidos publicos para que los jugadores se inscriban desde Padel Connect.
       </div>
       <div id="partidos-list"><div class="loader"></div></div>
     </div>
 
-    <!-- ESTADISTICAS -->
+    <!-- ===== ESTADISTICAS ===== -->
     <div class="page" id="page-stats">
-      <div class="section-hdr">
-        <div class="section-title">📈 Estadísticas</div>
-      </div>
+      <div class="section-hdr"><div class="section-title">&#128200; Estadisticas</div></div>
       <div id="stats-content"><div class="loader"></div></div>
     </div>
 
-    <!-- RESEÑAS -->
+    <!-- ===== RESENAS ===== -->
     <div class="page" id="page-resenas">
-      <div class="section-hdr">
-        <div class="section-title">⭐ Reseñas de jugadores</div>
-      </div>
+      <div class="section-hdr"><div class="section-title">&#11088; Resenas de jugadores</div></div>
       <div id="resenas-list"><div class="loader"></div></div>
     </div>
 
   </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- FAB CREAR PARTIDO -->
-<button class="fab" onclick="abrirCrearPartido()">⚡ Crear Partido</button>
+<!-- FAB -->
+<button class="fab" onclick="abrirCrearPartido()">&#9889; Crear Partido</button>
 
-<!-- MODAL DISPONIBILIDAD -->
+<!-- MODAL NUEVA CANCHA -->
+<div id="modal-nueva-cancha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner" style="max-height:90vh;overflow-y:auto">
+    <div class="modal-title">Nueva Cancha / Turno</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="grid-column:1/-1">
+        <label class="field-label">Nombre de la cancha</label>
+        <input class="input-field" id="nc-nombre" placeholder="Ej: Cancha 1 — Cristal" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Numero de cancha</label>
+        <input class="input-field" id="nc-numero" type="number" value="1" min="1" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Dia (0=Dom 1=Lun 2=Mar 3=Mie 4=Jue 5=Vie 6=Sab)</label>
+        <input class="input-field" id="nc-dia" type="number" value="1" min="0" max="6" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <input class="input-field" id="nc-hinicio" type="time" value="08:00" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <input class="input-field" id="nc-hfin" type="time" value="09:00" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Precio presencial (ARS)</label>
+        <input class="input-field" id="nc-ppres" type="number" placeholder="50000" style="margin:0" oninput="validarDescNC()">
+      </div>
+      <div>
+        <label class="field-label">Precio app (ARS) — min ARS 3.000 menos</label>
+        <input class="input-field" id="nc-papp" type="number" placeholder="42000" style="margin:0" oninput="validarDescNC()">
+      </div>
+      <div style="grid-column:1/-1">
+        <div id="nc-desc-msg" style="font-size:12px;color:var(--green);min-height:18px"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarModalNuevaCancha()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarNuevaCancha()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TURNO MANUAL -->
+<div id="modal-turno-manual" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner">
+    <div class="modal-title">Cargar Turno Manual</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label class="field-label">Cancha</label>
+        <select class="input-field" id="tm-cancha" style="color:#fff;background:#1a0030;margin:0"></select>
+      </div>
+      <div>
+        <label class="field-label">Fecha</label>
+        <input class="input-field" id="tm-fecha" type="date" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora inicio</label>
+        <input class="input-field" id="tm-hinicio" type="time" style="margin:0;color-scheme:dark">
+      </div>
+      <div>
+        <label class="field-label">Hora fin</label>
+        <input class="input-field" id="tm-hfin" type="time" style="margin:0;color-scheme:dark">
+      </div>
+      <div style="grid-column:1/-1">
+        <label class="field-label">Jugador / Referencia</label>
+        <input class="input-field" id="tm-jugador" placeholder="Nombre del jugador o grupo" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Canal</label>
+        <select class="input-field" id="tm-canal" style="color:#fff;background:#1a0030;margin:0">
+          <option value="presencial" style="background:#1a0030">Presencial</option>
+          <option value="whatsapp" style="background:#1a0030">WhatsApp</option>
+          <option value="app" style="background:#1a0030">App</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Monto cobrado (ARS)</label>
+        <input class="input-field" id="tm-monto" type="number" placeholder="50000" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Estado de pago</label>
+        <select class="input-field" id="tm-estado" style="color:#fff;background:#1a0030;margin:0">
+          <option value="confirmado" style="background:#1a0030">Pagado</option>
+          <option value="pendiente" style="background:#1a0030">Pendiente</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarModalTurnoManual()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarTurnoManual()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DISPONIBILIDAD (sistema viejo, mantener para compatibilidad) -->
 <div id="modal-disponibilidad" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div class="modal-inner">
     <div class="modal-title" id="modal-disp-title">Nuevo turno</div>
@@ -1408,25 +1509,25 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
 <!-- MODAL CREAR PARTIDO -->
 <div id="modal-partido" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div class="modal-inner">
-    <div class="modal-title">⚡ Crear Partido</div>
+    <div class="modal-title">&#9889; Crear Partido</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="grid-column:1/-1">
         <label class="field-label">Zona</label>
         <select class="input-field" id="p-zona" style="color:#fff;background:#1a0030;margin:0">
-          <option style="background:#1a0030">Nueva Córdoba</option>
+          <option style="background:#1a0030">Nueva Cordoba</option>
           <option style="background:#1a0030">Centro</option>
           <option style="background:#1a0030">Cerro de las Rosas</option>
           <option style="background:#1a0030">Villa Cabrera</option>
-          <option style="background:#1a0030">Güemes</option>
+          <option style="background:#1a0030">Guemes</option>
           <option style="background:#1a0030">General Paz</option>
           <option style="background:#1a0030">Alberdi</option>
           <option style="background:#1a0030">Otra</option>
         </select>
       </div>
       <div style="grid-column:1/-1">
-        <label class="field-label">Categoría</label>
+        <label class="field-label">Categoria</label>
         <select class="input-field" id="p-cat" style="color:#fff;background:#1a0030;margin:0">
-          <option style="background:#1a0030">Iniciación</option>
+          <option style="background:#1a0030">Iniciacion</option>
           <option style="background:#1a0030">3ra</option>
           <option style="background:#1a0030">2da</option>
           <option style="background:#1a0030">1ra</option>
@@ -1454,13 +1555,13 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
         <input class="input-field" id="p-cupos" type="number" value="4" min="2" max="20" style="margin:0">
       </div>
       <div style="grid-column:1/-1">
-        <label class="field-label">Descripción (opcional)</label>
+        <label class="field-label">Descripcion (opcional)</label>
         <input class="input-field" id="p-desc" placeholder="Info adicional..." style="margin:0">
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onclick="cerrarModalPartido()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
-      <button onclick="confirmarCrearPartido()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR →</button>
+      <button onclick="confirmarCrearPartido()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR</button>
     </div>
   </div>
 </div>
