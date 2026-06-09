@@ -317,35 +317,37 @@ function navTo(page, btn) {
 async function cargarDashboard() {
   if (!negocioData) return;
 
-  // Nombre y subtitulo
-  const elNombre = document.getElementById("dash-nombre");
-  if (elNombre) elNombre.textContent = negocioData.nombre;
+  // Hero
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set("dash-nombre", negocioData.nombre);
   const fechaHoy = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"long"});
-  const elSub = document.getElementById("dash-sub");
-  if (elSub) elSub.textContent = "Panel de gestion · Hoy es " + fechaHoy;
+  set("dash-sub", "Panel de gestion · Hoy es " + fechaHoy);
 
-  // Badge plan
+  // Fecha en caja
+  const elFecha = document.getElementById("dash-fecha");
+  if (elFecha) elFecha.textContent = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"short",year:"numeric"});
+
+  // Plan badge y banner
   const topBadge = document.getElementById("top-plan-badge");
-  if (topBadge) {
-    const plan = negocioData.plan || "basico";
-    const estado = negocioData.estado_pago || "prueba";
-    topBadge.textContent = estado === "prueba" ? "Periodo gratuito" : "Plan " + plan;
-  }
-
-  // Banner plan gratuito
+  if (topBadge) topBadge.textContent = (negocioData.estado_pago === "prueba") ? "Periodo gratuito" : "Plan " + (negocioData.plan||"Pro");
   const banner = document.getElementById("dash-plan-banner");
-  if (banner && (negocioData.estado_pago === "prueba")) {
-    banner.style.display = "flex";
-    const venc = negocioData.vencimiento_plan ? new Date(negocioData.vencimiento_plan) : null;
-    const dias = venc ? Math.max(0, Math.ceil((venc - new Date()) / 86400000)) : "?";
-    const elDias = document.getElementById("dash-dias-gratis");
-    if (elDias) elDias.textContent = dias + " dias restantes gratis";
+  if (banner) {
+    if (negocioData.estado_pago === "prueba") {
+      banner.style.display = "flex";
+      const venc = negocioData.vencimiento_plan ? new Date(negocioData.vencimiento_plan) : null;
+      const inicio = negocioData.creado_en ? new Date(negocioData.creado_en) : new Date();
+      const totalDias = 90;
+      const diasUsados = Math.min(totalDias, Math.ceil((new Date() - inicio) / 86400000));
+      const diasRestantes = venc ? Math.max(0, Math.ceil((venc - new Date()) / 86400000)) : "?";
+      set("dash-dias-gratis", "Dia " + diasUsados + "/" + totalDias);
+    } else {
+      banner.style.display = "none";
+    }
   }
 
   try {
     const hoy = new Date().toISOString().split("T")[0];
 
-    // Cargar reservas y caja en paralelo
     const [reservas, caja, disponibilidad] = await Promise.all([
       apiAdmin("/padel/reservas/del-club?negocio_id=" + negocioData.id + "&fecha=" + hoy).catch(()=>[]),
       apiAdmin("/padel/club/cierre-caja?negocio_id=" + negocioData.id + "&periodo=hoy").catch(()=>null),
@@ -357,49 +359,80 @@ async function cargarDashboard() {
     const porApp = confirmadas.filter(r => r.canal === "app" || r.pago_por_app).length;
     const pctApp = confirmadas.length > 0 ? Math.round((porApp/confirmadas.length)*100) : 0;
 
-    // Canchas unicas activas
+    // Canchas activas unicas
     const canchasActivas = [...new Set(disponibilidad.filter(d=>d.activo).map(d=>d.numero_cancha))].length;
-    const turnosHoy = disponibilidad.filter(d => {
-      const diaSem = new Date().getDay();
-      return d.activo && (d.dia_semana === diaSem || d.fecha_especifica === hoy);
-    }).length;
-    const ocup = turnosHoy > 0 ? Math.round((confirmadas.length / turnosHoy) * 100) : 0;
+
+    // Turnos habilitados para hoy
+    const diaSem = new Date().getDay();
+    const turnosHoy = disponibilidad.filter(d => d.activo && (d.dia_semana===diaSem || (d.fecha_especifica && String(d.fecha_especifica).substring(0,10)===hoy))).length;
+    const ocup = turnosHoy > 0 ? Math.min(100, Math.round((confirmadas.length / turnosHoy) * 100)) : 0;
 
     // KPIs
-    const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
     set("kpi-reservas", confirmadas.length);
+    set("kpi-reservas-sub", canchasActivas + " canchas activas ahora");
     set("kpi-ingresos", "ARS " + Math.round(ingresos).toLocaleString("es-AR"));
     set("kpi-ingresos-sub", canchasActivas + " canchas activas");
     set("kpi-ocupacion", ocup + "%");
+    set("kpi-ocup-sub", "Meta: 80%");
     set("kpi-app-pct", pctApp + "%");
+    set("kpi-app-sub", porApp + " reservas por app");
 
-    // Caja rapida
-    const cajaCont = document.getElementById("dash-caja-rapida");
-    if (cajaCont && caja && caja.resumen) {
+    // Caja rapida — columna izquierda
+    if (caja && caja.resumen) {
       const r = caja.resumen;
-      const total = parseFloat(r.total||0);
-      const tApp = parseFloat(r.total_app||0);
-      const tPres = parseFloat(r.total_presencial||0);
-      const tWA = parseFloat(r.total_whatsapp||0);
-      cajaCont.innerHTML =
-        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
-          '<span style="font-size:12px;color:var(--muted)">&#128241; App (' + (r.turnos_app||0) + ')</span>' +
-          '<span style="font-size:12px;font-weight:600;color:var(--green)">ARS ' + Math.round(tApp).toLocaleString("es-AR") + '</span>' +
-        '</div>' +
-        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
-          '<span style="font-size:12px;color:var(--muted)">Presencial (' + (r.turnos_presencial||0) + ')</span>' +
-          '<span style="font-size:12px;font-weight:600">ARS ' + Math.round(tPres).toLocaleString("es-AR") + '</span>' +
-        '</div>' +
-        '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
-          '<span style="font-size:12px;color:var(--muted)">WhatsApp (' + (r.turnos_whatsapp||0) + ')</span>' +
-          '<span style="font-size:12px;font-weight:600">ARS ' + Math.round(tWA).toLocaleString("es-AR") + '</span>' +
-        '</div>' +
-        '<div style="display:flex;justify-content:space-between;padding:8px 0 0">' +
-          '<span style="font-size:13px;font-weight:700;color:#fff">Total</span>' +
-          '<span style="font-size:16px;font-weight:700;color:var(--green)">ARS ' + Math.round(total).toLocaleString("es-AR") + '</span>' +
-        '</div>';
-    } else if (cajaCont) {
-      cajaCont.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0">Sin movimientos hoy</div>';
+      const tApp   = parseFloat(r.total_app||0);
+      const tPres  = parseFloat(r.total_presencial||0);
+      const tWA    = parseFloat(r.total_whatsapp||0);
+      const total  = parseFloat(r.total||0);
+      const nApp   = parseInt(r.turnos_app||0);
+      const nPres  = parseInt(r.turnos_presencial||0);
+      const nWA    = parseInt(r.turnos_whatsapp||0);
+
+      // Actualizar labels con conteo
+      const cajaDer = document.getElementById("dash-caja-izq");
+      if (cajaDer) {
+        cajaDer.querySelector("#caja-total-app") && set("caja-total-app", "ARS " + Math.round(tApp).toLocaleString("es-AR"));
+        set("caja-total-app",  "ARS " + Math.round(tApp).toLocaleString("es-AR"));
+        set("caja-total-pres", "ARS " + Math.round(tPres).toLocaleString("es-AR"));
+        set("caja-total-wa",   "ARS " + Math.round(tWA).toLocaleString("es-AR"));
+        set("caja-total-dia",  "ARS " + Math.round(total).toLocaleString("es-AR"));
+        // Actualizar conteos en labels — reescribir spans de conteo
+        const spans = cajaDer.querySelectorAll("span > span");
+        // Actualizar textos de conteo
+        const rows = cajaDer.querySelectorAll("[style*='border-bottom']");
+        if (rows[0]) rows[0].querySelector("span").innerHTML = rows[0].querySelector("span").innerHTML.replace(/\(\d+\)/, "("+nApp+")");
+        if (rows[1]) rows[1].querySelector("span").innerHTML = rows[1].querySelector("span").innerHTML.replace(/\(\d+\)/, "("+nPres+")");
+        if (rows[2]) rows[2].querySelector("span").innerHTML = rows[2].querySelector("span").innerHTML.replace(/\(\d+\)/, "("+nWA+")");
+      }
+
+      // Columna derecha de caja
+      const pctAppCaja = total > 0 ? Math.round((tApp/total)*100) : 0;
+      // Descuento app: diferencia entre precio_por_hora y precio_app por reservas app
+      const descuento = confirmadas.filter(r=>r.canal==="app"||r.pago_por_app).reduce((s,r)=>{
+        const lista = parseFloat(r.precio_lista||r.precio_cobrado||0);
+        const cobrado = parseFloat(r.precio_cobrado||0);
+        return s + Math.max(0, lista - cobrado);
+      }, 0);
+
+      set("caja-pct-app", pctAppCaja + "%");
+      set("caja-descuento", "ARS " + Math.round(descuento).toLocaleString("es-AR"));
+
+      // Mejor cancha
+      if (caja.por_cancha && caja.por_cancha.length) {
+        const mejor = caja.por_cancha.sort((a,b)=>parseFloat(b.total)-parseFloat(a.total))[0];
+        set("caja-mejor-cancha", "C" + mejor.numero_cancha + " → ARS " + Math.round(parseFloat(mejor.total)).toLocaleString("es-AR"));
+      }
+
+      // Horario pico
+      if (confirmadas.length > 0) {
+        const horas = {};
+        confirmadas.forEach(r => {
+          const h = String(r.hora_inicio||"").substring(0,5);
+          if (h) horas[h] = (horas[h]||0) + 1;
+        });
+        const pico = Object.entries(horas).sort((a,b)=>b[1]-a[1])[0];
+        if (pico) set("caja-horario-pico", pico[0] + "hs");
+      }
     }
 
     // Ocupacion por cancha
@@ -408,30 +441,63 @@ async function cargarDashboard() {
       const porCancha = {};
       disponibilidad.forEach(d => {
         const n = d.numero_cancha||1;
-        if (!porCancha[n]) porCancha[n] = {total:0, reservadas:0};
-        const diaSem = new Date().getDay();
-        if (d.activo && (d.dia_semana===diaSem || d.fecha_especifica===hoy)) {
+        if (!porCancha[n]) porCancha[n] = {total:0};
+        if (d.activo && (d.dia_semana===diaSem || (d.fecha_especifica && String(d.fecha_especifica).substring(0,10)===hoy))) {
           porCancha[n].total++;
-          const reservada = reservas.filter(r=>r.numero_cancha==n && r.estado==="confirmado").length;
-          porCancha[n].reservadas = reservada;
         }
       });
-      const nums = Object.keys(porCancha).sort((a,b)=>a-b).slice(0,6);
-      ocupCont.innerHTML = nums.map(n => {
-        const c = porCancha[n];
-        const pct = c.total > 0 ? Math.min(100, Math.round((c.reservadas/c.total)*100)) : 0;
-        const color = pct >= 80 ? "#22c55e" : pct >= 50 ? "#fbbf24" : "rgba(255,255,255,.3)";
-        return '<div style="margin-bottom:8px">' +
-          '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
-            '<span style="color:var(--muted)">Cancha ' + n + '</span>' +
-            '<span style="color:' + color + ';font-weight:600">' + c.reservadas + '/' + c.total + ' hs</span>' +
-          '</div>' +
-          '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">' +
-            '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:3px;transition:width .5s"></div>' +
-          '</div></div>';
+      Object.keys(porCancha).forEach(n => {
+        porCancha[n].reservadas = reservas.filter(r=>parseInt(r.numero_cancha)===parseInt(n) && r.estado==="confirmado").length;
+      });
+
+      const nums = Object.keys(porCancha).sort((a,b)=>parseInt(a)-parseInt(b)).slice(0,6);
+      if (nums.length === 0) {
+        ocupCont.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:10px 0">Sin canchas configuradas</div>';
+      } else {
+        ocupCont.innerHTML = nums.map(n => {
+          const c = porCancha[n];
+          const total = c.total || 10; // fallback para mostrar barra
+          const res = c.reservadas || 0;
+          const pct = Math.min(100, Math.round((res/total)*100));
+          const color = pct>=80 ? "var(--green)" : pct>=50 ? "#fbbf24" : "rgba(255,255,255,.25)";
+          return '<div style="margin-bottom:9px">' +
+            '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">' +
+              '<span style="color:var(--muted)">Cancha ' + n + '</span>' +
+              '<span style="color:' + color + ';font-weight:600">' + res + '/' + total + ' hs</span>' +
+            '</div>' +
+            '<div style="height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">' +
+              '<div style="height:100%;width:' + pct + '%;background:' + color + ';border-radius:4px;transition:width .6s ease"></div>' +
+            '</div></div>';
+        }).join("");
+      }
+    }
+
+    // Actividad reciente (ultimas reservas)
+    const actCont = document.getElementById("dash-actividad");
+    if (actCont && reservas.length > 0) {
+      const DOTS = {confirmado:"var(--green)", pendiente:"#fbbf24", rechazado:"#ef4444", cancelado:"#ef4444"};
+      const recientes = reservas.slice(0,5);
+      actCont.innerHTML = recientes.map(r => {
+        const nombre = r.jugador_nombre || r.nombre_manual || "Jugador";
+        const hora = String(r.hora_inicio||"").substring(0,5);
+        const cancha = r.numero_cancha || "?";
+        const canal = r.canal === "app" ? " via app" : r.canal === "whatsapp" ? " via WA" : " presencial";
+        const color = DOTS[r.estado] || "rgba(255,255,255,.3)";
+        const tiempo = r.creado_en ? (() => {
+          const diff = Math.floor((new Date()-new Date(r.creado_en))/60000);
+          return diff < 60 ? "hace " + diff + "min" : "hace " + Math.floor(diff/60) + "h";
+        })() : "";
+        return '<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:flex-start">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;margin-top:5px"></div>' +
+          '<span style="font-size:12px;color:var(--muted);flex:1;line-height:1.5">Cancha ' + cancha + ' &mdash; ' + hora + 'hs ' + r.estado + canal + '. ' + nombre + '</span>' +
+          '<span style="font-size:11px;color:rgba(255,255,255,.2);flex-shrink:0">' + tiempo + '</span>' +
+        '</div>';
       }).join("");
-    } else if (ocupCont) {
-      ocupCont.innerHTML = '<div style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0">Sin canchas configuradas</div>';
+    } else if (actCont) {
+      actCont.innerHTML = '<div style="display:flex;gap:10px;padding:6px 0;align-items:flex-start">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px"></div>' +
+        '<span style="font-size:12px;color:var(--muted)">Configura tus canchas para ver actividad en tiempo real</span>' +
+      '</div>';
     }
 
   } catch(e) {
@@ -1245,57 +1311,142 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
 
     <!-- ===== DASHBOARD ===== -->
     <div class="page active" id="page-dashboard">
+
+      <!-- HERO -->
       <div class="dashboard-hero">
         <div class="hero-greeting">Panel del Club</div>
-        <div class="hero-name" id="dash-nombre">Bienvenido</div>
-        <div class="hero-sub" id="dash-sub">Cargando datos del club...</div>
+        <div class="hero-name" id="dash-nombre">Cargando...</div>
+        <div class="hero-sub" id="dash-sub">Panel de gestion</div>
       </div>
 
-      <!-- Banner plan -->
-      <div id="dash-plan-banner" style="display:none;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
-        <span style="font-size:22px">&#127873;</span>
+      <!-- BANNER PLAN GRATUITO -->
+      <div id="dash-plan-banner" style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:22px;flex-shrink:0">&#127873;</span>
         <div style="flex:1;font-size:13px;color:rgba(251,191,36,.9);line-height:1.5">
-          <strong>Estas en tu periodo gratuito.</strong> Despues USD 55/mes — cancelas cuando quieras.
+          <strong>Estas en tu periodo gratuito.</strong> Despues USD 55/mes &mdash; cancelas cuando quieras.
         </div>
-        <div id="dash-dias-gratis" style="font-size:20px;font-weight:700;color:#fbbf24"></div>
+        <div id="dash-dias-gratis" style="font-size:20px;font-weight:700;color:#fbbf24;white-space:nowrap">Dia ??/90</div>
       </div>
 
       <!-- KPIs -->
-      <div class="kpi-grid" id="dash-kpis">
-        <div class="kpi-card"><div class="kpi-icon">&#128197;</div><div class="kpi-num" id="kpi-reservas">—</div><div class="kpi-lbl">Reservas hoy</div></div>
-        <div class="kpi-card"><div class="kpi-icon">&#128176;</div><div class="kpi-num" id="kpi-ingresos" style="font-size:24px">—</div><div class="kpi-lbl">Recaudado hoy</div><div class="kpi-trend" id="kpi-ingresos-sub"></div></div>
-        <div class="kpi-card"><div class="kpi-icon">&#128200;</div><div class="kpi-num gold" id="kpi-ocupacion">—</div><div class="kpi-lbl">Ocupacion promedio</div></div>
-        <div class="kpi-card"><div class="kpi-icon">&#9889;</div><div class="kpi-num" id="kpi-app-pct" style="color:var(--green)">—</div><div class="kpi-lbl">% reservas via app</div></div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon">&#128197;</div>
+          <div class="kpi-num" id="kpi-reservas">0</div>
+          <div class="kpi-lbl">Reservas hoy</div>
+          <div class="kpi-trend" id="kpi-reservas-sub">0 canchas activas ahora</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">&#128176;</div>
+          <div class="kpi-num" id="kpi-ingresos" style="font-size:26px">ARS 0</div>
+          <div class="kpi-lbl">Recaudado hoy</div>
+          <div class="kpi-trend" id="kpi-ingresos-sub">0 canchas activas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">&#128200;</div>
+          <div class="kpi-num gold" id="kpi-ocupacion">0%</div>
+          <div class="kpi-lbl">Ocupacion promedio</div>
+          <div class="kpi-trend" id="kpi-ocup-sub" style="color:rgba(255,255,255,.3)">Meta: 80%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">&#9889;</div>
+          <div class="kpi-num" id="kpi-app-pct">0%</div>
+          <div class="kpi-lbl">% reservas via app</div>
+          <div class="kpi-trend" id="kpi-app-sub">reservas por app</div>
+        </div>
       </div>
 
-      <!-- Caja rapida + ocupacion -->
+      <!-- CAJA RAPIDA + OCUPACION -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+        <!-- CAJA HOY -->
         <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px">
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-            Caja de hoy
-            <button class="btn-sm" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(()=>showCanchaTab('caja'),100)" style="font-size:10px">Ver detalle</button>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Cierre de caja &mdash; hoy</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:11px;color:rgba(255,255,255,.3)" id="dash-fecha"></span>
+              <button class="btn-sm" style="font-size:10px;padding:4px 10px" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(function(){showCanchaTab('caja')},120)">Ver detalle completo</button>
+            </div>
           </div>
-          <div id="dash-caja-rapida"><div class="loader"></div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div id="dash-caja-izq">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);font-size:9px;padding:1px 6px;border-radius:20px">App</span> Reservas via app (0)</span>
+                <span style="font-size:12px;font-weight:600;color:var(--green)" id="caja-total-app">ARS 0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2);font-size:9px;padding:1px 6px;border-radius:20px">Presencial</span> Reservas presenciales (0)</span>
+                <span style="font-size:12px;font-weight:600" id="caja-total-pres">ARS 0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                <span style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="background:rgba(14,165,233,.1);color:#38bdf8;border:1px solid rgba(14,165,233,.2);font-size:9px;padding:1px 6px;border-radius:20px">WhatsApp</span> Reservas WhatsApp (0)</span>
+                <span style="font-size:12px;font-weight:600" id="caja-total-wa">ARS 0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0;border-top:1px solid rgba(34,197,94,.2);margin-top:4px">
+                <span style="font-size:13px;font-weight:700;color:#fff">Total recaudado hoy</span>
+                <span style="font-size:16px;font-weight:700;color:var(--green)" id="caja-total-dia">ARS 0</span>
+              </div>
+            </div>
+            <div id="dash-caja-der" style="padding-left:20px;border-left:1px solid rgba(255,255,255,.05)">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                <span style="font-size:12px;color:var(--muted)">Canchas mas rentables hoy</span>
+                <span style="font-size:12px;font-weight:600;color:var(--green)" id="caja-mejor-cancha">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                <span style="font-size:12px;color:var(--muted)">Horario pico hoy</span>
+                <span style="font-size:12px;font-weight:600" id="caja-horario-pico">—</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                <span style="font-size:12px;color:var(--muted)">% reservas via app</span>
+                <span style="font-size:12px;font-weight:600;color:var(--green)" id="caja-pct-app">0%</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0">
+                <span style="font-size:12px;color:var(--muted)">Descuento app ahorrado</span>
+                <span style="font-size:12px;font-weight:600;color:#fbbf24" id="caja-descuento">ARS 0</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px">
-          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Ocupacion por cancha</div>
-          <div id="dash-ocupacion"><div class="loader"></div></div>
+
+        <!-- COLUMNA DERECHA: OCUPACION + ACTIVIDAD -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- OCUPACION POR CANCHA -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Ocupacion por cancha</div>
+              <span style="font-size:10px;color:var(--green)">hoy</span>
+            </div>
+            <div id="dash-ocupacion"><div style="font-size:13px;color:var(--muted);text-align:center;padding:20px 0">Sin canchas configuradas</div></div>
+          </div>
+
+          <!-- ACTIVIDAD RECIENTE -->
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;flex:1">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:14px">Actividad reciente</div>
+            <div id="dash-actividad">
+              <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:flex-start">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:4px"></div>
+                <span style="font-size:12px;color:var(--muted);flex:1;line-height:1.5">Configura tus canchas para ver actividad en tiempo real</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- Accesos rapidos -->
+      <!-- ACCESOS RAPIDOS -->
       <div class="quick-grid">
         <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1])">
           <div class="quick-icon">&#127955;</div>
           <div class="quick-label">Mis Canchas</div>
           <div class="quick-sub">Gestionar turnos</div>
         </div>
-        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(()=>showCanchaTab('turnos'),100)">
+        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(function(){showCanchaTab('turnos')},120)">
           <div class="quick-icon">&#128197;</div>
           <div class="quick-label">Turnos de Hoy</div>
           <div class="quick-sub">Ver y cargar</div>
         </div>
-        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(()=>showCanchaTab('caja'),100)">
+        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(function(){showCanchaTab('caja')},120)">
           <div class="quick-icon">&#128181;</div>
           <div class="quick-label">Cierre de Caja</div>
           <div class="quick-sub">Resumen del dia</div>
@@ -1311,9 +1462,9 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
           <div class="quick-sub">Ver opiniones</div>
         </div>
       </div>
-    </div>
 
-    <!-- ===== MIS CANCHAS ===== -->
+    </div><!-- /page-dashboard -->
+
     <div class="page" id="page-canchas">
       <div class="canchas-inner-nav">
         <button class="ci-tab active" id="cit-gestion" onclick="showCanchaTab('gestion')">&#9881; Gestionar Canchas</button>
