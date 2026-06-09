@@ -125,6 +125,94 @@
       .hero-name{font-size:28px}
       .kpi-num{font-size:28px}
     }
+  
+    /* CANCHAS_CSS_JS_V1 */
+    .canchas-inner-nav{display:flex;gap:0;border-bottom:1px solid rgba(34,197,94,.15);margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+    .canchas-inner-nav::-webkit-scrollbar{display:none}
+    .ci-tab{padding:10px 18px;font-size:13px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;transition:all .2s;white-space:nowrap;font-family:"DM Sans",sans-serif}
+    .ci-tab:hover{color:#fff}
+    .ci-tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+    /* Cancha config card */
+    .cancha-cfg-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:16px;transition:border-color .2s}
+    .cancha-cfg-card.activa{border-left:3px solid var(--green)}
+    .cancha-cfg-card.inactiva{border-left:3px solid rgba(255,255,255,.1);opacity:.6}
+    .cancha-cfg-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .cancha-num-badge{width:40px;height:40px;border-radius:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",cursive;font-size:20px;color:var(--green);flex-shrink:0}
+    .cancha-cfg-title{flex:1}
+    .cancha-cfg-name{font-size:14px;font-weight:700}
+    .cancha-cfg-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .toggle-switch{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+    .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-knob{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:12px;transition:background .25s}
+    .toggle-knob::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:rgba(255,255,255,.3);border-radius:50%;transition:.25s}
+    .toggle-switch input:checked + .toggle-knob{background:rgba(34,197,94,.3);border:1px solid rgba(34,197,94,.5)}
+    .toggle-switch input:checked + .toggle-knob::before{transform:translateX(20px);background:var(--green)}
+    .toggle-lbl{font-size:11px;color:var(--muted);margin-left:4px}
+    .toggle-lbl.on{color:var(--green)}
+
+    /* Precio boxes */
+    .precios-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+    .precio-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+    .precio-box.app{background:rgba(34,197,94,.05);border-color:rgba(34,197,94,.25)}
+    .precio-box-lbl{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .precio-box.app .precio-box-lbl{color:rgba(34,197,94,.7)}
+    .precio-box-prefix{font-size:11px;color:rgba(255,255,255,.25);margin-bottom:2px}
+    .precio-box-input{background:transparent;border:none;font-size:18px;font-weight:600;color:#fff;width:100%;outline:none}
+    .precio-box.app .precio-box-input{color:var(--green)}
+    .precio-desc-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;background:rgba(34,197,94,.1);color:var(--green);padding:2px 8px;border-radius:20px;border:1px solid rgba(34,197,94,.2);margin-top:5px}
+    .precio-desc-err{display:inline-flex;align-items:center;gap:3px;font-size:10px;background:rgba(239,68,68,.1);color:#ef4444;padding:2px 8px;border-radius:20px;border:1px solid rgba(239,68,68,.2);margin-top:5px}
+
+    /* Slots horarios */
+    .slots-section-lbl{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .slots-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+    .slot-btn{width:54px;height:30px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;justify-content:center}
+    .slot-btn.on{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.35);color:var(--green)}
+    .slot-btn.off{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.08);color:rgba(255,255,255,.2)}
+    .slot-btn.reservado{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3);color:#818cf8;cursor:not-allowed}
+    .slot-btn:hover:not(.reservado){opacity:.8;transform:scale(1.05)}
+    .cancha-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* Turnos del dia */
+    .turno-dia-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;transition:border-color .2s}
+    .turno-dia-card:hover{border-color:rgba(34,197,94,.3)}
+    .turno-hora-badge{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:4px 10px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0}
+    .turno-cancha-badge{font-size:11px;padding:3px 9px;border-radius:20px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);flex-shrink:0}
+    .turno-jugador-name{flex:1;font-size:13px;font-weight:600;min-width:0}
+    .turno-jugador-sub{font-size:11px;color:var(--muted);margin-top:1px}
+    .canal-badge{font-size:10px;padding:2px 8px;border-radius:20px;flex-shrink:0}
+    .canal-app{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+    .canal-presencial{background:rgba(124,58,237,.1);color:#a78bfa;border:1px solid rgba(124,58,237,.2)}
+    .canal-whatsapp{background:rgba(14,165,233,.1);color:#38bdf8;border:1px solid rgba(14,165,233,.2)}
+    .canal-torneo{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+    .turno-monto{font-size:14px;font-weight:700;color:var(--green);flex-shrink:0}
+    .turno-estado-badge{font-size:10px;padding:3px 10px;border-radius:20px;flex-shrink:0}
+    .estado-pagado{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+    .estado-pendiente-b{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+    .estado-cancelado-b{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+    .turno-dia-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px}
+
+    /* Caja */
+    .caja-hero{background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(34,197,94,.03));border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:24px;margin-bottom:20px}
+    .caja-hero-lbl{font-size:11px;color:rgba(34,197,94,.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+    .caja-hero-total{font-family:"Bebas Neue",cursive;font-size:52px;color:var(--green);line-height:1;margin-bottom:4px}
+    .caja-hero-sub{font-size:13px;color:rgba(255,255,255,.5)}
+    .caja-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+    .caja-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .caja-card-lbl{font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+    .caja-card-val{font-size:20px;font-weight:700;color:#fff}
+    .caja-card-val.g{color:var(--green)}
+    .caja-canal-pill{font-size:10px;padding:1px 7px;border-radius:20px;display:inline-block;margin-bottom:4px}
+    .caja-por-cancha{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+    .caja-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+    .caja-row:last-child{border-bottom:none}
+    .caja-row.total-row{border-top:1px solid rgba(34,197,94,.2);padding-top:12px;margin-top:4px;border-bottom:none}
+    .caja-row-lbl{font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px}
+    .caja-row-val{font-size:13px;font-weight:700}
+
+    /* Filtros */
+    .cf-btn.active,.cp-btn.active{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:var(--green)}
+
   </style>
 </head>
 <body>
@@ -207,7 +295,18 @@ function navTo(page, btn) {
   if (el) el.classList.add("active");
   if (btn) btn.classList.add("active");
   if (page === "dashboard")  cargarDashboard();
-  if (page === "canchas")    cargarCanchas();
+  if (page === "canchas") {
+    setTimeout(function() {
+      var gSec = document.getElementById('ci-gestion');
+      var tSec = document.getElementById('ci-turnos');
+      var cSec = document.getElementById('ci-caja');
+      if (gSec) gSec.style.display = 'block';
+      if (tSec) tSec.style.display = 'none';
+      if (cSec) cSec.style.display = 'none';
+      document.querySelectorAll('.ci-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
+      cargarCanchasConfig();
+    }, 50);
+  }
   if (page === "reservas")   cargarReservas();
   if (page === "partidos")   cargarPartidos();
   if (page === "stats")      cargarStats();
@@ -519,6 +618,479 @@ async function cargarResenasClub() {
       </div>`).join("");
   } catch(err) { el.innerHTML = "<div class=\"empty-state\">Error: "+err.message+"</div>"; }
 }
+
+// ============================================================
+// CANCHAS — SISTEMA INTEGRAL
+// ============================================================
+
+let canchasData = [];
+let turnosDiaData = [];
+let turnosDiaFiltro = 'todos';
+let negocioId = null;
+let negocioToken = null;
+
+// Sobrescribir initApp para capturar negocioId
+const _origInit = typeof initApp === 'function' ? initApp : null;
+
+function getCanchasNegocioId() {
+  return localStorage.getItem('neg_admin') || localStorage.getItem('neg_negocio') || negocioId;
+}
+function getCanchasToken() {
+  return localStorage.getItem('neg_token') || negocioToken;
+}
+
+// Inner tabs
+function showCanchaTab(tab) {
+  ['gestion','turnos','caja'].forEach(t => {
+    const sec = document.getElementById('ci-' + t);
+    const btn = document.getElementById('cit-' + t);
+    if (sec) sec.style.display = t === tab ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'gestion') cargarCanchasConfig();
+  if (tab === 'turnos') cargarTurnosDia();
+  if (tab === 'caja') cargarCaja('hoy', document.getElementById('cp-hoy'));
+}
+
+// ── GESTIONAR CANCHAS ──────────────────────────────────────
+
+async function cargarCanchasConfig() {
+  const nid = getCanchasNegocioId();
+  if (!nid) return;
+  const cont = document.getElementById('canchas-config-list');
+  cont.innerHTML = '<div class="loader"></div>';
+  try {
+    const resp = await apiAdmin('/padel/club/canchas?negocio_id=' + nid);
+    canchasData = resp;
+    renderCanchasConfig(resp);
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;padding:20px">Error cargando canchas: ' + (e.message||e) + '</div>';
+  }
+}
+
+function renderCanchasConfig(data) {
+  const cont = document.getElementById('canchas-config-list');
+  if (!data.length) {
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas configuradas.<br>Usá "+ Nueva cancha" para agregar turnos disponibles.</div>';
+    return;
+  }
+
+  // Agrupar por numero_cancha
+  const porCancha = {};
+  data.forEach(d => {
+    const n = d.numero_cancha || 1;
+    if (!porCancha[n]) porCancha[n] = [];
+    porCancha[n].push(d);
+  });
+
+  const DIAS = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+  let html = '';
+
+  Object.keys(porCancha).sort((a,b) => a-b).forEach(num => {
+    const turnos = porCancha[num];
+    const primero = turnos[0];
+    const activos = turnos.filter(t => t.activo).length;
+    const total = turnos.length;
+    const pPres = parseFloat(primero.precio_por_hora) || 0;
+    const pApp = parseFloat(primero.precio_app) || 0;
+    const pWA = parseFloat(primero.precio_whatsapp) || 0;
+    const diff = pPres - pApp;
+    const pct = pPres > 0 ? Math.round((diff/pPres)*100) : 0;
+    const nombre = primero.nombre_cancha || ('Cancha ' + num);
+    const isActiva = activos > 0;
+
+    html += '<div class="cancha-cfg-card ' + (isActiva ? 'activa' : 'inactiva') + '" id="cccard-' + num + '">';
+    html += '<div class="cancha-cfg-header">';
+    html += '<div class="cancha-num-badge">C' + num + '</div>';
+    html += '<div class="cancha-cfg-title"><div class="cancha-cfg-name">' + nombre + '</div>';
+    html += '<div class="cancha-cfg-sub">' + activos + '/' + total + ' turnos activos · ' + (primero.tipo_cancha || 'cristal') + '</div></div>';
+    html += '<label class="toggle-switch" title="Activar/desactivar todos los turnos de esta cancha">';
+    html += '<input type="checkbox" ' + (isActiva ? 'checked' : '') + ' onchange="toggleTodosCancha(' + num + ', this.checked)">';
+    html += '<span class="toggle-knob"></span></label>';
+    html += '<span class="toggle-lbl ' + (isActiva ? 'on' : '') + '" id="toglbl-' + num + '">' + (isActiva ? 'Activa' : 'Inactiva') + '</span>';
+    html += '</div>';
+
+    // Precios
+    html += '<div class="precios-row">';
+    html += '<div class="precio-box">';
+    html += '<div class="precio-box-lbl">Presencial / WhatsApp</div>';
+    html += '<div class="precio-box-prefix">ARS</div>';
+    html += '<input class="precio-box-input" type="number" value="' + pPres + '" id="ppres-' + num + '" oninput="calcDescCancha(' + num + ')" placeholder="50000">';
+    html += '</div>';
+    html += '<div class="precio-box app">';
+    html += '<div class="precio-box-lbl">Precio en la app</div>';
+    html += '<div class="precio-box-prefix">ARS</div>';
+    html += '<input class="precio-box-input" type="number" value="' + pApp + '" id="papp-' + num + '" oninput="calcDescCancha(' + num + ')" placeholder="42000">';
+    html += (diff >= 3000)
+      ? '<div class="precio-desc-badge" id="desc-badge-' + num + '">-' + pct + '% en app (ARS ' + diff.toLocaleString('es-AR') + ' menos)</div>'
+      : '<div class="precio-desc-err" id="desc-badge-' + num + '">Descuento minimo ARS 3.000</div>';
+    html += '</div>';
+    html += '<div class="precio-box" style="background:rgba(99,102,241,.05);border-color:rgba(99,102,241,.2)">';
+    html += '<div class="precio-box-lbl" style="color:rgba(167,139,250,.7)">Precio torneo</div>';
+    html += '<div class="precio-box-prefix" style="color:rgba(167,139,250,.4)">ARS</div>';
+    html += '<input class="precio-box-input" type="number" value="' + pWA + '" id="pwhat-' + num + '" style="color:#a78bfa" placeholder="35000">';
+    html += '</div>';
+    html += '</div>';
+
+    // Slots por día
+    html += '<div class="slots-section-lbl">Turnos por día — click para activar/desactivar</div>';
+
+    const porDia = {};
+    turnos.forEach(t => {
+      const dia = t.dia_semana;
+      if (!porDia[dia]) porDia[dia] = [];
+      porDia[dia].push(t);
+    });
+
+    Object.keys(porDia).sort((a,b) => a-b).forEach(dia => {
+      html += '<div style="margin-bottom:8px"><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">' + DIAS[dia] + '</div>';
+      html += '<div class="slots-wrap">';
+      porDia[dia].forEach(t => {
+        const hi = String(t.hora_inicio).substring(0,5);
+        const cls = t.activo ? 'on' : 'off';
+        html += '<button class="slot-btn ' + cls + '" id="slot-' + t.id + '" onclick="toggleSlot(\'' + t.id + '\',\'' + num + '\')">' + hi + '</button>';
+      });
+      html += '</div></div>';
+    });
+
+    // Acciones
+    html += '<div class="cancha-actions">';
+    html += '<button class="btn-sm" onclick="activarTodosSlots(' + num + ', true)">Activar todos</button>';
+    html += '<button class="btn-sm" onclick="activarTodosSlots(' + num + ', false)">Desactivar todos</button>';
+    html += '<button class="btn-sm" style="margin-left:auto;background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:var(--green)" onclick="guardarPrecios(' + num + ')">Guardar precios</button>';
+    html += '</div>';
+    html += '</div>';
+  });
+
+  cont.innerHTML = html;
+}
+
+function calcDescCancha(num) {
+  const pres = parseFloat(document.getElementById('ppres-' + num).value) || 0;
+  const app = parseFloat(document.getElementById('papp-' + num).value) || 0;
+  const diff = pres - app;
+  const badge = document.getElementById('desc-badge-' + num);
+  if (!badge) return;
+  if (diff < 3000) {
+    badge.className = 'precio-desc-err';
+    badge.textContent = 'Descuento minimo ARS 3.000';
+  } else {
+    const pct = pres > 0 ? Math.round((diff/pres)*100) : 0;
+    badge.className = 'precio-desc-badge';
+    badge.textContent = '-' + pct + '% en app (ARS ' + Math.round(diff).toLocaleString('es-AR') + ' menos)';
+  }
+}
+
+async function toggleSlot(id, numCancha) {
+  const btn = document.getElementById('slot-' + id);
+  if (!btn) return;
+  const nuevoActivo = btn.classList.contains('off');
+  btn.classList.toggle('on', nuevoActivo);
+  btn.classList.toggle('off', !nuevoActivo);
+  try {
+    await apiAdmin('/padel/club/canchas/' + id + '/toggle', { method: 'PUT', body: JSON.stringify({ activo: nuevoActivo }) });
+  } catch(e) {
+    btn.classList.toggle('on', !nuevoActivo);
+    btn.classList.toggle('off', nuevoActivo);
+    alert('Error: ' + (e.message || e));
+  }
+}
+
+async function toggleTodosCancha(num, activo) {
+  const lbl = document.getElementById('toglbl-' + num);
+  const card = document.getElementById('cccard-' + num);
+  if (lbl) { lbl.className = 'toggle-lbl ' + (activo ? 'on' : ''); lbl.textContent = activo ? 'Activa' : 'Inactiva'; }
+  if (card) { card.className = 'cancha-cfg-card ' + (activo ? 'activa' : 'inactiva'); }
+  document.querySelectorAll('[id^="slot-"]').forEach(btn => {
+    const turno = canchasData.find(t => 'slot-' + t.id === btn.id);
+    if (turno && String(turno.numero_cancha) === String(num)) {
+      btn.className = 'slot-btn ' + (activo ? 'on' : 'off');
+    }
+  });
+  try {
+    const nid = getCanchasNegocioId();
+    await apiAdmin('/padel/club/canchas/numero/' + num + '/toggle-todos', {
+      method: 'PUT', body: JSON.stringify({ negocio_id: nid, activo })
+    });
+  } catch(e) { alert('Error: ' + (e.message || e)); }
+}
+
+function activarTodosSlots(num, activo) {
+  const turnos = canchasData.filter(t => String(t.numero_cancha) === String(num));
+  turnos.forEach(t => {
+    const btn = document.getElementById('slot-' + t.id);
+    if (btn && !btn.classList.contains('reservado')) {
+      btn.className = 'slot-btn ' + (activo ? 'on' : 'off');
+    }
+  });
+  toggleTodosCancha(num, activo);
+}
+
+async function guardarPrecios(num) {
+  const pres = parseFloat(document.getElementById('ppres-' + num).value) || 0;
+  const app = parseFloat(document.getElementById('papp-' + num).value) || 0;
+  const what = parseFloat(document.getElementById('pwhat-' + num).value) || 0;
+  if (pres - app < 3000) {
+    alert('El precio app debe ser al menos ARS 3.000 menor al precio presencial.');
+    return;
+  }
+  const turnos = canchasData.filter(t => String(t.numero_cancha) === String(num));
+  let ok = 0;
+  for (const t of turnos) {
+    try {
+      await apiAdmin('/padel/club/canchas/' + t.id + '/precios', {
+        method: 'PUT',
+        body: JSON.stringify({ precio_por_hora: pres, precio_app: app, precio_whatsapp: what })
+      });
+      ok++;
+    } catch(e) {}
+  }
+  alert('Precios guardados en ' + ok + ' turno(s) de la cancha ' + num);
+}
+
+// ── MODAL NUEVA CANCHA ──────────────────────────────────────
+
+function abrirModalNuevaCancha() {
+  // Poblar select de canchas en modal turno manual también
+  document.getElementById('modal-nueva-cancha').style.display = 'flex';
+}
+function cerrarModalNuevaCancha() {
+  document.getElementById('modal-nueva-cancha').style.display = 'none';
+}
+function validarDescNC() {
+  const pres = parseFloat(document.getElementById('nc-ppres').value) || 0;
+  const app = parseFloat(document.getElementById('nc-papp').value) || 0;
+  const diff = pres - app;
+  const msg = document.getElementById('nc-desc-msg');
+  if (!msg) return;
+  if (!pres || !app) { msg.textContent = ''; return; }
+  if (diff < 3000) {
+    msg.style.color = '#ef4444';
+    msg.textContent = 'El descuento minimo es ARS 3.000';
+  } else {
+    msg.style.color = 'var(--green)';
+    const pct = Math.round((diff/pres)*100);
+    msg.textContent = '-' + pct + '% de descuento en app (ARS ' + Math.round(diff).toLocaleString('es-AR') + ' menos)';
+  }
+}
+async function confirmarNuevaCancha() {
+  const nid = getCanchasNegocioId();
+  const nombre = document.getElementById('nc-nombre').value.trim();
+  const tipo = document.getElementById('nc-tipo').value;
+  const numero = parseInt(document.getElementById('nc-numero').value) || 1;
+  const dia = parseInt(document.getElementById('nc-dia').value);
+  const hi = document.getElementById('nc-hinicio').value;
+  const hf = document.getElementById('nc-hfin').value;
+  const ppres = parseFloat(document.getElementById('nc-ppres').value) || 0;
+  const papp = parseFloat(document.getElementById('nc-papp').value) || 0;
+  if (!hi || !hf || !ppres) { alert('Completá todos los campos obligatorios'); return; }
+  if (ppres - papp < 3000) { alert('El precio app debe ser al menos ARS 3.000 menor al precio presencial'); return; }
+  try {
+    await apiAdmin('/padel/disponibilidad', {
+      method: 'POST',
+      body: JSON.stringify({
+        negocio_id: nid, dia_semana: dia, hora_inicio: hi, hora_fin: hf,
+        precio_por_hora: ppres, precio_app: papp, cantidad_canchas: 1,
+        zona: '', numero_cancha: numero, nombre_cancha: nombre, tipo_cancha: tipo
+      })
+    });
+    cerrarModalNuevaCancha();
+    cargarCanchasConfig();
+  } catch(e) { alert('Error: ' + (e.message||e)); }
+}
+
+// ── TURNOS DEL DIA ──────────────────────────────────────────
+
+async function cargarTurnosDia(fecha) {
+  const nid = getCanchasNegocioId();
+  if (!nid) return;
+  const cont = document.getElementById('turnos-dia-list');
+  cont.innerHTML = '<div class="loader"></div>';
+  const hoy = fecha || new Date().toISOString().split('T')[0];
+  try {
+    const data = await apiAdmin('/padel/club/turnos-del-dia?negocio_id=' + nid + '&fecha=' + hoy);
+    turnosDiaData = data;
+    renderTurnosDia(data, turnosDiaFiltro);
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message||e) + '</div>';
+  }
+}
+
+function renderTurnosDia(data, filtro) {
+  const cont = document.getElementById('turnos-dia-list');
+  let lista = data;
+  if (filtro && filtro !== 'todos') lista = data.filter(t => t.canal === filtro);
+
+  const totalTurnos = lista.filter(t => !['rechazado','cancelado'].includes(t.estado)).length;
+  const totalMonto = lista.filter(t => !['rechazado','cancelado'].includes(t.estado))
+    .reduce((s,t) => s + parseFloat(t.precio_cobrado||0), 0);
+
+  if (!lista.length) {
+    cont.innerHTML = '<div class="turno-dia-empty">No hay turnos para este filtro hoy.</div>';
+    return;
+  }
+
+  const CANAL_CLASS = { app:'canal-app', presencial:'canal-presencial', whatsapp:'canal-whatsapp', torneo:'canal-torneo' };
+  const ESTADO_CLASS = { confirmado:'estado-pagado', pendiente:'estado-pendiente-b', rechazado:'estado-cancelado-b', cancelado:'estado-cancelado-b' };
+  const ESTADO_LBL = { confirmado:'Pagado', pendiente:'Pendiente', rechazado:'Rechazado', cancelado:'Cancelado' };
+  const CANAL_LBL = { app:'App', presencial:'Presencial', whatsapp:'WhatsApp', torneo:'Torneo' };
+
+  let html = '<div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;gap:20px;flex-wrap:wrap">';
+  html += '<div><div style="font-size:11px;color:var(--muted)">Turnos</div><div style="font-size:22px;font-weight:700;color:var(--green)">' + totalTurnos + '</div></div>';
+  html += '<div><div style="font-size:11px;color:var(--muted)">Recaudado</div><div style="font-size:22px;font-weight:700;color:var(--green)">ARS ' + Math.round(totalMonto).toLocaleString('es-AR') + '</div></div>';
+  html += '</div>';
+
+  lista.forEach(t => {
+    const canal = t.canal || (t.pago_por_app ? 'app' : 'presencial');
+    const canalCls = CANAL_CLASS[canal] || 'canal-presencial';
+    const estadoCls = ESTADO_CLASS[t.estado] || 'estado-pendiente-b';
+    const nombre = t.jugador_nombre || t.nombre_manual || 'Sin nombre';
+    const hi = String(t.hora_inicio).substring(0,5);
+    const hf = String(t.hora_fin).substring(0,5);
+    const monto = parseFloat(t.precio_cobrado || 0);
+    const isCancel = ['rechazado','cancelado'].includes(t.estado);
+
+    html += '<div class="turno-dia-card" style="' + (isCancel ? 'opacity:.45' : '') + '">';
+    html += '<div class="turno-hora-badge">' + hi + '</div>';
+    html += '<div class="turno-cancha-badge">C' + (t.numero_cancha||'?') + '</div>';
+    html += '<div style="flex:1;min-width:0"><div class="turno-jugador-name">' + nombre + '</div>';
+    if (t.jugador_nivel) html += '<div class="turno-jugador-sub">Nivel ' + t.jugador_nivel + ' · hasta ' + hf + '</div>';
+    else html += '<div class="turno-jugador-sub">hasta ' + hf + '</div>';
+    html += '</div>';
+    html += '<span class="canal-badge ' + canalCls + '">' + (CANAL_LBL[canal]||canal) + '</span>';
+    html += '<div class="turno-monto">ARS ' + Math.round(monto).toLocaleString('es-AR') + '</div>';
+    html += '<span class="turno-estado-badge ' + estadoCls + '">' + (ESTADO_LBL[t.estado]||t.estado) + '</span>';
+    html += '</div>';
+  });
+
+  cont.innerHTML = html;
+}
+
+function filtrarTurnosDia(filtro, btn) {
+  turnosDiaFiltro = filtro;
+  document.querySelectorAll('.cf-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTurnosDia(turnosDiaData, filtro);
+}
+
+// ── MODAL TURNO MANUAL ──────────────────────────────────────
+
+function abrirModalTurnoManual() {
+  const sel = document.getElementById('tm-cancha');
+  if (sel) {
+    const nums = [...new Set(canchasData.map(t => t.numero_cancha))].sort((a,b) => a-b);
+    sel.innerHTML = nums.map(n => '<option value="' + n + '" style="background:#1a0030">Cancha ' + n + '</option>').join('');
+  }
+  const fi = document.getElementById('tm-fecha');
+  if (fi) fi.value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-turno-manual').style.display = 'flex';
+}
+function cerrarModalTurnoManual() {
+  document.getElementById('modal-turno-manual').style.display = 'none';
+}
+async function confirmarTurnoManual() {
+  const nid = getCanchasNegocioId();
+  const cancha = document.getElementById('tm-cancha').value;
+  const fecha = document.getElementById('tm-fecha').value;
+  const hi = document.getElementById('tm-hinicio').value;
+  const hf = document.getElementById('tm-hfin').value;
+  const jugador = document.getElementById('tm-jugador').value.trim();
+  const canal = document.getElementById('tm-canal').value;
+  const monto = parseFloat(document.getElementById('tm-monto').value) || 0;
+  const estado = document.getElementById('tm-estado').value;
+  if (!fecha || !hi || !hf) { alert('Completá fecha y horario'); return; }
+  try {
+    await apiAdmin('/padel/club/turnos/manual', {
+      method: 'POST',
+      body: JSON.stringify({ negocio_id: nid, numero_cancha: cancha, fecha, hora_inicio: hi, hora_fin: hf, nombre_jugador: jugador, canal, monto, estado_pago: estado })
+    });
+    cerrarModalTurnoManual();
+    cargarTurnosDia(fecha);
+  } catch(e) { alert('Error: ' + (e.message||e)); }
+}
+
+// ── CIERRE DE CAJA ──────────────────────────────────────────
+
+async function cargarCaja(periodo, btn) {
+  document.querySelectorAll('.cp-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const nid = getCanchasNegocioId();
+  if (!nid) return;
+  const cont = document.getElementById('caja-content');
+  cont.innerHTML = '<div class="loader"></div>';
+  try {
+    const data = await apiAdmin('/padel/club/cierre-caja?negocio_id=' + nid + '&periodo=' + periodo);
+    renderCaja(data, periodo);
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message||e) + '</div>';
+  }
+}
+
+function renderCaja(data, periodo) {
+  const cont = document.getElementById('caja-content');
+  const r = data.resumen || {};
+  const total = parseFloat(r.total || 0);
+  const totalApp = parseFloat(r.total_app || 0);
+  const totalPres = parseFloat(r.total_presencial || 0);
+  const totalWA = parseFloat(r.total_whatsapp || 0);
+  const turnos = parseInt(r.total_turnos || 0);
+  const prom = turnos > 0 ? Math.round(total / turnos) : 0;
+  const periodoLbl = { hoy:'Hoy', ayer:'Ayer', semana:'Esta semana', mes:'Este mes' }[periodo] || periodo;
+  const desde = data.periodo?.desde || '';
+  const hasta = data.periodo?.hasta || '';
+  const rango = desde === hasta ? desde : desde + ' al ' + hasta;
+
+  let html = '<div class="caja-hero">';
+  html += '<div class="caja-hero-lbl">Recaudacion total — ' + periodoLbl + '</div>';
+  html += '<div class="caja-hero-total">ARS ' + Math.round(total).toLocaleString('es-AR') + '</div>';
+  html += '<div class="caja-hero-sub">' + turnos + ' turnos · promedio ARS ' + prom.toLocaleString('es-AR') + '/turno · ' + rango + '</div>';
+  html += '</div>';
+
+  html += '<div class="caja-grid">';
+  html += '<div class="caja-card"><div class="caja-card-lbl"><span class="caja-canal-pill canal-app">App</span> Reservas app</div><div class="caja-card-val g">ARS ' + Math.round(totalApp).toLocaleString('es-AR') + '</div><div style="font-size:11px;color:var(--muted);margin-top:3px">' + (r.turnos_app||0) + ' turnos</div></div>';
+  html += '<div class="caja-card"><div class="caja-card-lbl"><span class="caja-canal-pill canal-presencial">Presencial</span></div><div class="caja-card-val">ARS ' + Math.round(totalPres).toLocaleString('es-AR') + '</div><div style="font-size:11px;color:var(--muted);margin-top:3px">' + (r.turnos_presencial||0) + ' turnos</div></div>';
+  html += '<div class="caja-card"><div class="caja-card-lbl"><span class="caja-canal-pill canal-whatsapp">WhatsApp</span></div><div class="caja-card-val">ARS ' + Math.round(totalWA).toLocaleString('es-AR') + '</div><div style="font-size:11px;color:var(--muted);margin-top:3px">' + (r.turnos_whatsapp||0) + ' turnos</div></div>';
+  html += '<div class="caja-card"><div class="caja-card-lbl">Cancelados</div><div class="caja-card-val" style="color:#ef4444">' + (r.cancelados||0) + '</div></div>';
+  html += '</div>';
+
+  if (data.por_cancha && data.por_cancha.length) {
+    html += '<div class="caja-por-cancha"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Por cancha</div>';
+    data.por_cancha.forEach(c => {
+      const pct = total > 0 ? Math.round((parseFloat(c.total)/total)*100) : 0;
+      html += '<div class="caja-row"><div class="caja-row-lbl">Cancha ' + c.numero_cancha + '</div>';
+      html += '<div style="flex:1;padding:0 12px"><div style="height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:var(--green);border-radius:2px"></div></div></div>';
+      html += '<div style="font-size:11px;color:var(--muted);width:30px;text-align:right;margin-right:10px">' + c.turnos + ' tnos</div>';
+      html += '<div class="caja-row-val" style="color:var(--green)">ARS ' + Math.round(parseFloat(c.total)).toLocaleString('es-AR') + '</div></div>';
+    });
+    html += '<div class="caja-row total-row"><div class="caja-row-lbl" style="color:#fff;font-weight:700">Total</div><div class="caja-row-val" style="font-size:18px;color:var(--green)">ARS ' + Math.round(total).toLocaleString('es-AR') + '</div></div>';
+    html += '</div>';
+  }
+
+  if (periodo === 'hoy') {
+    html += '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px">';
+    html += '<button class="btn-export" onclick="cerrarCajaDia()">Cerrar caja del dia</button>';
+    html += '</div>';
+  }
+
+  cont.innerHTML = html;
+}
+
+async function cerrarCajaDia() {
+  const nid = getCanchasNegocioId();
+  const hoy = new Date().toISOString().split('T')[0];
+  if (!confirm('Confirmas cerrar la caja del dia ' + hoy + '?')) return;
+  try {
+    await apiAdmin('/padel/club/cierre-caja/cerrar', {
+      method: 'POST',
+      body: JSON.stringify({ negocio_id: nid, fecha: hoy, cerrado_por: localStorage.getItem('neg_admin') || '' })
+    });
+    alert('Caja cerrada correctamente.');
+  } catch(e) { alert('Error: ' + (e.message||e)); }
+}
+
+// Cargar canchas cuando se abre la pagina
+const _origShowPage = typeof showPage === 'function' ? showPage : null;
+
 </script>
 
 <!-- LOGIN -->
@@ -617,14 +1189,157 @@ async function cargarResenasClub() {
 
     <!-- MIS CANCHAS -->
     <div class="page" id="page-canchas">
-      <div class="section-hdr">
-        <div class="section-title">🏟️ Disponibilidad de canchas</div>
-        <button class="btn-export" onclick="abrirModalDisponibilidad()">+ Agregar turno</button>
+
+      <!-- Inner tabs -->
+      <div class="canchas-inner-nav">
+        <button class="ci-tab active" id="cit-gestion" onclick="showCanchaTab('gestion')">&#9881; Gestionar Canchas</button>
+        <button class="ci-tab" id="cit-turnos" onclick="showCanchaTab('turnos')">&#128197; Turnos de Hoy</button>
+        <button class="ci-tab" id="cit-caja" onclick="showCanchaTab('caja')">&#128181; Cierre de Caja</button>
       </div>
-      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:16px;margin-bottom:20px;font-size:13px;color:rgba(255,255,255,.75)">
-        📌 Configurá los turnos disponibles por día y horario. Los jugadores podrán reservar desde Padel Connect.
+
+      <!-- ===== GESTIONAR CANCHAS ===== -->
+      <div id="ci-gestion" class="ci-sec">
+        <div class="section-hdr">
+          <div class="section-title">&#127955; Mis Canchas</div>
+          <button class="btn-export" onclick="abrirModalNuevaCancha()">+ Nueva cancha</button>
+        </div>
+        <div id="canchas-config-list"><div class="loader"></div></div>
       </div>
-      <div id="canchas-list"><div class="loader"></div></div>
+
+      <!-- ===== TURNOS DE HOY ===== -->
+      <div id="ci-turnos" class="ci-sec" style="display:none">
+        <div class="section-hdr">
+          <div class="section-title">&#128197; Turnos de hoy</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-sm cf-btn active" id="cf-todos" onclick="filtrarTurnosDia('todos',this)">Todos</button>
+            <button class="btn-sm cf-btn" id="cf-app" onclick="filtrarTurnosDia('app',this)">App</button>
+            <button class="btn-sm cf-btn" id="cf-presencial" onclick="filtrarTurnosDia('presencial',this)">Presencial</button>
+            <button class="btn-sm cf-btn" id="cf-whatsapp" onclick="filtrarTurnosDia('whatsapp',this)">WhatsApp</button>
+            <button class="btn-export" onclick="abrirModalTurnoManual()">+ Cargar turno</button>
+          </div>
+        </div>
+        <div id="turnos-dia-list"><div class="loader"></div></div>
+      </div>
+
+      <!-- ===== CIERRE DE CAJA ===== -->
+      <div id="ci-caja" class="ci-sec" style="display:none">
+        <div class="section-hdr">
+          <div class="section-title">&#128181; Cierre de Caja</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-sm cp-btn active" id="cp-hoy" onclick="cargarCaja('hoy',this)">Hoy</button>
+            <button class="btn-sm cp-btn" id="cp-ayer" onclick="cargarCaja('ayer',this)">Ayer</button>
+            <button class="btn-sm cp-btn" id="cp-semana" onclick="cargarCaja('semana',this)">Esta semana</button>
+            <button class="btn-sm cp-btn" id="cp-mes" onclick="cargarCaja('mes',this)">Este mes</button>
+          </div>
+        </div>
+        <div id="caja-content"><div class="loader"></div></div>
+      </div>
+
+    </div><!-- /page-canchas -->
+
+    <!-- MODAL NUEVA CANCHA -->
+    <div id="modal-nueva-cancha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+      <div class="modal-inner" style="max-height:90vh;overflow-y:auto">
+        <div class="modal-title">Nueva Cancha</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="grid-column:1/-1">
+            <label class="field-label">Nombre de la cancha</label>
+            <input class="input-field" id="nc-nombre" placeholder="Ej: Cancha 1 — Cristal" style="margin:0">
+          </div>
+          <div>
+            <label class="field-label">Tipo</label>
+            <select class="input-field" id="nc-tipo" style="color:#fff;background:#1a0030;margin:0">
+              <option style="background:#1a0030">cristal</option>
+              <option style="background:#1a0030">panoramica</option>
+              <option style="background:#1a0030">indoor</option>
+              <option style="background:#1a0030">outdoor</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Numero de cancha</label>
+            <input class="input-field" id="nc-numero" type="number" value="1" min="1" style="margin:0">
+          </div>
+          <div>
+            <label class="field-label">Dia de semana (0=Dom, 1=Lun...)</label>
+            <input class="input-field" id="nc-dia" type="number" value="1" min="0" max="6" style="margin:0">
+          </div>
+          <div>
+            <label class="field-label">Hora inicio</label>
+            <input class="input-field" id="nc-hinicio" type="time" value="08:00" style="margin:0;color-scheme:dark">
+          </div>
+          <div>
+            <label class="field-label">Hora fin</label>
+            <input class="input-field" id="nc-hfin" type="time" value="09:00" style="margin:0;color-scheme:dark">
+          </div>
+          <div>
+            <label class="field-label">Precio presencial (ARS)</label>
+            <input class="input-field" id="nc-ppres" type="number" placeholder="50000" style="margin:0" oninput="validarDescNC()">
+          </div>
+          <div>
+            <label class="field-label">Precio app (ARS)</label>
+            <input class="input-field" id="nc-papp" type="number" placeholder="42000" style="margin:0" oninput="validarDescNC()">
+          </div>
+          <div style="grid-column:1/-1">
+            <div id="nc-desc-msg" style="font-size:12px;color:#22c55e;min-height:18px"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onclick="cerrarModalNuevaCancha()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+          <button onclick="confirmarNuevaCancha()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR TURNO</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL TURNO MANUAL -->
+    <div id="modal-turno-manual" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+      <div class="modal-inner">
+        <div class="modal-title">Cargar Turno Manual</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label class="field-label">Cancha</label>
+            <select class="input-field" id="tm-cancha" style="color:#fff;background:#1a0030;margin:0"></select>
+          </div>
+          <div>
+            <label class="field-label">Fecha</label>
+            <input class="input-field" id="tm-fecha" type="date" style="margin:0;color-scheme:dark">
+          </div>
+          <div>
+            <label class="field-label">Hora inicio</label>
+            <input class="input-field" id="tm-hinicio" type="time" style="margin:0;color-scheme:dark">
+          </div>
+          <div>
+            <label class="field-label">Hora fin</label>
+            <input class="input-field" id="tm-hfin" type="time" style="margin:0;color-scheme:dark">
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="field-label">Jugador / Referencia</label>
+            <input class="input-field" id="tm-jugador" placeholder="Nombre del jugador o grupo" style="margin:0">
+          </div>
+          <div>
+            <label class="field-label">Canal</label>
+            <select class="input-field" id="tm-canal" style="color:#fff;background:#1a0030;margin:0">
+              <option value="presencial" style="background:#1a0030">Presencial</option>
+              <option value="whatsapp" style="background:#1a0030">WhatsApp</option>
+              <option value="app" style="background:#1a0030">App</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Monto cobrado (ARS)</label>
+            <input class="input-field" id="tm-monto" type="number" placeholder="50000" style="margin:0">
+          </div>
+          <div>
+            <label class="field-label">Estado de pago</label>
+            <select class="input-field" id="tm-estado" style="color:#fff;background:#1a0030;margin:0">
+              <option value="confirmado" style="background:#1a0030">Pagado</option>
+              <option value="pendiente" style="background:#1a0030">Pendiente</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button onclick="cerrarModalTurnoManual()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+          <button onclick="confirmarTurnoManual()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">GUARDAR</button>
+        </div>
+      </div>
     </div>
 
     <!-- RESERVAS -->

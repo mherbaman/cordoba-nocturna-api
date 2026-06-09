@@ -1953,6 +1953,281 @@ router.get('/mis-partidos-publicos', authUsuario, async (req, res) => {
   }
 });
 
+
+
+// ════════════════════════════════════════════════
+//   CANCHAS CLUB PANEL — GESTION INTEGRAL
+// ════════════════════════════════════════════════
+
+// ── GET /padel/club/canchas ──────────────────────────────────────────
+// Todas las canchas/disponibilidades del club con datos completos
+router.get('/club/canchas', authAdmin, async (req, res) => {
+  const { negocio_id } = req.query;
+  if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
+  try {
+    const result = await pool.query(`
+      SELECT
+        d.*,
+        COUNT(r.id) FILTER (WHERE r.fecha = CURRENT_DATE AND r.estado != 'rechazado') AS reservas_hoy,
+        COUNT(r.id) FILTER (WHERE r.fecha = CURRENT_DATE AND r.estado != 'rechazado' AND r.canal = 'app') AS reservas_hoy_app
+      FROM disponibilidad_padel d
+      LEFT JOIN reservas_padel r ON r.disponibilidad_id = d.id
+      WHERE d.negocio_id = $1
+      GROUP BY d.id
+      ORDER BY d.numero_cancha ASC, d.dia_semana ASC, d.hora_inicio ASC
+    `, [negocio_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/club/canchas:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /padel/club/canchas/:id/toggle ───────────────────────────────
+// Activar o desactivar una cancha/turno
+router.put('/club/canchas/:id/toggle', authAdmin, async (req, res) => {
+  const { activo } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE disponibilidad_padel SET activo = $1 WHERE id = $2 RETURNING *',
+      [activo, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'No encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('PUT /padel/club/canchas/:id/toggle:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /padel/club/canchas/:id/precios ──────────────────────────────
+// Actualizar precios (presencial, app, whatsapp, torneo)
+router.put('/club/canchas/:id/precios', authAdmin, async (req, res) => {
+  const { precio_por_hora, precio_app, precio_whatsapp } = req.body;
+  const diff = parseFloat(precio_por_hora || 0) - parseFloat(precio_app || 0);
+  if (diff < 3000) {
+    return res.status(400).json({ error: 'El precio app debe ser al menos ARS 3.000 menor al precio presencial' });
+  }
+  try {
+    const result = await pool.query(`
+      UPDATE disponibilidad_padel SET
+        precio_por_hora  = COALESCE($1, precio_por_hora),
+        precio_app       = COALESCE($2, precio_app),
+        precio_whatsapp  = COALESCE($3, precio_whatsapp)
+      WHERE id = $4
+      RETURNING *
+    `, [precio_por_hora, precio_app, precio_whatsapp, req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'No encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('PUT /padel/club/canchas/:id/precios:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /padel/club/canchas/numero/:num/toggle-todos ─────────────────
+// Activar o desactivar TODOS los turnos de una cancha por numero_cancha
+router.put('/club/canchas/numero/:num/toggle-todos', authAdmin, async (req, res) => {
+  const { negocio_id, activo } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE disponibilidad_padel SET activo = $1 WHERE negocio_id = $2 AND numero_cancha = $3 RETURNING id',
+      [activo, negocio_id, req.params.num]
+    );
+    res.json({ actualizados: result.rowCount });
+  } catch (err) {
+    console.error('PUT /padel/club/canchas/numero/:num/toggle-todos:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /padel/club/turnos/manual ───────────────────────────────────
+// Cargar un turno manual (presencial o whatsapp)
+router.post('/club/turnos/manual', authAdmin, async (req, res) => {
+  const { negocio_id, numero_cancha, fecha, hora_inicio, hora_fin, nombre_jugador, canal, monto, estado_pago } = req.body;
+  if (!negocio_id || !fecha || !hora_inicio || !hora_fin) {
+    return res.status(400).json({ error: 'negocio_id, fecha, hora_inicio, hora_fin requeridos' });
+  }
+  try {
+    const result = await pool.query(`
+      INSERT INTO reservas_padel
+        (negocio_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, canal, cargado_manual, nombre_manual, notas)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, $10)
+      RETURNING *
+    `, [
+      negocio_id, fecha, hora_inicio, hora_fin,
+      monto || 0,
+      estado_pago === 'pendiente' ? 'pendiente' : 'confirmado',
+      numero_cancha || 1,
+      canal || 'presencial',
+      nombre_jugador || '',
+      ''
+    ]);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('POST /padel/club/turnos/manual:', err);
+    res.status(500).json({ error: 'Error interno', detalle: err.message });
+  }
+});
+
+// ── GET /padel/club/turnos-del-dia ───────────────────────────────────
+// Todos los turnos de un día específico para el club
+router.get('/club/turnos-del-dia', authAdmin, async (req, res) => {
+  const { negocio_id, fecha } = req.query;
+  if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
+  const fechaFiltro = fecha || new Date().toISOString().split('T')[0];
+  try {
+    const result = await pool.query(`
+      SELECT
+        r.id,
+        r.fecha,
+        r.hora_inicio,
+        r.hora_fin,
+        r.precio_cobrado,
+        r.estado,
+        r.numero_cancha,
+        r.canal,
+        r.cargado_manual,
+        r.nombre_manual,
+        r.notas,
+        r.pago_por_app,
+        COALESCE(r.nombre_manual, j.nombre, u.nombre || ' ' || COALESCE(u.apellido,''), 'Sin nombre') AS jugador_nombre,
+        u.telefono AS jugador_tel,
+        j.nivel AS jugador_nivel,
+        d.nombre_cancha,
+        d.precio_por_hora AS precio_lista,
+        d.precio_app
+      FROM reservas_padel r
+      LEFT JOIN jugadores_padel j ON j.id = r.jugador_id
+      LEFT JOIN usuarios u ON u.id = r.usuario_id
+      LEFT JOIN disponibilidad_padel d ON d.id = r.disponibilidad_id
+      WHERE r.negocio_id = $1 AND r.fecha = $2
+      ORDER BY r.hora_inicio ASC, r.numero_cancha ASC
+    `, [negocio_id, fechaFiltro]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/club/turnos-del-dia:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/club/cierre-caja ──────────────────────────────────────
+// Resumen de caja para una fecha
+router.get('/club/cierre-caja', authAdmin, async (req, res) => {
+  const { negocio_id, fecha, periodo } = req.query;
+  if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
+
+  let fechaDesde, fechaHasta;
+  const hoy = new Date().toISOString().split('T')[0];
+
+  if (periodo === 'semana') {
+    const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1);
+    fechaDesde = d.toISOString().split('T')[0];
+    fechaHasta = hoy;
+  } else if (periodo === 'mes') {
+    const d = new Date(); d.setDate(1);
+    fechaDesde = d.toISOString().split('T')[0];
+    fechaHasta = hoy;
+  } else if (periodo === 'ayer') {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    fechaDesde = fechaHasta = d.toISOString().split('T')[0];
+  } else {
+    fechaDesde = fechaHasta = fecha || hoy;
+  }
+
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) FILTER (WHERE estado != 'rechazado' AND estado != 'cancelado') AS total_turnos,
+        COUNT(*) FILTER (WHERE canal = 'app' AND estado != 'rechazado') AS turnos_app,
+        COUNT(*) FILTER (WHERE canal = 'presencial' AND estado != 'rechazado') AS turnos_presencial,
+        COUNT(*) FILTER (WHERE canal = 'whatsapp' AND estado != 'rechazado') AS turnos_whatsapp,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE estado != 'rechazado' AND estado != 'cancelado'), 0) AS total,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE canal = 'app' AND estado != 'rechazado'), 0) AS total_app,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE canal = 'presencial' AND estado != 'rechazado'), 0) AS total_presencial,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE canal = 'whatsapp' AND estado != 'rechazado'), 0) AS total_whatsapp,
+        COUNT(*) FILTER (WHERE estado = 'cancelado') AS cancelados
+      FROM reservas_padel
+      WHERE negocio_id = $1 AND fecha BETWEEN $2 AND $3
+    `, [negocio_id, fechaDesde, fechaHasta]);
+
+    const porCancha = await pool.query(`
+      SELECT
+        numero_cancha,
+        COUNT(*) FILTER (WHERE estado != 'rechazado' AND estado != 'cancelado') AS turnos,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE estado != 'rechazado' AND estado != 'cancelado'), 0) AS total
+      FROM reservas_padel
+      WHERE negocio_id = $1 AND fecha BETWEEN $2 AND $3
+      GROUP BY numero_cancha
+      ORDER BY numero_cancha ASC
+    `, [negocio_id, fechaDesde, fechaHasta]);
+
+    res.json({
+      periodo: { desde: fechaDesde, hasta: fechaHasta },
+      resumen: result.rows[0],
+      por_cancha: porCancha.rows
+    });
+  } catch (err) {
+    console.error('GET /padel/club/cierre-caja:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /padel/club/cierre-caja/cerrar ──────────────────────────────
+// Registrar cierre de caja del día
+router.post('/club/cierre-caja/cerrar', authAdmin, async (req, res) => {
+  const { negocio_id, fecha, notas, cerrado_por } = req.body;
+  if (!negocio_id || !fecha) return res.status(400).json({ error: 'negocio_id y fecha requeridos' });
+  try {
+    const resumen = await pool.query(`
+      SELECT
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE canal = 'app' AND estado NOT IN ('rechazado','cancelado')), 0) AS total_app,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE canal = 'presencial' AND estado NOT IN ('rechazado','cancelado')), 0) AS total_presencial,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE canal = 'whatsapp' AND estado NOT IN ('rechazado','cancelado')), 0) AS total_whatsapp,
+        COALESCE(SUM(precio_cobrado) FILTER (WHERE estado NOT IN ('rechazado','cancelado')), 0) AS total_dia,
+        COUNT(*) FILTER (WHERE estado NOT IN ('rechazado','cancelado')) AS cantidad_turnos
+      FROM reservas_padel WHERE negocio_id = $1 AND fecha = $2
+    `, [negocio_id, fecha]);
+    const r = resumen.rows[0];
+    const ins = await pool.query(`
+      INSERT INTO cierre_caja_diaria
+        (negocio_id, fecha, total_app, total_presencial, total_whatsapp, total_dia, cantidad_turnos, notas, cerrado_por)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      ON CONFLICT (negocio_id, fecha) DO UPDATE SET
+        total_app = EXCLUDED.total_app,
+        total_presencial = EXCLUDED.total_presencial,
+        total_whatsapp = EXCLUDED.total_whatsapp,
+        total_dia = EXCLUDED.total_dia,
+        cantidad_turnos = EXCLUDED.cantidad_turnos,
+        cerrado_en = NOW(),
+        notas = EXCLUDED.notas
+      RETURNING *
+    `, [negocio_id, fecha, r.total_app, r.total_presencial, r.total_whatsapp, r.total_dia, r.cantidad_turnos, notas||'', cerrado_por||'']);
+    res.json(ins.rows[0]);
+  } catch (err) {
+    console.error('POST /padel/club/cierre-caja/cerrar:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /padel/reservas/:id/estado ───────────────────────────────────
+// Cambiar estado de reserva (confirmado, cancelado, pendiente)
+router.put('/reservas/:id/estado', authAdmin, async (req, res) => {
+  const { estado } = req.body;
+  if (!estado) return res.status(400).json({ error: 'estado requerido' });
+  try {
+    const result = await pool.query(
+      'UPDATE reservas_padel SET estado = $1, respondido_en = NOW() WHERE id = $2 RETURNING *',
+      [estado, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'No encontrado' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('PUT /padel/reservas/:id/estado:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
 
 // ── DELETE /padel/reservas/:id ───────────────────────────────────────
