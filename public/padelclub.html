@@ -826,7 +826,12 @@ function showCanchaTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
   if (tab === 'gestion') cargarCanchasConfig();
-  if (tab === 'turnos') cargarTurnosDia();
+  if (tab === 'turnos') {
+    turnosFechaActual = turnosFechaActual || new Date().toISOString().split('T')[0];
+    const picker = document.getElementById('turnos-fecha-picker');
+    if (picker) picker.value = turnosFechaActual;
+    cargarTurnosDia(turnosFechaActual);
+  }
   if (tab === 'caja') cargarCaja('hoy', document.getElementById('cp-hoy'));
 }
 
@@ -1079,65 +1084,159 @@ async function confirmarNuevaCancha() {
 
 // ── TURNOS DEL DIA ──────────────────────────────────────────
 
+let turnosFechaActual = new Date().toISOString().split('T')[0];
+let turnosDisponiblesData = [];
+
+function irAHoyTurnos() {
+  turnosFechaActual = new Date().toISOString().split('T')[0];
+  const picker = document.getElementById('turnos-fecha-picker');
+  if (picker) picker.value = turnosFechaActual;
+  cargarTurnosDia(turnosFechaActual);
+}
+
+function cambiarFechaTurnos(delta) {
+  const d = new Date(turnosFechaActual + 'T12:00:00');
+  d.setDate(d.getDate() + delta);
+  turnosFechaActual = d.toISOString().split('T')[0];
+  const picker = document.getElementById('turnos-fecha-picker');
+  if (picker) picker.value = turnosFechaActual;
+  cargarTurnosDia(turnosFechaActual);
+}
+
 async function cargarTurnosDia(fecha) {
   const nid = getCanchasNegocioId();
   if (!nid) return;
+  turnosFechaActual = fecha || new Date().toISOString().split('T')[0];
+
+  // Setear picker
+  const picker = document.getElementById('turnos-fecha-picker');
+  if (picker && !picker.value) picker.value = turnosFechaActual;
+
+  // Highlight boton hoy
+  const btnHoy = document.getElementById('btn-hoy-turnos');
+  const esHoy = turnosFechaActual === new Date().toISOString().split('T')[0];
+  if (btnHoy) btnHoy.style.color = esHoy ? 'var(--green)' : '';
+
   const cont = document.getElementById('turnos-dia-list');
   cont.innerHTML = '<div class="loader"></div>';
-  const hoy = fecha || new Date().toISOString().split('T')[0];
+
   try {
-    const data = await apiAdmin('/padel/club/turnos-del-dia?negocio_id=' + nid + '&fecha=' + hoy);
-    turnosDiaData = data;
-    renderTurnosDia(data, turnosDiaFiltro);
+    // Cargar reservas del dia + turnos disponibles en paralelo
+    const [reservas, disponibles] = await Promise.all([
+      apiAdmin('/padel/club/turnos-del-dia?negocio_id=' + nid + '&fecha=' + turnosFechaActual),
+      apiAdmin('/padel/turnos-disponibles?negocio_id=' + nid + '&fecha=' + turnosFechaActual).catch(()=>[])
+    ]);
+
+    turnosDiaData = reservas;
+    turnosDisponiblesData = disponibles;
+
+    // Actualizar resumen
+    const resumen = document.getElementById('turnos-resumen-dia');
+    if (resumen) resumen.style.display = 'flex';
+    const confirmados = reservas.filter(r => !['rechazado','cancelado'].includes(r.estado));
+    const monto = confirmados.reduce((s,r) => s + parseFloat(r.precio_cobrado||0), 0);
+    const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+    set('tr-count', confirmados.length);
+    set('tr-libres', disponibles.length);
+    set('tr-monto', 'ARS ' + Math.round(monto).toLocaleString('es-AR'));
+
+    renderTurnosDia(reservas, disponibles, turnosDiaFiltro);
   } catch(e) {
     cont.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message||e) + '</div>';
   }
 }
 
-function renderTurnosDia(data, filtro) {
+function renderTurnosDia(reservas, disponibles, filtro) {
   const cont = document.getElementById('turnos-dia-list');
-  let lista = data;
-  if (filtro && filtro !== 'todos') lista = data.filter(t => t.canal === filtro);
-
-  const totalTurnos = lista.filter(t => !['rechazado','cancelado'].includes(t.estado)).length;
-  const totalMonto = lista.filter(t => !['rechazado','cancelado'].includes(t.estado))
-    .reduce((s,t) => s + parseFloat(t.precio_cobrado||0), 0);
-
-  if (!lista.length) {
-    cont.innerHTML = '<div class="turno-dia-empty">No hay turnos para este filtro hoy.</div>';
-    return;
-  }
 
   const CANAL_CLASS = { app:'canal-app', presencial:'canal-presencial', whatsapp:'canal-whatsapp', torneo:'canal-torneo' };
   const ESTADO_CLASS = { confirmado:'estado-pagado', pendiente:'estado-pendiente-b', rechazado:'estado-cancelado-b', cancelado:'estado-cancelado-b' };
   const ESTADO_LBL = { confirmado:'Pagado', pendiente:'Pendiente', rechazado:'Rechazado', cancelado:'Cancelado' };
   const CANAL_LBL = { app:'App', presencial:'Presencial', whatsapp:'WhatsApp', torneo:'Torneo' };
 
-  let html = '<div style="background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;gap:20px;flex-wrap:wrap">';
-  html += '<div><div style="font-size:11px;color:var(--muted)">Turnos</div><div style="font-size:22px;font-weight:700;color:var(--green)">' + totalTurnos + '</div></div>';
-  html += '<div><div style="font-size:11px;color:var(--muted)">Recaudado</div><div style="font-size:22px;font-weight:700;color:var(--green)">ARS ' + Math.round(totalMonto).toLocaleString('es-AR') + '</div></div>';
-  html += '</div>';
+  // Filtrar reservas
+  let lista = reservas;
+  if (filtro && filtro !== 'todos') lista = reservas.filter(t => t.canal === filtro);
 
-  lista.forEach(t => {
-    const canal = t.canal || (t.pago_por_app ? 'app' : 'presencial');
-    const canalCls = CANAL_CLASS[canal] || 'canal-presencial';
-    const estadoCls = ESTADO_CLASS[t.estado] || 'estado-pendiente-b';
-    const nombre = t.jugador_nombre || t.nombre_manual || 'Sin nombre';
-    const hi = String(t.hora_inicio).substring(0,5);
-    const hf = String(t.hora_fin).substring(0,5);
-    const monto = parseFloat(t.precio_cobrado || 0);
-    const isCancel = ['rechazado','cancelado'].includes(t.estado);
+  // Agrupar por cancha para vista completa
+  const porCancha = {};
 
-    html += '<div class="turno-dia-card" style="' + (isCancel ? 'opacity:.45' : '') + '">';
-    html += '<div class="turno-hora-badge">' + hi + '</div>';
-    html += '<div class="turno-cancha-badge">C' + (t.numero_cancha||'?') + '</div>';
-    html += '<div style="flex:1;min-width:0"><div class="turno-jugador-name">' + nombre + '</div>';
-    if (t.jugador_nivel) html += '<div class="turno-jugador-sub">Nivel ' + t.jugador_nivel + ' · hasta ' + hf + '</div>';
-    else html += '<div class="turno-jugador-sub">hasta ' + hf + '</div>';
-    html += '</div>';
-    html += '<span class="canal-badge ' + canalCls + '">' + (CANAL_LBL[canal]||canal) + '</span>';
-    html += '<div class="turno-monto">ARS ' + Math.round(monto).toLocaleString('es-AR') + '</div>';
-    html += '<span class="turno-estado-badge ' + estadoCls + '">' + (ESTADO_LBL[t.estado]||t.estado) + '</span>';
+  // Agregar slots disponibles (libres)
+  if (filtro === 'todos' || !filtro) {
+    disponibles.forEach(d => {
+      const n = d.numero_cancha || 1;
+      if (!porCancha[n]) porCancha[n] = { nombre: d.nombre_cancha || ('Cancha ' + n), slots: [] };
+      // Verificar si ya tiene reserva
+      const tieneReserva = reservas.find(r =>
+        parseInt(r.numero_cancha) === parseInt(n) &&
+        String(r.hora_inicio).substring(0,5) === String(d.hora_inicio).substring(0,5) &&
+        !['rechazado','cancelado'].includes(r.estado)
+      );
+      if (!tieneReserva) {
+        porCancha[n].slots.push({ tipo: 'libre', hora_inicio: d.hora_inicio, hora_fin: d.hora_fin, precio_app: d.precio_app, precio_por_hora: d.precio_por_hora, disp_id: d.id });
+      }
+    });
+  }
+
+  // Agregar reservas
+  lista.forEach(r => {
+    const n = r.numero_cancha || 1;
+    if (!porCancha[n]) porCancha[n] = { nombre: 'Cancha ' + n, slots: [] };
+    porCancha[n].slots.push({ tipo: 'reserva', ...r });
+  });
+
+  if (!Object.keys(porCancha).length) {
+    const fechaLabel = turnosFechaActual === new Date().toISOString().split('T')[0] ? 'hoy' : 'para esta fecha';
+    cont.innerHTML = '<div class="turno-dia-empty">Sin turnos configurados ' + fechaLabel + '.<br>Verificá que las canchas tengan este día habilitado.</div>';
+    return;
+  }
+
+  let html = '';
+  Object.keys(porCancha).sort((a,b) => parseInt(a)-parseInt(b)).forEach(num => {
+    const cancha = porCancha[num];
+    // Ordenar slots por hora
+    cancha.slots.sort((a,b) => String(a.hora_inicio).localeCompare(String(b.hora_inicio)));
+
+    html += '<div style="margin-bottom:20px">';
+    html += '<div style="font-size:12px;font-weight:700;color:rgba(34,197,94,.8);text-transform:uppercase;letter-spacing:1px;padding:6px 0;border-bottom:1px solid rgba(34,197,94,.15);margin-bottom:8px">&#127955; ' + (cancha.nombre || 'Cancha ' + num) + '</div>';
+
+    cancha.slots.forEach(s => {
+      const hi = String(s.hora_inicio).substring(0,5);
+      const hf = String(s.hora_fin).substring(0,5);
+
+      if (s.tipo === 'libre') {
+        // Slot disponible
+        html += '<div class="turno-dia-card" style="border-color:rgba(255,255,255,.06);opacity:.7">';
+        html += '<div class="turno-hora-badge" style="opacity:.6">' + hi + '</div>';
+        html += '<div class="turno-cancha-badge" style="opacity:.5">C' + num + '</div>';
+        html += '<div style="flex:1;min-width:0"><div style="font-size:13px;color:rgba(255,255,255,.35)">Disponible</div>';
+        html += '<div style="font-size:11px;color:rgba(255,255,255,.2)">hasta ' + hf + ' · ARS ' + Math.round(parseFloat(s.precio_app||s.precio_por_hora||0)).toLocaleString('es-AR') + ' (app)</div></div>';
+        html += '<span style="font-size:10px;background:rgba(34,197,94,.08);color:rgba(34,197,94,.5);border:1px solid rgba(34,197,94,.15);padding:2px 10px;border-radius:20px">Libre</span>';
+        html += '<button onclick="abrirModalTurnoManual()" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);padding:4px 12px;border-radius:20px;font-size:11px;cursor:pointer;font-weight:600">+ Cargar</button>';
+        html += '</div>';
+      } else {
+        // Reserva
+        const canal = s.canal || (s.pago_por_app ? 'app' : 'presencial');
+        const canalCls = CANAL_CLASS[canal] || 'canal-presencial';
+        const estadoCls = ESTADO_CLASS[s.estado] || 'estado-pendiente-b';
+        const nombre = s.jugador_nombre || s.nombre_manual || 'Sin nombre';
+        const monto = parseFloat(s.precio_cobrado || 0);
+        const isCancel = ['rechazado','cancelado'].includes(s.estado);
+
+        html += '<div class="turno-dia-card" style="' + (isCancel ? 'opacity:.4' : 'border-color:rgba(34,197,94,.2)') + '">';
+        html += '<div class="turno-hora-badge">' + hi + '</div>';
+        html += '<div class="turno-cancha-badge">C' + num + '</div>';
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div class="turno-jugador-name">' + nombre + '</div>';
+        html += '<div class="turno-jugador-sub">' + (s.jugador_nivel ? 'Nivel ' + s.jugador_nivel + ' · ' : '') + 'hasta ' + hf + '</div>';
+        html += '</div>';
+        html += '<span class="canal-badge ' + canalCls + '">' + (CANAL_LBL[canal]||canal) + '</span>';
+        html += '<div class="turno-monto">ARS ' + Math.round(monto).toLocaleString('es-AR') + '</div>';
+        html += '<span class="turno-estado-badge ' + estadoCls + '">' + (ESTADO_LBL[s.estado]||s.estado) + '</span>';
+        html += '</div>';
+      }
+    });
+
     html += '</div>';
   });
 
@@ -1148,7 +1247,7 @@ function filtrarTurnosDia(filtro, btn) {
   turnosDiaFiltro = filtro;
   document.querySelectorAll('.cf-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  renderTurnosDia(turnosDiaData, filtro);
+  renderTurnosDia(turnosDiaData, turnosDisponiblesData, filtro);
 }
 
 // ── MODAL TURNO MANUAL ──────────────────────────────────────
@@ -1483,16 +1582,32 @@ const _origShowPage = typeof showPage === 'function' ? showPage : null;
       </div>
 
       <div id="ci-turnos" class="ci-sec" style="display:none">
-        <div class="section-hdr">
-          <div class="section-title">&#128197; Turnos de hoy</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="section-hdr" style="flex-wrap:wrap;gap:10px">
+          <div class="section-title">&#128197; Turnos por fecha</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <!-- Selector de fecha -->
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:4px 14px">
+              <button onclick="cambiarFechaTurnos(-1)" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 2px">&#8249;</button>
+              <input type="date" id="turnos-fecha-picker" style="background:transparent;border:none;color:#fff;font-size:12px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark" onchange="cargarTurnosDia(this.value)">
+              <button onclick="cambiarFechaTurnos(1)" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 2px">&#8250;</button>
+            </div>
+            <button class="btn-sm" onclick="irAHoyTurnos()" id="btn-hoy-turnos">Hoy</button>
+          </div>
+        </div>
+        <!-- Resumen del dia -->
+        <div id="turnos-resumen-dia" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+          <div><div style="font-size:11px;color:var(--muted)">Reservados</div><div style="font-size:22px;font-weight:700;color:var(--green)" id="tr-count">0</div></div>
+          <div><div style="font-size:11px;color:var(--muted)">Disponibles</div><div style="font-size:22px;font-weight:700;color:rgba(255,255,255,.4)" id="tr-libres">0</div></div>
+          <div><div style="font-size:11px;color:var(--muted)">Recaudado</div><div style="font-size:22px;font-weight:700;color:var(--green)" id="tr-monto">ARS 0</div></div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn-sm cf-btn active" id="cf-todos" onclick="filtrarTurnosDia('todos',this)">Todos</button>
             <button class="btn-sm cf-btn" id="cf-app" onclick="filtrarTurnosDia('app',this)">App</button>
             <button class="btn-sm cf-btn" id="cf-presencial" onclick="filtrarTurnosDia('presencial',this)">Presencial</button>
             <button class="btn-sm cf-btn" id="cf-whatsapp" onclick="filtrarTurnosDia('whatsapp',this)">WhatsApp</button>
-            <button class="btn-export" onclick="abrirModalTurnoManual()">+ Cargar turno</button>
+            <button class="btn-export" style="font-size:11px" onclick="abrirModalTurnoManual()">+ Cargar turno</button>
           </div>
         </div>
+        <!-- Vista combinada: disponibles + reservados -->
         <div id="turnos-dia-list"><div class="loader"></div></div>
       </div>
 
