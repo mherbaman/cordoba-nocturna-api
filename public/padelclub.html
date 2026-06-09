@@ -633,7 +633,13 @@ let negocioToken = null;
 const _origInit = typeof initApp === 'function' ? initApp : null;
 
 function getCanchasNegocioId() {
-  return localStorage.getItem('neg_admin') || localStorage.getItem('neg_negocio') || negocioId;
+  try {
+    const admin = JSON.parse(localStorage.getItem('neg_admin') || 'null');
+    if (admin && admin.id) return admin.id;
+    const negocio = JSON.parse(localStorage.getItem('neg_negocio') || 'null');
+    if (negocio && negocio.id) return negocio.id;
+  } catch(e) {}
+  return negocioId;
 }
 function getCanchasToken() {
   return localStorage.getItem('neg_token') || negocioToken;
@@ -1082,7 +1088,7 @@ async function cerrarCajaDia() {
   try {
     await apiAdmin('/padel/club/cierre-caja/cerrar', {
       method: 'POST',
-      body: JSON.stringify({ negocio_id: nid, fecha: hoy, cerrado_por: localStorage.getItem('neg_admin') || '' })
+      body: JSON.stringify({ negocio_id: nid, fecha: hoy, cerrado_por: getCanchasNegocioId() || '' })
     });
     alert('Caja cerrada correctamente.');
   } catch(e) { alert('Error: ' + (e.message||e)); }
