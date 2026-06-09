@@ -328,21 +328,23 @@ async function cargarDashboard() {
   if (elFecha) elFecha.textContent = new Date().toLocaleDateString("es-AR",{weekday:"long",day:"numeric",month:"short",year:"numeric"});
 
   // Plan badge y banner
+  const esPrueba = !negocioData.estado_pago || negocioData.estado_pago === "prueba" || negocioData.estado_pago === "mes_gratis";
   const topBadge = document.getElementById("top-plan-badge");
-  if (topBadge) topBadge.textContent = (negocioData.estado_pago === "prueba") ? "Periodo gratuito" : "Plan " + (negocioData.plan||"Pro");
   const banner = document.getElementById("dash-plan-banner");
   if (banner) {
-    if (negocioData.estado_pago === "prueba") {
-      banner.style.display = "flex";
-      const venc = negocioData.vencimiento_plan ? new Date(negocioData.vencimiento_plan) : null;
-      const inicio = negocioData.creado_en ? new Date(negocioData.creado_en) : new Date();
-      const totalDias = 90;
-      const diasUsados = Math.min(totalDias, Math.ceil((new Date() - inicio) / 86400000));
-      const diasRestantes = venc ? Math.max(0, Math.ceil((venc - new Date()) / 86400000)) : "?";
-      set("dash-dias-gratis", "Dia " + diasUsados + "/" + totalDias);
-    } else {
-      banner.style.display = "none";
+    banner.style.display = "flex";
+    const inicio = negocioData.creado_en ? new Date(negocioData.creado_en) : new Date();
+    const totalDias = 90;
+    const diasUsados = Math.min(totalDias, Math.max(1, Math.ceil((new Date() - inicio) / 86400000)));
+    const venc = negocioData.vencimiento_plan ? new Date(negocioData.vencimiento_plan) : new Date(inicio.getTime() + 90*86400000);
+    const diasRestantes = Math.max(0, Math.ceil((venc - new Date()) / 86400000));
+    const mesActual = Math.min(3, Math.ceil(diasUsados / 30));
+    const bannerDiv = banner.querySelector("div");
+    if (bannerDiv) {
+      bannerDiv.innerHTML = '<strong>Estas en tu periodo gratuito.</strong> Quedan <strong style="color:#fbbf24">' + diasRestantes + ' dias</strong> sin costo. Despues USD 55/mes &mdash; cancelas cuando quieras.';
     }
+    set("dash-dias-gratis", "Dia " + diasUsados + "/" + totalDias);
+    if (topBadge) topBadge.textContent = "Mes " + mesActual + " de 3 gratis";
   }
 
   try {
