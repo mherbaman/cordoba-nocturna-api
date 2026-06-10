@@ -327,10 +327,12 @@ router.get('/usuarios', authSuperAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT u.id, u.nombre, u.apellido, u.email, u.foto_url, u.vibe, u.edad, u.telefono, u.app_origen, u.creado_en, u.ultimo_login, u.activo, u.email_bienvenida_enviado,
-        COALESCE(json_agg(ua.app ORDER BY ua.primera_vez) FILTER (WHERE ua.app IS NOT NULL), '[]') as apps
+        COALESCE(json_agg(ua.app ORDER BY ua.primera_vez) FILTER (WHERE ua.app IS NOT NULL), '[]') as apps,
+        e.nombre as embajador_nombre, e.codigo as embajador_codigo
       FROM usuarios u
       LEFT JOIN usuarios_apps ua ON ua.usuario_id = u.id
-      GROUP BY u.id ORDER BY u.creado_en DESC LIMIT 100
+      LEFT JOIN embajadores e ON e.id = u.embajador_id
+      GROUP BY u.id, e.nombre, e.codigo ORDER BY u.creado_en DESC LIMIT 100
     `);
     res.json(result.rows);
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
