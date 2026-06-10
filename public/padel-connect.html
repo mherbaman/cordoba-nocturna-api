@@ -1487,6 +1487,10 @@ function checkAge(){
 
 function aceptarEdad(){
   localStorage.setItem('pc_edad_ok','1');
+  // Re-capturar ref por si window.onload corrió antes de tener el DOM listo
+  const urlParams = new URLSearchParams(window.location.search);
+  const refParam = urlParams.get('ref');
+  if (refParam) localStorage.setItem('ref_embajador', refParam);
   showScreen('splash');
 }
 
