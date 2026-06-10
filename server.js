@@ -83,6 +83,8 @@ app.get('/cconnect/sw.js', (req, res) => {
 
 // ── Rutas carpeta → HTML ──────────────────────────────────────────────
 app.get('/padel', (req, res) => {
+  const qs = req.query && Object.keys(req.query).length ? '?' + new URLSearchParams(req.query).toString() : '';
+  if(qs) return res.redirect(301, '/padel/' + qs);
   res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
 });
 app.get('/padel/', (req, res) => {
