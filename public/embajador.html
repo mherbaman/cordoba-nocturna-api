@@ -532,7 +532,7 @@ async function cargarDashboard(){
     const emb = d.embajador;
 
     // Link embajador
-    const linkUrl = 'https://cordobalux.com/padel?ref='+emb.codigo;
+    const linkUrl = 'https://cordobalux.com/padel/?ref='+emb.codigo;
     document.getElementById('linkBoxWrap').innerHTML =
       '<div class="link-box"><i class="ti ti-link" style="color:var(--green);flex-shrink:0"></i>' +
       '<span class="link-url">'+linkUrl+'</span>' +
@@ -792,7 +792,7 @@ function fmtNum(n){ return Math.round(n).toLocaleString('es-AR'); }
 
 function copiarLink(){
   if(!EMB) return;
-  const url = 'https://cordobalux.com/padel?ref='+EMB.codigo;
+  const url = 'https://cordobalux.com/padel/?ref='+EMB.codigo;
   navigator.clipboard.writeText(url).then(()=>showToast('Link copiado ✓')).catch(()=>{});
 }
 
