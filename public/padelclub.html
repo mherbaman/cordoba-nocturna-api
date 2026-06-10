@@ -1733,7 +1733,7 @@ async function cargarTorneosActivos() {
     const todos = [
       ...( Array.isArray(torneos) ? torneos : (torneos.torneos||[]) ).map(t => ({...t, _tipo:'torneo'})),
       ...( Array.isArray(americanos) ? americanos : (americanos.americanos||[]) ).map(a => ({...a, _tipo:'americano'}))
-    ].filter(e => !['finalizado','cancelado'].includes(e.estado));
+    ].filter(e => !['cancelado'].includes(e.estado));
     // Fallback demo mientras no hay eventos asociados al club
     if (!todos.length) {
       todos.push(
