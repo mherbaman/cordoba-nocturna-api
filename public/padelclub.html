@@ -1575,7 +1575,7 @@ function renderAgenda(dias, disponibles, reservas) {
         } else if (hayDisp) {
           const dispSlot = disponibles.find(d => (d.numero_cancha||1)==num && String(d.hora_inicio).substring(0,5)===hora);
           const precioApp = dispSlot ? Math.round(parseFloat(dispSlot.precio_app||dispSlot.precio_por_hora||0)/1000) : '';
-          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos(' + "'" + num + "','" + f + "','" + hora + "')" title="Libre">';
+          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos(\'' + num + '\',\'' + f + '\',\'' + hora + '\')" title="Libre">';
           html += '+ libre';
           html += '</div>';
         } else {
