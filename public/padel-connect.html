@@ -1492,7 +1492,7 @@ function aceptarEdad(){
   if (refParam) localStorage.setItem('ref_embajador', refParam);
   showScreen('splash');
   // Si hay ref, abrir registro directo
-  if (refParam) setTimeout(()=>showScreen('registro'), 300);
+  if (refParam) setTimeout(()=>showScreen('auth'), 300);
 }
 
 // Capturar ref del embajador INMEDIATAMENTE al cargar el script
