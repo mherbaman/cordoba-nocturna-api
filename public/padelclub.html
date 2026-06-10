@@ -1538,8 +1538,10 @@ function renderAgenda(dias, disponibles, reservas) {
       const esHoy = f === hoy;
       const diaSem = new Date(f + 'T12:00:00').getDay();
 
-      canchas.forEach(num => {
-        // Ver si hay disponibilidad para este slot
+        canchas.forEach(num => {
+        const clave = f + '_' + num + '_' + hora;
+        const bloqueado = celdasBloqueadas[clave];
+
         const hayDisp = disponibles.some(d =>
           (d.numero_cancha||1) == num &&
           String(d.hora_inicio).substring(0,5) === hora &&
@@ -1547,36 +1549,37 @@ function renderAgenda(dias, disponibles, reservas) {
           (d.dia_semana === diaSem || (d.fecha_especifica && String(d.fecha_especifica).substring(0,10) === f))
         );
 
-        // Ver si hay reserva
-        const reserva = reservas.find(r =>
-          parseInt(r.numero_cancha||1) === parseInt(num) &&
-          String(r.hora_inicio).substring(0,5) === hora &&
-          r._fecha === f
-        );
-
         html += '<td class="agenda-cell ' + (esHoy ? 'hoy' : '') + '">';
 
-        if (reserva) {
+        if (bloqueado) {
+          const reserva = bloqueado;
           const canal = reserva.canal || 'presencial';
           const nombre = (reserva.jugador_nombre || reserva.nombre_manual || 'Reservado').split(' ')[0];
-          const isCancelada = reserva.estado === 'cancelado' || reserva.estado === 'rechazado';
+          const isCancelada = reserva.estado === 'cancelado';
           const cls = isCancelada ? 'cancelado' : (canal === 'app' ? 'app' : canal === 'whatsapp' ? 'whatsapp' : '');
-          const montoK = Math.round(parseFloat(reserva.precio_cobrado||0)/1000);
           const canalIco = canal === 'app' ? '&#128241;' : canal === 'whatsapp' ? '&#128172;' : '&#127968;';
-          const estadoIco = reserva.estado === 'cancelado' ? ' &#10006;' : reserva.estado === 'pendiente' ? ' &#9679;' : '';
-          html += '<div class="slot-ocupado ' + cls + '" onclick="abrirEditarReserva(' + JSON.stringify(reserva).replace(/"/g,'&quot;') + ')" title="' + nombre + ' — ' + (canal==='app'?'App':canal==='whatsapp'?'WhatsApp':'Presencial') + ' — ARS ' + Math.round(parseFloat(reserva.precio_cobrado||0)).toLocaleString() + '">';
-          html += '<div class="slot-nombre">' + nombre + estadoIco + '</div>';
-          html += '<div class="slot-info">' + canalIco + ' ARS ' + montoK + 'K</div>';
-          html += '</div>';
+
+          if (bloqueado._esInicio) {
+            const hiSlot = String(reserva.hora_inicio).substring(0,5);
+            const hfSlot = String(reserva.hora_fin).substring(0,5);
+            const reservaJson = JSON.stringify(reserva).replace(/"/g,'&quot;');
+            html += '<div class="slot-ocupado ' + cls + '" onclick="abrirEditarReserva(' + reservaJson + ')" title="' + nombre + ' ' + hiSlot + '-' + hfSlot + '">';
+            html += '<div class="slot-nombre">' + nombre + '</div>';
+            html += '<div class="slot-info">' + canalIco + ' ' + hiSlot + '-' + hfSlot + '</div>';
+            html += '</div>';
+          } else {
+            html += '<div class="slot-ocupado ' + cls + '" style="opacity:.45;cursor:default;justify-content:center;align-items:center" title="Ocupado hasta ' + String(reserva.hora_fin).substring(0,5) + '">';
+            html += '<div style="font-size:9px;color:rgba(255,255,255,.3);text-align:center">&#9679;</div>';
+            html += '</div>';
+          }
         } else if (hayDisp) {
-          // Obtener precio app para mostrar
           const dispSlot = disponibles.find(d => (d.numero_cancha||1)==num && String(d.hora_inicio).substring(0,5)===hora);
           const precioApp = dispSlot ? Math.round(parseFloat(dispSlot.precio_app||dispSlot.precio_por_hora||0)/1000) : '';
-          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos(\'' + num + '\',\'' + f + '\',\'' + hora + '\')" title="Click para cargar turno">';
-          html += '+ Libre' + (precioApp ? '<br><span style=\"font-size:9px;opacity:.6\">ARS ' + precioApp + 'K app</span>' : '');
+          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos(' + "'" + num + "','" + f + "','" + hora + "')" title="Libre">';
+          html += '+ libre';
           html += '</div>';
         } else {
-          html += '<div style="height:36px"></div>';
+          html += '<div style="height:28px"></div>';
         }
 
         html += '</td>';
