@@ -47,6 +47,13 @@ app.get('/OneSignalSDKWorker.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(require('path').join(__dirname, 'public', 'OneSignalSDKWorker.js'));
 });
+// Ruta /padel/ con inyección de ref — ANTES del static
+
+app.get('/padel', (req, res) => {
+  const ref = req.query.ref ? '?ref='+req.query.ref : '';
+  res.redirect(301, '/padel/'+ref);
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Rutas ────────────────────────────────────────────────────────────
@@ -82,19 +89,8 @@ app.get('/cconnect/sw.js', (req, res) => {
 });
 
 // ── Rutas carpeta → HTML ──────────────────────────────────────────────
-app.get('/padel', (req, res) => {
-  const qs = req.query && Object.keys(req.query).length ? '?' + new URLSearchParams(req.query).toString() : '';
-  if(qs) return res.redirect(301, '/padel/' + qs);
-  res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
-});
-app.get('/padel/', (req, res) => {
-  const ref = req.query.ref || '';
-  if(!ref) return res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
-  const fs = require('fs');
-  let html = fs.readFileSync(path.join(__dirname, 'public', 'padel-connect.html'), 'utf8');
-  html = html.replace('</head>', '<script>window._REF_INJECT="'+ref+'";</script></head>');
-  res.send(html);
-});
+
+
 app.get('/admin/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
