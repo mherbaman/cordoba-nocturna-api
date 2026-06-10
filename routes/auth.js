@@ -112,6 +112,7 @@ async function enviarEmailBienvenida(usuario) {
 // El usuario se registra por primera vez
 router.post('/registro', async (req, res) => {
   const { nombre, apellido, email, telefono, password, foto_url, vibe, edad, app_origen, zona_principal, zonas_extra, ref } = req.body;
+  console.log('REGISTRO ref recibido:', ref, '| body keys:', Object.keys(req.body));
 
   if (!nombre || !password) {
     return res.status(400).json({ error: 'Nombre y contraseña son requeridos' });
