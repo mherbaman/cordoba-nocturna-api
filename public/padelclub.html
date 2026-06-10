@@ -1529,6 +1529,27 @@ function renderAgenda(dias, disponibles, reservas) {
   });
   html += '</tr></thead><tbody>';
 
+  // Construir mapa de celdas bloqueadas
+  const celdasBloqueadas = {};
+  reservas.forEach(r => {
+    if (!r._fecha) return;
+    const num = r.numero_cancha || 1;
+    const hi = String(r.hora_inicio).substring(0,5);
+    const hf = String(r.hora_fin).substring(0,5);
+    // Marcar todas las celdas de 30min que ocupa esta reserva
+    const [hh, mm] = hi.split(':').map(Number);
+    const [hh2, mm2] = hf.split(':').map(Number);
+    let minStart = hh * 60 + mm;
+    const minEnd = hh2 * 60 + mm2;
+    let esInicio = true;
+    while (minStart < minEnd) {
+      const hStr = String(Math.floor(minStart/60)).padStart(2,'0') + ':' + String(minStart%60).padStart(2,'0');
+      const clave = r._fecha + '_' + num + '_' + hStr;
+      celdasBloqueadas[clave] = Object.assign({}, r, { _esInicio: esInicio });
+      esInicio = false;
+      minStart += 30;
+    }
+  });
   // Filas por hora
   horas.forEach(hora => {
     html += '<tr>';
