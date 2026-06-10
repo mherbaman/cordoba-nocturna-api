@@ -236,6 +236,19 @@
     .leyenda-item{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.5)}
     .leyenda-dot{width:10px;height:10px;border-radius:3px}
 
+    .ev-create-card{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s,background .2s}
+    .ev-create-card:hover{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04)}
+    .ev-create-ic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .ev-create-info{flex:1;min-width:0}
+    .ev-create-title{font-size:13px;font-weight:600;color:#fff}
+    .ev-create-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+    .ev-create-btn{font-size:10px;background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2);padding:2px 10px;border-radius:20px;white-space:nowrap}
+    .ev-activo-card{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:11px 13px;margin-bottom:8px}
+    .ev-activo-ic{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .ev-activo-info{flex:1;min-width:0}
+    .ev-activo-title{font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ev-activo-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
+    .ev-activo-amt{font-size:13px;font-weight:700;color:#22c55e;flex-shrink:0}
   </style>
 </head>
 <body>
@@ -319,6 +332,7 @@ function navTo(page, btn) {
   if (btn) btn.classList.add("active");
   if (page === "dashboard")  cargarDashboard();
   if (page === "canchas") {
+  if (page === 'torneos')   cargarTorneosActivos();
     setTimeout(function() {
       var gSec = document.getElementById('ci-gestion');
       var tSec = document.getElementById('ci-turnos');
@@ -1705,6 +1719,58 @@ function abrirModalTurnoManualConDatos(cancha, fecha, hora) {
   }, 50);
 }
 
+
+async function cargarTorneosActivos() {
+  const nid = getCanchasNegocioId();
+  const el = document.getElementById('torneos-activos-list');
+  if (!el || !nid) return;
+  el.innerHTML = '<div class="loader"></div>';
+  try {
+    const [torneos, americanos] = await Promise.all([
+      apiAdmin('/torneos?negocio_id=' + nid).catch(()=>[]),
+      apiAdmin('/americanos-parejas?negocio_id=' + nid).catch(()=>[])
+    ]);
+    const todos = [
+      ...( Array.isArray(torneos) ? torneos : (torneos.torneos||[]) ).map(t => ({...t, _tipo:'torneo'})),
+      ...( Array.isArray(americanos) ? americanos : (americanos.americanos||[]) ).map(a => ({...a, _tipo:'americano'}))
+    ].filter(e => !['finalizado','cancelado'].includes(e.estado));
+    if (!todos.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3);font-size:13px">&#127942; No hay eventos activos.<br>Crea uno desde el panel izquierdo.</div>';
+      return;
+    }
+    const IC = { torneo:'&#127942;', americano:'&#128260;', super8:'&#128101;' };
+    const IC_BG = { torneo:'rgba(124,58,237,.15)', americano:'rgba(245,158,11,.1)', super8:'rgba(34,197,94,.1)' };
+    const IC_COLOR = { torneo:'#a78bfa', americano:'#f59e0b', super8:'#22c55e' };
+    const TIPO_LBL = { torneo:'Torneo', americano:'Americano', super8:'Super 8' };
+    el.innerHTML = todos.map(e => {
+      const tipo = e._tipo;
+      const ic = IC[tipo] || '&#127942;';
+      const bg = IC_BG[tipo] || 'rgba(124,58,237,.15)';
+      const color = IC_COLOR[tipo] || '#a78bfa';
+      const nombre = e.nombre || e.titulo || 'Sin nombre';
+      const fecha = e.fecha ? new Date(e.fecha+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'}) : '';
+      const inscriptos = e.inscriptos || e.total_inscriptos || 0;
+      const max = e.max_jugadores || e.maximo || '?';
+      const monto = parseFloat(e.precio_inscripcion || e.precio || 0);
+      const total = monto * inscriptos;
+      const estadoCls = e.estado === 'abierto' ? 'color:#22c55e' : e.estado === 'en_curso' ? 'color:#f59e0b' : 'color:#9ca3af';
+      return '<div class="ev-activo-card">' +
+        '<div class="ev-activo-ic" style="background:' + bg + ';color:' + color + '">' + ic + '</div>' +
+        '<div class="ev-activo-info">' +
+          '<div class="ev-activo-title">' + nombre + '</div>' +
+          '<div class="ev-activo-sub">' + (fecha ? fecha + ' &middot; ' : '') + inscriptos + '/' + max + ' jugadores &middot; <span style="' + estadoCls + '">' + (e.estado||'') + '</span></div>' +
+        '</div>' +
+        (total > 0 ? '<div class="ev-activo-amt">ARS ' + Math.round(total).toLocaleString('es-AR') + '</div>' : '') +
+      '</div>';
+    }).join('');
+  } catch(err) {
+    el.innerHTML = '<div style="color:#ef4444;padding:20px;font-size:12px">Error: ' + err.message + '</div>';
+  }
+}
+
+function abrirCrearTorneo() { navTo('partidos', document.querySelectorAll('.tab')[4]); }
+function abrirCrearSuper8() { navTo('partidos', document.querySelectorAll('.tab')[4]); }
+function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.tab')[4]); }
 </script>
 
 <!-- LOGIN -->
@@ -1739,6 +1805,7 @@ function abrirModalTurnoManualConDatos(cancha, fecha, hora) {
   <div class="nav-tabs">
     <button class="tab active" onclick="navTo('dashboard',this)">&#128202; Dashboard</button>
     <button class="tab" onclick="navTo('canchas',this)">&#127955; Mis Canchas</button>
+    <button class="tab" onclick="navTo('torneos',this)">&#127942; Torneos</button>
     <button class="tab" onclick="navTo('partidos',this)">&#9889; Partidos</button>
     <button class="tab" onclick="navTo('stats',this)">&#128200; Estadisticas</button>
     <button class="tab" onclick="navTo('resenas',this)">&#11088; Resenas</button>
@@ -1991,6 +2058,62 @@ function abrirModalTurnoManualConDatos(cancha, fecha, hora) {
     </div>
 
     <!-- ===== PARTIDOS ===== -->
+    <!-- ===== TORNEOS ===== -->
+    <div class="page" id="page-torneos">
+      <div class="section-hdr">
+        <div class="section-title">&#127942; Torneos &amp; Eventos</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+
+        <!-- Panel izquierdo: crear evento -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Crear nuevo evento</div>
+
+          <div class="ev-create-card" onclick="abrirCrearTorneo()">
+            <div class="ev-create-ic" style="background:rgba(124,58,237,.15);color:#a78bfa">&#127942;</div>
+            <div class="ev-create-info">
+              <div class="ev-create-title">Torneo oficial</div>
+              <div class="ev-create-sub">8 a 64 jugadores &middot; brackets automaticos &middot; ranking</div>
+            </div>
+            <span class="ev-create-btn">Crear &#8599;</span>
+          </div>
+
+          <div class="ev-create-card" onclick="abrirCrearSuper8()">
+            <div class="ev-create-ic" style="background:rgba(34,197,94,.1);color:#22c55e">&#128101;</div>
+            <div class="ev-create-info">
+              <div class="ev-create-title">Super 8</div>
+              <div class="ev-create-sub">8 jugadores &middot; rotacion &middot; listo en 2 minutos</div>
+            </div>
+            <span class="ev-create-btn">Crear &#8599;</span>
+          </div>
+
+          <div class="ev-create-card" onclick="abrirCrearAmericano()">
+            <div class="ev-create-ic" style="background:rgba(245,158,11,.1);color:#f59e0b">&#128260;</div>
+            <div class="ev-create-info">
+              <div class="ev-create-title">Americano de Parejas</div>
+              <div class="ev-create-sub">parejas rotativas &middot; todos contra todos</div>
+            </div>
+            <span class="ev-create-btn">Crear &#8599;</span>
+          </div>
+
+          <div class="ev-create-card" style="opacity:.5;cursor:default">
+            <div class="ev-create-ic" style="background:rgba(14,165,233,.1);color:#0ea5e9">&#127955;</div>
+            <div class="ev-create-info">
+              <div class="ev-create-title">Partido simple</div>
+              <div class="ev-create-sub">4 jugadores &middot; reserva directa de cancha</div>
+            </div>
+            <span style="font-size:10px;background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2);padding:2px 10px;border-radius:20px">Próximamente</span>
+          </div>
+        </div>
+
+        <!-- Panel derecho: eventos activos -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Eventos activos en tu club</div>
+          <div id="torneos-activos-list"><div class="loader"></div></div>
+        </div>
+
+      </div>
+    </div>
     <div class="page" id="page-partidos">
       <div class="section-hdr">
         <div class="section-title">&#9889; Partidos publicos</div>
