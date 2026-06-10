@@ -164,6 +164,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ev-ic.t{background:#1a1a2e;color:#7c3aed}
 .ev-ic.a{background:#1c1400;color:#f59e0b}
 .ev-ic.s{background:var(--green-bg);color:var(--green)}
+.ev-ic.a{background:var(--gold-bg);color:var(--gold)}
+.ev-ic.pp{background:rgba(14,165,233,.1);color:#0ea5e9}
 .ev-info{flex:1;min-width:0}
 .ev-name{font-size:12px;font-weight:500;color:var(--text)}
 .ev-meta{font-size:11px;color:var(--text3);margin-top:1px}
@@ -270,34 +272,32 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       </div>
     <!-- MIS EVENTOS -->
     <div class="sec" id="sec-eventos">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Crear nuevo evento</div>
-          <div class="ev-create-card" onclick="showToast('Próximamente — crear torneo')">
-            <div class="ev-create-ic" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="ti ti-trophy"></i></div>
-            <div class="ev-create-info"><div class="ev-create-title">Torneo oficial</div><div class="ev-create-sub">8 a 64 jugadores · brackets automáticos · ranking</div></div>
-            <span class="ev-create-btn">Crear ↗</span>
-          </div>
-          <div class="ev-create-card" onclick="showToast('Próximamente — crear Super 8')">
-            <div class="ev-create-ic" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-users"></i></div>
-            <div class="ev-create-info"><div class="ev-create-title">Super 8</div><div class="ev-create-sub">8 jugadores · rotación · listo en 2 minutos</div></div>
-            <span class="ev-create-btn">Crear ↗</span>
-          </div>
-          <div class="ev-create-card" onclick="showToast('Próximamente — crear Americano')">
-            <div class="ev-create-ic" style="background:var(--gold-bg);color:var(--gold)"><i class="ti ti-rotate-clockwise"></i></div>
-            <div class="ev-create-info"><div class="ev-create-title">Americano de Parejas</div><div class="ev-create-sub">parejas rotativas · todos contra todos</div></div>
-            <span class="ev-create-btn">Crear ↗</span>
-          </div>
-          <div class="ev-create-card" onclick="showToast('Próximamente — partido simple')">
-            <div class="ev-create-ic" style="background:rgba(14,165,233,.1);color:#0ea5e9"><i class="ti ti-bolt"></i></div>
-            <div class="ev-create-info"><div class="ev-create-title">Partido simple</div><div class="ev-create-sub">4 jugadores · publicá en Padel Connect</div></div>
-            <span class="ev-create-btn">Crear ↗</span>
+      <div class="two">
+        <div class="panel">
+          <div class="phdr">Formatos y tu ganancia</div>
+          <div class="ev-card"><div class="ev-ic t"><i class="ti ti-trophy"></i></div><div class="ev-info"><div class="ev-name">Torneo — 32 jugadores</div><div class="ev-meta">$22.500 × 32 = $720K bruto · 70% tuyo</div></div><div class="ev-amt">ARS 504K</div></div>
+          <div class="ev-card"><div class="ev-ic t"><i class="ti ti-trophy"></i></div><div class="ev-info"><div class="ev-name">Torneo — 20 jugadores</div><div class="ev-meta">$22.500 × 20 = $450K bruto · 70% tuyo</div></div><div class="ev-amt">ARS 315K</div></div>
+          <div class="ev-card"><div class="ev-ic s"><i class="ti ti-users"></i></div><div class="ev-info"><div class="ev-name">Super 8 — 8 jugadores</div><div class="ev-meta">$20.000 × 8 = $160K bruto · 75% tuyo</div></div><div class="ev-amt">ARS 120K</div></div>
+          <div class="ev-card"><div class="ev-ic a"><i class="ti ti-rotate-clockwise"></i></div><div class="ev-info"><div class="ev-name">Americano — 16 jugadores</div><div class="ev-meta">$20.000 × 16 = $320K bruto · 75% tuyo</div></div><div class="ev-amt">ARS 240K</div></div>
+          <div class="ev-card"><div class="ev-ic pp"><i class="ti ti-ball-tennis"></i></div><div class="ev-info"><div class="ev-name">Partido simple — 4 jugadores</div><div class="ev-meta">Comisión ARS 1.000 × reservas (Caso A)</div></div><div class="ev-amt">ARS 4K</div></div>
+        </div>
+        <div class="panel">
+          <div class="phdr">Cómo crear un evento</div>
+          <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:var(--text)">Elegís el formato</strong> — Torneo, Super 8, Americano o Partido</span></div>
+          <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:var(--text)">Seleccionás el club</strong> — cualquier club activo en la plataforma</span></div>
+          <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:var(--text)">Fijás precio y cupos</strong> — mínimo ARS 20.000 por jugador</span></div>
+          <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:var(--text)">La app notifica y cobra</strong> — tu comunidad recibe la invitación sola</span></div>
+          <div class="act-item"><div class="adot" style="background:#7c3aed"></div><span class="atxt"><strong style="color:var(--text)">Tu 70-75% se acredita solo</strong> — al cerrar las inscripciones aparece en tu billetera</span></div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-copy" onclick="showToast('Próximamente — crear torneo')">Nuevo torneo ↗</button>
+            <button class="btn-copy" onclick="showToast('Próximamente — Super 8')">Super 8 ↗</button>
+            <button class="btn-copy" onclick="showToast('Próximamente — Americano')">Americano ↗</button>
           </div>
         </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Eventos activos</div>
-          <div id="mis-eventos-list"><div class="loading">Cargando...</div></div>
-        </div>
+      </div>
+      <div class="panel one">
+        <div class="phdr">Mis eventos activos <span id="mis-eventos-lbl"></span></div>
+        <div id="mis-eventos-list"><div class="loading">Cargando...</div></div>
       </div>
     </div>
 
