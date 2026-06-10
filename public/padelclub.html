@@ -332,7 +332,7 @@ function navTo(page, btn) {
   if (btn) btn.classList.add("active");
   if (page === "dashboard")  cargarDashboard();
   if (page === "canchas") {
-  if (page === 'torneos')   cargarTorneosActivos();
+  if (page === 'torneos')   { cargarTorneosActivos(); cargarPartidos(); }
     setTimeout(function() {
       var gSec = document.getElementById('ci-gestion');
       var tSec = document.getElementById('ci-turnos');
@@ -1810,7 +1810,6 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     <button class="tab active" onclick="navTo('dashboard',this)">&#128202; Dashboard</button>
     <button class="tab" onclick="navTo('canchas',this)">&#127955; Mis Canchas</button>
     <button class="tab" onclick="navTo('torneos',this)">&#127942; Torneos</button>
-    <button class="tab" onclick="navTo('partidos',this)">&#9889; Partidos</button>
     <button class="tab" onclick="navTo('stats',this)">&#128200; Estadisticas</button>
     <button class="tab" onclick="navTo('resenas',this)">&#11088; Resenas</button>
   </div>
@@ -2100,13 +2099,13 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
             <span class="ev-create-btn">Crear &#8599;</span>
           </div>
 
-          <div class="ev-create-card" style="opacity:.5;cursor:default">
-            <div class="ev-create-ic" style="background:rgba(14,165,233,.1);color:#0ea5e9">&#127955;</div>
+          <div class="ev-create-card" onclick="abrirCrearPartido()">
+            <div class="ev-create-ic" style="background:rgba(14,165,233,.1);color:#0ea5e9">&#9889;</div>
             <div class="ev-create-info">
               <div class="ev-create-title">Partido simple</div>
-              <div class="ev-create-sub">4 jugadores &middot; reserva directa de cancha</div>
+              <div class="ev-create-sub">4 jugadores &middot; publica en Padel Connect</div>
             </div>
-            <span style="font-size:10px;background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2);padding:2px 10px;border-radius:20px">Próximamente</span>
+            <span class="ev-create-btn">Crear &#8599;</span>
           </div>
         </div>
 
@@ -2114,6 +2113,8 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
         <div>
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Eventos activos en tu club</div>
           <div id="torneos-activos-list"><div class="loader"></div></div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:16px">Partidos publicados</div>
+          <div id="partidos-list"><div class="loader"></div></div>
         </div>
 
       </div>
