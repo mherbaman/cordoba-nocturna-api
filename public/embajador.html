@@ -174,6 +174,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ev-st.ok{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
 .ev-st.warn{background:var(--gold-bg);color:var(--gold);border:0.5px solid var(--gold-border)}
 
+.pr-card{background:var(--bg3);padding:11px 14px;margin-bottom:0;border-left:2px solid var(--green);border-radius:0}
+.pr-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.pr-title i{font-size:14px;color:var(--green)}
+.pr-desc{font-size:12px;color:var(--text3);line-height:1.5}
+
 /* LOADING */
 .loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
 .empty{text-align:center;padding:30px;color:var(--text3);font-size:13px}
@@ -303,14 +308,63 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
     <!-- COMUNIDAD -->
     <div class="sec" id="sec-comunidad">
+      <div class="panel one" style="margin-bottom:10px;border-left:2px solid var(--green);border-radius:0">
+        <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px">Tu comunidad es tuya. PadelConnect administra la plataforma, vos administrás la relación.</div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.7">Las jugadoras que sumaste están vinculadas a tu perfil de forma permanente. PadelConnect no envía comunicaciones directas a tu red sin pasar por vos. Si decidís salir, exportás tu base completa en un click.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+        <div class="pr-card"><div class="pr-title"><i class="ti ti-lock"></i>Tu vínculo es exclusivo</div><div class="pr-desc">Las jugadoras de tu red reciben comunicaciones firmadas con tu nombre. Vos sos su referente dentro de la plataforma, siempre.</div></div>
+        <div class="pr-card"><div class="pr-title"><i class="ti ti-shield-check"></i>Sin contacto directo de PC</div><div class="pr-desc">PadelConnect no puede hacerle ofertas directas a tu comunidad que te salteen. Las notificaciones pasan por tu panel.</div></div>
+        <div class="pr-card"><div class="pr-title"><i class="ti ti-file-export"></i>Exportación libre siempre</div><div class="pr-desc">Exportás tu base completa en CSV cuando quieras — nombre, nivel, zona, historial. Sin pedir permiso, sin esperas.</div></div>
+        <div class="pr-card" style="border-left-color:var(--gold)"><div class="pr-title"><i class="ti ti-contract"></i>Respaldo contractual</div><div class="pr-desc">Las jugadoras incorporadas por vos son atribuidas permanentemente a tu cuenta. No se pueden reasignar.</div></div>
+      </div>
       <div class="panel one">
-        <div class="phdr">Mi comunidad <span id="comunidad-total-lbl"></span></div>
+        <div class="phdr">Mi red <span id="comunidad-total-lbl"></span></div>
         <div id="comunidadList"><div class="loading">Cargando...</div></div>
       </div>
     </div>
 
     <!-- GANANCIAS -->
     <div class="sec" id="sec-ganancias">
+      <div class="two">
+        <div class="panel">
+          <div class="phdr">Caso A — desglose por reserva</div>
+          <div class="desg">
+            <div class="dtitle">Distribución de un turno — ARS 42.000</div>
+            <div class="drow"><span class="dl">Jugador paga por app</span><span class="dv">ARS 42.000</span></div>
+            <div class="drow"><span class="dl">Turno presencial (referencia)</span><span class="dv">ARS 45.000</span></div>
+            <div class="drow"><span class="dl">Ahorro para el jugador</span><span class="dv g">ARS 3.000 (−7%)</span></div>
+            <div class="drow"><span class="dl">Club recibe</span><span class="dv">ARS 40.000</span></div>
+            <div class="drow"><span class="dl">Embajador (vos)</span><span class="dv g">ARS 1.000</span></div>
+            <div class="drow"><span class="dl">PadelConnect</span><span class="dv">ARS 1.000</span></div>
+            <div class="drow tot"><span class="dl">Total distribuido</span><span class="dv g">ARS 42.000 ✓</span></div>
+          </div>
+          <div class="desg">
+            <div class="dtitle">Meta diaria — 10 reservas</div>
+            <div class="drow"><span class="dl">ARS 1.000 × 10 turnos/día</span><span class="dv g">ARS 10.000 / día</span></div>
+            <div class="drow"><span class="dl">× 30 días</span><span class="dv g">ARS 300.000 / mes</span></div>
+            <div class="drow"><span class="dl">Aplica en</span><span class="dv">Todos los niveles</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="phdr">Niveles de embajador</div>
+          <div class="level-card">
+            <div class="level-bar" style="background:var(--text3)"></div>
+            <div class="level-info"><div class="level-name" style="color:var(--text2)">Nivel Bronce</div><div class="level-desc">Caso A activo desde el día 1 — ARS 1.000 por cada reserva de tu red. Caso B bloqueado. Acceso completo para organizar torneos, Super 8 y Americanos.</div></div>
+            <div class="level-earn" style="color:var(--text3)">~ARS 700K</div>
+          </div>
+          <div class="level-card" style="border-color:var(--green-border)">
+            <div class="level-bar" style="background:var(--green)"></div>
+            <div class="level-info"><div class="level-name" style="color:var(--green)">Nivel Plata — se desbloquea el Caso B</div><div class="level-desc">Todo lo de Bronce más el Caso B: ARS 1.000 por cada inscripción de tu red en eventos de otros. Cuanto más grande tu red, más ingreso pasivo genera sola.</div></div>
+            <div class="level-earn">ARS 2M+</div>
+          </div>
+          <div class="level-card" style="border-color:var(--gold-border)">
+            <div class="level-bar" style="background:var(--gold)"></div>
+            <div class="level-info"><div class="level-name" style="color:var(--gold)">Nivel Oro</div><div class="level-desc">Zona exclusiva garantizada, co-marketing con PadelConnect y acceso a franquicia provincial con 30% de descuento sobre el canon de entrada.</div></div>
+            <div class="level-earn" style="color:var(--gold)">ARS 4M+</div>
+          </div>
+        </div>
+      </div>
       <div class="panel one">
         <div class="phdr">Simulador de ganancias <span>mové los sliders</span></div>
         <div class="sim-wrap">
