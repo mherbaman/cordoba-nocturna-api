@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pádel Connect Pro — Jugá mejor. Divertite más.</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --green:   #00C853;
+    --green-dk:#009940;
+    --navy:    #0D1B2A;
+    --navy2:   #152540;
+    --navy3:   #1E3A6B;
+    --gold:    #FFB800;
+    --white:   #FFFFFF;
+    --gray1:   #F5F7FA;
+    --gray2:   #E8ECF2;
+    --gray3:   #8899BB;
+    --text:    #0D1B2A;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--white);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13,27,42,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 0 40px;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    font-size: 1rem; font-weight: 700; color: var(--white);
+    letter-spacing: -0.01em;
+  }
+  .nav-logo span { color: var(--green); }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a {
+    font-size: 0.85rem; font-weight: 500;
+    color: rgba(255,255,255,0.65); text-decoration: none;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--green); color: var(--navy);
+    font-size: 0.85rem; font-weight: 700;
+    padding: 9px 20px; border-radius: 8px;
+    text-decoration: none; transition: background .2s;
+  }
+  .nav-cta:hover { background: var(--green-dk); }
+
+  /* ── SECCIONES BASE ── */
+  section { padding: 90px 40px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .wrap-sm { max-width: 700px; margin: 0 auto; }
+
+  h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; }
+  h2 { font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.025em; }
+  h3 { font-size: 1.1rem; font-weight: 700; }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 16px;
+  }
+  .sub {
+    font-size: 1.05rem; color: var(--gray3); line-height: 1.7;
+    margin-top: 14px;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding-top: 100px; padding-bottom: 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-glow {
+    position: absolute; pointer-events: none;
+    width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,200,83,0.08) 0%, transparent 65%);
+    top: -100px; left: -150px;
+  }
+  .hero-glow2 {
+    position: absolute; pointer-events: none;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(30,58,107,0.5) 0%, transparent 65%);
+    bottom: -80px; right: -80px;
+  }
+
+  .hero-inner {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: center;
+  }
+
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,200,83,0.1); border: 1px solid rgba(0,200,83,0.2);
+    padding: 5px 14px; border-radius: 100px;
+    font-size: 0.78rem; font-weight: 600; color: var(--green);
+    margin-bottom: 24px;
+  }
+  .hero-pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  h1 em { color: var(--green); font-style: normal; }
+
+  .hero-sub {
+    font-size: 1.05rem; color: rgba(255,255,255,0.6);
+    line-height: 1.7; margin: 20px 0 36px;
+  }
+
+  .btn-main {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--green); color: var(--navy);
+    font-weight: 700; font-size: 1rem;
+    padding: 15px 30px; border-radius: 10px;
+    text-decoration: none;
+    box-shadow: 0 6px 24px rgba(0,200,83,0.3);
+    transition: transform .15s, box-shadow .2s;
+  }
+  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(0,200,83,0.4); }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; color: rgba(255,255,255,0.75);
+    font-weight: 600; font-size: 1rem;
+    padding: 15px 24px; border-radius: 10px;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: border-color .2s, color .2s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Hero stats bar */
+  .hero-stats {
+    display: flex; gap: 0;
+    margin-top: 44px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 32px;
+  }
+  .hstat {
+    flex: 1; padding-right: 24px;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    margin-right: 24px;
+  }
+  .hstat:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+  .hstat-n { font-size: 1.9rem; font-weight: 800; color: var(--green); line-height: 1; }
+  .hstat-l { font-size: 0.8rem; color: var(--gray3); margin-top: 4px; }
+
+  /* Hero right — niveles visual */
+  .levels-visual { display: flex; flex-direction: column; gap: 10px; }
+  .lv {
+    display: flex; align-items: center; gap: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 16px 20px;
+    transition: border-color .25s, background .25s;
+    animation: fadeUp .5s both;
+  }
+  .lv:hover { background: rgba(255,255,255,0.07); border-color: rgba(0,200,83,0.25); }
+  .lv:nth-child(1){animation-delay:.05s}
+  .lv:nth-child(2){animation-delay:.12s; margin-left: 16px;}
+  .lv:nth-child(3){animation-delay:.19s}
+  .lv:nth-child(4){animation-delay:.26s; margin-left: 16px;}
+  .lv:nth-child(5){animation-delay:.33s}
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+  .lv-badge {
+    width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800; color: var(--navy);
+  }
+  .lv-title { font-size: 0.92rem; font-weight: 700; color: var(--white); }
+  .lv-desc  { font-size: 0.78rem; color: var(--gray3); margin-top: 2px; }
+
+  /* ── PROBLEMA ── */
+  #problema { background: var(--gray1); }
+  .prob-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 14px; margin-top: 48px;
+  }
+  .prob-card {
+    background: var(--white); border: 1px solid var(--gray2);
+    border-radius: 12px; padding: 24px;
+    transition: box-shadow .2s;
+  }
+  .prob-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+  .prob-emoji { font-size: 1.6rem; margin-bottom: 12px; }
+  .prob-card p { font-size: 0.92rem; color: #445; line-height: 1.65; }
+
+  /* ── QUÉ APRENDÉS ── */
+  #aprende { background: var(--white); }
+  .aprende-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 16px; margin-top: 48px;
+  }
+  .ap-card {
+    border: 1px solid var(--gray2);
+    border-radius: 12px; padding: 28px 24px;
+    transition: border-color .2s, transform .2s;
+    position: relative; overflow: hidden;
+  }
+  .ap-card::after {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--green);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s;
+  }
+  .ap-card:hover { border-color: rgba(0,200,83,0.3); transform: translateY(-3px); }
+  .ap-card:hover::after { transform: scaleX(1); }
+  .ap-icon { font-size: 1.8rem; margin-bottom: 16px; }
+  .ap-card h3 { margin-bottom: 8px; }
+  .ap-card p { font-size: 0.88rem; color: #556; line-height: 1.65; }
+
+  /* ── MÓDULOS ── */
+  #modulos { background: var(--navy); }
+  #modulos h2 { color: var(--white); }
+  #modulos .sub { color: rgba(255,255,255,0.55); }
+  .mod-tabs {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin: 36px 0 28px;
+  }
+  .tab {
+    padding: 7px 16px; border-radius: 100px;
+    font-size: 0.82rem; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent; color: rgba(255,255,255,0.55);
+    cursor: pointer; transition: all .2s;
+  }
+  .tab.on, .tab:hover {
+    background: var(--green); color: var(--navy);
+    border-color: var(--green);
+  }
+  .mod-grid {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 12px;
+  }
+  .mc {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 20px 18px;
+    cursor: default; transition: all .2s;
+    display: none;
+  }
+  .mc.show { display: block; }
+  .mc:hover { background: rgba(255,255,255,0.07); border-color: rgba(0,200,83,0.25); }
+  .mc-num {
+    width: 32px; height: 32px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 800;
+    margin-bottom: 14px;
+  }
+  .mc h3 { font-size: 0.92rem; margin-bottom: 8px; color: var(--white); }
+  .mc p  { font-size: 0.8rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  .mc-clases {
+    margin-top: 12px; font-size: 0.75rem;
+    color: var(--green); font-weight: 600;
+  }
+
+  /* ── CLASE DE EJEMPLO ── */
+  #ejemplo { background: var(--gray1); }
+  .ejemplo-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 56px; align-items: start;
+    margin-top: 48px;
+  }
+  .ex-label {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--green); margin-bottom: 6px;
+  }
+  .ex-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .ex-meta { font-size: 0.85rem; color: var(--gray3); margin-bottom: 28px; }
+
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item {
+    display: flex; gap: 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--gray2);
+  }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-time {
+    font-size: 0.85rem; font-weight: 800; color: var(--green);
+    min-width: 44px; padding-top: 2px;
+  }
+  .tl-body h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+  .tl-body p  { font-size: 0.85rem; color: #556; line-height: 1.6; }
+
+  /* drills */
+  .drill {
+    background: var(--white); border: 1px solid var(--gray2);
+    border-radius: 12px; padding: 24px; margin-bottom: 12px;
+    transition: border-color .2s;
+  }
+  .drill:hover { border-color: rgba(0,200,83,0.35); }
+  .drill-badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--green); background: rgba(0,200,83,0.1);
+    padding: 3px 10px; border-radius: 100px; margin-bottom: 10px;
+  }
+  .drill h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+  .drill p  { font-size: 0.87rem; color: #556; line-height: 1.65; }
+  .drill-chips { display: flex; gap: 14px; margin-top: 12px; }
+  .chip { font-size: 0.75rem; color: var(--gray3); }
+
+  /* ── PARA QUIÉN ── */
+  #paraquien { background: var(--white); }
+  .pq-grid {
+    display: grid; grid-template-columns: repeat(2,1fr);
+    gap: 16px; margin-top: 48px;
+  }
+  .pq-card {
+    display: flex; gap: 18px; align-items: flex-start;
+    border: 1px solid var(--gray2); border-radius: 12px;
+    padding: 26px; transition: border-color .2s, box-shadow .2s;
+  }
+  .pq-card:hover { border-color: rgba(0,200,83,0.3); box-shadow: 0 4px 20px rgba(0,200,83,0.06); }
+  .pq-icon {
+    font-size: 1.6rem; width: 48px; height: 48px;
+    background: var(--gray1); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .pq-card h3 { margin-bottom: 8px; }
+  .pq-card p { font-size: 0.88rem; color: #556; line-height: 1.65; }
+
+  /* ── BONUS ── */
+  #bonus { background: var(--navy); }
+  #bonus h2 { color: var(--white); }
+  #bonus .sub { color: rgba(255,255,255,0.55); }
+  .bonus-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 16px; margin-top: 48px;
+  }
+  .bcard {
+    border-radius: 14px; padding: 30px 26px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: transform .2s;
+  }
+  .bcard:hover { transform: translateY(-4px); }
+  .bcard.b1 { background: rgba(0,200,83,0.07); border-color: rgba(0,200,83,0.18); }
+  .bcard.b2 { background: rgba(30,58,107,0.5); }
+  .bcard.b3 { background: rgba(255,184,0,0.06); border-color: rgba(255,184,0,0.18); }
+  .b-tag {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 16px; display: block;
+  }
+  .bcard h3 { color: var(--white); font-size: 1.15rem; margin-bottom: 10px; }
+  .bcard p  { font-size: 0.88rem; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 16px; }
+  .blist { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .blist li {
+    font-size: 0.84rem; color: rgba(255,255,255,0.7);
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .blist li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── PROGRESIÓN ── */
+  #progresion { background: var(--gray1); }
+  .prog-steps {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 0; margin-top: 48px; position: relative;
+  }
+  .prog-steps::before {
+    content: '';
+    position: absolute; top: 28px; left: 10%; right: 10%; height: 2px;
+    background: var(--gray2); z-index: 0;
+  }
+  .ps {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 0 16px;
+    position: relative; z-index: 1;
+  }
+  .ps-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    background: var(--white); border: 2px solid var(--gray2);
+    margin-bottom: 16px;
+    transition: border-color .2s;
+  }
+  .ps:hover .ps-circle { border-color: var(--green); }
+  .ps h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+  .ps p  { font-size: 0.82rem; color: #778; line-height: 1.55; }
+
+  /* ── TESTIMONIOS ── */
+  #testimonios { background: var(--white); }
+  .test-grid {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 16px; margin-top: 48px;
+  }
+  .tcard {
+    border: 1px solid var(--gray2); border-radius: 12px;
+    padding: 28px; transition: box-shadow .2s;
+  }
+  .tcard:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+  .t-stars { color: var(--gold); font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 14px; }
+  .t-quote {
+    font-size: 0.93rem; color: #334; line-height: 1.75;
+    font-style: italic; margin-bottom: 20px;
+  }
+  .t-author { display: flex; align-items: center; gap: 12px; }
+  .t-av {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: var(--green); color: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.85rem;
+  }
+  .t-name { font-weight: 700; font-size: 0.88rem; }
+  .t-info { font-size: 0.78rem; color: var(--gray3); }
+
+  /* ── FAQ ── */
+  #faq { background: var(--gray1); }
+  .faq-wrap { max-width: 720px; margin: 48px auto 0; }
+  .faq-item { border-bottom: 1px solid var(--gray2); }
+  .faq-q {
+    width: 100%; text-align: left; background: none; border: none;
+    padding: 20px 0; font-size: 0.97rem; font-weight: 600;
+    color: var(--text); cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    transition: color .2s;
+  }
+  .faq-q:hover { color: var(--green); }
+  .faq-arr { width: 18px; height: 18px; flex-shrink: 0; transition: transform .3s; }
+  .faq-item.open .faq-arr { transform: rotate(180deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    font-size: 0.9rem; color: #556; line-height: 1.75;
+    transition: max-height .35s ease, padding .3s;
+  }
+  .faq-item.open .faq-a { max-height: 250px; padding-bottom: 20px; }
+
+  /* ── GARANTÍA ── */
+  #garantia { background: var(--white); }
+  .gar-box {
+    display: flex; gap: 60px; align-items: center;
+    background: var(--gray1); border: 1px solid var(--gray2);
+    border-radius: 18px; padding: 56px;
+  }
+  .gar-badge {
+    min-width: 120px; height: 120px; border-radius: 50%;
+    border: 3px solid var(--green);
+    background: rgba(0,200,83,0.08);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .gar-badge .gn { font-size: 2.2rem; font-weight: 800; color: var(--green); line-height: 1; }
+  .gar-badge .gl { font-size: 0.7rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.08em; }
+  .gar-text h2 { font-size: 1.8rem; margin-bottom: 12px; }
+  .gar-text p  { font-size: 0.97rem; color: #556; line-height: 1.75; }
+
+  /* ── PRECIO ── */
+  #precio { background: var(--navy); padding-bottom: 100px; }
+  #precio h2 { color: var(--white); }
+  #precio .sub { color: rgba(255,255,255,0.55); }
+  .price-box {
+    max-width: 560px; margin: 48px auto 0;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(0,200,83,0.25);
+    border-radius: 18px; padding: 48px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .price-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--green);
+  }
+  .ptag {
+    display: inline-block; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--green); background: rgba(0,200,83,0.12);
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 28px;
+  }
+  .price-rows { margin: 0 0 28px; text-align: left; }
+  .price-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 0.9rem;
+  }
+  .price-row:last-child { border-bottom: none; }
+  .price-row span:first-child { color: rgba(255,255,255,0.75); }
+  .price-row span:last-child  { color: rgba(255,255,255,0.3); text-decoration: line-through; font-size: 0.84rem; }
+  .price-hr { border: none; border-top: 1px solid rgba(255,255,255,0.12); margin: 8px 0 20px; }
+  .price-total {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px;
+  }
+  .price-total span:first-child { font-weight: 700; color: var(--white); font-size: 1rem; }
+  .price-total span:last-child  { color: rgba(255,255,255,0.3); text-decoration: line-through; font-size: 1rem; }
+  .price-main {
+    font-size: 3.6rem; font-weight: 800; color: var(--white);
+    line-height: 1; margin: 14px 0 4px; letter-spacing: -0.03em;
+  }
+  .price-main em { color: var(--green); font-style: normal; }
+  .price-note { font-size: 0.82rem; color: var(--gray3); margin-bottom: 28px; }
+  .btn-precio {
+    display: block; background: var(--green); color: var(--navy);
+    font-weight: 800; font-size: 1rem;
+    padding: 18px; border-radius: 12px;
+    text-decoration: none;
+    box-shadow: 0 6px 24px rgba(0,200,83,0.35);
+    transition: transform .15s, box-shadow .2s;
+  }
+  .btn-precio:hover { transform: translateY(-2px); box-shadow: 0 10px 36px rgba(0,200,83,0.45); }
+  .price-chips {
+    display: flex; gap: 20px; justify-content: center;
+    margin-top: 18px; flex-wrap: wrap;
+  }
+  .price-chips span { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+
+  /* ── CTA FINAL ── */
+  #cta { background: var(--white); padding: 100px 40px; text-align: center; }
+  #cta h2 { margin-bottom: 14px; }
+  #cta p  { font-size: 1rem; color: #667; margin-bottom: 36px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding: 32px 40px; text-align: center;
+    font-size: 0.82rem; color: rgba(255,255,255,0.3);
+  }
+  footer strong { color: rgba(255,255,255,0.6); }
+  footer span { color: var(--green); }
+
+  /* ── REVEAL ── */
+  .rv { opacity: 0; transform: translateY(20px); transition: opacity .55s ease, transform .55s ease; }
+  .rv.in { opacity: 1; transform: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    section { padding: 70px 20px; }
+    .hero-inner { grid-template-columns: 1fr; }
+    .levels-visual { display: none; }
+    .prob-grid { grid-template-columns: 1fr; }
+    .aprende-grid { grid-template-columns: 1fr 1fr; }
+    .mod-grid { grid-template-columns: repeat(2,1fr); }
+    .ejemplo-grid { grid-template-columns: 1fr; }
+    .bonus-grid { grid-template-columns: 1fr; }
+    .prog-steps { grid-template-columns: repeat(2,1fr); gap: 28px; }
+    .prog-steps::before { display: none; }
+    .test-grid { grid-template-columns: 1fr; }
+    .pq-grid { grid-template-columns: 1fr; }
+    .gar-box { flex-direction: column; padding: 36px 24px; gap: 24px; text-align: center; }
+    .price-box { padding: 32px 24px; }
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.7rem; }
+    .aprende-grid { grid-template-columns: 1fr; }
+    .mod-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Pádel <span>Connect</span> Pro</div>
+  <ul class="nav-links">
+    <li><a href="#aprende">Qué aprendés</a></li>
+    <li><a href="#modulos">Módulos</a></li>
+    <li><a href="#bonus">Bonus</a></li>
+    <li><a href="#precio">Precio</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#precio" class="nav-cta">Quiero empezar →</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="wrap">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-pill">
+          <span class="dot"></span>
+          Para jugadores — Edición 2026
+        </div>
+        <h1>Entendé el pádel.<br><em>Jugá mejor.</em></h1>
+        <p class="hero-sub">
+          Un sistema completo que te enseña cómo funciona cada golpe, por qué se hace así y qué decisiones tomar dentro de un punto. Del nivel cero al avanzado, sin tecnicismos innecesarios.
+        </p>
+        <div class="hero-btns">
+          <a href="#precio" class="btn-main">Quiero empezar →</a>
+          <a href="#modulos" class="btn-ghost">Ver el contenido</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hstat">
+            <div class="hstat-n">12</div>
+            <div class="hstat-l">Módulos completos</div>
+          </div>
+          <div class="hstat">
+            <div class="hstat-n">60+</div>
+            <div class="hstat-l">Clases explicadas</div>
+          </div>
+          <div class="hstat">
+            <div class="hstat-n">100+</div>
+            <div class="hstat-l">Ejercicios con variantes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="levels-visual">
+        <div class="lv">
+          <div class="lv-badge" style="background:#00C853">01</div>
+          <div>
+            <div class="lv-title">Nivel Inicial</div>
+            <div class="lv-desc">Tus primeros golpes con base real</div>
+          </div>
+        </div>
+        <div class="lv">
+          <div class="lv-badge" style="background:#1565C0;color:white">02</div>
+          <div>
+            <div class="lv-title">Nivel Intermedio</div>
+            <div class="lv-desc">Táctica, decisiones y juego en pareja</div>
+          </div>
+        </div>
+        <div class="lv">
+          <div class="lv-badge" style="background:#6A1B9A;color:white">03</div>
+          <div>
+            <div class="lv-title">Nivel Avanzado</div>
+            <div class="lv-desc">Bandeja, víbora, remate por tres</div>
+          </div>
+        </div>
+        <div class="lv">
+          <div class="lv-badge" style="background:#E65100;color:white">04</div>
+          <div>
+            <div class="lv-title">Adultos Mayores y Niños</div>
+            <div class="lv-desc">Metodología adaptada a cada edad</div>
+          </div>
+        </div>
+        <div class="lv">
+          <div class="lv-badge" style="background:#FFB800;color:#0D1B2A">★</div>
+          <div>
+            <div class="lv-title">Bonus: 3 herramientas</div>
+            <div class="lv-desc">Nivelómetro · Plan Anual · 100 Variantes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMA -->
+<section id="problema">
+  <div class="wrap rv">
+    <p class="tag">El problema</p>
+    <h2>Jugás hace tiempo y sentís que algo falla.</h2>
+    <p class="sub">Casi todos los jugadores tienen alguna de estas sensaciones en algún momento.</p>
+    <div class="prob-grid">
+      <div class="prob-card">
+        <div class="prob-emoji">🤔</div>
+        <p>Golpeás bien en el entrenamiento pero en el partido todo se desordena y no sabés por qué.</p>
+      </div>
+      <div class="prob-card">
+        <div class="prob-emoji">📉</div>
+        <p>Hace meses que jugás el mismo nivel. Sentís que no mejorás aunque seguís yendo a la cancha.</p>
+      </div>
+      <div class="prob-card">
+        <div class="prob-emoji">😬</div>
+        <p>La pared te complica. Sabés que tenés que usarla a favor pero en el momento no podés.</p>
+      </div>
+      <div class="prob-card">
+        <div class="prob-emoji">🧠</div>
+        <p>Tu técnica mejoró pero no sabés qué decidir dentro de un punto. Golpeás al azar y esperás.</p>
+      </div>
+      <div class="prob-card">
+        <div class="prob-emoji">😤</div>
+        <p>Cuando hay presión, hacés lo que te sale más fácil en vez de lo que aprendiste. El hábito gana.</p>
+      </div>
+      <div class="prob-card">
+        <div class="prob-emoji">🔄</div>
+        <p>Siempre entrenás lo mismo. No tenés variedad y te aburrís antes de que el ejercicio te sirva.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUÉ APRENDÉS -->
+<section id="aprende">
+  <div class="wrap rv">
+    <p class="tag">El sistema</p>
+    <h2>Esto es lo que cambia cuando entendés el juego.</h2>
+    <p class="sub">No es solo técnica. Es comprender por qué cada golpe funciona y cuándo usarlo.</p>
+    <div class="aprende-grid">
+      <div class="ap-card">
+        <div class="ap-icon">🎯</div>
+        <h3>Cada golpe tiene un porqué</h3>
+        <p>No repetís ejercicios a ciegas. Sabés qué estás buscando con cada movimiento y qué tenés que sentir cuando lo hacés bien.</p>
+      </div>
+      <div class="ap-card">
+        <div class="ap-icon">🧠</div>
+        <h3>Decisiones dentro del punto</h3>
+        <p>Aprendés a leer la posición de tus rivales antes de golpear. El pádel no es un deporte de golpes, es un deporte de decisiones.</p>
+      </div>
+      <div class="ap-card">
+        <div class="ap-icon">🏓</div>
+        <h3>La pared como aliada</h3>
+        <p>La mayoría de los jugadores le teme al vidrio. Vos aprendés a esperarlo, a leer el ángulo y a usarlo para ganar tiempo.</p>
+      </div>
+      <div class="ap-card">
+        <div class="ap-icon">🤝</div>
+        <h3>Juego de pareja real</h3>
+        <p>Cuándo cubrir, cuándo bajar, cuándo subir, cómo comunicarte. La cadena entre vos y tu compañero que no se rompe.</p>
+      </div>
+      <div class="ap-card">
+        <div class="ap-icon">📊</div>
+        <h3>Tu nivel real, claro</h3>
+        <p>Con el Nivelómetro 360 sabés exactamente en qué nivel estás. No donde creés que estás. Donde realmente estás.</p>
+      </div>
+      <div class="ap-card">
+        <div class="ap-icon">🔄</div>
+        <h3>Nunca más el mismo ejercicio</h3>
+        <p>Con la Biblia de Variantes, 100 formas de hacer que cualquier ejercicio se sienta nuevo y te siga desafiando.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MÓDULOS -->
+<section id="modulos">
+  <div class="wrap rv">
+    <p class="tag" style="color:var(--green)">Contenido</p>
+    <h2>12 módulos. Del cero al avanzado.</h2>
+    <p class="sub">Cada módulo tiene ejercicios concretos, criterios claros de progreso y una forma de medir si estás listo para avanzar.</p>
+
+    <div class="mod-tabs">
+      <button class="tab on" onclick="filtrar('todos',this)">Todos</button>
+      <button class="tab" onclick="filtrar('inicial',this)">Inicial</button>
+      <button class="tab" onclick="filtrar('intermedio',this)">Intermedio</button>
+      <button class="tab" onclick="filtrar('avanzado',this)">Avanzado</button>
+      <button class="tab" onclick="filtrar('especial',this)">AM · Kids · Lesiones</button>
+    </div>
+
+    <div class="mod-grid">
+      <div class="mc show" data-c="inicial">
+        <div class="mc-num" style="background:#00C853;color:#0D1B2A">01</div>
+        <h3>Nivel Inicial — Fase 1</h3>
+        <p>Tus primeros golpes con base real. Derecha, revés, pared y red. Cuadrante de impacto desde el día uno.</p>
+        <div class="mc-clases">▶ 5 clases con objetivo y checklist</div>
+      </div>
+      <div class="mc show" data-c="inicial">
+        <div class="mc-num" style="background:#00C853;color:#0D1B2A">02</div>
+        <h3>Nivel Inicial — Fase 2</h3>
+        <p>Del peloteo al juego real. Cruzado intencional, globo defensivo, volea y tu primer punto táctico.</p>
+        <div class="mc-clases">▶ 5 secuencias con progresión</div>
+      </div>
+      <div class="mc show" data-c="intermedio">
+        <div class="mc-num" style="background:#1565C0;color:white">03</div>
+        <h3>Intermedio 1 — Control</h3>
+        <p>Empezás a planificar antes de golpear. Control direccional, regla de los 3 golpes y movimiento en bloque.</p>
+        <div class="mc-clases">▶ 5 secuencias · 60-75 min/clase</div>
+      </div>
+      <div class="mc show" data-c="intermedio">
+        <div class="mc-num" style="background:#0D47A1;color:white">04</div>
+        <h3>Intermedio 2 — Táctica</h3>
+        <p>Decidís según lo que hace tu rival. Red dominante, la bajada, ataque al cuerpo y roles tácticos.</p>
+        <div class="mc-clases">▶ 5 secuencias · 70-80 min/clase</div>
+      </div>
+      <div class="mc show" data-c="avanzado">
+        <div class="mc-num" style="background:#6A1B9A;color:white">05</div>
+        <h3>Avanzado 1 — Golpes de Élite</h3>
+        <p>Bandeja, víbora, remate por tres y globo con efecto. Cuatro golpes que tus rivales no esperan.</p>
+        <div class="mc-clases">▶ 4 secuencias · 75-90 min/clase</div>
+      </div>
+      <div class="mc show" data-c="avanzado">
+        <div class="mc-num" style="background:#1A237E;color:white">06</div>
+        <h3>Avanzado 2 — Competición</h3>
+        <p>Saque táctico, gestión del marcador y rutinas mentales. El partido empezó antes del primer golpe.</p>
+        <div class="mc-clases">▶ 5 secuencias · 80-90 min/clase</div>
+      </div>
+      <div class="mc show" data-c="especial">
+        <div class="mc-num" style="background:#E65100;color:white">07</div>
+        <h3>Adultos Mayores 1</h3>
+        <p>Metodología adaptada para jugadores de +60. Protocolo de seguridad, movilidad y juego cooperativo.</p>
+        <div class="mc-clases">▶ 50-60 min/clase · Sin riesgo</div>
+      </div>
+      <div class="mc show" data-c="especial">
+        <div class="mc-num" style="background:#BF360C;color:white">08</div>
+        <h3>Adultos Mayores 2</h3>
+        <p>Del contacto seguro al partido real. Progresión pensada para disfrutar mucho tiempo.</p>
+        <div class="mc-clases">▶ 5 secuencias progresivas</div>
+      </div>
+      <div class="mc show" data-c="especial">
+        <div class="mc-num" style="background:#00695C;color:white">09</div>
+        <h3>Metodología Kids 1</h3>
+        <p>Para jugadores de 6 a 12 años. El juego es el método. Del contacto con la pala al mini partido.</p>
+        <div class="mc-clases">▶ 45-50 min · Para niños</div>
+      </div>
+      <div class="mc show" data-c="especial">
+        <div class="mc-num" style="background:#004D40;color:white">10</div>
+        <h3>Metodología Kids 2</h3>
+        <p>Consolidación y primer juego real. Los golpes emergen del juego, no al revés.</p>
+        <div class="mc-clases">▶ Prerequisito: Módulo 9</div>
+      </div>
+      <div class="mc show" data-c="especial">
+        <div class="mc-num" style="background:#C62828;color:white">11</div>
+        <h3>Pádel Adaptado 1</h3>
+        <p>Para jugadores con lesiones activas. Adaptaciones por lesión, calentamiento preventivo y retorno seguro.</p>
+        <div class="mc-clases">▶ Protocolo por lesión</div>
+      </div>
+      <div class="mc show" data-c="especial">
+        <div class="mc-num" style="background:#880E4F;color:white">12</div>
+        <h3>Pádel Adaptado 2</h3>
+        <p>Protocolo de retorno al juego semana a semana desde el alta médica hasta el partido completo.</p>
+        <div class="mc-clases">▶ Cronograma de retorno</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EJEMPLO DE CLASE -->
+<section id="ejemplo">
+  <div class="wrap rv">
+    <p class="tag">Así se ve adentro</p>
+    <h2>Una clase, explicada de principio a fin.</h2>
+    <p class="sub">Cada clase tiene un objetivo claro, ejercicios concretos y una forma de saber si lo lograste.</p>
+
+    <div class="ejemplo-grid">
+      <div>
+        <p class="ex-label">Módulo 1 · Clase 1</p>
+        <p class="ex-title">"Primera vez en la cancha"</p>
+        <p class="ex-meta">🎯 Objetivo: sostener 5 peloteos seguidos &nbsp;·&nbsp; ⏱ 60 min &nbsp;·&nbsp; Media cancha</p>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-time">0:00</div>
+            <div class="tl-body">
+              <h4>Entrada</h4>
+              <p>Trote y activación. La pala en la mano desde el primer minuto, sin excepciones.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">0:10</div>
+            <div class="tl-body">
+              <h4>El Espejo</h4>
+              <p>Tu compañero lanza suave a la altura de tu pecho. Vos devolvés sin dejar picar. Meta: 5 seguidos.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">0:30</div>
+            <div class="tl-body">
+              <h4>El Cuadrante</h4>
+              <p>Solo golpeás si la bola llega al cuadrante C1 — a la altura de tu cadera, lado correcto. Si no, la dejás pasar.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">0:50</div>
+            <div class="tl-body">
+              <h4>Juego reducido</h4>
+              <p>Solo derecha, media cancha. Primero en llegar a 5 puntos. Aplicás lo que aprendiste, no lo que te sale más fácil.</p>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-time">0:57</div>
+            <div class="tl-body">
+              <h4>Cierre</h4>
+              <p>5 ítems del checklist. Honesto. Si marcaste 4 o 5, avanzás. Si no, repetís. Sin apuros.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="drill">
+          <div class="drill-badge">Ejercicio principal</div>
+          <h4>El Cuadrante C1 — La base de todo</h4>
+          <p>Conos marcan las zonas de la cancha. Vos solo golpeás si la bola entra al cuadrante C1 — zona ideal: bola a la altura de tu cadera, del lado correcto de tu cuerpo. Si va a otra zona, no golpeás. La dejás ir. Eso te enseña a leer la bola antes de mover el brazo.</p>
+          <div class="drill-chips">
+            <span class="chip">⏱ 20 min</span>
+            <span class="chip">📊 Nivel inicial</span>
+          </div>
+        </div>
+        <div class="drill">
+          <div class="drill-badge">Variante fácil</div>
+          <h4>Tu compañero avisa el cuadrante antes de lanzar</h4>
+          <p>Sabés de antemano si vas a golpear o no. Menos presión cognitiva, más foco en la técnica del golpe.</p>
+          <div class="drill-chips">
+            <span class="chip">🟢 Si te trabás con la decisión</span>
+          </div>
+        </div>
+        <div class="drill">
+          <div class="drill-badge">Variante difícil</div>
+          <h4>Un paso lateral antes de cada golpe</h4>
+          <p>Tenés que decidir si golpeás mientras te desplazás. Primera vez que la lectura y el movimiento ocurren al mismo tiempo.</p>
+          <div class="drill-chips">
+            <span class="chip">🔴 Cuando el Espejo ya te quedó chico</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUIÉN -->
+<section id="paraquien">
+  <div class="wrap rv">
+    <p class="tag">¿Es para vos?</p>
+    <h2>Para cualquier jugador que quiera entender, no solo repetir.</h2>
+    <div class="pq-grid">
+      <div class="pq-card">
+        <div class="pq-icon">🎾</div>
+        <div>
+          <h3>Empezás de cero</h3>
+          <p>El Módulo 1 arranca desde el primer contacto con la pala. Con una base bien construida desde el inicio, avanzás el doble de rápido.</p>
+        </div>
+      </div>
+      <div class="pq-card">
+        <div class="pq-icon">📈</div>
+        <div>
+          <h3>Jugás hace tiempo y no mejorás</h3>
+          <p>El estancamiento casi siempre es falta de estructura, no de talento. El sistema te da el mapa claro de qué trabajar y en qué orden.</p>
+        </div>
+      </div>
+      <div class="pq-card">
+        <div class="pq-icon">🧠</div>
+        <div>
+          <h3>Tu técnica está pero el partido no te sale</h3>
+          <p>Los módulos intermedios y avanzados son exactamente eso: pasar de golpear bien a decidir bien dentro del punto.</p>
+        </div>
+      </div>
+      <div class="pq-card">
+        <div class="pq-icon">🤝</div>
+        <div>
+          <h3>Querés entender el juego de pareja</h3>
+          <p>Cuándo subir, cuándo bajar, cómo cubrirte con tu compañero. El sistema táctico de pareja explicado de forma simple.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BONUS -->
+<section id="bonus">
+  <div class="wrap rv">
+    <p class="tag" style="color:var(--gold)">Incluido sin costo extra</p>
+    <h2>3 herramientas que valen tanto como el curso.</h2>
+    <p class="sub">No son relleno. Las vas a usar antes, durante y después de cada sesión.</p>
+    <div class="bonus-grid">
+      <div class="bcard b1">
+        <span class="b-tag">★ Bonus 1</span>
+        <h3>Nivelómetro 360</h3>
+        <p>Un test de 5 minutos para saber exactamente en qué nivel estás. No donde creés que estás. Donde realmente estás.</p>
+        <ul class="blist">
+          <li>5 bloques de observación de 1 minuto</li>
+          <li>Score máximo de 40 puntos</li>
+          <li>Semáforo Rojo / Amarillo / Verde por golpe</li>
+          <li>Te dice desde qué módulo trabajar con más profundidad</li>
+        </ul>
+      </div>
+      <div class="bcard b2">
+        <span class="b-tag">★ Bonus 2</span>
+        <h3>Plan Anual Maestro</h3>
+        <p>52 semanas organizadas en 4 bloques que marcan tu evolución. Siempre sabés en qué etapa estás y qué viene después.</p>
+        <ul class="blist">
+          <li>Bloque 1 (Ene-Mar): ¿cómo llego al punto?</li>
+          <li>Bloque 2 (Abr-Jun): ¿cómo construyo el punto?</li>
+          <li>Bloque 3 (Jul-Sep): ¿cómo defino el punto?</li>
+          <li>Bloque 4 (Oct-Dic): ¿cómo administro el partido?</li>
+        </ul>
+      </div>
+      <div class="bcard b3">
+        <span class="b-tag">★ Bonus 3</span>
+        <h3>Biblia de Variantes</h3>
+        <p>100 variantes y 7 modificadores universales para que ningún ejercicio se sienta repetitivo.</p>
+        <ul class="blist">
+          <li>Modificar el score — misma presión, distinta emoción</li>
+          <li>Modificar el espacio — cancha más chica o más grande</li>
+          <li>Modificar los roles — atacante fijo, defensor fijo</li>
+          <li>+ 20 sistemas de puntuación alternativos</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROGRESIÓN -->
+<section id="progresion">
+  <div class="wrap rv" style="text-align:center">
+    <p class="tag">Cómo funciona</p>
+    <h2>Cuatro pasos del primer golpe al juego avanzado.</h2>
+    <p class="sub" style="margin:0 auto;max-width:520px">El sistema está diseñado para que cada etapa construya sobre la anterior. No salteás pasos, avanzás con base.</p>
+    <div class="prog-steps">
+      <div class="ps">
+        <div class="ps-circle">🎯</div>
+        <h4>Hacés el test</h4>
+        <p>El Nivelómetro te dice exactamente desde dónde empezar. Sin adivinar.</p>
+      </div>
+      <div class="ps">
+        <div class="ps-circle">📘</div>
+        <h4>Seguís el módulo</h4>
+        <p>Ejercicios concretos con objetivo claro. Sabés qué practicar y para qué.</p>
+      </div>
+      <div class="ps">
+        <div class="ps-circle">✅</div>
+        <h4>Medís tu progreso</h4>
+        <p>Checklist al final de cada clase. Avanzás cuando realmente lo lograste.</p>
+      </div>
+      <div class="ps">
+        <div class="ps-circle">🏓</div>
+        <h4>Jugás mejor</h4>
+        <p>Cada módulo te deja con algo concreto que notás en el partido.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIOS -->
+<section id="testimonios">
+  <div class="wrap rv">
+    <p class="tag">Testimonios</p>
+    <h2>Lo que dicen quienes ya lo usaron.</h2>
+    <div class="test-grid">
+      <div class="tcard">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-quote">"Llevaba un año jugando y sentía que no mejoraba. Con el Módulo 3 entendí por qué siempre golpeaba al centro. En dos semanas cambió todo."</p>
+        <div class="t-author">
+          <div class="t-av">MR</div>
+          <div>
+            <div class="t-name">Marcelo R.</div>
+            <div class="t-info">Córdoba · Nivel intermedio</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-quote">"El Nivelómetro me mostró que era nivel 2 cuando yo creía que era nivel 4. Me dolió un poco pero empecé desde ahí y en tres meses noté la diferencia."</p>
+        <div class="t-author">
+          <div class="t-av">SL</div>
+          <div>
+            <div class="t-name">Sofía L.</div>
+            <div class="t-info">Buenos Aires · Jugadora recreativa</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <div class="t-stars">★★★★★</div>
+        <p class="t-quote">"Lo que más me sirvió fue el árbol de decisión del Módulo 5. Antes remataba siempre directo. Ahora leo la posición primero y el punto cierra solo."</p>
+        <div class="t-author">
+          <div class="t-av">GP</div>
+          <div>
+            <div class="t-name">Gonzalo P.</div>
+            <div class="t-info">Rosario · Nivel avanzado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap rv">
+    <p class="tag">Preguntas frecuentes</p>
+    <h2 style="text-align:center">Lo que más nos preguntan.</h2>
+    <div class="faq-wrap">
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="abrirFaq(this)">
+          ¿Necesito experiencia previa para empezar?
+          <svg class="faq-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">No. El Módulo 1 arranca desde el primer contacto con la pala. Si ya jugás, hacés el Nivelómetro y empezás desde el módulo que corresponde a tu nivel real.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="abrirFaq(this)">
+          ¿Puedo hacer el curso solo o necesito un compañero?
+          <svg class="faq-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Podés estudiar el contenido solo, pero los ejercicios se practican en cancha con al menos un compañero. El sistema está pensado para que lo lleves a tu sesión de juego habitual y lo practiques ahí.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="abrirFaq(this)">
+          ¿En qué formato viene el material?
+          <svg class="faq-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">El curso completo viene en PowerPoint (.pptx), editable y descargable. Podés abrirlo en cualquier dispositivo, verlo antes de ir a la cancha o imprimirlo si lo preferís.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="abrirFaq(this)">
+          ¿Cuánto tiempo me lleva por semana?
+          <svg class="faq-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">El sistema se integra a tus sesiones de juego habituales. No necesitás tiempo extra. Con dos clases por semana de 60 minutos ya podés trabajar un módulo completo en 2 o 3 semanas.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="abrirFaq(this)">
+          ¿Sirve si tengo una lesión?
+          <svg class="faq-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Los módulos 11 y 12 están diseñados específicamente para jugadores con lesiones activas o en proceso de retorno. Tienen adaptaciones por tipo de lesión y un protocolo de retorno semana a semana. El material no reemplaza la opinión de tu médico.</div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="abrirFaq(this)">
+          ¿Y si no me sirve?
+          <svg class="faq-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-a">Tenés 30 días de garantía total. Si probás el sistema y sentís que no aportó nada concreto a tu juego, te devolvemos el 100% sin preguntas ni formularios.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- GARANTÍA -->
+<section id="garantia">
+  <div class="wrap rv">
+    <div class="gar-box">
+      <div class="gar-badge">
+        <span class="gn">30</span>
+        <span class="gl">días</span>
+      </div>
+      <div class="gar-text">
+        <h2>Sin riesgo. Si no mejorás, te devolvemos el dinero.</h2>
+        <p>Probás el sistema durante 30 días. Si en ese tiempo no notás algo concreto en tu juego — más claridad, mejores decisiones, más confianza en cancha — te devolvemos el 100% de tu inversión. Sin preguntas y sin formularios. El riesgo es cero.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRECIO -->
+<section id="precio">
+  <div class="wrap rv" style="text-align:center">
+    <p class="tag">Precio</p>
+    <h2>Un pago. Tuyo para siempre.</h2>
+    <p class="sub" style="margin:0 auto;max-width:480px">Sin suscripciones ni accesos que vencen. Lo comprás una vez y lo tenés siempre.</p>
+    <div class="price-box">
+      <div class="ptag">🔥 Precio de lanzamiento</div>
+      <div class="price-rows">
+        <div class="price-row">
+          <span>12 módulos — 60+ clases explicadas</span>
+          <span>$120.000</span>
+        </div>
+        <div class="price-row">
+          <span>Nivelómetro 360</span>
+          <span>$40.000</span>
+        </div>
+        <div class="price-row">
+          <span>Plan Anual Maestro</span>
+          <span>$40.000</span>
+        </div>
+        <div class="price-row">
+          <span>Biblia de 100 Variantes</span>
+          <span>$40.000</span>
+        </div>
+      </div>
+      <hr class="price-hr">
+      <div class="price-total">
+        <span>Valor total</span>
+        <span>$240.000</span>
+      </div>
+      <div class="price-main">Tuyo <em>hoy</em></div>
+      <p class="price-note">Pago único · Acceso inmediato · Garantía 30 días</p>
+      <a href="#" class="btn-precio">Quiero empezar →</a>
+      <div class="price-chips">
+        <span>🛡 Garantía 30 días</span>
+        <span>⚡ Acceso inmediato</span>
+        <span>♾ Sin vencimiento</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section id="cta">
+  <div class="wrap-sm">
+    <h2>El pádel no es un deporte de golpes.<br>Es un deporte de decisiones.</h2>
+    <p>Cuanto antes entiendas eso, antes empezás a mejorar de verdad.</p>
+    <a href="#precio" class="btn-main">Empezar ahora →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <strong>Pádel <span>Connect</span> Pro</strong>
+  <p style="margin-top:6px">Sistema Integral de Entrenamiento · Edición 2026 · Argentina</p>
+  <p style="margin-top:4px">Todos los derechos reservados</p>
+</footer>
+
+<script>
+  // Nav scroll compact
+  window.addEventListener('scroll', () => {
+    document.querySelector('nav').style.background =
+      window.scrollY > 50 ? 'rgba(13,27,42,0.98)' : 'rgba(13,27,42,0.96)';
+  });
+
+  // Scroll reveal
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+  // Filtro de módulos
+  function filtrar(cat, btn) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('.mc').forEach(c => {
+      const show = cat === 'todos' || c.dataset.c === cat;
+      c.classList.toggle('show', show);
+    });
+  }
+
+  // FAQ
+  function abrirFaq(btn) {
+    const item = btn.parentElement;
+    const abierto = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!abierto) item.classList.add('open');
+  }
+</script>
+</body>
+</html>
