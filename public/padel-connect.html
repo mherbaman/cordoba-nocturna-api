@@ -1495,6 +1495,13 @@ function aceptarEdad(){
   if (refParam) setTimeout(()=>showScreen('registro'), 300);
 }
 
+// Capturar ref del embajador INMEDIATAMENTE al cargar el script
+const _REF_EMBAJADOR = (function(){
+  const p = new URLSearchParams(window.location.search).get('ref');
+  if(p) localStorage.setItem('ref_embajador', p);
+  return p || localStorage.getItem('ref_embajador') || null;
+})();
+
 window.onload=function(){
   // Capturar ?ref= del embajador y guardarlo en localStorage
   const urlParams = new URLSearchParams(window.location.search);
@@ -1661,9 +1668,7 @@ async function doRegister(){
   if(pw.length<6){errEl.textContent='Mínimo 6 caracteres';errEl.style.display='block';return;}
   showLoader('Creando tu perfil...');
   try{
-    // Leer ref del embajador — localStorage o URL actual
-    const _urlP = new URLSearchParams(window.location.search);
-    const refEmbajador = localStorage.getItem('ref_embajador') || _urlP.get('ref') || null;
+    const refEmbajador = _REF_EMBAJADOR || localStorage.getItem('ref_embajador') || null;
     console.log('ref al registrar:', refEmbajador);
     const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null,app_origen:'padel',zona_principal:zonaRegSeleccionada,zonas_extra:zonasExtraReg,ref:refEmbajador})});
     token=d.token;usuario=d.usuario;
