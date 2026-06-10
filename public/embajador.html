@@ -222,6 +222,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     </div>
     <div class="nav-tabs">
       <button class="ntab active" onclick="showTab('dashboard')"><i class="ti ti-layout-dashboard"></i><span> Dashboard</span></button>
+      <button class="ntab" onclick="showTab('eventos')"><i class="ti ti-trophy"></i><span> Mis Eventos</span></button>
       <button class="ntab" onclick="showTab('comunidad')"><i class="ti ti-users"></i><span> Comunidad</span></button>
       <button class="ntab" onclick="showTab('ganancias')"><i class="ti ti-coin"></i><span> Ganancias</span></button>
       <button class="ntab" onclick="showTab('comisiones')"><i class="ti ti-git-branch"></i><span> Comisiones</span></button>
@@ -267,6 +268,39 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
           <div id="fuentesList"><div class="loading">Cargando...</div></div>
         </div>
       </div>
+    <!-- MIS EVENTOS -->
+    <div class="sec" id="sec-eventos">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Crear nuevo evento</div>
+          <div class="ev-create-card" onclick="showToast('Próximamente — crear torneo')">
+            <div class="ev-create-ic" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="ti ti-trophy"></i></div>
+            <div class="ev-create-info"><div class="ev-create-title">Torneo oficial</div><div class="ev-create-sub">8 a 64 jugadores · brackets automáticos · ranking</div></div>
+            <span class="ev-create-btn">Crear ↗</span>
+          </div>
+          <div class="ev-create-card" onclick="showToast('Próximamente — crear Super 8')">
+            <div class="ev-create-ic" style="background:var(--green-bg);color:var(--green)"><i class="ti ti-users"></i></div>
+            <div class="ev-create-info"><div class="ev-create-title">Super 8</div><div class="ev-create-sub">8 jugadores · rotación · listo en 2 minutos</div></div>
+            <span class="ev-create-btn">Crear ↗</span>
+          </div>
+          <div class="ev-create-card" onclick="showToast('Próximamente — crear Americano')">
+            <div class="ev-create-ic" style="background:var(--gold-bg);color:var(--gold)"><i class="ti ti-rotate-clockwise"></i></div>
+            <div class="ev-create-info"><div class="ev-create-title">Americano de Parejas</div><div class="ev-create-sub">parejas rotativas · todos contra todos</div></div>
+            <span class="ev-create-btn">Crear ↗</span>
+          </div>
+          <div class="ev-create-card" onclick="showToast('Próximamente — partido simple')">
+            <div class="ev-create-ic" style="background:rgba(14,165,233,.1);color:#0ea5e9"><i class="ti ti-bolt"></i></div>
+            <div class="ev-create-info"><div class="ev-create-title">Partido simple</div><div class="ev-create-sub">4 jugadores · publicá en Padel Connect</div></div>
+            <span class="ev-create-btn">Crear ↗</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Eventos activos</div>
+          <div id="mis-eventos-list"><div class="loading">Cargando...</div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- COMUNIDAD -->
     <div class="sec" id="sec-comunidad">
       <div class="panel one">
@@ -563,6 +597,46 @@ async function cargarComunidad(){
   }
 }
 
+// ── MIS EVENTOS ───────────────────────────────────────────────────────
+async function cargarMisEventos(){
+  const el = document.getElementById('mis-eventos-list');
+  el.innerHTML = '<div class="loading">Cargando...</div>';
+  try {
+    const d = await apiFetch('/embajadores/eventos-proximos');
+    const todos = [
+      ...d.torneos.map(t => ({...t, tipo:'torneo'})),
+      ...d.americanos.map(a => ({...a, tipo: a.max_jugadores <= 8 ? 'super8' : 'americano'}))
+    ].sort((a,b) => new Date(a.fecha||a.fecha_inicio) - new Date(b.fecha||b.fecha_inicio));
+    if(todos.length === 0){
+      el.innerHTML = '<div class="empty">No hay eventos activos.<br>Creá tu primer torneo o Super 8.</div>';
+      return;
+    }
+    const IC    = { torneo:'ti-trophy', americano:'ti-rotate-clockwise', super8:'ti-users' };
+    const ICBG  = { torneo:'rgba(124,58,237,.15)', americano:'rgba(245,158,11,.1)', super8:'rgba(34,197,94,.1)' };
+    const ICCOL = { torneo:'#a78bfa', americano:'#f59e0b', super8:'#22c55e' };
+    const TLBL  = { torneo:'Torneo', americano:'Americano', super8:'Super 8' };
+    let html = '';
+    todos.forEach(ev => {
+      const fecha = new Date(ev.fecha||ev.fecha_inicio).toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
+      const inscr = ev.inscriptos || 0;
+      const cupo  = ev.max_jugadores || 16;
+      const stTxt = ev.tipo === 'torneo' ? ev.estado : (inscr+'/'+cupo);
+      const stCls = (ev.tipo !== 'torneo' && inscr >= cupo-1) ? 'warn' : 'ok';
+      html += '<div class="ev-card">' +
+        '<div class="ev-ic" style="background:'+ICBG[ev.tipo]+';color:'+ICCOL[ev.tipo]+'"><i class="ti '+IC[ev.tipo]+'"></i></div>' +
+        '<div class="ev-info">' +
+          '<div class="ev-name">'+ev.nombre+'</div>' +
+          '<div class="ev-meta">'+fecha+' · '+(ev.sede||'')+' · '+fmtARS(ev.precio_inscripcion)+'</div>' +
+        '</div>' +
+        '<span class="ev-st '+stCls+'">'+TLBL[ev.tipo]+'</span>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e){
+    el.innerHTML = '<div class="empty">Error al cargar eventos</div>';
+  }
+}
+
 // ── EVENTOS PROXIMOS ──────────────────────────────────────────────────
 async function cargarEventos(){
   const el = document.getElementById('eventosList');
@@ -641,7 +715,7 @@ function calcSim(){
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────
-const TABS = ['dashboard','comunidad','ganancias','comisiones','ranking'];
+const TABS = ['dashboard','eventos','comunidad','ganancias','comisiones','ranking'];
 function showTab(id){
   TABS.forEach(t=>{
     document.getElementById('sec-'+t).classList.toggle('active', t===id);
@@ -649,6 +723,7 @@ function showTab(id){
   document.querySelectorAll('.ntab').forEach((el,i)=>{
     el.classList.toggle('active', TABS[i]===id);
   });
+  if(id==='eventos') cargarMisEventos();
   if(id==='comunidad') cargarComunidad();
   if(id==='ganancias') calcSim();
 }
