@@ -47,6 +47,7 @@ app.get('/OneSignalSDKWorker.js', (req, res) => {
   res.setHeader('Content-Type', 'application/javascript');
   res.sendFile(require('path').join(__dirname, 'public', 'OneSignalSDKWorker.js'));
 });
+app.get("/padel/", (req, res) => { const ref = req.query.ref || ""; if(!ref) return res.sendFile(require("path").join(__dirname, "public", "padel-connect.html")); const fs = require("fs"); let html = fs.readFileSync(require("path").join(__dirname, "public", "padel-connect.html"), "utf8"); html = html.replace("</head>", "<script>window._REF_INJECT=\""+ref+"\";</script></head>"); res.send(html); });
 // Ruta /padel/ con inyección de ref — ANTES del static
 
 app.get('/padel', (req, res) => {
