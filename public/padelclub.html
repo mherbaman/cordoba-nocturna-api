@@ -1223,6 +1223,7 @@ function renderTurnosDia(reservas, disponibles, filtro) {
     return;
   }
 
+  let html = '';
   // Grid 3 columnas — cada columna es una cancha
   html += '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start">';
   Object.keys(porCancha).sort((a,b) => parseInt(a)-parseInt(b)).forEach(num => {
