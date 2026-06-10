@@ -1491,6 +1491,10 @@ function aceptarEdad(){
 }
 
 window.onload=function(){
+  // Capturar ?ref= del embajador y guardarlo en localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const refParam = urlParams.get('ref');
+  if (refParam) localStorage.setItem('ref_embajador', refParam);
   ['reg-vibes','pv-chips'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
@@ -1652,7 +1656,8 @@ async function doRegister(){
   if(pw.length<6){errEl.textContent='Mínimo 6 caracteres';errEl.style.display='block';return;}
   showLoader('Creando tu perfil...');
   try{
-    const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null,app_origen:'padel',zona_principal:zonaRegSeleccionada,zonas_extra:zonasExtraReg})});
+    const refEmbajador = localStorage.getItem('ref_embajador') || null;
+    const d=await api('/auth/registro',{method:'POST',body:JSON.stringify({nombre:n,email:em,password:pw,edad:ed,vibe,foto_url:regPhoto||null,app_origen:'padel',zona_principal:zonaRegSeleccionada,zonas_extra:zonasExtraReg,ref:refEmbajador})});
     token=d.token;usuario=d.usuario;
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
