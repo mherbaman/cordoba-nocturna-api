@@ -1550,7 +1550,7 @@ function renderAgenda(dias, disponibles, reservas) {
           html += '<div class="slot-info">' + (canal === 'app' ? '&#128241;' : canal === 'whatsapp' ? '&#128172;' : '&#127968;') + ' ARS ' + Math.round(parseFloat(reserva.precio_cobrado||0)/1000) + 'K</div>';
           html += '</div>';
         } else if (hayDisp) {
-          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos('' + num + '','' + f + '','' + hora + '')">';
+          html += '<div class="slot-libre" onclick="abrirModalTurnoManualConDatos(\'' + num + '\',\'' + f + '\',\'' + hora + '\')">';
           html += '+ libre';
           html += '</div>';
         } else {
