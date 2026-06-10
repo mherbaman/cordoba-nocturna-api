@@ -1497,7 +1497,7 @@ function aceptarEdad(){
 
 // Capturar ref del embajador INMEDIATAMENTE al cargar el script
 const _REF_EMBAJADOR = (function(){
-  const p = new URLSearchParams(window.location.search).get('ref');
+  const p = new URLSearchParams(window.location.search).get('ref') || (typeof window._REF_INJECT !== 'undefined' ? window._REF_INJECT : null);
   if(p){ localStorage.setItem('ref_embajador', p); sessionStorage.setItem('ref_embajador', p); }
   return p || sessionStorage.getItem('ref_embajador') || localStorage.getItem('ref_embajador') || null;
 })();

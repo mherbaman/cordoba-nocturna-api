@@ -88,7 +88,12 @@ app.get('/padel', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
 });
 app.get('/padel/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
+  const ref = req.query.ref || '';
+  if(!ref) return res.sendFile(path.join(__dirname, 'public', 'padel-connect.html'));
+  const fs = require('fs');
+  let html = fs.readFileSync(path.join(__dirname, 'public', 'padel-connect.html'), 'utf8');
+  html = html.replace('</head>', '<script>window._REF_INJECT="'+ref+'";</script></head>');
+  res.send(html);
 });
 app.get('/admin/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
