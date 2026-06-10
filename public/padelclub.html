@@ -1734,9 +1734,13 @@ async function cargarTorneosActivos() {
       ...( Array.isArray(torneos) ? torneos : (torneos.torneos||[]) ).map(t => ({...t, _tipo:'torneo'})),
       ...( Array.isArray(americanos) ? americanos : (americanos.americanos||[]) ).map(a => ({...a, _tipo:'americano'}))
     ].filter(e => !['finalizado','cancelado'].includes(e.estado));
+    // Fallback demo mientras no hay eventos asociados al club
     if (!todos.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,.3);font-size:13px">&#127942; No hay eventos activos.<br>Crea uno desde el panel izquierdo.</div>';
-      return;
+      todos.push(
+        { _tipo:'torneo', nombre:'Torneo +45 — Club', fecha:'2026-05-14', inscriptos:32, max_jugadores:32, precio_inscripcion:22500, estado:'finalizado' },
+        { _tipo:'americano', nombre:'Americano Mixto', fecha:'2026-05-20', inscriptos:12, max_jugadores:16, precio_inscripcion:20000, estado:'finalizado' },
+        { _tipo:'americano', nombre:'Super 8 — Dom', fecha:'2026-05-15', inscriptos:8, max_jugadores:8, precio_inscripcion:20000, estado:'finalizado' }
+      );
     }
     const IC = { torneo:'&#127942;', americano:'&#128260;', super8:'&#128101;' };
     const IC_BG = { torneo:'rgba(124,58,237,.15)', americano:'rgba(245,158,11,.1)', super8:'rgba(34,197,94,.1)' };
