@@ -202,4 +202,30 @@ router.get('/me', authEmbajador, async (req, res) => {
   }
 });
 
+// ── GET /embajadores/eventos-proximos ────────────────────────────────
+router.get('/eventos-proximos', authEmbajador, async (req, res) => {
+  try {
+    const torneos = await pool.query(`
+      SELECT id, nombre, sede, fecha_inicio as fecha, precio_inscripcion, estado, 'torneo' as tipo
+      FROM torneos
+      WHERE estado IN ('abierto','borrador')
+        AND fecha_inicio >= CURRENT_DATE
+      ORDER BY fecha_inicio ASC LIMIT 3
+    `);
+    const americanos = await pool.query(`
+      SELECT id, nombre, sede, fecha, precio_inscripcion, estado, max_jugadores,
+        (SELECT COUNT(*) FROM americanos_jugadores WHERE americano_id = americanos.id) as inscriptos,
+        'americano' as tipo
+      FROM americanos
+      WHERE estado IN ('abierto')
+        AND fecha >= CURRENT_DATE
+      ORDER BY fecha ASC LIMIT 3
+    `);
+    res.json({ torneos: torneos.rows, americanos: americanos.rows });
+  } catch(err) {
+    console.error('Error eventos proximos:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;

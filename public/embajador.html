@@ -156,6 +156,21 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .rbadge{font-size:10px;background:var(--gold-bg);color:var(--gold);padding:1px 5px;border-radius:var(--radius-sm);margin-left:4px;border:0.5px solid var(--gold-border)}
 .rval{font-size:12px;font-weight:500;color:var(--green)}
 
+/* EV CARDS */
+.ev-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
+.ev-card:last-child{margin-bottom:0}
+.ev-ic{width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.ev-ic.t{background:#1a1a2e;color:#7c3aed}
+.ev-ic.a{background:#1c1400;color:#f59e0b}
+.ev-ic.s{background:var(--green-bg);color:var(--green)}
+.ev-info{flex:1;min-width:0}
+.ev-name{font-size:12px;font-weight:500;color:var(--text)}
+.ev-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.ev-amt{font-size:12px;font-weight:500;color:var(--green);flex-shrink:0}
+.ev-st{font-size:10px;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.ev-st.ok{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.ev-st.warn{background:var(--gold-bg);color:var(--gold);border:0.5px solid var(--gold-border)}
+
 /* LOADING */
 .loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
 .empty{text-align:center;padding:30px;color:var(--text3);font-size:13px}
@@ -507,6 +522,47 @@ async function cargarComunidad(){
     el.innerHTML = html;
   } catch(e){
     el.innerHTML = '<div class="empty">Error al cargar comunidad</div>';
+  }
+}
+
+// ── EVENTOS PROXIMOS ──────────────────────────────────────────────────
+async function cargarEventos(){
+  const el = document.getElementById('eventosList');
+  try {
+    const d = await apiFetch('/embajadores/eventos-proximos');
+    const todos = [
+      ...d.torneos.map(t => ({...t, tipo:'torneo'})),
+      ...d.americanos.map(a => ({...a, tipo:'americano'}))
+    ].sort((a,b) => new Date(a.fecha||a.fecha_inicio) - new Date(b.fecha||b.fecha_inicio)).slice(0,4);
+
+    document.getElementById('eventos-lbl').textContent = todos.length + ' próximos';
+
+    if(todos.length === 0){
+      el.innerHTML = '<div class="empty">Sin eventos próximos</div>';
+      return;
+    }
+    let html = '';
+    todos.forEach(ev => {
+      const fecha = new Date(ev.fecha||ev.fecha_inicio).toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
+      const icClass = ev.tipo === 'torneo' ? 't' : (ev.max_jugadores <= 8 ? 's' : 'a');
+      const icIcon  = ev.tipo === 'torneo' ? 'ti-trophy' : 'ti-users';
+      const precio  = fmtARS(ev.precio_inscripcion);
+      const inscriptos = ev.inscriptos || 0;
+      const cupo = ev.max_jugadores || 16;
+      const stClass = (ev.tipo === 'americano' && inscriptos >= cupo - 1) ? 'warn' : 'ok';
+      const stTxt   = ev.tipo === 'americano' ? (inscriptos+'/'+cupo) : ev.estado;
+      html += '<div class="ev-card">' +
+        '<div class="ev-ic ' + icClass + '"><i class="ti ' + icIcon + '"></i></div>' +
+        '<div class="ev-info">' +
+          '<div class="ev-name">' + ev.nombre + '</div>' +
+          '<div class="ev-meta">' + fecha + ' · ' + (ev.sede||'') + ' · ' + precio + '</div>' +
+        '</div>' +
+        '<span class="ev-st ' + stClass + '">' + stTxt + '</span>' +
+        '</div>';
+    });
+    el.innerHTML = html;
+  } catch(e){
+    el.innerHTML = '<div class="empty">Error al cargar eventos</div>';
   }
 }
 
