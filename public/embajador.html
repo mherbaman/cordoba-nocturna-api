@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PadelConnect — Portal Embajador</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#22c55e;--green-dark:#15803d;--green-bg:#052010;--green-border:#15803d;
+  --gold:#f59e0b;--gold-bg:#1c1400;--gold-border:#854f0b;
+  --bg:#0a0a0a;--bg2:#0f0f0f;--bg3:#111;--bg4:#1a1a1a;
+  --border:#1e1e1e;--text:#fff;--text2:#9ca3af;--text3:#6b7280;
+  --radius:8px;--radius-sm:6px;--radius-lg:12px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:36px 32px;width:100%;max-width:380px}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .mark{width:48px;height:48px;background:var(--green);border-radius:var(--radius);display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#052e16;margin-bottom:12px}
+.login-logo h1{font-size:20px;font-weight:600;color:var(--text)}
+.login-logo p{font-size:13px;color:var(--text3);margin-top:4px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px}
+.field input{width:100%;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-size:14px;outline:none}
+.field input:focus{border-color:var(--green)}
+.btn-login{width:100%;background:var(--green);color:#052e16;font-size:14px;font-weight:600;padding:11px;border:none;border-radius:var(--radius-sm);cursor:pointer;margin-top:4px}
+.btn-login:hover{background:var(--green-dark);color:#fff}
+.login-err{font-size:12px;color:#f87171;margin-top:10px;text-align:center;display:none}
+
+/* SHELL */
+.shell{display:none;flex-direction:column;min-height:100vh}
+.shell.visible{display:flex}
+
+/* TOPNAV */
+.topnav{background:var(--bg2);border-bottom:0.5px solid var(--border);padding:0 16px;display:flex;align-items:center;height:48px;gap:0;position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:8px;margin-right:20px;flex-shrink:0}
+.nav-mark{width:26px;height:26px;background:var(--green);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#052e16}
+.nav-name{font-size:13px;font-weight:500}
+.nav-badge{font-size:10px;background:var(--gold-bg);color:var(--gold);padding:1px 7px;border-radius:var(--radius-sm);font-weight:500;margin-left:4px;border:0.5px solid var(--gold-border)}
+.nav-tabs{display:flex;flex:1;overflow-x:auto}
+.ntab{padding:0 12px;height:48px;display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0;background:transparent;border-left:none;border-right:none;border-top:none;transition:color .15s}
+.ntab.active{color:var(--green);border-bottom-color:var(--green)}
+.ntab:hover:not(.active){color:var(--text2)}
+.ntab i{font-size:14px}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nivel-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
+.nivel-plata{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border)}
+.nivel-bronce{background:var(--bg3);color:var(--text3);border:0.5px solid var(--border)}
+.nivel-oro{background:var(--gold-bg);color:var(--gold);border:0.5px solid var(--gold-border)}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#052e16;cursor:pointer}
+.btn-logout{font-size:11px;color:var(--text3);background:none;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:3px 8px;cursor:pointer}
+.btn-logout:hover{color:var(--text);border-color:var(--text3)}
+
+/* CONTENT */
+.content{flex:1;padding:16px;max-width:1200px;width:100%;margin:0 auto}
+.sec{display:none}.sec.active{display:block}
+
+/* KPIS */
+.kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.kpi{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px}
+.kpi-lbl{font-size:11px;color:var(--text3);margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.kpi-lbl i{font-size:13px}
+.kpi-val{font-size:20px;font-weight:600;color:var(--text);line-height:1}
+.kpi-val.g{color:var(--green)}
+.kpi-sub{font-size:11px;color:var(--green);margin-top:3px}
+.kpi-sub.neu{color:var(--text3)}
+
+/* PANELS */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.one{margin-bottom:10px}
+.panel{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px}
+.phdr{font-size:11px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.phdr span{font-size:10px;color:var(--green);font-weight:400;text-transform:none;letter-spacing:0}
+
+/* BARRAS */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-lbl{font-size:11px;color:var(--text2);width:36px;flex-shrink:0;text-align:right}
+.bar-track{flex:1;height:7px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:var(--green);transition:width .6s ease}
+.bar-val{font-size:11px;font-weight:500;color:var(--text);width:80px;text-align:right;flex-shrink:0}
+
+/* ACTIVIDAD */
+.act-item{display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--bg4);align-items:flex-start}
+.act-item:last-child{border-bottom:none}
+.adot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px}
+.atxt{font-size:12px;color:var(--text2);flex:1;line-height:1.5}
+.atime{font-size:11px;color:var(--text3);flex-shrink:0}
+
+/* LINK EMBAJADOR */
+.link-box{background:var(--bg2);border:0.5px solid var(--green-border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.link-url{font-size:12px;color:var(--green);flex:1;font-family:monospace;word-break:break-all}
+.btn-copy{font-size:11px;background:var(--green-bg);color:var(--green);border:0.5px solid var(--green-border);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer;white-space:nowrap}
+.btn-copy:hover{background:var(--green);color:#052e16}
+
+/* COMUNIDAD */
+.c-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--bg4)}
+.c-row:last-child{border-bottom:none}
+.cav{width:28px;height:28px;border-radius:50%;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#7c3aed;flex-shrink:0}
+.cname{font-size:12px;color:var(--text);flex:1}
+.cmeta{font-size:11px;color:var(--text3)}
+.ctag{font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:10px;flex-shrink:0}
+
+/* COMISIONES */
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.caseA{background:var(--green-bg);border:0.5px solid var(--green-border);border-radius:var(--radius-lg);padding:14px}
+.caseB{background:var(--gold-bg);border:0.5px solid var(--gold-border);border-radius:var(--radius-lg);padding:14px}
+.caseB-lock{background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;opacity:.5}
+.c-head{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.c-head.a{color:var(--green)}.c-head.b{color:var(--gold)}.c-head.lk{color:var(--text3)}
+.c-amt{font-size:26px;font-weight:600;margin-bottom:4px}
+.c-amt.a{color:var(--green)}.c-amt.b{color:var(--gold)}.c-amt.lk{color:var(--text3)}
+.c-desc{font-size:12px;line-height:1.6}
+.c-desc.a{color:#86efac}.c-desc.b{color:#fcd34d}.c-desc.lk{color:var(--text3)}
+
+.level-card{background:var(--bg2);padding:11px 13px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;border:0.5px solid var(--border);border-radius:var(--radius)}
+.level-bar{width:4px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:44px}
+.level-info{flex:1}
+.level-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.level-desc{font-size:11px;color:var(--text3);line-height:1.5}
+.level-earn{font-size:12px;font-weight:500;color:var(--green);flex-shrink:0;text-align:right}
+
+/* DESGLOSE */
+.desg{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:8px}
+.dtitle{font-size:10px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.drow{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.drow.tot{border-top:0.5px solid var(--border);margin-top:4px;padding-top:7px;font-weight:500}
+.dl{color:var(--text3)}.dv{color:var(--text)}.dv.g{color:var(--green)}
+
+/* SIMULADOR */
+.sim-wrap{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:13px;margin-bottom:10px}
+.sim-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.sim-row:last-child{margin-bottom:0}
+.sim-lbl{font-size:11px;color:var(--text2);width:165px;flex-shrink:0;line-height:1.3}
+.sim-row input[type=range]{flex:1;accent-color:var(--green)}
+.sim-out{font-size:12px;font-weight:500;color:var(--text);width:90px;text-align:right;flex-shrink:0}
+.sim-bkdn{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px;margin-bottom:8px}
+.sim-b{background:var(--bg3);border-radius:var(--radius-sm);padding:9px;text-align:center;border:0.5px solid var(--border)}
+.sim-bv{font-size:13px;font-weight:500;color:var(--text)}
+.sim-bv.g{color:var(--green)}.sim-bv.locked{color:var(--text3)}
+.sim-bl{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.3}
+.sim-result{background:var(--green-bg);border:0.5px solid var(--green-border);border-radius:var(--radius-sm);padding:12px 14px}
+.sim-total-row{display:flex;justify-content:space-between;align-items:center}
+.sim-total-lbl{font-size:12px;color:#86efac}
+.sim-total-val{font-size:22px;font-weight:600;color:var(--green)}
+
+/* RANKING */
+.rank-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--bg4)}
+.rank-row:last-child{border-bottom:none}
+.rpos{width:20px;font-size:11px;font-weight:500;color:var(--text3);text-align:center;flex-shrink:0}
+.rpos.me{color:var(--gold)}
+.rname{font-size:12px;color:var(--text);flex:1}
+.rbadge{font-size:10px;background:var(--gold-bg);color:var(--gold);padding:1px 5px;border-radius:var(--radius-sm);margin-left:4px;border:0.5px solid var(--gold-border)}
+.rval{font-size:12px;font-weight:500;color:var(--green)}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.empty{text-align:center;padding:30px;color:var(--text3);font-size:13px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#052e16;font-size:13px;font-weight:500;padding:10px 16px;border-radius:var(--radius-sm);z-index:999;display:none;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:700px){
+  .kgrid{grid-template-columns:1fr 1fr}
+  .two{grid-template-columns:1fr}
+  .case-grid{grid-template-columns:1fr}
+  .sim-bkdn{grid-template-columns:1fr 1fr}
+  .ntab span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="mark">PC</div>
+      <h1>PadelConnect</h1>
+      <p>Portal Embajador</p>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-login" onclick="doLogin()">Ingresar</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell" id="shell">
+  <div class="topnav">
+    <div class="nav-logo">
+      <div class="nav-mark">PC</div>
+      <span class="nav-name">PadelConnect</span>
+      <span class="nav-badge">Embajador</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="ntab active" onclick="showTab('dashboard')"><i class="ti ti-layout-dashboard"></i><span> Dashboard</span></button>
+      <button class="ntab" onclick="showTab('comunidad')"><i class="ti ti-users"></i><span> Comunidad</span></button>
+      <button class="ntab" onclick="showTab('ganancias')"><i class="ti ti-coin"></i><span> Ganancias</span></button>
+      <button class="ntab" onclick="showTab('comisiones')"><i class="ti ti-git-branch"></i><span> Comisiones</span></button>
+      <button class="ntab" onclick="showTab('ranking')"><i class="ti ti-trophy"></i><span> Ranking</span></button>
+    </div>
+    <div class="nav-right">
+      <span class="nivel-badge nivel-plata" id="nivelBadge">Plata</span>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+      <div class="avatar" id="avatarEl">MA</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="sec active" id="sec-dashboard">
+      <div id="linkBoxWrap"></div>
+      <div class="kgrid" id="kpiGrid">
+        <div class="kpi"><div class="kpi-lbl"><i class="ti ti-coin"></i>Ganado este mes</div><div class="kpi-val g" id="k-ganancias">—</div><div class="kpi-sub" id="k-ganancias-sub"></div></div>
+        <div class="kpi"><div class="kpi-lbl"><i class="ti ti-building"></i>Reservas este mes</div><div class="kpi-val" id="k-reservas">—</div><div class="kpi-sub neu" id="k-reservas-sub"></div></div>
+        <div class="kpi"><div class="kpi-lbl"><i class="ti ti-building"></i>Reservas hoy</div><div class="kpi-val" id="k-hoy">—</div><div class="kpi-sub neu">Caso A activo</div></div>
+        <div class="kpi"><div class="kpi-lbl"><i class="ti ti-users"></i>Mi comunidad</div><div class="kpi-val" id="k-comunidad">—</div><div class="kpi-sub neu">jugadores en tu red</div></div>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <div class="phdr">Ganancias — últimos 6 meses</div>
+          <div id="historicoBarras"><div class="loading">Cargando...</div></div>
+        </div>
+        <div class="panel">
+          <div class="phdr">Actividad reciente</div>
+          <div id="actividadList"><div class="loading">Cargando...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMUNIDAD -->
+    <div class="sec" id="sec-comunidad">
+      <div class="panel one">
+        <div class="phdr">Mi comunidad <span id="comunidad-total-lbl"></span></div>
+        <div id="comunidadList"><div class="loading">Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- GANANCIAS -->
+    <div class="sec" id="sec-ganancias">
+      <div class="panel one">
+        <div class="phdr">Simulador de ganancias <span>mové los sliders</span></div>
+        <div class="sim-wrap">
+          <div class="sim-row"><span class="sim-lbl">Torneos por mes</span><input type="range" id="s-torn" min="0" max="5" value="2" step="1" oninput="calcSim()"><span class="sim-out" id="v-torn">2 torneos</span></div>
+          <div class="sim-row"><span class="sim-lbl">Jugadores por torneo</span><input type="range" id="s-jug" min="8" max="64" value="28" step="4" oninput="calcSim()"><span class="sim-out" id="v-jug">28 jugadores</span></div>
+          <div class="sim-row"><span class="sim-lbl">Super 8 / Americanos / mes</span><input type="range" id="s-s8" min="0" max="12" value="4" step="1" oninput="calcSim()"><span class="sim-out" id="v-s8">4 eventos</span></div>
+          <div class="sim-row"><span class="sim-lbl">Reservas cancha / día (Caso A)</span><input type="range" id="s-res" min="0" max="25" value="10" step="1" oninput="calcSim()"><span class="sim-out" id="v-res">10 / día</span></div>
+          <div class="sim-row" id="row-plata-sim"><span class="sim-lbl">Nivel Plata activo (Caso B)</span><input type="range" id="s-plata" min="0" max="1" value="1" step="1" oninput="calcSim()"><span class="sim-out" id="v-plata">Sí</span></div>
+          <div class="sim-row" id="row-red"><span class="sim-lbl">Inscripciones de tu red en eventos ajenos / mes</span><input type="range" id="s-red" min="0" max="400" value="100" step="10" oninput="calcSim()"><span class="sim-out" id="v-red">100</span></div>
+        </div>
+        <div class="sim-bkdn">
+          <div class="sim-b"><div class="sim-bv g" id="r-torn">ARS 0</div><div class="sim-bl">Torneos</div></div>
+          <div class="sim-b"><div class="sim-bv g" id="r-s8">ARS 0</div><div class="sim-bl">Super 8 / Amer.</div></div>
+          <div class="sim-b"><div class="sim-bv g" id="r-res">ARS 0</div><div class="sim-bl">Caso A — reservas</div></div>
+          <div class="sim-b"><div class="sim-bv" id="r-red">—</div><div class="sim-bl">Caso B — Plata</div></div>
+        </div>
+        <div class="sim-result">
+          <div class="sim-total-row">
+            <div>
+              <div class="sim-total-lbl">Tu ganancia mensual estimada</div>
+              <div style="font-size:11px;color:#86efac;margin-top:2px" id="sim-note">—</div>
+            </div>
+            <div class="sim-total-val" id="sim-total">ARS 0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMISIONES -->
+    <div class="sec" id="sec-comisiones">
+      <div class="panel one">
+        <div class="phdr">Modelo de comisiones</div>
+        <div class="case-grid">
+          <div class="caseA">
+            <div class="c-head a"><i class="ti ti-check"></i>Caso A — todos los niveles</div>
+            <div class="c-amt a">ARS 1.000</div>
+            <div class="c-desc a">Cada vez que alguien de tu red reserva una cancha por la app, recibís ARS 1.000. Sin importar qué club ni quién organizó el partido. Activo desde el primer día.</div>
+          </div>
+          <div id="caseBEl" class="caseB">
+            <div class="c-head b"><i class="ti ti-star"></i>Caso B — solo nivel Plata</div>
+            <div class="c-amt b">ARS 1.000</div>
+            <div class="c-desc b">Cuando alguien de tu red se anota en un torneo, Super 8 o Americano organizado por otro, recibís ARS 1.000 extra. Ingreso pasivo puro — sin hacer nada.</div>
+          </div>
+        </div>
+        <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 13px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Diferencia clave entre niveles</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">En <strong style="color:var(--text)">nivel Bronce</strong> solo te generan comisión las reservas (Caso A). En <strong style="color:var(--green)">nivel Plata</strong> además ganás ARS 1.000 cada vez que alguien de tu red se anota en un evento ajeno (Caso B).</div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <div class="phdr">Caso A — desglose por reserva</div>
+          <div class="desg">
+            <div class="dtitle">Distribución de un turno — ARS 42.000</div>
+            <div class="drow"><span class="dl">Jugador paga por app</span><span class="dv">ARS 42.000</span></div>
+            <div class="drow"><span class="dl">Turno presencial (referencia)</span><span class="dv">ARS 45.000</span></div>
+            <div class="drow"><span class="dl">Ahorro para el jugador</span><span class="dv g">ARS 3.000 (−7%)</span></div>
+            <div class="drow"><span class="dl">Club recibe</span><span class="dv">ARS 40.000</span></div>
+            <div class="drow"><span class="dl">Embajador (vos)</span><span class="dv g">ARS 1.000</span></div>
+            <div class="drow"><span class="dl">PadelConnect</span><span class="dv">ARS 1.000</span></div>
+            <div class="drow tot"><span class="dl">Total distribuido</span><span class="dv g">ARS 42.000 ✓</span></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="phdr">Niveles</div>
+          <div class="level-card">
+            <div class="level-bar" style="background:var(--text3)"></div>
+            <div class="level-info"><div class="level-name" style="color:var(--text2)">Bronce</div><div class="level-desc">Caso A activo desde el día 1. Caso B bloqueado.</div></div>
+            <div class="level-earn" style="color:var(--text3)">~ARS 700K</div>
+          </div>
+          <div class="level-card" style="border-color:var(--green-border)">
+            <div class="level-bar" style="background:var(--green)"></div>
+            <div class="level-info"><div class="level-name" style="color:var(--green)">Plata — Caso B activo</div><div class="level-desc">Todo lo de Bronce más ARS 1.000 por cada inscripción de tu red en eventos ajenos.</div></div>
+            <div class="level-earn">ARS 2M+</div>
+          </div>
+          <div class="level-card" style="border-color:var(--gold-border)">
+            <div class="level-bar" style="background:var(--gold)"></div>
+            <div class="level-info"><div class="level-name" style="color:var(--gold)">Oro</div><div class="level-desc">Zona exclusiva, co-marketing y acceso a franquicia provincial con 30% de descuento.</div></div>
+            <div class="level-earn" style="color:var(--gold)">ARS 4M+</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKING -->
+    <div class="sec" id="sec-ranking">
+      <div class="panel one">
+        <div class="phdr">Ranking embajadores — Córdoba <span>próximamente datos reales</span></div>
+        <div class="rank-row"><div class="rpos">1</div><div class="rname">Javier M. — Zona Norte</div><div class="rval">ARS 3.8M</div><span class="nivel-badge nivel-plata">Plata</span></div>
+        <div class="rank-row"><div class="rpos">2</div><div class="rname">Sofía G. — Zona Sur</div><div class="rval">ARS 2.9M</div><span class="nivel-badge nivel-plata">Plata</span></div>
+        <div class="rank-row" id="miRankRow"><div class="rpos me">3</div><div class="rname" id="miRankNombre">Vos</div><div class="rval" id="miRankVal">—</div><span class="nivel-badge nivel-plata" id="miRankNivel">Plata</span></div>
+        <div class="rank-row"><div class="rpos">4</div><div class="rname">Lucas P. — Nueva Córdoba</div><div class="rval">ARS 890K</div><span class="nivel-badge nivel-bronce">Bronce</span></div>
+        <div class="rank-row"><div class="rpos">5</div><div class="rname">Valentina R. — Cerro</div><div class="rval">ARS 710K</div><span class="nivel-badge nivel-bronce">Bronce</span></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://api.cordobalux.com';
+let EMB = null;
+let DASHBOARD = null;
+
+// ── AUTH ──────────────────────────────────────────────────────────────
+function getToken(){ return localStorage.getItem('emb_token'); }
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  if(!email || !pass){ errEl.textContent='Completá email y contraseña'; errEl.style.display='block'; return; }
+  try {
+    const r = await fetch(API+'/embajadores/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:pass})
+    });
+    const d = await r.json();
+    if(!r.ok){ errEl.textContent = d.error||'Error al ingresar'; errEl.style.display='block'; return; }
+    localStorage.setItem('emb_token', d.token);
+    localStorage.setItem('emb_data', JSON.stringify(d.embajador));
+    EMB = d.embajador;
+    mostrarShell();
+    cargarDashboard();
+  } catch(e){
+    errEl.textContent = 'Error de conexión'; errEl.style.display='block';
+  }
+}
+
+function logout(){
+  localStorage.removeItem('emb_token');
+  localStorage.removeItem('emb_data');
+  EMB = null; DASHBOARD = null;
+  document.getElementById('shell').classList.remove('visible');
+  document.getElementById('loginWrap').style.display='flex';
+}
+
+function mostrarShell(){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('shell').classList.add('visible');
+  if(EMB){
+    const ini = (EMB.nombre||'E').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('avatarEl').textContent = ini;
+    const nb = document.getElementById('nivelBadge');
+    nb.textContent = EMB.nivel.charAt(0).toUpperCase()+EMB.nivel.slice(1);
+    nb.className = 'nivel-badge nivel-'+EMB.nivel;
+  }
+}
+
+// ── API CALLS ─────────────────────────────────────────────────────────
+async function apiFetch(path){
+  const r = await fetch(API+path, { headers:{'Authorization':'Bearer '+getToken()} });
+  if(!r.ok) throw new Error('API error '+r.status);
+  return r.json();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────
+async function cargarDashboard(){
+  try {
+    const d = await apiFetch('/embajadores/dashboard');
+    DASHBOARD = d;
+    const k = d.kpis;
+    const emb = d.embajador;
+
+    // Link embajador
+    const linkUrl = 'https://cordobalux.com/padel?ref='+emb.codigo;
+    document.getElementById('linkBoxWrap').innerHTML =
+      '<div class="link-box"><i class="ti ti-link" style="color:var(--green);flex-shrink:0"></i>' +
+      '<span class="link-url">'+linkUrl+'</span>' +
+      '<button class="btn-copy" onclick="copiarLink()">Copiar link</button></div>';
+
+    // KPIs
+    document.getElementById('k-ganancias').textContent = fmtARS(k.ganancias_mes);
+    document.getElementById('k-ganancias-sub').textContent = 'Caso A + Caso B este mes';
+    document.getElementById('k-reservas').textContent = k.reservas_mes;
+    document.getElementById('k-reservas-sub').textContent = 'ARS '+fmtNum(k.reservas_mes*1000)+' acumulado';
+    document.getElementById('k-hoy').textContent = k.reservas_hoy;
+    document.getElementById('k-comunidad').textContent = k.comunidad_total;
+
+    // Histórico barras
+    const hist = d.historico;
+    if(hist.length === 0){
+      document.getElementById('historicoBarras').innerHTML = '<div class="empty">Sin datos aún — tu comunidad reservará pronto</div>';
+    } else {
+      const max = Math.max(...hist.map(h=>parseInt(h.monto)), 1);
+      let html = '';
+      hist.forEach(h => {
+        const pct = Math.round(parseInt(h.monto)/max*100);
+        html += '<div class="bar-row">' +
+          '<span class="bar-lbl">'+h.mes+'</span>' +
+          '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div>' +
+          '<span class="bar-val">'+fmtARS(h.monto)+'</span></div>';
+      });
+      document.getElementById('historicoBarras').innerHTML = html;
+    }
+
+    // Actividad
+    const act = d.actividad;
+    if(act.length === 0){
+      document.getElementById('actividadList').innerHTML = '<div class="empty">Sin actividad reciente aún</div>';
+    } else {
+      let html = '';
+      act.forEach(a => {
+        const fecha = new Date(a.fecha).toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
+        html += '<div class="act-item"><div class="adot"></div>' +
+          '<span class="atxt"><strong style="color:var(--text)">'+a.jugador+'</strong> reservó cancha en '+a.club+' · '+a.hora_inicio.slice(0,5)+'hs</span>' +
+          '<span class="atime">'+fecha+'</span></div>';
+      });
+      document.getElementById('actividadList').innerHTML = html;
+    }
+
+    // Ranking — mi fila
+    document.getElementById('miRankNombre').textContent = emb.nombre;
+    document.getElementById('miRankVal').textContent = fmtARS(k.ganancias_mes);
+    document.getElementById('miRankNivel').textContent = emb.nivel.charAt(0).toUpperCase()+emb.nivel.slice(1);
+    document.getElementById('miRankNivel').className = 'nivel-badge nivel-'+emb.nivel;
+
+    // Caso B en comisiones
+    if(emb.nivel === 'bronce'){
+      document.getElementById('caseBEl').className = 'caseB-lock';
+    }
+
+  } catch(e){
+    console.error('Error dashboard:', e);
+  }
+}
+
+// ── COMUNIDAD ─────────────────────────────────────────────────────────
+async function cargarComunidad(){
+  const el = document.getElementById('comunidadList');
+  el.innerHTML = '<div class="loading">Cargando...</div>';
+  try {
+    const d = await apiFetch('/embajadores/comunidad');
+    document.getElementById('comunidad-total-lbl').textContent = d.total+' jugadores';
+    if(d.comunidad.length === 0){
+      el.innerHTML = '<div class="empty">Todavía no hay jugadores en tu red.<br>Compartí tu link para sumar tu comunidad.</div>';
+      return;
+    }
+    let html = '';
+    d.comunidad.forEach(u => {
+      const ini = ((u.nombre||'')+' '+(u.apellido||'')).trim().split(' ').map(w=>w[0]||'?').join('').slice(0,2).toUpperCase();
+      const zona = u.zona_principal || 'Sin zona';
+      const reservas = u.reservas_total || 0;
+      const nivel = u.nivel || '—';
+      html += '<div class="c-row">' +
+        '<div class="cav">'+ini+'</div>' +
+        '<div style="flex:1"><div class="cname">'+u.nombre+' '+(u.apellido||'')+'</div>' +
+        '<div class="cmeta">'+zona+' · Nivel '+nivel+' · '+reservas+' reservas</div></div>' +
+        '<span class="ctag">Tuya siempre</span></div>';
+    });
+    el.innerHTML = html;
+  } catch(e){
+    el.innerHTML = '<div class="empty">Error al cargar comunidad</div>';
+  }
+}
+
+// ── SIMULADOR ─────────────────────────────────────────────────────────
+function calcSim(){
+  const torn  = +document.getElementById('s-torn').value;
+  const jug   = +document.getElementById('s-jug').value;
+  const s8    = +document.getElementById('s-s8').value;
+  const res   = +document.getElementById('s-res').value;
+  const plata = +document.getElementById('s-plata').value;
+  const red   = +document.getElementById('s-red').value;
+
+  document.getElementById('v-torn').textContent  = torn+' torneo'+(torn!==1?'s':'');
+  document.getElementById('v-jug').textContent   = jug+' jugadores';
+  document.getElementById('v-s8').textContent    = s8+' evento'+(s8!==1?'s':'');
+  document.getElementById('v-res').textContent   = res+' / día';
+  document.getElementById('v-plata').textContent = plata?'Sí — activo':'No aún';
+  document.getElementById('v-red').textContent   = red+' inscripciones';
+
+  const rowRed = document.getElementById('row-red');
+  rowRed.style.opacity = plata?'1':'0.3';
+  rowRed.style.pointerEvents = plata?'auto':'none';
+
+  const ingTorn = Math.round(torn*jug*22500*0.70);
+  const ingS8   = Math.round(s8*16*20000*0.75);
+  const ingRes  = Math.round(res*1000*30);
+  const ingRed  = plata?Math.round(red*1000):0;
+  const total   = ingTorn+ingS8+ingRes+ingRed;
+
+  document.getElementById('r-torn').textContent = fmtARS(ingTorn);
+  document.getElementById('r-s8').textContent   = fmtARS(ingS8);
+  document.getElementById('r-res').textContent  = fmtARS(ingRes);
+  const rRed = document.getElementById('r-red');
+  rRed.textContent  = plata?fmtARS(ingRed):'Bloqueado';
+  rRed.className    = plata?'sim-bv g':'sim-bv locked';
+  document.getElementById('sim-total').textContent = fmtARS(total);
+  document.getElementById('sim-note').textContent  = plata?'Nivel Plata activo — Caso A + B incluidos':'Nivel Bronce — activá Plata para Caso B';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────
+const TABS = ['dashboard','comunidad','ganancias','comisiones','ranking'];
+function showTab(id){
+  TABS.forEach(t=>{
+    document.getElementById('sec-'+t).classList.toggle('active', t===id);
+  });
+  document.querySelectorAll('.ntab').forEach((el,i)=>{
+    el.classList.toggle('active', TABS[i]===id);
+  });
+  if(id==='comunidad') cargarComunidad();
+  if(id==='ganancias') calcSim();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────
+function fmtARS(n){
+  const r = Math.round(parseInt(n)||0);
+  if(r>=1000000) return 'ARS '+(r/1000000).toFixed(2).replace('.',',')+' M';
+  if(r>=1000)    return 'ARS '+(r/1000).toFixed(0)+'K';
+  return 'ARS '+r.toLocaleString('es-AR');
+}
+function fmtNum(n){ return Math.round(n).toLocaleString('es-AR'); }
+
+function copiarLink(){
+  if(!EMB) return;
+  const url = 'https://cordobalux.com/padel?ref='+EMB.codigo;
+  navigator.clipboard.writeText(url).then(()=>showToast('Link copiado ✓')).catch(()=>{});
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 2500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+(function init(){
+  const token = getToken();
+  const data  = localStorage.getItem('emb_data');
+  if(token && data){
+    EMB = JSON.parse(data);
+    mostrarShell();
+    cargarDashboard();
+  }
+  // Enter en login
+  document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('loginEmail').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
+  calcSim();
+})();
+</script>
+</body>
+</html>
