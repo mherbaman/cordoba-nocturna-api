@@ -1810,7 +1810,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     <button class="tab active" onclick="navTo('dashboard',this)">&#128202; Dashboard</button>
     <button class="tab" onclick="navTo('canchas',this)">&#127955; Mis Canchas</button>
     <button class="tab" onclick="navTo('torneos',this)">&#127942; Torneos</button>
-    <button class="tab" onclick="navTo('stats',this)">&#128200; Estadisticas</button>
+    <button class="tab" onclick="navTo('jugadores',this)">&#128101; Jugadores</button>
     <button class="tab" onclick="navTo('resenas',this)">&#11088; Resenas</button>
   </div>
 
@@ -2131,9 +2131,20 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     </div>
 
     <!-- ===== ESTADISTICAS ===== -->
-    <div class="page" id="page-stats">
-      <div class="section-hdr"><div class="section-title">&#128200; Estadisticas</div></div>
-      <div id="stats-content"><div class="loader"></div></div>
+    <div class="page" id="page-jugadores">
+      <div class="section-hdr">
+        <div class="section-title">&#128101; Jugadores</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Top jugadores del club</div>
+          <div id="jugadores-top-list"><div class="loader"></div></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Perfil de tu comunidad</div>
+          <div id="jugadores-comunidad"><div class="loader"></div></div>
+        </div>
+      </div>
     </div>
 
     <!-- ===== RESENAS ===== -->

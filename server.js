@@ -60,6 +60,7 @@ app.use('/sponsors',    require('./routes/sponsors'));
 app.use('/padel',     require('./routes/padel'));
 app.use('/torneos',   require('./routes/torneos'));
 app.use('/americanos', require('./routes/americanos'));
+app.use('/embajadores', require('./routes/embajadores'));
 const americanosParejas = require('./routes/americanos_parejas');
 app.use('/americanos-parejas', americanosParejas);
 

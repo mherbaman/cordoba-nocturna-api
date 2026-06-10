@@ -111,7 +111,7 @@ async function enviarEmailBienvenida(usuario) {
 // ── POST /auth/registro ──────────────────────────────────────────────
 // El usuario se registra por primera vez
 router.post('/registro', async (req, res) => {
-  const { nombre, apellido, email, telefono, password, foto_url, vibe, edad, app_origen, zona_principal, zonas_extra } = req.body;
+  const { nombre, apellido, email, telefono, password, foto_url, vibe, edad, app_origen, zona_principal, zonas_extra, ref } = req.body;
 
   if (!nombre || !password) {
     return res.status(400).json({ error: 'Nombre y contraseña son requeridos' });
@@ -128,11 +128,18 @@ router.post('/registro', async (req, res) => {
 
     const password_hash = await bcrypt.hash(password, 10);
 
+    // Resolver embajador_id desde ref (código único del embajador)
+    let embajador_id = null;
+    if (ref) {
+      const embRef = await pool.query('SELECT id FROM embajadores WHERE codigo = $1 AND activo = true', [ref]);
+      if (embRef.rows.length > 0) embajador_id = embRef.rows[0].id;
+    }
+
     const result = await pool.query(`
-      INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, foto_url, vibe, edad, app_origen, zona_principal, zonas_extra)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-      RETURNING id, nombre, apellido, email, foto_url, vibe, edad, telefono, app_origen, zona_principal, zonas_extra, creado_en
-    `, [nombre, apellido||'', email, telefono, password_hash, foto_url, vibe, edad, app_origen||'padel', zona_principal||null, zonas_extra||null]);
+      INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, foto_url, vibe, edad, app_origen, zona_principal, zonas_extra, embajador_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id, nombre, apellido, email, foto_url, vibe, edad, telefono, app_origen, zona_principal, zonas_extra, embajador_id, creado_en
+    `, [nombre, apellido||'', email, telefono, password_hash, foto_url, vibe, edad, app_origen||'padel', zona_principal||null, zonas_extra||null, embajador_id]);
 
     const usuario = result.rows[0];
     const token = jwt.sign(
