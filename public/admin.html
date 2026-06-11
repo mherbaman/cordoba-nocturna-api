@@ -223,6 +223,7 @@ if('serviceWorker' in navigator){
       <button class="nav-item" onclick="navTo('torneos',this)"><span class="icon">🏆</span> Torneos</button>
       <button class="nav-item" onclick="navTo('americanos',this)"><span class="icon">🎾</span> Super 8 Americano</button>
       <button class="nav-item" onclick="navTo('americanos-parejas',this)"><span class="icon">🤝</span> Pádel Americano</button>
+      <button class="nav-item" onclick="navTo('embajadores',this)"><span class="icon">🌟</span> Embajadores</button>
       <div class="sidebar-footer">
         <button class="logout-nav" onclick="doAdminLogout()">🚪 Cerrar sesión</button>
       </div>
@@ -729,6 +730,57 @@ if('serviceWorker' in navigator){
         </div>
         <div id="admin-americanos-list"><p style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px">Cargando...</p></div>
       </div>
+      <div class="page" id="page-embajadores">
+        <div class="page-title">EMBAJADORES 🌟</div>
+        <div class="page-sub">Gestión de embajadores — alta, niveles y comunidades</div>
+        <div style="margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button onclick="mostrarFormNuevoEmbajador()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">+ Nuevo Embajador</button>
+        </div>
+        <!-- FORM NUEVO EMBAJADOR -->
+        <div id="form-nuevo-embajador" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px;margin-bottom:20px">
+          <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:#22c55e">Nuevo Embajador</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label>
+              <input id="emb-nombre" type="text" placeholder="Juan Pérez" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Email</label>
+              <input id="emb-email" type="email" placeholder="juan@email.com" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Teléfono</label>
+              <input id="emb-tel" type="text" placeholder="3514000000" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Código único</label>
+              <input id="emb-codigo" type="text" placeholder="JUAN01" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;text-transform:uppercase"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Contraseña inicial</label>
+              <input id="emb-pass" type="text" placeholder="password123" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nivel</label>
+              <select id="emb-nivel" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
+                <option value="bronce">Bronce</option>
+                <option value="plata">Plata</option>
+                <option value="oro">Oro</option>
+              </select></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button onclick="crearEmbajador()" style="padding:10px 24px;border-radius:50px;border:none;background:#22c55e;color:#052e16;font-size:13px;font-weight:700;cursor:pointer">Crear Embajador</button>
+            <button onclick="document.getElementById('form-nuevo-embajador').style.display='none'" style="padding:10px 24px;border-radius:50px;border:1px solid rgba(255,255,255,.2);background:none;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer">Cancelar</button>
+          </div>
+          <div id="emb-form-msg" style="margin-top:10px;font-size:13px"></div>
+        </div>
+        <!-- LISTADO -->
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,.08)">
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Nombre</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Email</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Código</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Nivel</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Comunidad</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Link</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Creado</th>
+              <th style="text-align:left;padding:8px 12px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="embajadores-tbody"><tr><td colspan="8"><div class="loader"></div></td></tr></tbody>
+        </table>
+      </div>
+
       <div class="page" id="page-americanos-parejas">
         <div class="page-title">PÁDEL AMERICANO 🤝</div>
         <div class="page-sub">Americanos por parejas fijas — categorías masculino y femenino</div>

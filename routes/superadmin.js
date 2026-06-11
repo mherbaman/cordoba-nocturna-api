@@ -570,3 +570,49 @@ router.delete('/usuarios/:id', authSuperAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
+// ── GET /superadmin/embajadores ───────────────────────────────────────
+router.get('/embajadores', authSuperAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT e.*, COUNT(u.id) as comunidad
+      FROM embajadores e
+      LEFT JOIN usuarios u ON u.embajador_id = e.id
+      GROUP BY e.id ORDER BY e.creado_en DESC
+    `);
+    res.json(r.rows);
+  } catch(err){ res.status(500).json({error:'Error interno'}); }
+});
+
+// ── POST /superadmin/embajadores ──────────────────────────────────────
+router.post('/embajadores', authSuperAdmin, async (req, res) => {
+  const { nombre, email, telefono, codigo, password, nivel } = req.body;
+  if(!nombre||!email||!codigo||!password) return res.status(400).json({error:'Faltan datos'});
+  try {
+    const existe = await pool.query('SELECT id FROM embajadores WHERE codigo=$1 OR email=$2',[codigo,email]);
+    if(existe.rows.length) return res.status(400).json({error:'Código o email ya existe'});
+    const bcrypt = require('bcryptjs');
+    const hash = await bcrypt.hash(password, 10);
+    const r = await pool.query(`
+      INSERT INTO embajadores (nombre,email,telefono,codigo,password_hash,nivel)
+      VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,nombre,email,codigo,nivel
+    `,[nombre,email,telefono||null,codigo,hash,nivel||'bronce']);
+    res.json(r.rows[0]);
+  } catch(err){ res.status(500).json({error:'Error interno'}); }
+});
+
+// ── PUT /superadmin/embajadores/:id/nivel ─────────────────────────────
+router.put('/embajadores/:id/nivel', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query('UPDATE embajadores SET nivel=$1 WHERE id=$2',[req.body.nivel,req.params.id]);
+    res.json({ok:true});
+  } catch(err){ res.status(500).json({error:'Error interno'}); }
+});
+
+// ── PUT /superadmin/embajadores/:id/toggle ────────────────────────────
+router.put('/embajadores/:id/toggle', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query('UPDATE embajadores SET activo = NOT activo WHERE id=$1',[req.params.id]);
+    res.json({ok:true});
+  } catch(err){ res.status(500).json({error:'Error interno'}); }
+});
