@@ -263,10 +263,6 @@ router.post('/confirmar/:token', async (req, res) => {
       });
     }
 
-    res.json({
-      ok: true,
-      estado: nuevoEstado,
-      mensaje: accion === 'aceptar' ? 'Pareja confirmada. ¡Nos vemos en la cancha!' : 'Invitación rechazada'
     // Generar comisiones embajador para ambos jugadores
     if(accion === 'aceptar') {
       try {
@@ -280,6 +276,10 @@ router.post('/confirmar/:token', async (req, res) => {
         }
       } catch(ce){ console.error('Error comision torneo:', ce.message); }
     }
+    res.json({
+      ok: true,
+      estado: nuevoEstado,
+      mensaje: accion === 'aceptar' ? 'Pareja confirmada. ¡Nos vemos en la cancha!' : 'Invitación rechazada'
     });
   } catch (err) {
     console.error(err);
