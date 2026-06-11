@@ -3798,7 +3798,7 @@ async function cargarEmbajadores(){
         <td style="padding:10px 12px;font-size:12px;color:rgba(255,255,255,.3)">${new Date(e.creado_en).toLocaleDateString('es-AR')}</td>
         <td style="padding:10px 12px">
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <select onchange="cambiarNivelEmbajador('${e.id}',this.value)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer">
+            <select onchange="cambiarNivelEmbajador('${e.id}',this.value)" style="background:#1a1a2e;border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer">
               <option value="bronce" ${e.nivel==='bronce'?'selected':''}>Bronce</option>
               <option value="plata"  ${e.nivel==='plata' ?'selected':''}>Plata</option>
               <option value="oro"    ${e.nivel==='oro'   ?'selected':''}>Oro</option>
