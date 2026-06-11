@@ -616,3 +616,88 @@ router.put('/embajadores/:id/toggle', authSuperAdmin, async (req, res) => {
     res.json({ok:true});
   } catch(err){ res.status(500).json({error:'Error interno'}); }
 });
+
+// ── GET /superadmin/embajadores/:id/detalle ───────────────────────────
+router.get('/embajadores/:id/detalle', authSuperAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    // KPIs
+    const kpis = await pool.query(`
+      SELECT
+        COUNT(DISTINCT u.id) as comunidad,
+        COUNT(DISTINCT CASE WHEN c.tipo='reserva' THEN c.id END) as reservas_mes,
+        COUNT(DISTINCT CASE WHEN c.tipo LIKE 'inscripcion%' THEN c.id END) as inscripciones_mes,
+        COALESCE(SUM(CASE WHEN DATE_TRUNC('month',c.generada_en)=DATE_TRUNC('month',NOW()) THEN c.monto END),0) as ganancias_mes,
+        COALESCE(SUM(CASE WHEN c.estado='pendiente' THEN c.monto END),0) as adeudado,
+        COALESCE(SUM(CASE WHEN c.estado='pagado' THEN c.monto END),0) as pagado_total
+      FROM embajadores e
+      LEFT JOIN usuarios u ON u.embajador_id = e.id
+      LEFT JOIN comisiones_embajador c ON c.embajador_id = e.id
+      WHERE e.id = $1
+    `, [id]);
+
+    // Actividad reciente
+    const actividad = await pool.query(`
+      SELECT c.id, c.tipo, c.monto, c.estado, c.generada_en, c.pagar_desde,
+        u.nombre as jugador, u.apellido as jugador_apellido
+      FROM comisiones_embajador c
+      JOIN usuarios u ON u.id = c.usuario_id
+      WHERE c.embajador_id = $1
+      ORDER BY c.generada_en DESC LIMIT 20
+    `, [id]);
+
+    // Liquidación — pendientes
+    const pendientes = await pool.query(`
+      SELECT c.id, c.tipo, c.monto, c.generada_en, c.pagar_desde,
+        u.nombre as jugador, u.apellido as jugador_apellido,
+        NOW() >= c.pagar_desde as disponible
+      FROM comisiones_embajador c
+      JOIN usuarios u ON u.id = c.usuario_id
+      WHERE c.embajador_id = $1 AND c.estado = 'pendiente'
+      ORDER BY c.pagar_desde ASC
+    `, [id]);
+
+    // Eventos creados (torneos + americanos donde aparece como organizador — por ahora mostramos los de la plataforma)
+    const eventos = await pool.query(`
+      SELECT 'torneo' as tipo, t.nombre, t.fecha_inicio as fecha, t.precio_inscripcion,
+        COUNT(pt.id) as inscriptos, t.estado
+      FROM torneos t
+      LEFT JOIN parejas_torneo pt ON pt.torneo_id = t.id AND pt.estado = 'confirmada'
+      GROUP BY t.id ORDER BY t.fecha_inicio DESC LIMIT 5
+    `);
+
+    res.json({
+      kpis: kpis.rows[0],
+      actividad: actividad.rows,
+      pendientes: pendientes.rows,
+      eventos: eventos.rows
+    });
+  } catch(err){ console.error(err); res.status(500).json({error:'Error interno'}); }
+});
+
+// ── PUT /superadmin/embajadores/comisiones/:id/pagar ──────────────────
+router.put('/embajadores/comisiones/:id/pagar', authSuperAdmin, async (req, res) => {
+  try {
+    const admin = req.adminUser || 'admin';
+    await pool.query(`
+      UPDATE comisiones_embajador 
+      SET estado='pagado', pagado_en=NOW(), pagado_por=$1
+      WHERE id=$2 AND estado='pendiente'
+    `, [admin, req.params.id]);
+    res.json({ok:true});
+  } catch(err){ res.status(500).json({error:'Error interno'}); }
+});
+
+// ── PUT /superadmin/embajadores/:id/pagar-todo ────────────────────────
+router.put('/embajadores/:id/pagar-todo', authSuperAdmin, async (req, res) => {
+  try {
+    const admin = req.adminUser || 'admin';
+    const r = await pool.query(`
+      UPDATE comisiones_embajador 
+      SET estado='pagado', pagado_en=NOW(), pagado_por=$1
+      WHERE embajador_id=$2 AND estado='pendiente' AND NOW() >= pagar_desde
+      RETURNING id
+    `, [admin, req.params.id]);
+    res.json({ok:true, pagadas: r.rowCount});
+  } catch(err){ res.status(500).json({error:'Error interno'}); }
+});

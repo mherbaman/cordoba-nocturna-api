@@ -165,6 +165,15 @@ router.post('/resenas', async (req, res) => {
     `, [a_jugador_id]);
 
     await client.query('COMMIT');
+    // Generar comisión embajador
+    try {
+      const reserva = result.rows[0];
+      const uEmb = await pool.query('SELECT embajador_id FROM usuarios WHERE id = $1', [usuarioIdReal]);
+      if(uEmb.rows.length && uEmb.rows[0].embajador_id) {
+        await pool.query('INSERT INTO comisiones_embajador (embajador_id, usuario_id, tipo, referencia_id, monto) VALUES ($1,$2,$3,$4,1000)',
+          [uEmb.rows[0].embajador_id, usuarioIdReal, 'reserva', reserva.id]);
+      }
+    } catch(ce){ console.error('Error comision embajador:', ce.message); }
     res.status(201).json(resena.rows[0]);
   } catch (err) {
     await client.query('ROLLBACK');

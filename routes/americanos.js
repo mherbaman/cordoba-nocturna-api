@@ -360,6 +360,14 @@ router.post('/:id/inscribir', async (req, res) => {
       'INSERT INTO americanos_posiciones (americano_id, usuario_id, nombre) VALUES ($1,$2,$3) ON CONFLICT (americano_id, usuario_id) DO NOTHING',
       [id, usuario_id, nombre]
     );
+    // Generar comisión embajador
+    try {
+      const uEmb = await pool.query('SELECT embajador_id FROM usuarios WHERE id=$1',[usuario_id]);
+      if(uEmb.rows.length && uEmb.rows[0].embajador_id) {
+        await pool.query('INSERT INTO comisiones_embajador (embajador_id,usuario_id,tipo,referencia_id,monto) VALUES ($1,$2,$3,$4,1000)',
+          [uEmb.rows[0].embajador_id, usuario_id, 'inscripcion_americano', ins.rows[0].id]);
+      }
+    } catch(ce){ console.error('Error comision americano:', ce.message); }
     res.json({ ok: true, mensaje: 'Inscripcion confirmada' });
   } catch(err) { console.error('POST inscribir:', err); res.status(500).json({ error: err.message }); }
 });

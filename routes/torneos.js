@@ -267,6 +267,19 @@ router.post('/confirmar/:token', async (req, res) => {
       ok: true,
       estado: nuevoEstado,
       mensaje: accion === 'aceptar' ? 'Pareja confirmada. ¡Nos vemos en la cancha!' : 'Invitación rechazada'
+    // Generar comisiones embajador para ambos jugadores
+    if(accion === 'aceptar') {
+      try {
+        const jugadores = [pareja.jugador1_id, pareja.jugador2_id].filter(Boolean);
+        for(const uid of jugadores) {
+          const uEmb = await pool.query('SELECT embajador_id FROM usuarios WHERE id=$1',[uid]);
+          if(uEmb.rows.length && uEmb.rows[0].embajador_id) {
+            await pool.query('INSERT INTO comisiones_embajador (embajador_id,usuario_id,tipo,referencia_id,monto) VALUES ($1,$2,$3,$4,1000)',
+              [uEmb.rows[0].embajador_id, uid, 'inscripcion_torneo', pareja.id]);
+          }
+        }
+      } catch(ce){ console.error('Error comision torneo:', ce.message); }
+    }
     });
   } catch (err) {
     console.error(err);
