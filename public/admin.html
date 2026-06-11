@@ -1668,6 +1668,7 @@ function navTo(page, btn) {
   if (page === 'torneos') cargarTorneosAdmin();
   if (page === 'americanos') cargarAmericanosAdmin();
   if (page === 'americanos-parejas') cargarAmericanosParejas();
+  if (page === 'embajadores') cargarEmbajadores();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
@@ -3766,5 +3767,74 @@ function abrirWaGrupo() {
   </div>
 </div>
 
+<script>
+// ── EMBAJADORES ──────────────────────────────────────────────────────
+function mostrarFormNuevoEmbajador(){
+  document.getElementById('form-nuevo-embajador').style.display='block';
+}
+
+async function cargarEmbajadores(){
+  const tbody = document.getElementById('embajadores-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8"><div class="loader"></div></td></tr>';
+  try {
+    const data = await apiAdmin('/superadmin/embajadores');
+    if(!data.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:rgba(255,255,255,.3)">No hay embajadores aún</td></tr>'; return; }
+    const NIVEL_COLOR = { bronce:'rgba(255,255,255,.5)', plata:'#22c55e', oro:'#f59e0b' };
+    const NIVEL_BG    = { bronce:'rgba(255,255,255,.05)', plata:'rgba(34,197,94,.1)', oro:'rgba(245,158,11,.1)' };
+    tbody.innerHTML = data.map(e => `
+      <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+        <td style="padding:10px 12px;font-size:13px;font-weight:500">${e.nombre}</td>
+        <td style="padding:10px 12px;font-size:12px;color:rgba(255,255,255,.5)">${e.email}</td>
+        <td style="padding:10px 12px"><span style="font-family:monospace;font-size:12px;background:rgba(34,197,94,.1);color:#22c55e;padding:3px 8px;border-radius:6px">${e.codigo}</span></td>
+        <td style="padding:10px 12px"><span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:50px;background:${NIVEL_BG[e.nivel]||'rgba(255,255,255,.05)'};color:${NIVEL_COLOR[e.nivel]||'#fff'}">${e.nivel.toUpperCase()}</span></td>
+        <td style="padding:10px 12px;font-size:13px;color:#22c55e;font-weight:600">${e.comunidad} jugadores</td>
+        <td style="padding:10px 12px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:rgba(255,255,255,.4);font-family:monospace">...padel/?ref=${e.codigo}</span>
+            <button onclick="navigator.clipboard.writeText('https://cordobalux.com/padel/?ref=${e.codigo}');this.textContent='✓';setTimeout(()=>this.textContent='📋',1500)" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer">📋</button>
+          </div>
+        </td>
+        <td style="padding:10px 12px;font-size:12px;color:rgba(255,255,255,.3)">${new Date(e.creado_en).toLocaleDateString('es-AR')}</td>
+        <td style="padding:10px 12px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <select onchange="cambiarNivelEmbajador('${e.id}',this.value)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer">
+              <option value="bronce" ${e.nivel==='bronce'?'selected':''}>Bronce</option>
+              <option value="plata"  ${e.nivel==='plata' ?'selected':''}>Plata</option>
+              <option value="oro"    ${e.nivel==='oro'   ?'selected':''}>Oro</option>
+            </select>
+            <button onclick="toggleEmbajador('${e.id}')" style="background:${e.activo?'rgba(255,45,120,.1)':'rgba(34,197,94,.1)'};border:1px solid ${e.activo?'rgba(255,45,120,.3)':'rgba(34,197,94,.3)'};color:${e.activo?'#ff2d78':'#22c55e'};padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">${e.activo?'Desactivar':'Activar'}</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch(e){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:rgba(255,45,120,.6)">Error al cargar</td></tr>'; console.error(e); }
+}
+
+async function crearEmbajador(){
+  const nombre = document.getElementById('emb-nombre').value.trim();
+  const email  = document.getElementById('emb-email').value.trim();
+  const tel    = document.getElementById('emb-tel').value.trim();
+  const codigo = document.getElementById('emb-codigo').value.trim().toUpperCase();
+  const pass   = document.getElementById('emb-pass').value.trim();
+  const nivel  = document.getElementById('emb-nivel').value;
+  const msg    = document.getElementById('emb-form-msg');
+  if(!nombre||!email||!codigo||!pass){ msg.style.color='#f87171'; msg.textContent='Completá todos los campos obligatorios'; return; }
+  try {
+    const r = await apiAdmin('/superadmin/embajadores', {method:'POST', body:JSON.stringify({nombre,email,telefono:tel,codigo,password:pass,nivel})});
+    msg.style.color='#22c55e'; msg.textContent='Embajador creado correctamente';
+    setTimeout(()=>{ document.getElementById('form-nuevo-embajador').style.display='none'; cargarEmbajadores(); },1200);
+  } catch(e){ msg.style.color='#f87171'; msg.textContent=e.message||'Error al crear'; }
+}
+
+async function cambiarNivelEmbajador(id, nivel){
+  try { await apiAdmin('/superadmin/embajadores/'+id+'/nivel', {method:'PUT', body:JSON.stringify({nivel})}); cargarEmbajadores(); }
+  catch(e){ alert('Error al cambiar nivel'); }
+}
+
+async function toggleEmbajador(id){
+  try { await apiAdmin('/superadmin/embajadores/'+id+'/toggle', {method:'PUT'}); cargarEmbajadores(); }
+  catch(e){ alert('Error'); }
+}
+</script>
 </body>
 </html>
