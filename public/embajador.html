@@ -179,6 +179,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pr-title i{font-size:14px;color:var(--green)}
 .pr-desc{font-size:12px;color:var(--text3);line-height:1.5}
 
+.insig{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--bg4)}
+.insig:last-child{border-bottom:none}
+.insig-ic{width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.insig-name{font-size:12px;font-weight:500;color:var(--text)}
+.insig-desc{font-size:11px;color:var(--text3);margin-top:1px}
+
 /* LOADING */
 .loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
 .empty{text-align:center;padding:30px;color:var(--text3);font-size:13px}
@@ -450,13 +456,39 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
     <!-- RANKING -->
     <div class="sec" id="sec-ranking">
+      <div class="two">
+        <div class="panel">
+          <div class="phdr">Ranking embajadores — Córdoba <span>próximamente datos reales</span></div>
+          <div class="rank-row"><div class="rpos">1</div><div class="rname">Javier M. — Zona Norte</div><div class="rval">ARS 3.8M</div><span class="nivel-badge nivel-plata">Plata</span></div>
+          <div class="rank-row"><div class="rpos">2</div><div class="rname">Sofía G. — Zona Sur</div><div class="rval">ARS 2.9M</div><span class="nivel-badge nivel-plata">Plata</span></div>
+          <div class="rank-row" id="miRankRow"><div class="rpos me">3</div><div class="rname" id="miRankNombre">Vos</div><div class="rval" id="miRankVal">—</div><span class="nivel-badge nivel-plata" id="miRankNivel">Plata</span></div>
+          <div class="rank-row"><div class="rpos">4</div><div class="rname">Lucas P. — Nueva Córdoba</div><div class="rval">ARS 890K</div><span class="nivel-badge nivel-bronce">Bronce</span></div>
+          <div class="rank-row"><div class="rpos">5</div><div class="rname">Valentina R. — Cerro</div><div class="rval">ARS 710K</div><span class="nivel-badge nivel-bronce">Bronce</span></div>
+        </div>
+        <div class="panel">
+          <div class="phdr">Tus insignias</div>
+          <div class="insig"><div class="insig-ic t"><i class="ti ti-trophy"></i></div><div style="flex:1"><div class="insig-name">Organizadora elite</div><div class="insig-desc">+10 torneos exitosos organizados</div></div><span class="ev-st ok">Obtenida</span></div>
+          <div class="insig"><div class="insig-ic a"><i class="ti ti-users"></i></div><div style="flex:1"><div class="insig-name">Comunidad 300+</div><div class="insig-desc">Más de 300 jugadores en tu red</div></div><span class="ev-st ok">Obtenida</span></div>
+          <div class="insig"><div class="insig-ic s"><i class="ti ti-coins"></i></div><div style="flex:1"><div class="insig-name">Nivel Plata — Caso B activo</div><div class="insig-desc">Ingreso pasivo por red desbloqueado</div></div><span class="ev-st ok">Obtenida</span></div>
+          <div class="insig" style="opacity:.5"><div class="insig-ic pp"><i class="ti ti-speakerphone"></i></div><div style="flex:1"><div class="insig-name">Sponsor hunter</div><div class="insig-desc">3 sponsors activos simultáneos</div></div><span class="ev-st warn">2/3</span></div>
+        </div>
+      </div>
       <div class="panel one">
-        <div class="phdr">Ranking embajadores — Córdoba <span>próximamente datos reales</span></div>
-        <div class="rank-row"><div class="rpos">1</div><div class="rname">Javier M. — Zona Norte</div><div class="rval">ARS 3.8M</div><span class="nivel-badge nivel-plata">Plata</span></div>
-        <div class="rank-row"><div class="rpos">2</div><div class="rname">Sofía G. — Zona Sur</div><div class="rval">ARS 2.9M</div><span class="nivel-badge nivel-plata">Plata</span></div>
-        <div class="rank-row" id="miRankRow"><div class="rpos me">3</div><div class="rname" id="miRankNombre">Vos</div><div class="rval" id="miRankVal">—</div><span class="nivel-badge nivel-plata" id="miRankNivel">Plata</span></div>
-        <div class="rank-row"><div class="rpos">4</div><div class="rname">Lucas P. — Nueva Córdoba</div><div class="rval">ARS 890K</div><span class="nivel-badge nivel-bronce">Bronce</span></div>
-        <div class="rank-row"><div class="rpos">5</div><div class="rname">Valentina R. — Cerro</div><div class="rval">ARS 710K</div><span class="nivel-badge nivel-bronce">Bronce</span></div>
+        <div class="phdr">Beneficios por nivel</div>
+        <div class="level-card">
+          <div class="level-bar" style="background:var(--text3)"></div>
+          <div class="level-info"><div class="level-name" style="color:var(--text2)">Bronce — hasta ARS 900K/mes</div><div class="level-desc">Caso A activo · organización de todos los formatos · soporte estándar</div></div>
+        </div>
+        <div class="level-card" style="border-color:var(--green-border)">
+          <div class="level-bar" style="background:var(--green)"></div>
+          <div class="level-info"><div class="level-name" style="color:var(--green)">Plata — ARS 900K a 3M/mes</div><div class="level-desc">Caso A + Caso B activo · zona preferencial · soporte prioritario</div></div>
+          <div class="level-earn">Tu nivel</div>
+        </div>
+        <div class="level-card" style="border-color:var(--gold-border)">
+          <div class="level-bar" style="background:var(--gold)"></div>
+          <div class="level-info"><div class="level-name" style="color:var(--gold)">Oro — más de ARS 3M/mes</div><div class="level-desc">Zona exclusiva garantizada · co-marketing · acceso a franquicia con 30% de descuento</div></div>
+          <div class="level-earn" style="color:var(--gold)">Próximo</div>
+        </div>
       </div>
     </div>
 
