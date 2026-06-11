@@ -586,7 +586,7 @@ router.get('/embajadores', authSuperAdmin, async (req, res) => {
 
 // ── POST /superadmin/embajadores ──────────────────────────────────────
 router.post('/embajadores', authSuperAdmin, async (req, res) => {
-  const { nombre, email, telefono, codigo, password, nivel } = req.body;
+  const { nombre, email, telefono, codigo, password, nivel, foto_url, direccion, instagram } = req.body;
   if(!nombre||!email||!codigo||!password) return res.status(400).json({error:'Faltan datos'});
   try {
     const existe = await pool.query('SELECT id FROM embajadores WHERE codigo=$1 OR email=$2',[codigo,email]);
@@ -594,9 +594,9 @@ router.post('/embajadores', authSuperAdmin, async (req, res) => {
     const bcrypt = require('bcryptjs');
     const hash = await bcrypt.hash(password, 10);
     const r = await pool.query(`
-      INSERT INTO embajadores (nombre,email,telefono,codigo,password_hash,nivel)
-      VALUES ($1,$2,$3,$4,$5,$6) RETURNING id,nombre,email,codigo,nivel
-    `,[nombre,email,telefono||null,codigo,hash,nivel||'bronce']);
+      INSERT INTO embajadores (nombre,email,telefono,codigo,password_hash,nivel,foto_url,direccion,instagram)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,nombre,email,codigo,nivel
+    `,[nombre,email,telefono||null,codigo,hash,nivel||'bronce',foto_url||null,direccion||null,instagram||null]);
     res.json(r.rows[0]);
   } catch(err){ res.status(500).json({error:'Error interno'}); }
 });
