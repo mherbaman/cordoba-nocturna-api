@@ -1695,7 +1695,7 @@ function navTo(page, btn) {
   if (page === 'reportes') cargarFiltrosReporte();
 
   if (page === 'dashboard') cargarDashboard();
-  if (page === 'crm')       cargarCRM();
+  if (page === 'crm')       { if (typeof cargarCRM === 'function') cargarCRM(); else setTimeout(cargarCRM, 100); }
   if (page === 'sponsors')  cargarSponsors();
   if (page === 'sesiones')  cargarSesiones();
   if (page === 'negocios')  cargarNegocios();
@@ -4240,7 +4240,7 @@ function abrirCRMImport() {
     '<input type="file" id="crm-import-file" accept=".xlsx,.xls,.csv" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px;border-radius:8px;width:100%;margin-bottom:10px">' +
     '<div id="crm-import-preview" style="max-height:200px;overflow-y:auto;margin-bottom:10px"></div>' +
     '<div style="display:flex;justify-content:flex-end;gap:8px">' +
-      '<button onclick="document.getElementById('modal-crm-import').remove()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer">Cancelar</button>' +
+      '<button onclick="document.getElementById(&quot;modal-crm-import&quot;).remove()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer">Cancelar</button>' +
       '<button onclick="procesarImportCRM()" style="background:#22c55e;border:none;color:#052e16;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Importar</button>' +
     '</div>' +
   '</div>';
