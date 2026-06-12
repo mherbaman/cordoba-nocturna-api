@@ -822,6 +822,29 @@ function renderClasesDia(turnos, clases) {
   const el = document.getElementById('clases-dia-list');
   const diaSem = new Date(clasesDiaFecha+'T12:00:00').getDay();
 
+  // Solicitudes pendientes de confirmacion (todas las fechas)
+  const pendientes = (Array.isArray(clases)?clases:[]).filter(c => c.estado === 'pendiente');
+  let htmlPend = '';
+  if (pendientes.length) {
+    htmlPend += '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin-bottom:14px">';
+    htmlPend += '<div style="font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">&#9203; Solicitudes pendientes ('+pendientes.length+')</div>';
+    pendientes.forEach(c => {
+      const nombre = c.alumno_nombre || c.nombre || 'Alumno';
+      const fecha = c.fecha ? String(c.fecha).substring(0,10) : '';
+      const hi = String(c.hora_inicio||'').substring(0,5);
+      const hf = String(c.hora_fin||'').substring(0,5);
+      htmlPend += '<div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:6px;flex-wrap:wrap">';
+      htmlPend += '<div style="flex:1;min-width:0">';
+      htmlPend += '<div style="font-size:13px;font-weight:600;color:#fff">'+nombre+'</div>';
+      htmlPend += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+fecha+' · '+hi+'-'+hf+'</div>';
+      htmlPend += '</div>';
+      htmlPend += '<button onclick="responderClase(&quot;'+c.id+'&quot;,&quot;confirmada&quot;)" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">&#10003; Confirmar</button>';
+      htmlPend += '<button onclick="responderClase(&quot;'+c.id+'&quot;,&quot;rechazada&quot;)" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">&#10007; Rechazar</button>';
+      htmlPend += '</div>';
+    });
+    htmlPend += '</div>';
+  }
+
   // Horas 12:00 a 20:00 cada 30min
   const horas = [];
   for (let m = 14*60; m < 19*60; m += 30) {
@@ -885,7 +908,7 @@ function renderClasesDia(turnos, clases) {
   });
 
   html += '</div>';
-  el.innerHTML = html;
+  el.innerHTML = htmlPend + html;
 }
 
 function filtrarClases(estado) {}
