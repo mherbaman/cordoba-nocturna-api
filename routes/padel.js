@@ -1522,7 +1522,7 @@ router.get('/profesores/:id/disponibilidad', async (req, res) => {
 // POST /padel/profesores/disponibilidad — el profe carga un slot
 router.post('/profesores/disponibilidad', authUsuario, async (req, res) => {
   const usuario_id = req.usuario.id;
-  const { fecha, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos } = req.body;
+  const { fecha, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos, privado, nombre_alumno } = req.body;
   if (!hora_inicio || !hora_fin) return res.status(400).json({ error: 'hora_inicio y hora_fin son requeridos' });
   try {
     const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
@@ -1530,10 +1530,10 @@ router.post('/profesores/disponibilidad', authUsuario, async (req, res) => {
     const profesor_id = p.rows[0].id;
     const result = await pool.query(`
       INSERT INTO disponibilidad_profesor
-        (profesor_id, fecha_especifica, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        (profesor_id, fecha_especifica, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos, privado, nombre_alumno)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
-    `, [profesor_id, fecha||null, dia_semana !== undefined ? dia_semana : null, hora_inicio, hora_fin, zona||null, lugar||null, cupos||1]);
+    `, [profesor_id, fecha||null, dia_semana !== undefined ? dia_semana : null, hora_inicio, hora_fin, zona||null, lugar||null, cupos||1, privado||false, nombre_alumno||null]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('POST /padel/profesores/disponibilidad:', err.message);

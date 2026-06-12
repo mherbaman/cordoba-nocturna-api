@@ -380,6 +380,19 @@ async function apiProfe(path, opts={}) {
       <input class="input-field" id="turno-zona" placeholder="Ej: Villa María — Club Atlético" style="margin:0">
     </div>
 
+    <div style="margin-top:12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="turno-privado" style="width:18px;height:18px;accent-color:#ef4444;cursor:pointer">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#fca5a5">🔒 Turno privado (cerrado)</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">No aparece en la app. Solo vos lo ves.</div>
+        </div>
+      </label>
+      <div id="turno-privado-nombre-wrap" style="display:none;margin-top:10px">
+        <label class="field-label">Nombre del alumno (opcional)</label>
+        <input class="input-field" id="turno-privado-nombre" placeholder="Ej: Juan P." style="margin:0">
+      </div>
+    </div>
     <div class="modal-actions">
       <button onclick="cerrarModalTurno()" class="btn-sm" style="flex:1;padding:12px">Cancelar</button>
       <button onclick="guardarTurno()" class="btn-primary" style="flex:1;padding:12px;font-size:14px">GUARDAR →</button>
@@ -626,7 +639,7 @@ function renderAgendaProfe(dias, turnos) {
 
   // Horas 12:00 a 20:00 cada 30min
   const horas = [];
-  for (let m = 12*60; m < 20*60; m += 30) {
+  for (let m = 14*60; m < 19*60; m += 30) {
     horas.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
   }
 
@@ -664,7 +677,7 @@ function renderAgendaProfe(dias, turnos) {
 
   horas.forEach(hora => {
     html += '<tr>';
-    html += '<td style="padding:3px 6px;font-size:10px;color:rgba(255,255,255,.3);white-space:nowrap;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.04)">'+hora+'</td>';
+    html += '<td style="padding:3px 6px;font-size:11px;font-weight:600;color:rgba(255,255,255,.85);white-space:nowrap;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.04)">'+hora+'</td>';
     dias.forEach(f => {
       const esHoy = f === hoy;
       const clave = f+'_'+hora;
@@ -678,15 +691,19 @@ function renderAgendaProfe(dias, turnos) {
           const color = libres<=0 ? '#ef4444' : '#22c55e';
           const hi = String(clase.hora_inicio).substring(0,5);
           const hf = String(clase.hora_fin).substring(0,5);
-          html += '<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer" onclick="borrarTurno(&quot;'+clase.id+'&quot;)" title="'+hi+'-'+hf+' · Click para eliminar">';
-          html += '<div style="font-weight:700;color:#22c55e">'+hi+'</div>';
-          html += '<div style="color:'+color+'">'+libres+'/'+cupos+'</div>';
+          const esPrivado = clase.privado || false;
+          const nombreAl = clase.nombre_alumno || '';
+          const bgColor = esPrivado ? 'rgba(239,68,68,.12)' : 'rgba(34,197,94,.12)';
+          const bdColor = esPrivado ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.3)';
+          html += '<div style="background:'+bgColor+';border:1px solid '+bdColor+';border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer" onclick="borrarTurno(&quot;'+clase.id+'&quot;)" title="'+hi+'-'+hf+(esPrivado?' · PRIVADO':'')+' · Click para eliminar">';
+          html += '<div style="font-weight:700;color:'+(esPrivado?'#fca5a5':'#22c55e')+'">'+hi+(esPrivado?' 🔒':'')+'</div>';
+          html += '<div style="color:'+(esPrivado?'#ef4444':color)+'">'+(esPrivado?(nombreAl||'Privado'):(libres+'/'+cupos))+'</div>';
           html += '</div>';
         } else {
           html += '<div style="background:rgba(34,197,94,.06);border-left:2px solid rgba(34,197,94,.2);height:100%;min-height:20px"></div>';
         }
       } else {
-        html += '<div onclick="abrirModalTurnoFecha(&quot;'+f+'&quot;,&quot;'+hora+'&quot;)" style="height:24px;border-radius:4px;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'rgba(34,197,94,.08)\'" onmouseout="this.style.background=\'transparent\'"></div>';
+        html += '<div onclick="abrirModalTurnoFecha(&quot;'+f+'&quot;,&quot;'+hora+'&quot;)" style="height:24px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;background:rgba(34,197,94,.04);border:1px dashed rgba(34,197,94,.2)" onmouseover="this.style.background=\'rgba(34,197,94,.12)\'" onmouseout="this.style.background=\'rgba(34,197,94,.04)\'"><span style="font-size:9px;font-weight:700;color:rgba(34,197,94,.6)">+Libre</span></div>';
       }
       html += '</td>';
     });
@@ -697,6 +714,13 @@ function renderAgendaProfe(dias, turnos) {
   cont.innerHTML = html;
 }
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const chk = document.getElementById('turno-privado');
+  if (chk) chk.addEventListener('change', function() {
+    document.getElementById('turno-privado-nombre-wrap').style.display = this.checked ? 'block' : 'none';
+  });
+});
 
 function abrirModalTurnoFecha(fecha, hora) {
   abrirModalTurno();
@@ -713,6 +737,9 @@ function abrirModalTurno() {
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('turno-fecha').value = hoy;
   document.getElementById('turno-fecha').min = hoy;
+  document.getElementById('turno-privado').checked = false;
+  document.getElementById('turno-privado-nombre').value = '';
+  document.getElementById('turno-privado-nombre-wrap').style.display = 'none';
   document.getElementById('modal-turno').classList.add('show');
 }
 function cerrarModalTurno() { document.getElementById('modal-turno').classList.remove('show'); }
@@ -724,9 +751,12 @@ async function guardarTurno() {
   const cupos  = parseInt(document.getElementById('turno-cupos').value) || 1;
   if (!fecha) { alert('Ingresá una fecha'); return; }
   if (!inicio || !fin) { alert('Ingresá hora de inicio y fin'); return; }
+  const privado = document.getElementById('turno-privado').checked;
+  const nombrePrivado = document.getElementById('turno-privado-nombre').value.trim();
   try {
     await apiProfe('/padel/profesores/disponibilidad', { method:'POST', body:JSON.stringify({
-      fecha, hora_inicio: inicio, hora_fin: fin, zona: zona || null, cupos
+      fecha, hora_inicio: inicio, hora_fin: fin, zona: zona || null, cupos,
+      privado: privado || false, nombre_alumno: nombrePrivado || null
     })});
     cerrarModalTurno();
     cargarAgenda();
@@ -794,7 +824,7 @@ function renderClasesDia(turnos, clases) {
 
   // Horas 12:00 a 20:00 cada 30min
   const horas = [];
-  for (let m = 12*60; m < 20*60; m += 30) {
+  for (let m = 14*60; m < 19*60; m += 30) {
     horas.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
   }
 
