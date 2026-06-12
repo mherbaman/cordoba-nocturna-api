@@ -4086,7 +4086,7 @@ function renderCRMAlertas(seguimientos) {
   el.innerHTML = '<div style="font-size:11px;font-weight:700;color:#ef4444;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🔔 Seguimientos pendientes ('+seguimientos.length+')</div>' +
     seguimientos.map(s => {
       const fecha = s.proximo_seguimiento ? new Date(s.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal('+s.id+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
+      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal(&quot;'+s.id+'&quot;)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
     }).join('');
 }
 
@@ -4124,7 +4124,7 @@ function renderCRMList(data, filtro) {
         '</div>' +
         '<div style="display:flex;gap:6px;flex-shrink:0">' +
           (c.telefono ? '<a href="https://wa.me/'+c.telefono.replace(/\D/g,'')+'" target="_blank" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#25d366;padding:5px 10px;border-radius:8px;font-size:11px;text-decoration:none">💬 WA</a>' : '') +
-          '<button onclick="abrirCRMModal('+c.id+',true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">✏️ Editar</button>' +
+          '<button onclick="abrirCRMModal(&quot;'+c.id+'&quot;,true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">✏️ Editar</button>' +
           '<button onclick="eliminarCRM(&quot;'+c.id+'&quot;)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">🗑</button>' +
         '</div>' +
       '</div>' +
@@ -4178,7 +4178,7 @@ function renderKanban(data, filtro) {
     const cards = items.map(c => {
       const vencido = c.proximo_seguimiento && c.proximo_seguimiento.substring(0,16) < hoy;
       const seg = c.proximo_seguimiento ? new Date(c.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      return '<div onclick="abrirCRMModal('+c.id+',true)" style="background:rgba(255,255,255,.04);border:1px solid '+(vencido?'rgba(239,68,68,.5)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer">'
+      return '<div onclick="abrirCRMModal(&quot;'+c.id+'&quot;,true)" style="background:rgba(255,255,255,.04);border:1px solid '+(vencido?'rgba(239,68,68,.5)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer">'
         + '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">'+c.nombre+'</div>'
         + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">'+c.tipo+(c.zona?' · '+c.zona:'')+'</div>'
         + (c.valor_estimado ? '<div style="font-size:11px;color:#22c55e;margin-bottom:4px">💰 $'+Number(c.valor_estimado).toLocaleString('es-AR')+'/mes</div>' : '')
@@ -4225,6 +4225,8 @@ function abrirCRMModal(contacto, editar) {
       '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Zona</label><input id="crm-zona" class="input-admin" value="'+(c.zona||'')+'" placeholder="Córdoba Norte..."></div>' +
       '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Valor estimado ARS/mes</label><input id="crm-valor" class="input-admin" type="number" value="'+(c.valor_estimado||0)+'"></div>' +
       '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">🔔 Próximo seguimiento</label><input id="crm-seg" class="input-admin" type="datetime-local" value="'+(c.proximo_seguimiento?c.proximo_seguimiento.substring(0,16):'')+'" style="color-scheme:dark"></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">📍 De dónde vino</label><input id="crm-origen" class="input-admin" value="'+(c.origen||'')+'" placeholder="Instagram, referido, evento..."></div>' +
+      '<div style="grid-column:1/-1"><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">📝 Observaciones</label><textarea id="crm-obs" class="input-admin" rows="2" placeholder="Notas rápidas sobre el contacto..." style="resize:vertical">'+(c.observaciones||'')+'</textarea></div>' +
     '</div>' +
     (editar ? '<div style="margin-bottom:10px"><div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:6px">Historial de notas</div><div id="crm-notas-list">'+notas.map(n=>'<div class="crm-nota">'+n.texto+'<div class="crm-nota-fecha">'+new Date(n.creado_en).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'</div></div>').join('')+'</div><div style="display:flex;gap:6px;margin-top:6px"><input id="crm-nueva-nota" class="input-admin" placeholder="Agregar nota..." style="flex:1"><button onclick="agregarNotaCRM(&quot;'+c.id+'&quot;)" style="background:#22c55e;border:none;color:#052e16;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">+ Nota</button></div></div>' : '') +
     '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">' +
@@ -4252,7 +4254,9 @@ async function guardarCRM() {
     email: document.getElementById('crm-email').value.trim() || null,
     zona: document.getElementById('crm-zona').value.trim() || null,
     valor_estimado: parseFloat(document.getElementById('crm-valor').value)||0,
-    proximo_seguimiento: document.getElementById('crm-seg').value || null
+    proximo_seguimiento: document.getElementById('crm-seg').value || null,
+    origen: document.getElementById('crm-origen').value.trim() || null,
+    observaciones: document.getElementById('crm-obs').value.trim() || null
   };
   try {
     if (crmEditando) {
