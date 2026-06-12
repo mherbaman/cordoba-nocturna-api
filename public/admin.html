@@ -4048,8 +4048,8 @@ async function cargarCRM() {
   el.innerHTML = '<div class="loader"></div>';
   try {
     const [contactos, seguimientos] = await Promise.all([
-      apiCall('/superadmin/crm/contactos'),
-      apiCall('/superadmin/crm/seguimientos-hoy').catch(()=>[])
+      apiAdmin('/superadmin/crm/contactos'),
+      apiAdmin('/superadmin/crm/seguimientos-hoy').catch(()=>[])
     ]);
     crmData = contactos;
     renderCRMKpis(contactos);
@@ -4187,9 +4187,9 @@ async function guardarCRM() {
   };
   try {
     if (crmEditando) {
-      await apiCall('/superadmin/crm/contactos/'+crmEditando.id, {method:'PUT', body:JSON.stringify(body)});
+      await apiAdmin('/superadmin/crm/contactos/'+crmEditando.id, {method:'PUT', body:JSON.stringify(body)});
     } else {
-      await apiCall('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(body)});
+      await apiAdmin('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(body)});
     }
     cerrarCRMModal();
     cargarCRM();
@@ -4199,7 +4199,7 @@ async function guardarCRM() {
 async function eliminarCRM(id) {
   if (!confirm('¿Eliminar este contacto?')) return;
   try {
-    await apiCall('/superadmin/crm/contactos/'+id, {method:'DELETE'});
+    await apiAdmin('/superadmin/crm/contactos/'+id, {method:'DELETE'});
     cargarCRM();
   } catch(e) { alert(e.message); }
 }
@@ -4208,7 +4208,7 @@ async function agregarNotaCRM(id) {
   const texto = document.getElementById('crm-nueva-nota').value.trim();
   if (!texto) return;
   try {
-    await apiCall('/superadmin/crm/contactos/'+id+'/notas', {method:'POST', body:JSON.stringify({texto})});
+    await apiAdmin('/superadmin/crm/contactos/'+id+'/notas', {method:'POST', body:JSON.stringify({texto})});
     document.getElementById('crm-nueva-nota').value = '';
     cargarCRM();
     // Actualizar lista de notas en modal
@@ -4273,7 +4273,7 @@ async function procesarImportCRM() {
   let ok = 0, err = 0;
   for (const c of importData) {
     try {
-      await apiCall('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(c)});
+      await apiAdmin('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(c)});
       ok++;
     } catch(e) { err++; }
   }
