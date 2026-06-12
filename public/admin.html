@@ -269,7 +269,7 @@ if('serviceWorker' in navigator){
             <button class="crm-flt" onclick="filtrarCRM('activo',this)" style="border-color:rgba(34,197,94,.4);color:#22c55e">🟢 Activos</button>
             <button class="crm-flt" onclick="filtrarCRM('perdido',this)" style="border-color:rgba(239,68,68,.4);color:#ef4444">🔴 Perdidos</button>
           </div>
-          <button onclick="abrirCRMImport()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer">📥 Importar Excel</button>
+          <div style="display:flex;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden"><button id="crm-btn-lista" onclick="setCRMVista('lista')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;background:#22c55e;color:#052e16;cursor:pointer">☰ Lista</button><button id="crm-btn-kanban" onclick="setCRMVista('kanban')" style="padding:7px 14px;font-size:12px;font-weight:600;border:none;background:transparent;color:rgba(255,255,255,.6);cursor:pointer">⬛ Kanban</button></div>          <button onclick="exportarCRM()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer">📤 Exportar</button>          <button onclick="abrirCRMImport()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer">📥 Importar Excel</button>
           <button onclick="abrirCRMModal()" style="background:#22c55e;border:none;color:#052e16;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">+ Nuevo contacto</button>
         </div>
 
@@ -278,6 +278,8 @@ if('serviceWorker' in navigator){
 
         <!-- Lista -->
         <div id="crm-list"><div class="loader"></div></div>
+        <!-- Kanban -->
+        <div id="crm-kanban" style="display:none;overflow-x:auto;padding-bottom:16px"></div>
       </div>
 
       <div class="page active" id="page-dashboard">
@@ -4054,7 +4056,8 @@ async function cargarCRM() {
     crmData = contactos;
     renderCRMKpis(contactos);
     renderCRMAlertas(seguimientos);
-    renderCRMList(contactos, crmFiltro);
+    if (crmVista === 'kanban') renderKanban(contactos, crmFiltro);
+    else renderCRMList(contactos, crmFiltro);
     // Badge en nav
     const badge = document.getElementById('crm-badge');
     if (badge) badge.style.display = seguimientos.length ? 'inline' : 'none';
@@ -4136,6 +4139,71 @@ function filtrarCRM(filtro, btn) {
   renderCRMList(crmData, filtro);
 }
 
+// Vista Kanban
+let crmVista = 'lista';
+function setCRMVista(v) {
+  crmVista = v;
+  const lista  = document.getElementById('crm-list');
+  const kanban = document.getElementById('crm-kanban');
+  const btnL   = document.getElementById('crm-btn-lista');
+  const btnK   = document.getElementById('crm-btn-kanban');
+  if (v === 'kanban') {
+    lista.style.display  = 'none';
+    kanban.style.display = 'flex';
+    btnL.style.background = 'transparent'; btnL.style.color = 'rgba(255,255,255,.6)';
+    btnK.style.background = '#22c55e';     btnK.style.color = '#052e16';
+    renderKanban(crmData, crmFiltro);
+  } else {
+    kanban.style.display = 'none';
+    lista.style.display  = 'block';
+    btnK.style.background = 'transparent'; btnK.style.color = 'rgba(255,255,255,.6)';
+    btnL.style.background = '#22c55e';     btnL.style.color = '#052e16';
+    renderCRMList(crmData, crmFiltro);
+  }
+}
+function renderKanban(data, filtro) {
+  const kanban = document.getElementById('crm-kanban');
+  if (!kanban) return;
+  const columnas = [
+    { key:'prospecto', label:'🔵 Prospecto',  color:'rgba(99,102,241,.25)',  border:'rgba(99,102,241,.4)'  },
+    { key:'contactado',label:'🟡 Contactado', color:'rgba(245,158,11,.15)', border:'rgba(245,158,11,.4)'  },
+    { key:'demo',      label:'🟠 Demo',        color:'rgba(249,115,22,.15)', border:'rgba(249,115,22,.4)'  },
+    { key:'activo',    label:'🟢 Activo',      color:'rgba(34,197,94,.15)',  border:'rgba(34,197,94,.4)'   },
+    { key:'perdido',   label:'🔴 Perdido',     color:'rgba(239,68,68,.15)',  border:'rgba(239,68,68,.4)'   },
+  ];
+  const hoy = new Date().toISOString().substring(0,16);
+  kanban.style.cssText = 'display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start';
+  kanban.innerHTML = columnas.map(col => {
+    const items = data.filter(c => c.estado === col.key);
+    const cards = items.map(c => {
+      const vencido = c.proximo_seguimiento && c.proximo_seguimiento.substring(0,16) < hoy;
+      const seg = c.proximo_seguimiento ? new Date(c.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      return '<div onclick="abrirCRMModal(''+c.id+'',true)" style="background:rgba(255,255,255,.04);border:1px solid '+(vencido?'rgba(239,68,68,.5)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='rgba(255,255,255,.04)'">'
+        + '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">'+c.nombre+'</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">'+c.tipo+(c.zona?' · '+c.zona:'')+'</div>'
+        + (c.valor_estimado ? '<div style="font-size:11px;color:#22c55e;margin-bottom:4px">💰 $'+Number(c.valor_estimado).toLocaleString('es-AR')+'/mes</div>' : '')
+        + (seg ? '<div style="font-size:10px;color:'+(vencido?'#ef4444':'rgba(255,255,255,.35)')+'">🔔 '+seg+'</div>' : '')
+        + '</div>';
+    }).join('');
+    return '<div style="min-width:220px;flex:1;background:'+col.color+';border:1px solid '+col.border+';border-radius:12px;padding:12px">'
+      + '<div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:10px;display:flex;justify-content:space-between">'
+      + '<span>'+col.label+'</span><span style="background:rgba(255,255,255,.1);padding:1px 8px;border-radius:10px;font-size:11px">'+items.length+'</span></div>'
+      + (cards || '<div style="font-size:11px;color:rgba(255,255,255,.25);text-align:center;padding:20px 0">Sin contactos</div>')
+      + '</div>';
+  }).join('');
+}
+// Exportar CRM
+function exportarCRM() {
+  const headers = ['Nombre','Tipo','Estado','Teléfono','Email','Zona','Valor estimado','Próximo seguimiento'];
+  const rows = crmData.map(c => [
+    c.nombre, c.tipo, c.estado, c.telefono||'', c.email||'', c.zona||'',
+    c.valor_estimado||0, c.proximo_seguimiento||''
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'crm_contactos.csv'; a.click();
+}
 // Modal CRM
 let crmEditando = null;
 function abrirCRMModal(contacto, editar) {
@@ -4188,7 +4256,38 @@ async function guardarCRM() {
   };
   try {
     if (crmEditando) {
+      const estadoAnterior = crmEditando.estado;
       await apiAdmin('/superadmin/crm/contactos/'+crmEditando.id, {method:'PUT', body:JSON.stringify(body)});
+      // Si pasó a Activo desde otro estado, ofrecer crear en el sistema
+      if (body.estado === 'activo' && estadoAnterior !== 'activo') {
+        const tipo = body.tipo;
+        let msg = '';
+        if (tipo === 'club')     msg = '¿Querés crear este club en el sistema como Negocio?';
+        else if (tipo === 'profe')   msg = '¿Querés crear este profe en el sistema?';
+        else if (tipo === 'sponsor') msg = '¿Querés registrar este sponsor en el sistema?';
+        else if (tipo === 'negocio') msg = '¿Querés crear este negocio en el sistema?';
+        if (msg && confirm(msg + '\n\nNombre: ' + body.nombre)) {
+          // Redirigir al tab correspondiente con datos pre-cargados
+          cerrarCRMModal();
+          cargarCRM();
+          if (tipo === 'club' || tipo === 'negocio') {
+            navTo('negocios', document.getElementById('nav-negocios'));
+            setTimeout(() => {
+              const btn = document.querySelector('[onclick*="abrirModalNegocio"]');
+              if (btn) btn.click();
+              setTimeout(() => {
+                if (document.getElementById('neg-nombre')) document.getElementById('neg-nombre').value = body.nombre;
+                if (document.getElementById('neg-email')) document.getElementById('neg-email').value = body.email || '';
+                if (document.getElementById('neg-tel'))   document.getElementById('neg-tel').value = body.telefono || '';
+                if (document.getElementById('neg-zona'))  document.getElementById('neg-zona').value = body.zona || '';
+              }, 300);
+            }, 400);
+          } else if (tipo === 'profe') {
+            navTo('profes', document.getElementById('nav-profes'));
+          }
+          return;
+        }
+      }
     } else {
       await apiAdmin('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(body)});
     }
