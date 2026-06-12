@@ -678,7 +678,7 @@ function renderAgendaProfe(dias, turnos) {
           const color = libres<=0 ? '#ef4444' : '#22c55e';
           const hi = String(clase.hora_inicio).substring(0,5);
           const hf = String(clase.hora_fin).substring(0,5);
-          html += '<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer" onclick="borrarTurno(''+clase.id+'')" title="'+hi+'-'+hf+' · Click para eliminar">';
+          html += '<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer" onclick="borrarTurno(&quot;'+clase.id+'&quot;)" title="'+hi+'-'+hf+' · Click para eliminar">';
           html += '<div style="font-weight:700;color:#22c55e">'+hi+'</div>';
           html += '<div style="color:'+color+'">'+libres+'/'+cupos+'</div>';
           html += '</div>';
@@ -686,7 +686,7 @@ function renderAgendaProfe(dias, turnos) {
           html += '<div style="background:rgba(34,197,94,.06);border-left:2px solid rgba(34,197,94,.2);height:100%;min-height:20px"></div>';
         }
       } else {
-        html += '<div onclick="abrirModalTurnoFecha(''+f+'',''+hora+'')" style="height:24px;border-radius:4px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(34,197,94,.08)'" onmouseout="this.style.background='transparent'"></div>';
+        html += '<div onclick="abrirModalTurnoFecha(&quot;'+f+'&quot;,&quot;'+hora+'&quot;)" style="height:24px;border-radius:4px;cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'rgba(34,197,94,.08)\'" onmouseout="this.style.background=\'transparent\'"></div>';
       }
       html += '</td>';
     });
