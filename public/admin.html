@@ -4122,7 +4122,7 @@ function renderCRMList(data, filtro) {
         '<div style="display:flex;gap:6px;flex-shrink:0">' +
           (c.telefono ? '<a href="https://wa.me/'+c.telefono.replace(/\D/g,'')+'" target="_blank" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#25d366;padding:5px 10px;border-radius:8px;font-size:11px;text-decoration:none">💬 WA</a>' : '') +
           '<button onclick="abrirCRMModal('+JSON.stringify(c).replace(/"/g,"&quot;")+',true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">✏️ Editar</button>' +
-          '<button onclick="eliminarCRM(''+c.id+'')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">🗑</button>' +
+          '<button onclick="eliminarCRM(&quot;'+c.id+'&quot;)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">🗑</button>' +
         '</div>' +
       '</div>' +
     '</div>';
