@@ -716,25 +716,25 @@ router.get('/crm/contactos', authSuperAdmin, async (req, res) => {
 });
 
 router.post('/crm/contactos', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, telefono, email, zona, estado, valor_estimado, proximo_seguimiento } = req.body;
+  const { nombre, tipo, telefono, email, zona, estado, valor_estimado, proximo_seguimiento, origen, observaciones, direccion, redes_sociales } = req.body;
   if (!nombre) return res.status(400).json({error:'nombre requerido'});
   try {
     const r = await pool.query(`
-      INSERT INTO crm_contactos (nombre,tipo,telefono,email,zona,estado,valor_estimado,proximo_seguimiento)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *
-    `, [nombre, tipo||'club', telefono||null, email||null, zona||null, estado||'prospecto', valor_estimado||0, proximo_seguimiento||null]);
+      INSERT INTO crm_contactos (nombre,tipo,telefono,email,zona,estado,valor_estimado,proximo_seguimiento,origen,observaciones,direccion,redes_sociales)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *
+    `, [nombre, tipo||'club', telefono||null, email||null, zona||null, estado||'prospecto', valor_estimado||0, proximo_seguimiento||null, origen||null, observaciones||null, direccion||null, redes_sociales||null]);
     res.status(201).json(r.rows[0]);
   } catch(e){ res.status(500).json({error:'Error interno'}); }
 });
 
 router.put('/crm/contactos/:id', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, telefono, email, zona, estado, valor_estimado, proximo_seguimiento } = req.body;
+  const { nombre, tipo, telefono, email, zona, estado, valor_estimado, proximo_seguimiento, origen, observaciones, direccion, redes_sociales } = req.body;
   try {
     const r = await pool.query(`
       UPDATE crm_contactos SET nombre=$1,tipo=$2,telefono=$3,email=$4,zona=$5,estado=$6,
-        valor_estimado=$7,proximo_seguimiento=$8,actualizado_en=NOW()
-      WHERE id=$9 RETURNING *
-    `, [nombre, tipo, telefono||null, email||null, zona||null, estado, valor_estimado||0, proximo_seguimiento||null, req.params.id]);
+        valor_estimado=$7,proximo_seguimiento=$8,origen=$9,observaciones=$10,direccion=$11,redes_sociales=$12,actualizado_en=NOW()
+      WHERE id=$13 RETURNING *
+    `, [nombre, tipo, telefono||null, email||null, zona||null, estado, valor_estimado||0, proximo_seguimiento||null, origen||null, observaciones||null, direccion||null, redes_sociales||null, req.params.id]);
     res.json(r.rows[0]);
   } catch(e){ res.status(500).json({error:'Error interno'}); }
 });
