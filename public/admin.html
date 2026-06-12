@@ -4362,33 +4362,50 @@ function previsualizarImport(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(ev) {
-    const text = ev.target.result;
-    const lines = text.split('\n').filter(l=>l.trim());
-    importData = lines.slice(1).map(l => {
-      const cols = l.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
-      return { nombre:cols[0]||'', tipo:cols[1]||'club', telefono:cols[2]||null, email:cols[3]||null, zona:cols[4]||null, notas_rapidas:cols[5]||null, direccion:cols[6]||null, redes_sociales:cols[7]||null };
-    }).filter(c=>c.nombre);
-    const prev = document.getElementById('crm-import-preview');
-    prev.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:6px">'+importData.length+' contactos a importar:</div>' +
-      importData.slice(0,5).map(c=>'<div style="font-size:12px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+c.nombre+' · '+c.tipo+(c.zona?' · '+c.zona:'')+'</div>').join('') +
-      (importData.length>5?'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">...y '+(importData.length-5)+' más</div>':'');
+    try {
+      const wb = XLSX.read(ev.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      importData = rows.slice(1).map(r => ({
+        nombre:       String(r[0]||'').trim(),
+        tipo:         String(r[1]||'club').trim(),
+        telefono:     String(r[2]||'').trim() || null,
+        email:        String(r[3]||'').trim() || null,
+        zona:         String(r[4]||'').trim() || null,
+        notas_rapidas:String(r[5]||'').trim() || null,
+        direccion:    String(r[6]||'').trim() || null,
+        redes_sociales:String(r[7]||'').trim() || null,
+      })).filter(c => c.nombre);
+      const prev = document.getElementById('crm-import-preview');
+      prev.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:6px">'+importData.length+' contactos listos para importar:</div>' +
+        importData.slice(0,5).map(c=>'<div style="font-size:12px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+c.nombre+' · '+c.tipo+(c.zona?' · '+c.zona:'')+'</div>').join('') +
+        (importData.length>5?'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">...y '+(importData.length-5)+' más</div>':'');
+    } catch(err) {
+      document.getElementById('crm-import-preview').innerHTML = '<div style="color:#ef4444;font-size:12px">Error leyendo el archivo: '+err.message+'</div>';
+      importData = [];
+    }
   };
-  reader.readAsText(file);
+  reader.readAsArrayBuffer(file);
 }
 
 async function procesarImportCRM() {
   if (!importData.length) { alert('Cargá un archivo primero'); return; }
+  const btn = document.querySelector('[onclick="procesarImportCRM()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Importando...'; btn.style.opacity = '0.6'; }
   let ok = 0, err = 0;
   for (const c of importData) {
     try {
       await apiAdmin('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(c)});
       ok++;
+      if (btn) btn.textContent = 'Importando ' + ok + '/' + importData.length + '...';
     } catch(e) { err++; }
   }
   document.getElementById('modal-crm-import').remove();
   alert('✅ Importados: '+ok+(err?' · ❌ Errores: '+err:''));
+  importData = [];
   cargarCRM();
 }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
