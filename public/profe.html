@@ -220,30 +220,23 @@ async function apiProfe(path, opts={}) {
 
     <!-- AGENDA -->
     <div class="page" id="page-agenda">
-      <div class="info-box">
-        📌 Cargá tus horarios disponibles. Los alumnos podrán reservar clases desde <strong>PadelConnect → Clases Particulares</strong>.
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="agendaProfeAnterior()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">&#8249;</button>
+        <span id="agenda-profe-rango" style="font-size:13px;font-weight:600;color:#fff;flex:1;text-align:center"></span>
+        <button onclick="agendaProfeNext()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">&#8250;</button>
+        <button onclick="abrirModalTurno()" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">+ Agregar clase</button>
       </div>
-      <div class="section-hdr">
-        <div class="section-title">⏰ Mis horarios disponibles</div>
-        <button class="btn-sm success" onclick="abrirModalTurno()">+ Agregar turno</button>
-      </div>
-      <div id="agenda-list"><div class="loader"></div></div>
+      <div id="agenda-profe-container"><div class="loader"></div></div>
     </div>
-
-    <!-- CLASES -->
     <div class="page" id="page-clases">
-      <div class="section-hdr">
-        <div class="section-title">🎾 Reservas recibidas</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn-sm" id="f-todas" onclick="filtrarClases('todas')" style="background:rgba(34,197,94,.15);border-color:var(--green)">Todas</button>
-          <button class="btn-sm" id="f-pendiente" onclick="filtrarClases('pendiente')">⏳ Pendientes</button>
-          <button class="btn-sm" id="f-confirmada" onclick="filtrarClases('confirmada')">✅ Confirmadas</button>
-        </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="clasesDiaAnterior()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">&#8249;</button>
+        <span id="clases-dia-label" style="font-size:13px;font-weight:600;color:#fff;flex:1;text-align:center"></span>
+        <button onclick="clasesDiaNext()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px">&#8250;</button>
+        <button onclick="abrirModalTurno()" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">+ Agregar clase</button>
       </div>
-      <div id="clases-list"><div class="loader"></div></div>
+      <div id="clases-dia-list"><div class="loader"></div></div>
     </div>
-
-    <!-- PERFIL -->
     <div class="page" id="page-perfil">
       <div class="perfil-card" id="perfil-form-card">
         <div style="font-family:'Bebas Neue',cursive;font-size:28px;margin-bottom:20px">Tu perfil <span style="color:var(--green)">público</span></div>
@@ -586,95 +579,136 @@ async function enviarResumenWhatsapp() {
 }
 
 // ─── AGENDA ────────────────────────────────────────────────────────────
+// ─── AGENDA SEMANAL PROFE ─────────────────────────────────────────────
+let agendaProfeFechaBase = new Date();
+agendaProfeFechaBase.setDate(agendaProfeFechaBase.getDate() - agendaProfeFechaBase.getDay() + 1);
+
+function fmtFechaProfe(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function agendaProfeAnterior() { agendaProfeFechaBase.setDate(agendaProfeFechaBase.getDate()-7); cargarAgenda(); }
+function agendaProfeNext()     { agendaProfeFechaBase.setDate(agendaProfeFechaBase.getDate()+7); cargarAgenda(); }
+
 async function cargarAgenda() {
-  const el = document.getElementById('agenda-list');
-  el.innerHTML = '<div class="loader"></div>';
+  const cont = document.getElementById('agenda-profe-container');
+  const rango = document.getElementById('agenda-profe-rango');
+  if (!cont) return;
+  cont.innerHTML = '<div class="loader"></div>';
   if (!perfilProfe) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div>Completá tu perfil primero</div>';
+    cont.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div>Completá tu perfil primero</div>';
     return;
   }
+  // Construir dias de la semana
+  const dias = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(agendaProfeFechaBase);
+    d.setDate(d.getDate() + i);
+    dias.push(fmtFechaProfe(d));
+  }
+  const d1 = new Date(dias[0]+'T12:00:00');
+  const d2 = new Date(dias[6]+'T12:00:00');
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  if (rango) rango.textContent = d1.getDate()+' '+MESES[d1.getMonth()]+' — '+d2.getDate()+' '+MESES[d2.getMonth()]+' '+d2.getFullYear();
+
   try {
     const turnos = await apiProfe('/padel/profesores/'+perfilProfe.id+'/disponibilidad');
-    if (!turnos.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No tenés turnos cargados aún.<br>Agregá tu primera disponibilidad.</div>';
-      return;
-    }
-    const DIAS_FULL = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-    const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
-    // Separar fijos y recurrentes
-    const fijos = turnos.filter(t => t.fecha_especifica);
-    const recurrentes = turnos.filter(t => !t.fecha_especifica);
-
-    // Agrupar fijos por fecha
-    const grupos = {};
-    fijos.forEach(t => {
-      const fechaKey = String(t.fecha_especifica).substring(0,10);
-      if (!grupos[fechaKey]) grupos[fechaKey] = [];
-      grupos[fechaKey].push(t);
-    });
-
-    const renderTurno = t => {
-      const hi = String(t.hora_inicio).substring(0,5);
-      const hf = String(t.hora_fin).substring(0,5);
-      const ocupados = parseInt(t.reservas_activas) || 0;
-      const cupos = t.cupos || 1;
-      const libres = cupos - ocupados;
-      const color = libres <= 0 ? '#ff2d78' : libres === 1 ? '#fbbf24' : '#22c55e';
-      return `
-        <div class="turno-card">
-          <div style="flex:1">
-            <div class="turno-hora">🕐 ${hi} - ${hf}</div>
-            ${t.zona ? `<div class="turno-info">📍 ${t.zona}</div>` : ''}
-            <div style="margin-top:6px;font-size:12px;font-weight:700;color:${color}">${libres <= 0 ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares disponibles'}</div>
-          </div>
-          <button onclick="borrarTurno('${t.id}')" class="btn-sm danger">🗑</button>
-        </div>`;
-    };
-
-    let html = '';
-
-    // Renderizar fijos agrupados por día
-    const fechasOrdenadas = Object.keys(grupos).sort();
-    fechasOrdenadas.forEach(fechaKey => {
-      const fecha = new Date(fechaKey + 'T12:00:00');
-      const diaNombre = DIAS_FULL[fecha.getDay()].toUpperCase();
-      const dia = fecha.getDate();
-      const mes = MESES[fecha.getMonth()].toUpperCase();
-      const anio = fecha.getFullYear();
-      html += `<div style="margin:18px 0 8px;padding:8px 14px;background:linear-gradient(90deg,#7c3aed22,transparent);border-left:3px solid #7c3aed;border-radius:6px;font-size:13px;font-weight:800;color:#a78bfa;letter-spacing:0.5px">${diaNombre} ${dia} DE ${mes} ${anio}</div>`;
-      grupos[fechaKey].forEach(t => { html += renderTurno(t); });
-    });
-
-    // Recurrentes al final
-    if (recurrentes.length) {
-      html += `<div style="margin:18px 0 8px;padding:8px 14px;background:linear-gradient(90deg,#0ea5e922,transparent);border-left:3px solid #0ea5e9;border-radius:6px;font-size:13px;font-weight:800;color:#38bdf8;letter-spacing:0.5px">🔁 RECURRENTES</div>`;
-      recurrentes.forEach(t => {
-        const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-        const hi = String(t.hora_inicio).substring(0,5);
-        const hf = String(t.hora_fin).substring(0,5);
-        const ocupados = parseInt(t.reservas_activas) || 0;
-        const cupos = t.cupos || 1;
-        const libres = cupos - ocupados;
-        const color = libres <= 0 ? '#ff2d78' : libres === 1 ? '#fbbf24' : '#22c55e';
-        html += `
-        <div class="turno-card">
-          <div style="flex:1">
-            <div class="turno-hora">🕐 ${hi} - ${hf}</div>
-            <div class="turno-info">🔁 Todos los ${DIAS[t.dia_semana]}${t.zona ? ' · 📍 '+t.zona : ''}</div>
-            <div style="margin-top:6px;font-size:12px;font-weight:700;color:${color}">${libres <= 0 ? '🔴 Sin cupos' : '🟢 ' + libres + '/' + cupos + ' lugares disponibles'}</div>
-          </div>
-          <button onclick="borrarTurno('${t.id}')" class="btn-sm danger">🗑</button>
-        </div>`;
-      });
-    }
-
-    el.innerHTML = html;
+    renderAgendaProfe(dias, turnos);
   } catch(e) {
-    el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+    cont.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>';
   }
 }
 
+function renderAgendaProfe(dias, turnos) {
+  const cont = document.getElementById('agenda-profe-container');
+  const hoy = fmtFechaProfe(new Date());
+  const DIAS_CORTOS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  // Horas 12:00 a 20:00 cada 30min
+  const horas = [];
+  for (let m = 12*60; m < 20*60; m += 30) {
+    horas.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
+  }
+
+  // Mapa de clases por fecha_hora
+  const mapaClases = {};
+  turnos.forEach(t => {
+    const fecha = t.fecha_especifica ? String(t.fecha_especifica).substring(0,10) : null;
+    if (!fecha) return;
+    const hi = String(t.hora_inicio).substring(0,5);
+    const hf = String(t.hora_fin).substring(0,5);
+    const [hh,mm] = hi.split(':').map(Number);
+    const [hh2,mm2] = hf.split(':').map(Number);
+    let min = hh*60+mm;
+    const minFin = hh2*60+mm2;
+    let esInicio = true;
+    while (min < minFin) {
+      const hStr = String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0');
+      const clave = fecha+'_'+hStr;
+      mapaClases[clave] = {...t, _esInicio: esInicio};
+      esInicio = false;
+      min += 30;
+    }
+  });
+
+  // Tabla
+  let html = '<div style="overflow-x:auto"><table style="border-collapse:collapse;width:100%;min-width:600px">';
+  // Header dias
+  html += '<thead><tr><th style="width:52px;padding:6px;font-size:11px;color:rgba(255,255,255,.3);border-bottom:1px solid rgba(255,255,255,.08)"></th>';
+  dias.forEach(f => {
+    const d = new Date(f+'T12:00:00');
+    const esHoy = f === hoy;
+    html += '<th style="padding:6px 4px;font-size:11px;font-weight:700;color:'+(esHoy?'#22c55e':'rgba(255,255,255,.5)')+';border-bottom:1px solid rgba(255,255,255,.08);text-align:center">'+DIAS_CORTOS[d.getDay()]+'<br><span style="font-size:13px;color:'+(esHoy?'#22c55e':'#fff')+'">'+d.getDate()+'</span></th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  horas.forEach(hora => {
+    html += '<tr>';
+    html += '<td style="padding:3px 6px;font-size:10px;color:rgba(255,255,255,.3);white-space:nowrap;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.04)">'+hora+'</td>';
+    dias.forEach(f => {
+      const esHoy = f === hoy;
+      const clave = f+'_'+hora;
+      const clase = mapaClases[clave];
+      html += '<td style="padding:2px;border-bottom:1px solid rgba(255,255,255,.04);border-left:1px solid rgba(255,255,255,.04);'+(esHoy?'background:rgba(34,197,94,.03)':'')+'">';
+      if (clase) {
+        if (clase._esInicio) {
+          const ocupados = parseInt(clase.reservas_activas)||0;
+          const cupos = clase.cupos||1;
+          const libres = cupos - ocupados;
+          const color = libres<=0 ? '#ef4444' : '#22c55e';
+          const hi = String(clase.hora_inicio).substring(0,5);
+          const hf = String(clase.hora_fin).substring(0,5);
+          html += '<div style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:4px;padding:3px 5px;font-size:10px;cursor:pointer" onclick="borrarTurno(''+clase.id+'')" title="'+hi+'-'+hf+' · Click para eliminar">';
+          html += '<div style="font-weight:700;color:#22c55e">'+hi+'</div>';
+          html += '<div style="color:'+color+'">'+libres+'/'+cupos+'</div>';
+          html += '</div>';
+        } else {
+          html += '<div style="background:rgba(34,197,94,.06);border-left:2px solid rgba(34,197,94,.2);height:100%;min-height:20px"></div>';
+        }
+      } else {
+        html += '<div onclick="abrirModalTurnoFecha(''+f+'',''+hora+'')" style="height:24px;border-radius:4px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(34,197,94,.08)'" onmouseout="this.style.background='transparent'"></div>';
+      }
+      html += '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+
+function abrirModalTurnoFecha(fecha, hora) {
+  abrirModalTurno();
+  document.getElementById('turno-fecha').value = fecha;
+  if (hora) document.getElementById('turno-inicio').value = hora;
+  // Calcular hora fin +1h por defecto
+  if (hora) {
+    const [hh,mm] = hora.split(':').map(Number);
+    const fin = new Date(0,0,0,hh+1,mm);
+    document.getElementById('turno-fin').value = String(fin.getHours()).padStart(2,'0')+':'+String(fin.getMinutes()).padStart(2,'0');
+  }
+}
 function abrirModalTurno() {
   const hoy = new Date().toISOString().split('T')[0];
   document.getElementById('turno-fecha').value = hoy;
@@ -708,70 +742,123 @@ async function borrarTurno(id) {
 
 // ─── CLASES ────────────────────────────────────────────────────────────
 let todasLasClases = [];
+// ─── CLASES DEL DIA ───────────────────────────────────────────────────
+let clasesDiaFecha = new Date().toISOString().split('T')[0];
+
+function clasesDiaAnterior() {
+  const d = new Date(clasesDiaFecha+'T12:00:00');
+  d.setDate(d.getDate()-1);
+  clasesDiaFecha = fmtFechaProfe(d);
+  cargarClasesDia();
+}
+function clasesDiaNext() {
+  const d = new Date(clasesDiaFecha+'T12:00:00');
+  d.setDate(d.getDate()+1);
+  clasesDiaFecha = fmtFechaProfe(d);
+  cargarClasesDia();
+}
+
 async function cargarClases() {
-  const el = document.getElementById('clases-list');
+  actualizarLabelClasesDia();
+  await cargarClasesDia();
+}
+
+function actualizarLabelClasesDia() {
+  const el = document.getElementById('clases-dia-label');
+  if (!el) return;
+  const d = new Date(clasesDiaFecha+'T12:00:00');
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const hoy = new Date().toISOString().split('T')[0];
+  const label = clasesDiaFecha === hoy ? 'Hoy · ' : '';
+  el.textContent = label+DIAS[d.getDay()]+' '+d.getDate()+' de '+MESES[d.getMonth()]+' '+d.getFullYear();
+}
+
+async function cargarClasesDia() {
+  actualizarLabelClasesDia();
+  const el = document.getElementById('clases-dia-list');
+  if (!el || !perfilProfe) return;
   el.innerHTML = '<div class="loader"></div>';
   try {
-    todasLasClases = await apiProfe('/padel/clases/mis-clases');
-    filtrarClases('todas');
+    const turnos = await apiProfe('/padel/profesores/'+perfilProfe.id+'/disponibilidad');
+    const clases = await apiProfe('/padel/clases/mis-clases').catch(()=>[]);
+    renderClasesDia(turnos, clases);
   } catch(e) {
-    el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+    el.innerHTML = '<div class="empty-state">Error: '+e.message+'</div>';
   }
 }
 
-function filtrarClases(estado) {
-  ['todas','pendiente','confirmada'].forEach(e => {
-    const btn = document.getElementById('f-'+e);
-    if (btn) btn.style.background = e===estado ? 'rgba(34,197,94,.15)' : 'rgba(255,255,255,.06)';
-    if (btn) btn.style.borderColor = e===estado ? 'var(--green)' : 'rgba(255,255,255,.1)';
+function renderClasesDia(turnos, clases) {
+  const el = document.getElementById('clases-dia-list');
+  const diaSem = new Date(clasesDiaFecha+'T12:00:00').getDay();
+
+  // Horas 12:00 a 20:00 cada 30min
+  const horas = [];
+  for (let m = 12*60; m < 20*60; m += 30) {
+    horas.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
+  }
+
+  // Turnos del dia
+  const turnosDia = turnos.filter(t => {
+    if (t.fecha_especifica) return String(t.fecha_especifica).substring(0,10) === clasesDiaFecha;
+    return t.dia_semana === diaSem;
   });
-  const filtradas = estado === 'todas' ? todasLasClases : todasLasClases.filter(c => c.estado === estado);
-  const el = document.getElementById('clases-list');
-  if (!filtradas.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🎾</div>No hay clases ${estado === 'todas' ? '' : 'con estado '+estado}</div>`;
+
+  if (!turnosDia.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div>No tenés clases para este día.<br>Usá <strong>+ Agregar clase</strong> para cargar una.</div>';
     return;
   }
-  // Agrupar por fecha
-  const porFecha = {};
-  filtradas.forEach(c => {
-    const fechaKey = c.fecha ? String(c.fecha).substring(0,10) : 'sin-fecha';
-    if (!porFecha[fechaKey]) porFecha[fechaKey] = [];
-    porFecha[fechaKey].push(c);
+
+  // Reservas del dia
+  const reservasDia = (Array.isArray(clases)?clases:[]).filter(c => {
+    const fecha = c.fecha ? String(c.fecha).substring(0,10) : '';
+    return fecha === clasesDiaFecha;
   });
-  let htmlClases = '';
-  Object.entries(porFecha).sort(([a],[b]) => a.localeCompare(b)).forEach(([fechaKey, clasesDia]) => {
-    const fechaLabel = fechaKey !== 'sin-fecha'
-      ? new Date(fechaKey + 'T12:00:00').toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'}).toUpperCase()
-      : 'SIN FECHA';
-    htmlClases += `<div style="font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;margin:16px 0 8px">${fechaLabel}</div>`;
-    htmlClases += clasesDia.map(c => {
-      const hi = String(c.hora_inicio).substring(0,5);
-      const hf = String(c.hora_fin).substring(0,5);
-      const estadoClass = 'estado-'+c.estado;
-      return `
-      <div class="reserva-card">
-        <div class="alumno-av">${c.alumno_foto ? `<img src="${c.alumno_foto}">` : '👤'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
-            <span style="font-weight:700;font-size:15px">${c.alumno_nombre}</span>
-            <span class="estado-badge ${estadoClass}">${c.estado}</span>
-          </div>
-          <div style="color:var(--muted);font-size:13px">🕐 ${hi} - ${hf}</div>
-          ${c.zona ? `<div style="color:rgba(255,255,255,.4);font-size:12px;margin-top:2px">📍 ${c.zona}</div>` : ''}
-          ${c.precio_cobrado ? `<div style="color:var(--green);font-size:12px;font-weight:600;margin-top:2px">💰 $${c.precio_cobrado}</div>` : ''}
-          ${c.notas ? `<div style="color:var(--muted);font-size:12px;margin-top:4px;font-style:italic">"${c.notas}"</div>` : ''}
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
-          ${c.estado === 'pendiente' ? `
-            <button onclick="responderClase('${c.id}','confirmada')" class="btn-sm success">✅</button>
-            <button onclick="responderClase('${c.id}','cancelada')" class="btn-sm danger">❌</button>` : ''}
-          ${c.alumno_tel ? `<button onclick="window.open('https://wa.me/'+('${c.alumno_tel}'.replace(/\D/g,'')))" class="btn-sm wa">💬</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
+
+  let html = '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start">';
+
+  // Agrupar turnos por slot y mostrar en columnas (max 3 por fila)
+  turnosDia.sort((a,b) => String(a.hora_inicio).localeCompare(String(b.hora_inicio)));
+
+  // Columna unica por cada turno (hasta 3 por fila)
+  turnosDia.forEach(t => {
+    const hi = String(t.hora_inicio).substring(0,5);
+    const hf = String(t.hora_fin).substring(0,5);
+    const ocupados = parseInt(t.reservas_activas)||0;
+    const cupos = t.cupos||1;
+    const libres = cupos - ocupados;
+    const color = libres<=0 ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.25)';
+    const colorText = libres<=0 ? '#ef4444' : '#22c55e';
+
+    html += '<div style="background:rgba(255,255,255,.02);border:1px solid '+color+';border-radius:10px;padding:10px">';
+    html += '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">'+hi+' — '+hf+'</div>';
+    html += '<div style="font-size:11px;color:'+colorText+';margin-bottom:8px">'+(libres<=0?'Sin cupos':''+libres+'/'+cupos+' lugar'+(cupos>1?'es':'')+' libre'+(libres>1?'s':''))+'</div>';
+
+    // Reservas para este turno
+    const resDeEste = reservasDia.filter(c => String(c.hora_inicio||'').substring(0,5) === hi);
+    if (resDeEste.length) {
+      resDeEste.forEach(c => {
+        const nombre = c.alumno_nombre || c.nombre || 'Alumno';
+        const estado = c.estado || 'pendiente';
+        const estColor = estado==='confirmada' ? '#22c55e' : estado==='pendiente' ? '#f59e0b' : '#ef4444';
+        html += '<div style="display:flex;align-items:center;gap:6px;padding:5px 7px;background:rgba(255,255,255,.03);border-radius:6px;margin-bottom:4px">';
+        html += '<span style="font-size:12px;color:#fff;flex:1">'+nombre+'</span>';
+        html += '<span style="font-size:10px;color:'+estColor+'">'+estado+'</span>';
+        html += '</div>';
+      });
+    } else {
+      html += '<div style="font-size:11px;color:rgba(255,255,255,.2);text-align:center;padding:8px 0">Sin reservas</div>';
+    }
+
+    html += '<button onclick="abrirModalTurnoFecha(''+clasesDiaFecha+'',''+hi+'')" style="width:100%;margin-top:6px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#22c55e;padding:4px;border-radius:6px;font-size:11px;cursor:pointer">+ Editar</button>';
+    html += '</div>';
   });
-  el.innerHTML = htmlClases;
+
+  html += '</div>';
+  el.innerHTML = html;
 }
+
+function filtrarClases(estado) {}
 
 async function responderClase(id, estado) {
   try {
