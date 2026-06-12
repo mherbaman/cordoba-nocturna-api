@@ -1697,7 +1697,7 @@ function navTo(page, btn) {
   if (page === 'reportes') cargarFiltrosReporte();
 
   if (page === 'dashboard') cargarDashboard();
-  if (page === 'crm')       { if (typeof cargarCRM === 'function') cargarCRM(); else setTimeout(cargarCRM, 100); }
+  if (page === 'crm')       { if (typeof cargarCRM === 'function') cargarCRM(); else setTimeout(function(){ cargarCRM(); }, 300); }
   if (page === 'sponsors')  cargarSponsors();
   if (page === 'sesiones')  cargarSesiones();
   if (page === 'negocios')  cargarNegocios();
@@ -4178,7 +4178,7 @@ function renderKanban(data, filtro) {
     const cards = items.map(c => {
       const vencido = c.proximo_seguimiento && c.proximo_seguimiento.substring(0,16) < hoy;
       const seg = c.proximo_seguimiento ? new Date(c.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      return '<div onclick="abrirCRMModal(''+c.id+'',true)" style="background:rgba(255,255,255,.04);border:1px solid '+(vencido?'rgba(239,68,68,.5)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='rgba(255,255,255,.04)'">'
+      return '<div onclick="abrirCRMModal('+c.id+',true)" style="background:rgba(255,255,255,.04);border:1px solid '+(vencido?'rgba(239,68,68,.5)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer">'
         + '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">'+c.nombre+'</div>'
         + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">'+c.tipo+(c.zona?' · '+c.zona:'')+'</div>'
         + (c.valor_estimado ? '<div style="font-size:11px;color:#22c55e;margin-bottom:4px">💰 $'+Number(c.valor_estimado).toLocaleString('es-AR')+'/mes</div>' : '')
