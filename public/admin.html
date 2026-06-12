@@ -172,6 +172,22 @@ tr:hover td { background:rgba(255,255,255,.02); }
   .hamburger { display:flex; }
   .main { padding:20px 16px; padding-top:70px; }
 }
+.crm-flt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;transition:all .15s}
+.crm-flt.active{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.4);color:#22c55e}
+.crm-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;transition:border-color .2s}
+.crm-card:hover{border-color:rgba(255,255,255,.15)}
+.crm-estado{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.crm-prospecto{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.3)}
+.crm-contactado{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.crm-demo{background:rgba(249,115,22,.12);color:#fb923c;border:1px solid rgba(249,115,22,.3)}
+.crm-activo{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3)}
+.crm-perdido{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.crm-kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.crm-kpi-val{font-size:22px;font-weight:700;color:#fff}
+.crm-kpi-lbl{font-size:10px;color:var(--muted);margin-top:2px}
+.crm-nota{background:rgba(255,255,255,.03);border-left:2px solid rgba(34,197,94,.3);padding:6px 10px;border-radius:0 6px 6px 0;margin-bottom:5px;font-size:12px;color:rgba(255,255,255,.7)}
+.crm-nota-fecha{font-size:10px;color:var(--muted);margin-top:2px}
+.crm-vencido{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
 </style>
 
 <script>
@@ -211,6 +227,8 @@ if('serviceWorker' in navigator){
       <div class="sidebar-logo">CÓRDOBA<span style="color:var(--pink)">LUX</span></div>
       <div class="nav-section">Principal</div>
       <button class="nav-item active" onclick="navTo('dashboard',this)"><span class="icon">📊</span> Dashboard</button>
+      <button class="nav-item" id="nav-crm" onclick="navTo('crm',this)"><span class="icon">🎯</span> CRM <span id="crm-badge" style="display:none;background:#ef4444;color:#fff;font-size:9px;padding:1px 5px;border-radius:10px;margin-left:4px;font-weight:700">!</span></button>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:10px 0"></div>
       <button class="nav-item" onclick="navTo('sponsors',this)"><span class="icon">🎯</span> Sponsors</button>
       <button class="nav-item" onclick="navTo('promo-principal',this)"><span class="icon">📲</span> Promo Principal</button>
       <button class="nav-item" onclick="navTo('sesiones',this)"><span class="icon">🌙</span> Sesiones</button>
@@ -233,6 +251,35 @@ if('serviceWorker' in navigator){
     <div class="main">
 
       <!-- DASHBOARD -->
+      <!-- ===== CRM ===== -->
+      <div class="page" id="page-crm">
+        <div class="page-title">CRM 🎯</div>
+        <div class="page-sub">Seguimiento comercial — prospectos, clubes, profes, sponsors</div>
+
+        <!-- KPIs -->
+        <div id="crm-kpis" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px"></div>
+
+        <!-- Toolbar -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+          <div id="crm-filtros" style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
+            <button class="crm-flt active" onclick="filtrarCRM('todos',this)">Todos</button>
+            <button class="crm-flt" onclick="filtrarCRM('prospecto',this)" style="border-color:rgba(99,102,241,.4);color:#818cf8">🔵 Prospectos</button>
+            <button class="crm-flt" onclick="filtrarCRM('contactado',this)" style="border-color:rgba(245,158,11,.4);color:#f59e0b">🟡 Contactados</button>
+            <button class="crm-flt" onclick="filtrarCRM('demo',this)" style="border-color:rgba(249,115,22,.4);color:#fb923c">🟠 Demo</button>
+            <button class="crm-flt" onclick="filtrarCRM('activo',this)" style="border-color:rgba(34,197,94,.4);color:#22c55e">🟢 Activos</button>
+            <button class="crm-flt" onclick="filtrarCRM('perdido',this)" style="border-color:rgba(239,68,68,.4);color:#ef4444">🔴 Perdidos</button>
+          </div>
+          <button onclick="abrirCRMImport()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer">📥 Importar Excel</button>
+          <button onclick="abrirCRMModal()" style="background:#22c55e;border:none;color:#052e16;padding:7px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">+ Nuevo contacto</button>
+        </div>
+
+        <!-- Seguimientos vencidos -->
+        <div id="crm-alertas" style="margin-bottom:14px"></div>
+
+        <!-- Lista -->
+        <div id="crm-list"><div class="loader"></div></div>
+      </div>
+
       <div class="page active" id="page-dashboard">
         <div class="page-title">DASHBOARD</div>
         <div class="page-sub">Resumen general de la plataforma</div>
@@ -1648,6 +1695,7 @@ function navTo(page, btn) {
   if (page === 'reportes') cargarFiltrosReporte();
 
   if (page === 'dashboard') cargarDashboard();
+  if (page === 'crm')       cargarCRM();
   if (page === 'sponsors')  cargarSponsors();
   if (page === 'sesiones')  cargarSesiones();
   if (page === 'negocios')  cargarNegocios();
@@ -3980,6 +4028,258 @@ async function cambiarNivelEmbajador(id, nivel){
 async function toggleEmbajador(id){
   try { await apiAdmin('/superadmin/embajadores/'+id+'/toggle', {method:'PUT'}); cargarEmbajadores(); }
   catch(e){ alert('Error'); }
+}
+
+// ─── CRM ──────────────────────────────────────────────────────────────
+let crmData = [];
+let crmFiltro = 'todos';
+
+const CRM_ESTADOS = {
+  prospecto: {label:'🔵 Prospecto', cls:'crm-prospecto'},
+  contactado: {label:'🟡 Contactado', cls:'crm-contactado'},
+  demo:       {label:'🟠 Demo/Reunión', cls:'crm-demo'},
+  activo:     {label:'🟢 Activo', cls:'crm-activo'},
+  perdido:    {label:'🔴 Perdido', cls:'crm-perdido'}
+};
+const CRM_TIPOS = ['club','profe','sponsor','negocio','otro'];
+
+async function cargarCRM() {
+  const el = document.getElementById('crm-list');
+  el.innerHTML = '<div class="loader"></div>';
+  try {
+    const [contactos, seguimientos] = await Promise.all([
+      apiCall('/superadmin/crm/contactos'),
+      apiCall('/superadmin/crm/seguimientos-hoy').catch(()=>[])
+    ]);
+    crmData = contactos;
+    renderCRMKpis(contactos);
+    renderCRMAlertas(seguimientos);
+    renderCRMList(contactos, crmFiltro);
+    // Badge en nav
+    const badge = document.getElementById('crm-badge');
+    if (badge) badge.style.display = seguimientos.length ? 'inline' : 'none';
+  } catch(e) {
+    el.innerHTML = '<div style="color:#ef4444;padding:20px">Error: '+e.message+'</div>';
+  }
+}
+
+function renderCRMKpis(data) {
+  const el = document.getElementById('crm-kpis');
+  if (!el) return;
+  const estados = ['prospecto','contactado','demo','activo','perdido'];
+  const counts = {};
+  estados.forEach(e => counts[e] = 0);
+  let totalValor = 0;
+  data.forEach(c => { counts[c.estado] = (counts[c.estado]||0)+1; totalValor += parseFloat(c.valor_estimado||0); });
+  el.innerHTML = estados.map(e => {
+    const cfg = CRM_ESTADOS[e];
+    return '<div class="crm-kpi"><div class="crm-kpi-val">'+counts[e]+'</div><div class="crm-kpi-lbl">'+cfg.label+'</div></div>';
+  }).join('') + '<div class="crm-kpi"><div class="crm-kpi-val" style="color:#22c55e">ARS '+Math.round(totalValor).toLocaleString('es-AR')+'</div><div class="crm-kpi-lbl">💰 Valor estimado/mes</div></div>';
+}
+
+function renderCRMAlertas(seguimientos) {
+  const el = document.getElementById('crm-alertas');
+  if (!el || !seguimientos.length) { if(el) el.innerHTML=''; return; }
+  el.innerHTML = '<div style="font-size:11px;font-weight:700;color:#ef4444;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🔔 Seguimientos pendientes ('+seguimientos.length+')</div>' +
+    seguimientos.map(s => {
+      const fecha = s.proximo_seguimiento ? new Date(s.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal('+JSON.stringify(s).replace(/"/g,"'")+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
+    }).join('');
+}
+
+function renderCRMList(data, filtro) {
+  const el = document.getElementById('crm-list');
+  const lista = filtro === 'todos' ? data : data.filter(c => c.estado === filtro);
+  if (!lista.length) {
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:14px">Sin contactos en este estado.<br>Agregá uno con el botón verde.</div>';
+    return;
+  }
+  el.innerHTML = lista.map(c => {
+    const cfg = CRM_ESTADOS[c.estado] || CRM_ESTADOS.prospecto;
+    const notas = c.notas || [];
+    const ultimaNota = notas[0];
+    const hoy = new Date();
+    const seg = c.proximo_seguimiento ? new Date(c.proximo_seguimiento) : null;
+    const vencido = seg && seg < hoy;
+    const segLabel = seg ? seg.toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    return '<div class="crm-card" style="'+(vencido?'border-color:rgba(239,68,68,.4)':'')+'">' +
+      '<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">' +
+        '<div style="flex:1;min-width:200px">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">' +
+            '<span style="font-size:14px;font-weight:700;color:#fff">'+c.nombre+'</span>' +
+            '<span class="crm-estado '+cfg.cls+'">'+cfg.label+'</span>' +
+            '<span style="font-size:10px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);padding:1px 7px;border-radius:10px">'+c.tipo+'</span>' +
+          '</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.4);display:flex;gap:12px;flex-wrap:wrap">' +
+            (c.zona ? '<span>📍 '+c.zona+'</span>' : '') +
+            (c.telefono ? '<span>📱 '+c.telefono+'</span>' : '') +
+            (c.email ? '<span>✉️ '+c.email+'</span>' : '') +
+            '<span style="color:'+(vencido?'#ef4444':'rgba(255,255,255,.4)')+'">🔔 '+segLabel+'</span>' +
+            (parseFloat(c.valor_estimado||0)>0 ? '<span style="color:#22c55e">💰 ARS '+Math.round(c.valor_estimado).toLocaleString('es-AR')+'/mes</span>' : '') +
+          '</div>' +
+          (ultimaNota ? '<div style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.03);padding:5px 8px;border-radius:6px;border-left:2px solid rgba(34,197,94,.3)">💬 '+ultimaNota.texto.substring(0,80)+(ultimaNota.texto.length>80?'...':'')+'</div>' : '') +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-shrink:0">' +
+          (c.telefono ? '<a href="https://wa.me/'+c.telefono.replace(/\D/g,'')+'" target="_blank" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#25d366;padding:5px 10px;border-radius:8px;font-size:11px;text-decoration:none">💬 WA</a>' : '') +
+          '<button onclick="abrirCRMModal('+JSON.stringify(c).replace(/"/g,"&quot;")+',true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">✏️ Editar</button>' +
+          '<button onclick="eliminarCRM(''+c.id+'')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">🗑</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filtrarCRM(filtro, btn) {
+  crmFiltro = filtro;
+  document.querySelectorAll('.crm-flt').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCRMList(crmData, filtro);
+}
+
+// Modal CRM
+let crmEditando = null;
+function abrirCRMModal(contacto, editar) {
+  crmEditando = editar ? contacto : null;
+  const c = contacto || {};
+  const notas = c.notas || [];
+  const modal = document.createElement('div');
+  modal.id = 'modal-crm';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = '<div style="background:#111;border:1px solid #374151;border-radius:14px;padding:20px;width:540px;max-width:100%;max-height:90vh;overflow-y:auto">' +
+    '<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px">'+(editar?'✏️ Editar contacto':'➕ Nuevo contacto')+'</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
+      '<div style="grid-column:1/-1"><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Nombre *</label><input id="crm-nombre" class="input-admin" value="'+(c.nombre||'')+'" placeholder="Nombre del contacto"></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Tipo</label><select id="crm-tipo" class="input-admin">'+CRM_TIPOS.map(t=>'<option value="'+t+'"'+(c.tipo===t?' selected':'')+'>'+t+'</option>').join('')+'</select></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Estado</label><select id="crm-estado" class="input-admin">'+Object.entries(CRM_ESTADOS).map(([k,v])=>'<option value="'+k+'"'+(c.estado===k?' selected':'')+'>'+v.label+'</option>').join('')+'</select></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Teléfono</label><input id="crm-tel" class="input-admin" value="'+(c.telefono||'')+'" placeholder="+549..."></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Email</label><input id="crm-email" class="input-admin" value="'+(c.email||'')+'" placeholder="email@..."></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Zona</label><input id="crm-zona" class="input-admin" value="'+(c.zona||'')+'" placeholder="Córdoba Norte..."></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">Valor estimado ARS/mes</label><input id="crm-valor" class="input-admin" type="number" value="'+(c.valor_estimado||0)+'"></div>' +
+      '<div><label style="font-size:11px;color:rgba(255,255,255,.5);display:block;margin-bottom:4px">🔔 Próximo seguimiento</label><input id="crm-seg" class="input-admin" type="datetime-local" value="'+(c.proximo_seguimiento?c.proximo_seguimiento.substring(0,16):'')+'" style="color-scheme:dark"></div>' +
+    '</div>' +
+    (editar ? '<div style="margin-bottom:10px"><div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:6px">Historial de notas</div><div id="crm-notas-list">'+notas.map(n=>'<div class="crm-nota">'+n.texto+'<div class="crm-nota-fecha">'+new Date(n.creado_en).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'</div></div>').join('')+'</div><div style="display:flex;gap:6px;margin-top:6px"><input id="crm-nueva-nota" class="input-admin" placeholder="Agregar nota..." style="flex:1"><button onclick="agregarNotaCRM(''+c.id+'')" style="background:#22c55e;border:none;color:#052e16;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">+ Nota</button></div></div>' : '') +
+    '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">' +
+      '<button onclick="cerrarCRMModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer">Cancelar</button>' +
+      '<button onclick="guardarCRM()" style="background:#22c55e;border:none;color:#052e16;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Guardar</button>' +
+    '</div>' +
+  '</div>';
+  modal.addEventListener('click', e => { if(e.target===modal) cerrarCRMModal(); });
+  document.body.appendChild(modal);
+}
+
+function cerrarCRMModal() {
+  const m = document.getElementById('modal-crm');
+  if (m) m.remove();
+}
+
+async function guardarCRM() {
+  const nombre = document.getElementById('crm-nombre').value.trim();
+  if (!nombre) { alert('Ingresá un nombre'); return; }
+  const body = {
+    nombre,
+    tipo: document.getElementById('crm-tipo').value,
+    estado: document.getElementById('crm-estado').value,
+    telefono: document.getElementById('crm-tel').value.trim() || null,
+    email: document.getElementById('crm-email').value.trim() || null,
+    zona: document.getElementById('crm-zona').value.trim() || null,
+    valor_estimado: parseFloat(document.getElementById('crm-valor').value)||0,
+    proximo_seguimiento: document.getElementById('crm-seg').value || null
+  };
+  try {
+    if (crmEditando) {
+      await apiCall('/superadmin/crm/contactos/'+crmEditando.id, {method:'PUT', body:JSON.stringify(body)});
+    } else {
+      await apiCall('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(body)});
+    }
+    cerrarCRMModal();
+    cargarCRM();
+  } catch(e) { alert(e.message); }
+}
+
+async function eliminarCRM(id) {
+  if (!confirm('¿Eliminar este contacto?')) return;
+  try {
+    await apiCall('/superadmin/crm/contactos/'+id, {method:'DELETE'});
+    cargarCRM();
+  } catch(e) { alert(e.message); }
+}
+
+async function agregarNotaCRM(id) {
+  const texto = document.getElementById('crm-nueva-nota').value.trim();
+  if (!texto) return;
+  try {
+    await apiCall('/superadmin/crm/contactos/'+id+'/notas', {method:'POST', body:JSON.stringify({texto})});
+    document.getElementById('crm-nueva-nota').value = '';
+    cargarCRM();
+    // Actualizar lista de notas en modal
+    const notasEl = document.getElementById('crm-notas-list');
+    if (notasEl) {
+      const contacto = crmData.find(c => c.id === id);
+      if (contacto) {
+        const nuevaNota = '<div class="crm-nota">'+texto+'<div class="crm-nota-fecha">ahora</div></div>';
+        notasEl.innerHTML = nuevaNota + notasEl.innerHTML;
+      }
+    }
+  } catch(e) { alert(e.message); }
+}
+
+// Importar desde Excel
+function abrirCRMImport() {
+  const modal = document.createElement('div');
+  modal.id = 'modal-crm-import';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = '<div style="background:#111;border:1px solid #374151;border-radius:14px;padding:20px;width:480px;max-width:100%">' +
+    '<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:12px">📥 Importar contactos desde Excel</div>' +
+    '<div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:rgba(255,255,255,.6);line-height:1.7">' +
+      'El archivo Excel debe tener estas columnas en orden:<br>' +
+      '<strong style="color:#22c55e">nombre | tipo | telefono | email | zona | notas</strong><br>' +
+      'Tipos válidos: club, profe, sponsor, negocio, otro<br>' +
+      'La primera fila se ignora (encabezados).' +
+    '</div>' +
+    '<input type="file" id="crm-import-file" accept=".xlsx,.xls,.csv" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px;border-radius:8px;width:100%;margin-bottom:10px">' +
+    '<div id="crm-import-preview" style="max-height:200px;overflow-y:auto;margin-bottom:10px"></div>' +
+    '<div style="display:flex;justify-content:flex-end;gap:8px">' +
+      '<button onclick="document.getElementById('modal-crm-import').remove()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer">Cancelar</button>' +
+      '<button onclick="procesarImportCRM()" style="background:#22c55e;border:none;color:#052e16;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Importar</button>' +
+    '</div>' +
+  '</div>';
+  modal.addEventListener('click', e => { if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+  document.getElementById('crm-import-file').addEventListener('change', previsualizarImport);
+}
+
+let importData = [];
+function previsualizarImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const text = ev.target.result;
+    const lines = text.split('\n').filter(l=>l.trim());
+    importData = lines.slice(1).map(l => {
+      const cols = l.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+      return { nombre:cols[0]||'', tipo:cols[1]||'club', telefono:cols[2]||null, email:cols[3]||null, zona:cols[4]||null, nota:cols[5]||null };
+    }).filter(c=>c.nombre);
+    const prev = document.getElementById('crm-import-preview');
+    prev.innerHTML = '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:6px">'+importData.length+' contactos a importar:</div>' +
+      importData.slice(0,5).map(c=>'<div style="font-size:12px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)">'+c.nombre+' · '+c.tipo+(c.zona?' · '+c.zona:'')+'</div>').join('') +
+      (importData.length>5?'<div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px">...y '+(importData.length-5)+' más</div>':'');
+  };
+  reader.readAsText(file);
+}
+
+async function procesarImportCRM() {
+  if (!importData.length) { alert('Cargá un archivo primero'); return; }
+  let ok = 0, err = 0;
+  for (const c of importData) {
+    try {
+      await apiCall('/superadmin/crm/contactos', {method:'POST', body:JSON.stringify(c)});
+      ok++;
+    } catch(e) { err++; }
+  }
+  document.getElementById('modal-crm-import').remove();
+  alert('✅ Importados: '+ok+(err?' · ❌ Errores: '+err:''));
+  cargarCRM();
 }
 </script>
 </body>

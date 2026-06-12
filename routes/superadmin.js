@@ -701,3 +701,73 @@ router.put('/embajadores/:id/pagar-todo', authSuperAdmin, async (req, res) => {
     res.json({ok:true, pagadas: r.rowCount});
   } catch(err){ res.status(500).json({error:'Error interno'}); }
 });
+
+// ── CRM ──────────────────────────────────────────────────────────────
+router.get('/crm/contactos', authSuperAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT c.*, 
+        (SELECT json_agg(n ORDER BY n.creado_en DESC) FROM crm_notas n WHERE n.contacto_id = c.id) AS notas
+      FROM crm_contactos c 
+      ORDER BY c.proximo_seguimiento ASC NULLS LAST, c.actualizado_en DESC
+    `);
+    res.json(r.rows);
+  } catch(e){ res.status(500).json({error:'Error interno'}); }
+});
+
+router.post('/crm/contactos', authSuperAdmin, async (req, res) => {
+  const { nombre, tipo, telefono, email, zona, estado, valor_estimado, proximo_seguimiento } = req.body;
+  if (!nombre) return res.status(400).json({error:'nombre requerido'});
+  try {
+    const r = await pool.query(`
+      INSERT INTO crm_contactos (nombre,tipo,telefono,email,zona,estado,valor_estimado,proximo_seguimiento)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *
+    `, [nombre, tipo||'club', telefono||null, email||null, zona||null, estado||'prospecto', valor_estimado||0, proximo_seguimiento||null]);
+    res.status(201).json(r.rows[0]);
+  } catch(e){ res.status(500).json({error:'Error interno'}); }
+});
+
+router.put('/crm/contactos/:id', authSuperAdmin, async (req, res) => {
+  const { nombre, tipo, telefono, email, zona, estado, valor_estimado, proximo_seguimiento } = req.body;
+  try {
+    const r = await pool.query(`
+      UPDATE crm_contactos SET nombre=$1,tipo=$2,telefono=$3,email=$4,zona=$5,estado=$6,
+        valor_estimado=$7,proximo_seguimiento=$8,actualizado_en=NOW()
+      WHERE id=$9 RETURNING *
+    `, [nombre, tipo, telefono||null, email||null, zona||null, estado, valor_estimado||0, proximo_seguimiento||null, req.params.id]);
+    res.json(r.rows[0]);
+  } catch(e){ res.status(500).json({error:'Error interno'}); }
+});
+
+router.delete('/crm/contactos/:id', authSuperAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM crm_contactos WHERE id=$1', [req.params.id]);
+    res.json({ok:true});
+  } catch(e){ res.status(500).json({error:'Error interno'}); }
+});
+
+router.post('/crm/contactos/:id/notas', authSuperAdmin, async (req, res) => {
+  const { texto } = req.body;
+  if (!texto) return res.status(400).json({error:'texto requerido'});
+  try {
+    const r = await pool.query(`
+      INSERT INTO crm_notas (contacto_id, texto) VALUES ($1,$2) RETURNING *
+    `, [req.params.id, texto]);
+    await pool.query('UPDATE crm_contactos SET actualizado_en=NOW() WHERE id=$1', [req.params.id]);
+    res.status(201).json(r.rows[0]);
+  } catch(e){ res.status(500).json({error:'Error interno'}); }
+});
+
+router.get('/crm/seguimientos-hoy', authSuperAdmin, async (req, res) => {
+  try {
+    const r = await pool.query(`
+      SELECT id, nombre, tipo, telefono, estado, proximo_seguimiento
+      FROM crm_contactos
+      WHERE proximo_seguimiento <= NOW() + INTERVAL '1 day'
+        AND proximo_seguimiento >= NOW() - INTERVAL '7 days'
+        AND estado NOT IN ('activo','perdido')
+      ORDER BY proximo_seguimiento ASC
+    `);
+    res.json(r.rows);
+  } catch(e){ res.status(500).json({error:'Error interno'}); }
+});
