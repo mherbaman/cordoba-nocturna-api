@@ -633,7 +633,7 @@ if('serviceWorker' in navigator){
         <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:20px;margin-bottom:24px">
           <div style="font-family:'Bebas Neue',cursive;font-size:20px;margin-bottom:16px;color:var(--green)">Nuevo partido</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Zona *</label>
+            <div><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Zona *</label>
               <select id="np-zona" style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
                 <option value="">Zona...</option>
                 <option>Centro</option><option>Nueva Córdoba</option><option>Güemes</option>
@@ -643,7 +643,7 @@ if('serviceWorker' in navigator){
                 <option>La Calera</option><option>Unquillo</option><option>Mendiolaza</option>
                 <option>Salsipuedes</option>
               </select></div>
-            <div><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Categoria *</label>
+            <div><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Categoria *</label>
               <select id="np-cat" style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
                 <option value="">Categoria...</option>
                 <option value="octava">8va</option><option value="septima">7ma</option>
@@ -651,19 +651,19 @@ if('serviceWorker' in navigator){
                 <option value="cuarta">4ta</option><option value="tercera">3ra</option>
                 <option value="segunda">2da</option><option value="primera">1ra</option>
               </select></div>
-            <div><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Fecha *</label>
+            <div><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Fecha *</label>
               <input type="date" id="np-fecha" style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark"></div>
-            <div><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Hora *</label>
+            <div><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Hora *</label>
               <input type="time" id="np-hora" style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark"></div>
-            <div><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lugar</label>
+            <div><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lugar</label>
               <input type="text" id="np-lugar" placeholder="Ej: Club Atletico" style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px"></div>
-            <div><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Costo</label>
+            <div><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Costo</label>
               <input type="text" id="np-costo" placeholder="Ej: $3.000 c/u" style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px"></div>
           </div>
-          <div style="margin-bottom:14px"><label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Descripcion</label>
+          <div style="margin-bottom:14px"><label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Descripcion</label>
             <input type="text" id="np-desc" placeholder="Info extra..." style="width:100%;padding:10px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px"></div>
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-            <label style="color:rgba(255,255,255,.4);font-size:11px;text-transform:uppercase;letter-spacing:1px">Cupos:</label>
+            <label style="color:rgba(255,255,255,.75);font-size:11px;text-transform:uppercase;letter-spacing:1px">Cupos:</label>
             <select id="np-cupos" style="padding:9px 14px;background:#1a0030;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
               <option value="4" selected>4 jugadores</option><option value="2">2 jugadores</option>
             </select></div>
@@ -705,7 +705,7 @@ if('serviceWorker' in navigator){
           </div>
           <div style="margin-bottom:12px"><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripcion</label><textarea id="t-descripcion" rows="2" placeholder="Info del torneo..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea></div>
           <div style="margin-bottom:16px">
-            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:8px">Categorias</label>
+            <label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:8px">Categorias</label>
             <div style="display:flex;flex-wrap:wrap;gap:8px">
               <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="8va Masculino|8va|masculino"> 8va Masc</label>
               <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" class="cat-check" value="8va Femenino|8va|femenino"> 8va Fem</label>
@@ -764,7 +764,7 @@ if('serviceWorker' in navigator){
             <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descanso entre rondas (min)</label><input id="am-descanso" type="number" value="5" min="0" max="30" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
           </div>
           <div style="margin-bottom:12px">
-            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Formato</label>
+            <label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Formato</label>
             <select id="am-formato" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
               <option value="mejor_de_7">Mejor de 7 games (se juegan los 7, suma puntos)</option>
               <option value="set">1 Set (primero en llegar a 6)</option>
@@ -789,25 +789,25 @@ if('serviceWorker' in navigator){
         <div id="form-nuevo-embajador" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px;margin-bottom:20px">
           <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:#22c55e">Nuevo Embajador</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre *</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Nombre *</label>
               <input id="emb-nombre" type="text" placeholder="Juan Pérez" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Email *</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Email *</label>
               <input id="emb-email" type="email" placeholder="juan@email.com" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Teléfono</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Teléfono</label>
               <input id="emb-tel" type="text" placeholder="3514000000" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Código único *</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Código único *</label>
               <input id="emb-codigo" type="text" placeholder="JUAN01" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;text-transform:uppercase"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Contraseña inicial *</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Contraseña inicial *</label>
               <input id="emb-pass" type="text" placeholder="password123" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nivel</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Nivel</label>
               <select id="emb-nivel" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
                 <option value="bronce">Bronce</option><option value="plata">Plata</option><option value="oro">Oro</option>
               </select></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Foto URL</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Foto URL</label>
               <input id="emb-foto" type="text" placeholder="https://..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Dirección</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Dirección</label>
               <input id="emb-dir" type="text" placeholder="Av. Colón 1234, Córdoba" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Instagram</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Instagram</label>
               <input id="emb-ig" type="text" placeholder="@juanpadel" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
           </div>
           <div style="display:flex;gap:10px;margin-top:8px">
@@ -833,11 +833,11 @@ if('serviceWorker' in navigator){
         <div id="form-americano-pareja" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:14px;padding:20px;margin-bottom:20px">
           <div style="font-size:15px;font-weight:600;margin-bottom:16px;color:#22c55e">Nuevo Pádel Americano por Parejas</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Nombre</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Nombre</label>
               <input id="ap-nombre" type="text" placeholder="Americano Mayo 2026" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Sede</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Sede</label>
               <input id="ap-sede" type="text" placeholder="Club Córdoba Racket" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Zona</label>
+            <div><label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Zona</label>
               <select id="ap-zona" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px">
                 <option value="">Sin zona (notificar a todos)</option>
                 <option>CBA Norte</option>
@@ -856,7 +856,7 @@ if('serviceWorker' in navigator){
       <div><label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Formato</label><select id="ap-formato" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a2e;color:#fff;font-size:13px"><option value="mejor_de_7">Mejor de 7 games</option><option value="set">1 Set (primero en 6)</option></select></div>
       
           <div style="margin-bottom:16px">
-            <label style="font-size:12px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">Descripción</label>
+            <label style="font-size:12px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Descripción</label>
             <textarea id="ap-descripcion" rows="2" placeholder="Info del americano..." style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;resize:vertical"></textarea>
           </div>
       
@@ -911,7 +911,7 @@ function renderCategoriasAP() {
         <option value="femenino" ${c.genero==='femenino'?'selected':''}>♀ Femenino</option>
         <option value="mixto" ${c.genero==='mixto'?'selected':''}>⚥ Mixto</option>
       </select>
-      <span style="color:rgba(255,255,255,.4);font-size:12px">Max:</span>
+      <span style="color:rgba(255,255,255,.75);font-size:12px">Max:</span>
       <input type="number" value="${c.cupo_max}" min="2" max="16" oninput="apCategoriasTemp[${i}].cupo_max=parseInt(this.value)"
         style="width:52px;padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;text-align:center">
       <span style="color:rgba(255,255,255,.3);font-size:11px">parejas</span>
@@ -977,7 +977,7 @@ async function cargarAmericanosParejas() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div>
             <div style="font-size:15px;font-weight:700;color:#22c55e">${a.nombre}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">
+            <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">
               ${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${a.hora_inicio?a.hora_inicio.substring(0,5):''}
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${catsHtml}</div>
@@ -1037,7 +1037,7 @@ async function verAmericanoPareja(id) {
     el.innerHTML = `
       <button onclick="cargarAmericanosParejas()" style="margin-bottom:14px;padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">← Volver</button>
       <div style="font-size:17px;font-weight:700;color:#22c55e;margin-bottom:2px">${a.nombre}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:16px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''}</div>
 
       <!-- TABS -->
       <div style="display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px">
@@ -1077,19 +1077,19 @@ function apMostrarTab(tab) {
     content.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
         <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
-          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Sede</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px">Sede</div>
           <div>${a.sede||'—'}</div>
         </div>
         <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
-          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Fecha</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px">Fecha</div>
           <div>${a.fecha?a.fecha.substring(0,10):''} ${a.hora_inicio?'· '+a.hora_inicio.substring(0,5):''}</div>
         </div>
         <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
-          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Inscripción</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px">Inscripción</div>
           <div>${precio}</div>
         </div>
         <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px">
-          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Estado</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px">Estado</div>
           <div style="color:#22c55e;font-weight:700">${a.estado.toUpperCase()}</div>
         </div>
       </div>
@@ -1103,7 +1103,7 @@ function apMostrarTab(tab) {
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div>
               <div style="font-size:14px;font-weight:700;color:#22c55e">${cat.nombre} ${cat.genero === "masculino" ? "♂ Masculino" : cat.genero === "femenino" ? "♀ Femenino" : "⚥ Mixto"}</div>
-              <div style="font-size:12px;color:rgba(255,255,255,.4)">Parejas: ${parejasDecat.length} / ${cat.cupo_max}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.75)">Parejas: ${parejasDecat.length} / ${cat.cupo_max}</div>
             </div>
             ${a.estado==='abierto'?`
             <button onclick="abrirModalInscribirParejaAdmin(${a.id},${cat.id},'${cat.nombre}')"
@@ -1115,7 +1115,7 @@ function apMostrarTab(tab) {
             <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:4px">
               <div>
                 <span style="font-size:13px;font-weight:600">${i+1}. ${p.nombre_pareja}</span>
-                <span style="font-size:11px;color:rgba(255,255,255,.4);margin-left:8px">${p.jugador1_email} / ${p.jugador2_email}</span>
+                <span style="font-size:11px;color:rgba(255,255,255,.75);margin-left:8px">${p.jugador1_email} / ${p.jugador2_email}</span>
               </div>
               ${a.estado==='abierto'?`
               <button onclick="quitarParejaAdmin(${a.id},${p.id})"
@@ -1139,7 +1139,7 @@ function apMostrarTab(tab) {
             const posGrupo = pos.filter(p=>p.grupo===gr).sort((a,b)=>b.puntos-a.puntos||b.diferencia-a.diferencia);
             return `
               <div style="margin-bottom:12px">
-                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;letter-spacing:1px">GRUPO ${gr}</div>
+                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:6px;letter-spacing:1px">GRUPO ${gr}</div>
                 <div style="background:rgba(255,255,255,.03);border-radius:10px;overflow:hidden">
                   <table style="width:100%;border-collapse:collapse;font-size:12px">
                     <tr style="color:rgba(255,255,255,.4);background:rgba(255,255,255,.04)">
@@ -1259,7 +1259,7 @@ function apMostrarTab(tab) {
               const rondas = [...new Set(pGr.map(p=>p.ronda))].sort((a,b)=>a-b);
               return `
                 <div style="margin-bottom:12px">
-                  <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px">GRUPO ${gr}</div>
+                  <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:6px">GRUPO ${gr}</div>
                   ${rondas.map(r => `
                     <div style="margin-bottom:8px">
                       <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">RONDA ${r}</div>
@@ -1396,7 +1396,7 @@ function apMostrarTab(tab) {
           <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
             <div>
               <div style="font-weight:700;font-size:14px;color:#fff;margin-bottom:2px">${i.nombre_pareja||'Sin nombre'}</div>
-              <div style="font-size:11px;color:rgba(255,255,255,.4)">${i.jugador1_nombre||''} · ${i.jugador2_nombre||''}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.75)">${i.jugador1_nombre||''} · ${i.jugador2_nombre||''}</div>
             </div>
             <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(0,0,0,.3);border:1px solid ${estadoColor[i.pago_estado]||'#fff'};color:${estadoColor[i.pago_estado]||'#fff'}">${estadoLabel[i.pago_estado]||i.pago_estado||'pendiente'}</span>
           </div>
@@ -1418,8 +1418,8 @@ function apMostrarTab(tab) {
 
     content.innerHTML = `
       <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div style="font-size:13px;color:rgba(255,255,255,.4)">Precio inscripción: <span style="color:#22c55e;font-weight:700">$${precio.toLocaleString('es-AR')} por jugador</span></div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4)">${inscriptos.length} parejas</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)">Precio inscripción: <span style="color:#22c55e;font-weight:700">$${precio.toLocaleString('es-AR')} por jugador</span></div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)">${inscriptos.length} parejas</div>
       </div>
       <div style="margin-bottom:14px">
         <input type="text" placeholder="🔍 Buscar pareja o jugador..."
@@ -1569,7 +1569,7 @@ async function buscarJugadorAdmin(num) {
       <div onclick="seleccionarJugadorAdmin(${num},'${u.id}','${(u.nombre||'') + (u.apellido ? ' ' + u.apellido : '')}','${u.email}')"
         style="padding:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:13px;display:flex;justify-content:space-between">
         <span>${u.nombre}${u.apellido ? ' ' + u.apellido : ''}</span>
-        <span style="color:rgba(255,255,255,.4);font-size:11px">${u.email||''}</span>
+        <span style="color:rgba(255,255,255,.75);font-size:11px">${u.email||''}</span>
       </div>`).join('') || '<div style="color:rgba(255,255,255,.3);font-size:12px;padding:8px">Sin resultados</div>';
   } catch(e) { resEl.innerHTML='<div style="color:#f87171;font-size:12px">Error</div>'; }
 }
@@ -2830,7 +2830,7 @@ async function cargarProfesoresAdmin(estado = 'pendiente') {
             ${p.foto_url ? `<img src="${p.foto_url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.1)">` : `<div style="width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:28px">🎾</div>`}
             <div style="flex:1">
               <div style="font-weight:700;font-size:16px;margin-bottom:2px">${p.nombre}</div>
-              <div style="color:rgba(255,255,255,.4);font-size:12px;margin-bottom:8px">${p.email}</div>
+              <div style="color:rgba(255,255,255,.75);font-size:12px;margin-bottom:8px">${p.email}</div>
               ${p.bio ? `<div style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:10px">${p.bio}</div>` : ''}
               <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
                 ${p.precio_hora ? `<span style="background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);color:#facc15;padding:3px 10px;border-radius:50px;font-size:12px">💰 $${p.precio_hora}/hora</span>` : ''}
@@ -2999,8 +2999,8 @@ async function cargarTorneosAdmin() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
           <div>
             <div style="font-size:16px;font-weight:600;color:#fff">${t.nombre}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${t.sede || ''} · ${new Date(t.fecha_inicio.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR')} · ${t.cantidad_canchas} canchas</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4)">${t.total_categorias} categorias · ${t.total_parejas} parejas inscriptas</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">${t.sede || ''} · ${new Date(t.fecha_inicio.substring(0,10) + 'T12:00:00').toLocaleDateString('es-AR')} · ${t.cantidad_canchas} canchas</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75)">${t.total_categorias} categorias · ${t.total_parejas} parejas inscriptas</div>
           </div>
           <span style="font-size:11px;font-weight:700;color:${estadoColor[t.estado]||'#fff'};padding:3px 10px;border-radius:20px;border:1px solid ${estadoColor[t.estado]||'#fff'};white-space:nowrap">${estadoLabel[t.estado]||t.estado}</span>
         </div>
@@ -3066,7 +3066,7 @@ async function verPartidosTorneo(torneoId) {
     let parejasHtml = '';
     if (parejas.length) {
       parejasHtml = '<div style="margin-bottom:16px">';
-      parejasHtml += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;font-weight:700;letter-spacing:1px">PAREJAS INSCRIPTAS</div>';
+      parejasHtml += '<div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:8px;font-weight:700;letter-spacing:1px">PAREJAS INSCRIPTAS</div>';
       for (const cat of categorias) {
         const pCat = parejas.filter(p => p.categoria_id === cat.id);
         if (!pCat.length) continue;
@@ -3081,7 +3081,7 @@ async function verPartidosTorneo(torneoId) {
     }
 
     if (!pendientes.length && !jugados.length) { content.innerHTML = parejasHtml + '<p style="color:rgba(255,255,255,.3);text-align:center;padding:20px">No hay partidos.</p>'; return; }
-    const htmlJugados = jugados.length ? `<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;margin-top:16px;font-weight:700;letter-spacing:1px">PARTIDOS JUGADOS — MODIFICAR RESULTADO</div>` + jugados.map(p => `
+    const htmlJugados = jugados.length ? `<div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:8px;margin-top:16px;font-weight:700;letter-spacing:1px">PARTIDOS JUGADOS — MODIFICAR RESULTADO</div>` + jugados.map(p => `
       <div style="background:rgba(74,222,128,.04);border:1px solid rgba(74,222,128,.15);border-radius:10px;padding:12px;margin-bottom:8px">
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:4px">${p.fase.toUpperCase()} · Gr.${p.grupo||'-'} R.${p.ronda||'-'} · C.${p.cancha}</div>
         <div style="font-size:13px;color:#fff;margin-bottom:4px">${p.pareja1_nombre||'?'} vs ${p.pareja2_nombre||'?'}</div>
@@ -3182,7 +3182,7 @@ async function modificarResultado(partidoId) {
   <div style="background:#1a0030;border:1px solid rgba(239,68,68,.4);border-radius:16px;padding:24px;max-width:400px;width:100%">
     <div style="font-size:16px;font-weight:700;color:#f87171;margin-bottom:8px">🗑️ Eliminar torneo</div>
     <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:16px">Vas a eliminar <strong id="del-nombre" style="color:#fff"></strong>. Esta acción no se puede deshacer.</div>
-    <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">🔐 Contraseña admin</label>
+    <label style="font-size:11px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">🔐 Contraseña admin</label>
     <input type="password" id="del-password" placeholder="Contraseña" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(239,68,68,.4);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box;margin-bottom:10px">
     <div id="del-msg" style="font-size:12px;margin-bottom:12px"></div>
     <div style="display:flex;gap:10px">
@@ -3221,7 +3221,7 @@ async function modificarResultado(partidoId) {
       <div><label style="font-size:11px;color:rgba(255,255,255,.4)">Hora fin</label><input type="time" id="mod-hora-fin" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box"></div>
     </div>
     <div style="margin-bottom:16px">
-      <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">🔐 Contraseña admin para confirmar</label>
+      <label style="font-size:11px;color:rgba(255,255,255,.75);display:block;margin-bottom:4px">🔐 Contraseña admin para confirmar</label>
       <input type="password" id="mod-password" placeholder="Contraseña" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(167,139,250,.4);background:rgba(255,255,255,.05);color:#fff;font-size:13px;box-sizing:border-box">
     </div>
     <div id="mod-msg" style="font-size:12px;margin-bottom:10px"></div>
@@ -3364,8 +3364,8 @@ async function cargarAmericanosAdmin() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
           <div>
             <div style="font-size:15px;font-weight:700;color:#a5b4fc">${a.nombre}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:2px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${a.hora_inicio?a.hora_inicio.substring(0,5):''}</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.4)">${formato} · ${a.duracion_partido_min}min · Descanso ${a.descanso_entre_rondas_min}min · ${precio}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:2px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${a.hora_inicio?a.hora_inicio.substring(0,5):''}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75)">${formato} · ${a.duracion_partido_min}min · Descanso ${a.descanso_entre_rondas_min}min · ${precio}</div>
           </div>
           <span style="font-size:11px;font-weight:700;color:${estadoColor};background:rgba(255,255,255,.05);padding:3px 10px;border-radius:20px">${a.estado.toUpperCase()}</span>
         </div>
@@ -3418,7 +3418,7 @@ async function verAmericano(id) {
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:10px">POSICIONES</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <tr style="color:rgba(255,255,255,.4)">
+          <tr style="color:rgba(255,255,255,.75)">
             <td style="padding:4px 6px">#</td>
             <td style="padding:4px 6px">Jugador</td>
             <td style="padding:4px 6px;text-align:center">PJ</td>
@@ -3488,7 +3488,7 @@ async function verAmericano(id) {
           var resultado = p.estado==='jugado' ? (p.games_pareja1 + ' - ' + p.games_pareja2) : 'vs';
           var colorRes = p.estado==='jugado' ? '#4ade80' : 'rgba(255,255,255,.3)';
           html += '<div style="background:rgba(99,102,241,.07);border-radius:10px;padding:10px;margin-bottom:6px">';
-          html += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px">Cancha ' + p.cancha + ' - Ronda ' + p.ronda + '</div>';
+          html += '<div style="font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px">Cancha ' + p.cancha + ' - Ronda ' + p.ronda + '</div>';
           html += '<div style="display:flex;justify-content:space-between;align-items:center">';
           html += '<span style="font-size:12px;color:#fff">' + (p.nombre_1a||'') + ' / ' + (p.nombre_1b||'') + '</span>';
           html += '<span style="font-size:13px;font-weight:700;color:' + colorRes + '">' + resultado + '</span>';
@@ -3499,7 +3499,7 @@ async function verAmericano(id) {
             html += '<button onclick="document.getElementById(\'mod-am-' + p.id + '\').style.display=document.getElementById(\'mod-am-' + p.id + '\').style.display===\'none\'?\'flex\':\'none\'" style="padding:3px 10px;border-radius:20px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06);color:#fbbf24;font-size:10px;cursor:pointer">Modificar</button>';
             html += '<div id="mod-am-' + p.id + '" style="display:none;margin-top:6px;gap:6px;align-items:center;flex-wrap:wrap">';
             html += '<input id="mg1-' + p.id + '" type="number" min="0" max="7" placeholder="G1" value="' + p.games_pareja1 + '" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">';
-            html += '<span style="color:rgba(255,255,255,.4)">-</span>';
+            html += '<span style="color:rgba(255,255,255,.75)">-</span>';
             html += '<input id="mg2-' + p.id + '" type="number" min="0" max="7" placeholder="G2" value="' + p.games_pareja2 + '" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">';
             html += '<input id="mpass-' + p.id + '" type="password" placeholder="Pass" style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">';
             html += '<button onclick="modificarResultadoAmericano(' + p.id + ',' + window._s8AmericanoId + ')" style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#000;font-size:11px;font-weight:700;cursor:pointer">Guardar</button>';
@@ -3508,7 +3508,7 @@ async function verAmericano(id) {
           if (p.estado==='pendiente') {
             html += '<div style="margin-top:8px;display:flex;gap:6px;align-items:center">';
             html += '<input id="g1-' + p.id + '" type="number" min="0" max="7" placeholder="G1" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">';
-            html += '<span style="color:rgba(255,255,255,.4)">-</span>';
+            html += '<span style="color:rgba(255,255,255,.75)">-</span>';
             html += '<input id="g2-' + p.id + '" type="number" min="0" max="7" placeholder="G2" style="width:50px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px;text-align:center">';
             html += '<input id="pass-' + p.id + '" type="password" placeholder="Pass" style="width:70px;padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px">';
             html += '<button onclick="cargarResultadoAmericano(' + p.id + ',' + window._s8AmericanoId + ')" style="padding:4px 12px;border-radius:20px;border:none;background:linear-gradient(135deg,#4f46e5,#a5b4fc);color:#fff;font-size:11px;cursor:pointer">Cargar</button>';
@@ -3559,7 +3559,7 @@ async function verAmericano(id) {
     const pagosHtml = a.jugadores.length ? `
       <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:10px">💰 PAGOS</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px">Precio: <span style="color:#22c55e;font-weight:700">$${precio_s8.toLocaleString('es-AR')}</span> · ${a.jugadores.length} jugadores</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:12px">Precio: <span style="color:#22c55e;font-weight:700">$${precio_s8.toLocaleString('es-AR')}</span> · ${a.jugadores.length} jugadores</div>
         <div style="margin-bottom:12px">
           <input type="text" placeholder="🔍 Buscar jugador..."
             style="width:100%;box-sizing:border-box;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:12px"
@@ -3571,7 +3571,7 @@ async function verAmericano(id) {
     el.innerHTML = `
       <button onclick="cargarAmericanosAdmin()" style="margin-bottom:14px;padding:6px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">← Volver</button>
       <div style="font-size:16px;font-weight:700;color:#a5b4fc;margin-bottom:4px">${a.nombre}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:16px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${formato}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:16px">${a.sede||''} · ${a.fecha?a.fecha.substring(0,10):''} · ${formato}</div>
       ${jugadoresHtml}
       ${posHtml}
       ${partidosHtml}
@@ -3703,7 +3703,7 @@ async function cargarDelegadosLista() {
           ${d.foto_url ? `<img src="${d.foto_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover">` : `<div style="width:32px;height:32px;border-radius:50%;background:rgba(251,191,36,.15);display:flex;align-items:center;justify-content:center;font-size:16px">👤</div>`}
           <div>
             <div style="font-size:13px;font-weight:600">${d.nombre}</div>
-            <div style="font-size:11px;color:rgba(255,255,255,.4)">${d.email||''}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.75)">${d.email||''}</div>
           </div>
         </div>
         <button onclick="quitarDelegado('${d.usuario_id}')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:5px 12px;border-radius:50px;font-size:12px;cursor:pointer">✕ Quitar</button>
@@ -3735,7 +3735,7 @@ async function buscarUsuariosDelegado() {
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.03);border-radius:8px;margin-bottom:6px">
         <div>
           <div style="font-size:13px;font-weight:600">${u.nombre} ${u.apellido||''}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.4)">${u.email||''}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75)">${u.email||''}</div>
         </div>
         <button onclick="asignarDelegado('${u.id}')" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#fbbf24;padding:5px 12px;border-radius:50px;font-size:12px;cursor:pointer">+ Asignar</button>
       </div>`).join('');
@@ -3779,13 +3779,13 @@ function abrirWaGrupo() {
     
     <!-- Lista delegados actuales -->
     <div style="margin-bottom:16px">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:8px">Delegados asignados</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.75);margin-bottom:8px">Delegados asignados</div>
       <div id="delegados-lista"></div>
     </div>
 
     <!-- Buscar y agregar -->
     <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:16px">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:8px">Agregar delegado</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.75);margin-bottom:8px">Agregar delegado</div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <input id="delegado-buscar" class="input-field" placeholder="Buscar por nombre o email..." style="margin:0;flex:1" oninput="buscarUsuariosDelegado()">
       </div>
@@ -3853,7 +3853,7 @@ function renderEmbajadorCard(e){
           <span style="font-size:10px;background:rgba(34,197,94,.1);color:#22c55e;padding:2px 8px;border-radius:6px;font-family:monospace">${e.codigo}</span>
           ${!e.activo ? '<span style="font-size:10px;background:rgba(255,45,120,.1);color:#ff2d78;padding:2px 8px;border-radius:6px">INACTIVO</span>' : ''}
         </div>
-        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap">
+        <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap">
           <span>${e.email}</span>
           ${e.telefono ? `<span>📱 ${e.telefono}</span>` : ''}
           ${e.instagram ? `<span>📷 ${e.instagram}</span>` : ''}
@@ -3892,14 +3892,14 @@ function renderEmbajadorCard(e){
     <!-- TAB LIQUIDACION -->
     <div id="etab-content-${e.id}-liquidacion" style="padding:16px;display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <span style="font-size:12px;color:rgba(255,255,255,.4)">Comisiones disponibles para pagar (pasadas 48hs)</span>
+        <span style="font-size:12px;color:rgba(255,255,255,.75)">Comisiones disponibles para pagar (pasadas 48hs)</span>
         <button onclick="pagarTodo('${e.id}')" style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#22c55e;padding:6px 14px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer">✓ Pagar todo disponible</button>
       </div>
       <div id="liquidacion-${e.id}"><div class="loader"></div></div>
     </div>
     <!-- TAB INSIGNIAS -->
     <div id="etab-content-${e.id}-insignias" style="padding:16px;display:none">
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px">Otorgá insignias a este embajador</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:12px">Otorgá insignias a este embajador</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         ${INSIGNIAS_DISPONIBLES.map(ins => `
           <button onclick="otorgarInsignia('${e.id}','${ins.id}','${ins.nombre}')" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#fff;padding:7px 12px;border-radius:8px;font-size:12px;cursor:pointer">
@@ -4086,7 +4086,7 @@ function renderCRMAlertas(seguimientos) {
   el.innerHTML = '<div style="font-size:11px;font-weight:700;color:#ef4444;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🔔 Seguimientos pendientes ('+seguimientos.length+')</div>' +
     seguimientos.map(s => {
       const fecha = s.proximo_seguimiento ? new Date(s.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal(&quot;'+s.id+'&quot;)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
+      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.85);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal(&quot;'+s.id+'&quot;)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
     }).join('');
 }
 
@@ -4111,9 +4111,9 @@ function renderCRMList(data, filtro) {
           '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">' +
             '<span style="font-size:14px;font-weight:700;color:#fff">'+c.nombre+'</span>' +
             '<span class="crm-estado '+cfg.cls+'">'+cfg.label+'</span>' +
-            '<span style="font-size:10px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);padding:1px 7px;border-radius:10px">'+c.tipo+'</span>' +
+            '<span style="font-size:10px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85);padding:1px 7px;border-radius:10px">'+c.tipo+'</span>' +
           '</div>' +
-          '<div style="font-size:11px;color:rgba(255,255,255,.4);display:flex;gap:12px;flex-wrap:wrap">' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.85);display:flex;gap:12px;flex-wrap:wrap">' +
             (c.zona ? '<span>📍 '+c.zona+'</span>' : '') +
             (c.telefono ? '<span>📱 '+c.telefono+'</span>' : '') +
             (c.email ? '<span>✉️ '+c.email+'</span>' : '') +
@@ -4180,7 +4180,7 @@ function renderKanban(data, filtro) {
       const seg = c.proximo_seguimiento ? new Date(c.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
       return '<div onclick="abrirCRMModal(&quot;'+c.id+'&quot;,true)" style="background:rgba(255,255,255,.04);border:1px solid '+(vencido?'rgba(239,68,68,.5)':'rgba(255,255,255,.1)')+';border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer">'
         + '<div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">'+c.nombre+'</div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px">'+c.tipo+(c.zona?' · '+c.zona:'')+'</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,.85);margin-bottom:6px">'+c.tipo+(c.zona?' · '+c.zona:'')+'</div>'
         + (c.valor_estimado ? '<div style="font-size:11px;color:#22c55e;margin-bottom:4px">💰 $'+Number(c.valor_estimado).toLocaleString('es-AR')+'/mes</div>' : '')
         + (seg ? '<div style="font-size:10px;color:'+(vencido?'#ef4444':'rgba(255,255,255,.35)')+'">🔔 '+seg+'</div>' : '')
         + '</div>';
