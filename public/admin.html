@@ -4083,7 +4083,7 @@ function renderCRMAlertas(seguimientos) {
   el.innerHTML = '<div style="font-size:11px;font-weight:700;color:#ef4444;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🔔 Seguimientos pendientes ('+seguimientos.length+')</div>' +
     seguimientos.map(s => {
       const fecha = s.proximo_seguimiento ? new Date(s.proximo_seguimiento).toLocaleDateString('es-AR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal('+JSON.stringify(s).replace(/"/g,"'")+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
+      return '<div class="crm-vencido"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">'+s.nombre+'</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">'+s.tipo+' · '+fecha+'</div></div><button onclick="abrirCRMModal('+s.id+')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer">Ver</button></div>';
     }).join('');
 }
 
@@ -4121,7 +4121,7 @@ function renderCRMList(data, filtro) {
         '</div>' +
         '<div style="display:flex;gap:6px;flex-shrink:0">' +
           (c.telefono ? '<a href="https://wa.me/'+c.telefono.replace(/\D/g,'')+'" target="_blank" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#25d366;padding:5px 10px;border-radius:8px;font-size:11px;text-decoration:none">💬 WA</a>' : '') +
-          '<button onclick="abrirCRMModal('+JSON.stringify(c).replace(/"/g,"&quot;")+',true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">✏️ Editar</button>' +
+          '<button onclick="abrirCRMModal('+c.id+',true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">✏️ Editar</button>' +
           '<button onclick="eliminarCRM(&quot;'+c.id+'&quot;)" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer">🗑</button>' +
         '</div>' +
       '</div>' +
@@ -4139,6 +4139,7 @@ function filtrarCRM(filtro, btn) {
 // Modal CRM
 let crmEditando = null;
 function abrirCRMModal(contacto, editar) {
+  if (typeof contacto === "string" || typeof contacto === "number") { contacto = crmData.find(c => c.id === contacto) || {}; }
   crmEditando = editar ? contacto : null;
   const c = contacto || {};
   const notas = c.notas || [];
