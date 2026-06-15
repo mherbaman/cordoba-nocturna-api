@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Padel Connect — Portal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:        #0B1F3A;
+    --navy-mid:    #1A3456;
+    --navy-light:  #243D5C;
+    --green:       #00C27C;
+    --green-dark:  #009960;
+    --green-light: #E6FBF3;
+    --blue:        #1D6FEB;
+    --blue-light:  #EBF2FF;
+    --gold:        #F5A623;
+    --gold-light:  #FFF8EC;
+    --surface:     #F4F6FA;
+    --border:      rgba(11,31,58,0.10);
+    --text:        #0B1F3A;
+    --muted:       #5A6B82;
+    --white:       #FFFFFF;
+    --sidebar-w:   272px;
+    --topbar-h:    60px;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  /* ══════════════════════════════
+     LOGIN SCREEN
+  ══════════════════════════════ */
+  #login-screen {
+    position: fixed; inset: 0;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1.5rem;
+  }
+  #login-screen::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,194,124,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,194,124,0.08) 1px, transparent 1px);
+    background-size: 56px 56px;
+    pointer-events: none;
+  }
+
+  .login-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 24px;
+    padding: 2.75rem 2.25rem;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(6px);
+    animation: fadeUp 0.45s ease both;
+  }
+
+  .login-logo {
+    font-family: 'DM Serif Display', serif;
+    color: var(--green);
+    font-size: 1rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .login-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.65rem;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+  .login-sub {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .form-input::placeholder { color: rgba(255,255,255,0.25); }
+  .form-input:focus {
+    border-color: var(--green);
+    background: rgba(255,255,255,0.08);
+  }
+
+  .login-demo-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+  .demo-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    padding: 8px 10px;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .demo-btn:hover { background: rgba(0,194,124,0.12); border-color: rgba(0,194,124,0.3); color: var(--green); }
+  .demo-label { font-size: 0.68rem; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 8px; letter-spacing: 0.05em; }
+
+  .login-btn {
+    width: 100%;
+    background: var(--green);
+    border: none;
+    border-radius: 13px;
+    padding: 1rem;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 4px 16px rgba(0,194,124,0.28);
+  }
+  .login-btn:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+  .login-error {
+    background: rgba(232,52,42,0.12);
+    border: 1px solid rgba(232,52,42,0.3);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 0.82rem;
+    color: #FF7A73;
+    text-align: center;
+    margin-top: 0.75rem;
+    display: none;
+  }
+
+  /* ══════════════════════════════
+     APP LAYOUT
+  ══════════════════════════════ */
+  #app { display: none; height: 100vh; overflow: hidden; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    background: var(--navy);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem 0 calc(var(--sidebar-w) + 1.5rem);
+    z-index: 100;
+    gap: 1rem;
+  }
+
+  .topbar-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .user-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #fff;
+  }
+  .user-name {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+  }
+  .user-role-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+  .role-profe  { background: rgba(245,166,35,0.18); color: var(--gold); border: 1px solid rgba(245,166,35,0.3); }
+  .role-alumno { background: rgba(0,194,124,0.15);  color: var(--green); border: 1px solid rgba(0,194,124,0.3); }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    padding: 5px 10px;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .logout-btn:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.2); }
+
+  /* hamburger mobile */
+  .hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    flex-direction: column;
+    gap: 5px;
+    margin-right: 0.5rem;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px; height: 2px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 2px;
+    transition: 0.2s;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--navy);
+    border-right: 1px solid rgba(255,255,255,0.07);
+    overflow-y: auto;
+    z-index: 90;
+    transition: transform 0.3s ease;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 4px; }
+
+  .sidebar-section {
+    padding: 1.25rem 1rem 0.5rem;
+  }
+  .sidebar-section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+    padding: 0 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.55);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.18s, color 0.18s;
+    user-select: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+  .nav-item.active {
+    background: rgba(0,194,124,0.14);
+    color: var(--green);
+    font-weight: 600;
+  }
+  .nav-icon { font-size: 1rem; flex-shrink: 0; width: 20px; text-align: center; }
+
+  /* modulo accordion */
+  .module-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.65);
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: background 0.18s, color 0.18s;
+    user-select: none;
+  }
+  .module-header:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.9); }
+  .module-arrow { margin-left: auto; font-size: 0.65rem; transition: transform 0.25s; color: rgba(255,255,255,0.3); }
+  .module-header.open .module-arrow { transform: rotate(180deg); }
+
+  .module-lessons {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .module-header.open + .module-lessons { max-height: 600px; }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 12px 7px 42px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    font-size: 0.82rem;
+    font-weight: 400;
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .lesson-item:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.75); }
+  .lesson-item.active { color: var(--green); font-weight: 500; }
+  .lesson-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+  .lesson-item.active .lesson-dot { background: var(--green); }
+  .lesson-item.done .lesson-dot { background: var(--green); }
+  .lesson-item.done { color: rgba(255,255,255,0.55); }
+
+  /* sidebar progress */
+  .sidebar-progress {
+    margin: 0.75rem 1rem 0;
+    padding: 1rem;
+    background: rgba(0,194,124,0.07);
+    border: 1px solid rgba(0,194,124,0.15);
+    border-radius: 12px;
+  }
+  .sp-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); margin-bottom: 6px; }
+  .sp-bar-wrap { height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+  .sp-bar-fill { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.5s ease; }
+  .sp-nums { font-size: 0.75rem; color: rgba(255,255,255,0.55); margin-top: 5px; display: flex; justify-content: space-between; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    margin-top: var(--topbar-h);
+    height: calc(100vh - var(--topbar-h));
+    overflow-y: auto;
+    padding: 2.25rem 2rem;
+  }
+  .main::-webkit-scrollbar { width: 5px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: rgba(11,31,58,0.15); border-radius: 4px; }
+
+  /* ══════════════════════════════
+     DASHBOARD VIEW
+  ══════════════════════════════ */
+  #view-dashboard { display: none; }
+  #view-dashboard.active { display: block; }
+
+  .dash-welcome {
+    margin-bottom: 2rem;
+  }
+  .dash-hello {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.55rem, 3vw, 2rem);
+    color: var(--navy);
+    margin-bottom: 0.3rem;
+  }
+  .dash-hello .accent { color: var(--green); }
+  .dash-sub { font-size: 0.92rem; color: var(--muted); }
+
+  /* role banner */
+  .role-banner {
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .role-banner.profe  { background: var(--gold-light); border: 1px solid #F5C875; }
+  .role-banner.alumno { background: var(--green-light); border: 1px solid #99E8CC; }
+  .rb-icon { font-size: 1.75rem; flex-shrink: 0; }
+  .rb-title { font-weight: 700; font-size: 0.95rem; color: var(--navy); margin-bottom: 3px; }
+  .rb-text  { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+
+  /* stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+  }
+  .stat-n { font-size: 1.8rem; font-weight: 900; color: var(--navy); line-height: 1; }
+  .stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+  /* quick access */
+  .section-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    letter-spacing: 0.01em;
+  }
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .quick-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .quick-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(11,31,58,0.09); border-color: var(--green); }
+  .quick-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--green); border-radius: 14px 14px 0 0;
+  }
+  .qc-icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .qc-title { font-weight: 700; font-size: 0.9rem; color: var(--navy); margin-bottom: 3px; }
+  .qc-desc  { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+  /* ══════════════════════════════
+     LESSON VIEW
+  ══════════════════════════════ */
+  #view-lesson { display: none; }
+  #view-lesson.active { display: block; }
+
+  /* role intro banner */
+  .role-intro {
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid;
+  }
+  .role-intro.profe  { background: var(--gold-light); border-color: var(--gold); }
+  .role-intro.alumno { background: var(--green-light); border-color: var(--green); }
+  .ri-tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
+  .role-intro.profe  .ri-tag { color: #B87800; }
+  .role-intro.alumno .ri-tag { color: var(--green-dark); }
+  .ri-title { font-weight: 700; font-size: 1rem; color: var(--navy); margin-bottom: 5px; }
+  .ri-text  { font-size: 0.86rem; color: var(--muted); line-height: 1.58; }
+
+  /* lesson header */
+  .lesson-header {
+    margin-bottom: 2rem;
+  }
+  .lesson-breadcrumb {
+    font-size: 0.76rem;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lesson-breadcrumb span { color: var(--green); font-weight: 600; }
+  .lesson-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .lesson-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .lesson-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px 10px;
+  }
+
+  /* content blocks */
+  .content-block {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .cb-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cb-text {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .cb-text p { margin-bottom: 0.75rem; }
+  .cb-text p:last-child { margin-bottom: 0; }
+  .cb-text strong { color: var(--navy); }
+
+  /* level chips */
+  .level-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  .level-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .chip-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .chip-rojo    { background: #E8342A; }
+  .chip-amarillo{ background: #F5A623; }
+  .chip-verde   { background: var(--green); }
+
+  /* drills table */
+  .drills-table { width: 100%; border-collapse: collapse; }
+  .drills-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 0.75rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .drills-table td {
+    padding: 0.85rem 0.75rem;
+    font-size: 0.87rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .drills-table tr:last-child td { border-bottom: none; }
+  .drills-table td:first-child { font-weight: 600; color: var(--navy); }
+  .drill-tag {
+    display: inline-block;
+    background: var(--blue-light);
+    color: var(--blue);
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    margin-top: 3px;
+  }
+
+  /* tip box */
+  .tip-box {
+    background: var(--blue-light);
+    border: 1px solid #AECEFF;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 10px;
+    font-size: 0.86rem;
+    color: var(--navy);
+    line-height: 1.55;
+    margin: 1rem 0 0;
+  }
+  .tip-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+  /* complete button */
+  .complete-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .complete-btn {
+    background: var(--green);
+    border: none;
+    border-radius: 13px;
+    padding: 0.9rem 1.75rem;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 4px 14px rgba(0,194,124,0.25);
+  }
+  .complete-btn:hover { background: var(--green-dark); transform: translateY(-1px); }
+  .next-hint { font-size: 0.8rem; color: var(--muted); }
+
+  /* ══════════════════════════════
+     BONUS VIEW
+  ══════════════════════════════ */
+  #view-bonus { display: none; }
+  #view-bonus.active { display: block; }
+
+  .bonus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .bonus-card-portal {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    position: relative; overflow: hidden;
+  }
+  .bonus-card-portal:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(11,31,58,0.09); }
+  .bonus-card-portal::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--gold); border-radius: 16px 16px 0 0;
+  }
+  .bc-icon { font-size: 1.75rem; margin-bottom: 10px; }
+  .bc-title { font-weight: 700; font-size: 0.95rem; color: var(--navy); margin-bottom: 5px; }
+  .bc-desc  { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+  .bc-btn   { display: inline-block; margin-top: 1rem; font-size: 0.78rem; font-weight: 600; color: var(--green); cursor: pointer; }
+
+  /* ══════════════════════════════
+     PROGRESS VIEW
+  ══════════════════════════════ */
+  #view-progress { display: none; }
+  #view-progress.active { display: block; }
+
+  .progress-levels {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .prog-level-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    position: relative;
+  }
+  .prog-level-card.current { border-color: var(--green); }
+  .current-badge {
+    position: absolute; top: 12px; right: 12px;
+    background: var(--green);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+  .plc-num  { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 3px; }
+  .plc-name { font-weight: 700; font-size: 0.95rem; color: var(--navy); margin-bottom: 10px; }
+  .plc-bar-wrap { height: 5px; background: var(--surface); border-radius: 99px; overflow: hidden; margin-bottom: 5px; }
+  .plc-bar-fill { height: 100%; background: var(--green); border-radius: 99px; }
+  .plc-pct { font-size: 0.75rem; color: var(--muted); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── OVERLAY SIDEBAR MOBILE ── */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 89;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .topbar { padding-left: 1rem; }
+    .main { margin-left: 0; padding: 1.5rem 1.1rem; }
+    .hamburger { display: flex; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .quick-grid { grid-template-columns: 1fr 1fr; }
+    .bonus-grid { grid-template-columns: 1fr; }
+    .progress-levels { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     LOGIN
+══════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🎾 Padel Connect</div>
+    <h1 class="login-title">Bienvenido de vuelta</h1>
+    <p class="login-sub">Ingresá con tus credenciales de acceso</p>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="login-email" type="email" placeholder="tu@email.com" />
+    </div>
+    <div class="form-group" style="margin-bottom:1.25rem">
+      <label class="form-label">Contraseña</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="••••••••" />
+    </div>
+
+    <div class="demo-label">— Acceso demo rápido —</div>
+    <div class="login-demo-row">
+      <button class="demo-btn" onclick="demoLogin('profe')">🏅 Entrar como Profe</button>
+      <button class="demo-btn" onclick="demoLogin('alumno')">🎾 Entrar como Alumno</button>
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Ingresar al portal →</button>
+    <div class="login-error" id="login-error">Email o contraseña incorrectos. Revisá tu email de acceso.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     APP
+══════════════════════════════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-user">
+      <div class="user-avatar" id="user-avatar">M</div>
+      <div>
+        <div class="user-name" id="user-name-display">Martín</div>
+        <div class="user-role-badge" id="user-role-badge">Profe</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+
+    <div class="sidebar-section">
+      <!-- Progreso -->
+      <div class="sidebar-progress">
+        <div class="sp-label">Tu progreso general</div>
+        <div class="sp-bar-wrap"><div class="sp-bar-fill" id="sp-fill" style="width:18%"></div></div>
+        <div class="sp-nums"><span id="sp-done">4</span><span id="sp-total">/ 24 lecciones</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Menú principal</div>
+      <button class="nav-item active" onclick="showView('dashboard', this)" data-view="dashboard">
+        <span class="nav-icon">🏠</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="showView('progress', this)" data-view="progress">
+        <span class="nav-icon">📊</span> Mi progreso
+      </button>
+      <button class="nav-item" onclick="showView('bonus', this)" data-view="bonus">
+        <span class="nav-icon">🎁</span> Bonus
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Nivel 1–2 · Inicial</div>
+
+      <div class="module-header open" onclick="toggleModule(this)">
+        <span class="nav-icon">🎾</span> Módulo 1 — Fundamentos
+        <span class="module-arrow">▼</span>
+      </div>
+      <div class="module-lessons">
+        <button class="lesson-item done active" onclick="loadLesson('1-1', this)">
+          <span class="lesson-dot"></span> L1 · Grip y primer contacto
+        </button>
+        <button class="lesson-item done" onclick="loadLesson('1-2', this)">
+          <span class="lesson-dot"></span> L2 · Derecha de fondo
+        </button>
+        <button class="lesson-item done" onclick="loadLesson('1-3', this)">
+          <span class="lesson-dot"></span> L3 · Revés de fondo
+        </button>
+        <button class="lesson-item" onclick="loadLesson('1-4', this)">
+          <span class="lesson-dot"></span> L4 · Volea en red
+        </button>
+        <button class="lesson-item" onclick="loadLesson('1-5', this)">
+          <span class="lesson-dot"></span> L5 · Lectura de pared
+        </button>
+        <button class="lesson-item" onclick="loadLesson('1-6', this)">
+          <span class="lesson-dot"></span> L6 · Peloteo libre
+        </button>
+      </div>
+
+      <div class="module-header" onclick="toggleModule(this)">
+        <span class="nav-icon">📋</span> Módulo 2 — Juego real
+        <span class="module-arrow">▼</span>
+      </div>
+      <div class="module-lessons">
+        <button class="lesson-item" onclick="loadLesson('2-1', this)">
+          <span class="lesson-dot"></span> L1 · Peloteo cruzado
+        </button>
+        <button class="lesson-item" onclick="loadLesson('2-2', this)">
+          <span class="lesson-dot"></span> L2 · Globo defensivo
+        </button>
+        <button class="lesson-item" onclick="loadLesson('2-3', this)">
+          <span class="lesson-dot"></span> L3 · Volea + remate básico
+        </button>
+        <button class="lesson-item" onclick="loadLesson('2-4', this)">
+          <span class="lesson-dot"></span> L4 · Pared lateral
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Nivel 3–4 · Intermedio</div>
+      <div class="module-header" onclick="toggleModule(this)">
+        <span class="nav-icon">🎯</span> Módulo 3 — Táctica
+        <span class="module-arrow">▼</span>
+      </div>
+      <div class="module-lessons">
+        <button class="lesson-item" onclick="loadLesson('3-1', this)">
+          <span class="lesson-dot"></span> L1 · Control direccional
+        </button>
+        <button class="lesson-item" onclick="loadLesson('3-2', this)">
+          <span class="lesson-dot"></span> L2 · Sistema de red
+        </button>
+        <button class="lesson-item" onclick="loadLesson('3-3', this)">
+          <span class="lesson-dot"></span> L3 · Ataque al cuerpo
+        </button>
+        <button class="lesson-item" onclick="loadLesson('3-4', this)">
+          <span class="lesson-dot"></span> L4 · Juego de pareja
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="padding-bottom:2rem;">
+      <div class="sidebar-section-label">Nivel 5–6 · Avanzado</div>
+      <div class="module-header" onclick="toggleModule(this)">
+        <span class="nav-icon">⚡</span> Módulo 4 — Potencia
+        <span class="module-arrow">▼</span>
+      </div>
+      <div class="module-lessons">
+        <button class="lesson-item" onclick="loadLesson('4-1', this)">
+          <span class="lesson-dot"></span> L1 · Bandeja básica
+        </button>
+        <button class="lesson-item" onclick="loadLesson('4-2', this)">
+          <span class="lesson-dot"></span> L2 · Víbora
+        </button>
+        <button class="lesson-item" onclick="loadLesson('4-3', this)">
+          <span class="lesson-dot"></span> L3 · Sistema ofensivo
+        </button>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main-content">
+
+    <!-- ── DASHBOARD ── -->
+    <div id="view-dashboard" class="active">
+      <div class="dash-welcome">
+        <h1 class="dash-hello">Hola, <span class="accent" id="dash-name">Martín</span> 👋</h1>
+        <p class="dash-sub" id="dash-sub">Continuá desde donde dejaste. Tu progreso te está esperando.</p>
+      </div>
+
+      <!-- Role banner dinámico -->
+      <div class="role-banner" id="role-banner">
+        <div class="rb-icon" id="rb-icon">🏅</div>
+        <div>
+          <div class="rb-title" id="rb-title">Acceso Padel Connect Pro — Profe</div>
+          <div class="rb-text" id="rb-text">Tenés acceso completo al método para profesores. Cada módulo incluye la perspectiva de enseñanza: cómo explicar, qué observar y cómo corregir a tus alumnos.</div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-n" id="stat-done">3</div>
+          <div class="stat-label">Lecciones completadas</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-n">6</div>
+          <div class="stat-label">Niveles disponibles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-n">4</div>
+          <div class="stat-label">Bonus desbloqueados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-n" id="stat-pct">18%</div>
+          <div class="stat-label">Progreso general</div>
+        </div>
+      </div>
+
+      <div class="section-title">Acceso rápido</div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="loadLesson('1-1', null)">
+          <div class="qc-icon">▶️</div>
+          <div class="qc-title">Continuar donde dejé</div>
+          <div class="qc-desc">L1 · Grip y primer contacto — Módulo 1</div>
+        </div>
+        <div class="quick-card" onclick="showView('bonus', null)">
+          <div class="qc-icon">🎁</div>
+          <div class="qc-title">Bonus</div>
+          <div class="qc-desc">Física, nutrición, mental y táctica</div>
+        </div>
+        <div class="quick-card" onclick="showView('progress', null)">
+          <div class="qc-icon">📊</div>
+          <div class="qc-title">Mi progreso</div>
+          <div class="qc-desc">Ver avance por nivel y evaluaciones</div>
+        </div>
+        <div class="quick-card" onclick="loadLesson('1-5', null)">
+          <div class="qc-icon">🧱</div>
+          <div class="qc-title">Lectura de pared</div>
+          <div class="qc-desc">El gesto más padelístico — L5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LESSON ── -->
+    <div id="view-lesson">
+      <div class="lesson-header">
+        <div class="lesson-breadcrumb">
+          Módulo 1 — Fundamentos › <span id="lesson-breadcrumb-title">Grip y primer contacto</span>
+        </div>
+        <h1 class="lesson-title" id="lesson-main-title">Grip y primer contacto</h1>
+        <div class="lesson-meta">
+          <div class="lesson-meta-item">⏱️ <span id="lesson-time">15 min</span></div>
+          <div class="lesson-meta-item">📍 <span id="lesson-location">En cancha</span></div>
+          <div class="lesson-meta-item">🎯 <span id="lesson-level">Nivel 1–2</span></div>
+        </div>
+      </div>
+
+      <!-- INTRO DINÁMICA PROFE/ALUMNO -->
+      <div class="role-intro" id="role-intro">
+        <div class="ri-tag" id="ri-tag">Para el profe</div>
+        <div class="ri-title" id="ri-title">Lo que enseñás en esta clase</div>
+        <div class="ri-text" id="ri-text">En esta primera clase tu objetivo es que el alumno establezca el contacto correcto con la pala. No importa la potencia ni la dirección todavía — importa que la mano encuentre el grip y que el primer golpe no sea un manotazo.</div>
+      </div>
+
+      <!-- Contenido principal -->
+      <div class="content-block" id="lesson-content-main">
+        <div class="cb-title">🎯 Objetivo de la clase</div>
+        <div class="cb-text" id="cb-objetivo">
+          <p>Establecer el <strong>grip continental</strong> como posición base y lograr el primer contacto controlado con la pelota. Este es el fundamento técnico que todo lo demás necesita.</p>
+          <p>Un grip incorrecto fijado desde el inicio genera vicios que son muy difíciles de corregir después. Esta clase es la más importante del programa.</p>
+        </div>
+      </div>
+
+      <!-- Criterios de nivel -->
+      <div class="content-block">
+        <div class="cb-title">🔴🟡🟢 Criterios por nivel de ejecución</div>
+        <div class="level-chips">
+          <div class="level-chip"><div class="chip-dot chip-rojo"></div> Rojo · 0–2 pts</div>
+          <div class="level-chip"><div class="chip-dot chip-amarillo"></div> Amarillo · 3–5 pts</div>
+          <div class="level-chip"><div class="chip-dot chip-verde"></div> Verde · 6–8 pts</div>
+        </div>
+        <div class="cb-text" id="cb-criterios">
+          <p><strong>Rojo (0–2 pts):</strong> La mano agarra la pala como si fuera una sartén. El pulgar no tiene posición definida. El primer golpe sale sin ningún control.</p>
+          <p><strong>Amarillo (3–5 pts):</strong> El grip es parcialmente correcto pero inestable. La mano se mueve durante el swing. Hay contacto pero sin repetibilidad.</p>
+          <p><strong>Verde (6–8 pts):</strong> Grip continental firme y estable. El pulgar apoya correctamente. El contacto es limpio y repetible en al menos 7 de 10 intentos.</p>
+        </div>
+      </div>
+
+      <!-- Drills -->
+      <div class="content-block">
+        <div class="cb-title">⚡ Drills de la clase</div>
+        <table class="drills-table" id="cb-drills-table">
+          <thead>
+            <tr>
+              <th>Drill</th>
+              <th>Descripción</th>
+              <th>Meta</th>
+            </tr>
+          </thead>
+          <tbody id="drills-tbody">
+            <tr>
+              <td>Rebotes en la pala<div class="drill-tag">Control</div></td>
+              <td>El alumno rebota la bola sobre la pala sin que caiga. Primero con el lado plano, luego alternando los dos lados.</td>
+              <td>20 rebotes seguidos</td>
+            </tr>
+            <tr>
+              <td>Grip + Toque estático<div class="drill-tag">Técnica</div></td>
+              <td>El profe lanza la bola al aire suavemente. El alumno la golpea de vuelta con el grip trabajado, sin mover los pies.</td>
+              <td>8/10 contactos limpios</td>
+            </tr>
+            <tr>
+              <td>Primeros 5 rebotes<div class="drill-tag">Progresión</div></td>
+              <td>El alumno se coloca a 3m de la pared y hace el primer peloteo real. No importa la dirección — importa el contacto.</td>
+              <td>5 rebotes seguidos</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="tip-box">
+          <span class="tip-icon">💡</span>
+          <span id="cb-tip">Durante esta clase no corrijas la dirección ni la potencia. El único foco es el grip y el contacto. Cualquier corrección adicional contamina el aprendizaje motor.</span>
+        </div>
+      </div>
+
+      <!-- Completar -->
+      <div class="complete-row">
+        <div class="next-hint">Siguiente: L2 · Derecha de fondo →</div>
+        <button class="complete-btn" onclick="markComplete()">✓ Marcar como completada</button>
+      </div>
+    </div>
+
+    <!-- ── BONUS ── -->
+    <div id="view-bonus">
+      <h1 style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:var(--navy); margin-bottom:0.4rem;">Bonus incluidos</h1>
+      <p style="color:var(--muted); font-size:0.92rem; margin-bottom:0.25rem;">Todo el material extra que potencia tu rendimiento.</p>
+      <div class="bonus-grid">
+        <div class="bonus-card-portal">
+          <div class="bc-icon">💪</div>
+          <div class="bc-title">Rutinas de Preparación Física</div>
+          <div class="bc-desc">4 rutinas de 15 min sin equipo. Fuerza, velocidad, resistencia y recuperación activa. Adaptadas a tu nivel.</div>
+          <div class="bc-btn">Ver rutinas →</div>
+        </div>
+        <div class="bonus-card-portal">
+          <div class="bc-icon">🥗</div>
+          <div class="bc-title">Nutrición e Hidratación</div>
+          <div class="bc-desc">Qué comer antes, durante y después del partido. Protocolo de hidratación y los 7 errores que más cuestan sets.</div>
+          <div class="bc-btn">Ver guía →</div>
+        </div>
+        <div class="bonus-card-portal">
+          <div class="bc-icon">🧠</div>
+          <div class="bc-title">Entrenamiento Mental</div>
+          <div class="bc-desc">Visualización guiada de 20 min. La misma técnica que usan los jugadores del circuito profesional antes de cada partido.</div>
+          <div class="bc-btn">Empezar →</div>
+        </div>
+        <div class="bonus-card-portal">
+          <div class="bc-icon">♟️</div>
+          <div class="bc-title">Guía de Táctica</div>
+          <div class="bc-desc">Situaciones reales de partido: rivales en red, saque en 40-40, cuándo subir. Decisiones correctas explicadas.</div>
+          <div class="bc-btn">Ver guía →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PROGRESS ── -->
+    <div id="view-progress">
+      <h1 style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:var(--navy); margin-bottom:0.4rem;">Mi progreso</h1>
+      <p style="color:var(--muted); font-size:0.92rem; margin-bottom:1.75rem;">Avance por nivel — empezás en 1 y avanzás a tu ritmo.</p>
+      <div class="progress-levels">
+        <div class="prog-level-card current">
+          <div class="current-badge">Nivel actual</div>
+          <div class="plc-num">Nivel 1–2</div>
+          <div class="plc-name">Inicial — Fundamentos</div>
+          <div class="plc-bar-wrap"><div class="plc-bar-fill" style="width:50%"></div></div>
+          <div class="plc-pct">3 de 6 lecciones completadas</div>
+        </div>
+        <div class="prog-level-card">
+          <div class="plc-num">Nivel 3–4</div>
+          <div class="plc-name">Intermedio — Táctica</div>
+          <div class="plc-bar-wrap"><div class="plc-bar-fill" style="width:0%"></div></div>
+          <div class="plc-pct">0 de 4 lecciones completadas</div>
+        </div>
+        <div class="prog-level-card">
+          <div class="plc-num">Nivel 5–6</div>
+          <div class="plc-name">Avanzado — Potencia</div>
+          <div class="plc-bar-wrap"><div class="plc-bar-fill" style="width:0%"></div></div>
+          <div class="plc-pct">0 de 3 lecciones completadas</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</div><!-- end app -->
+
+<script>
+// ═══════════════════════════════
+//  STATE
+// ═══════════════════════════════
+var currentUser = null;
+
+// Demo users — en producción esto viene del backend
+var DEMO_USERS = {
+  'profe@demo.com': { pass:'demo123', name:'Martín', role:'profe' },
+  'alumno@demo.com':{ pass:'demo123', name:'Sofía',  role:'alumno' }
+};
+
+// ═══════════════════════════════
+//  LOGIN
+// ═══════════════════════════════
+function demoLogin(role) {
+  if (role === 'profe') {
+    document.getElementById('login-email').value = 'profe@demo.com';
+    document.getElementById('login-pass').value  = 'demo123';
+  } else {
+    document.getElementById('login-email').value = 'alumno@demo.com';
+    document.getElementById('login-pass').value  = 'demo123';
+  }
+  doLogin();
+}
+
+function doLogin() {
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
+  var pass  = document.getElementById('login-pass').value;
+  var err   = document.getElementById('login-error');
+
+  var user = DEMO_USERS[email];
+  if (!user || user.pass !== pass) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  currentUser = { email: email, name: user.name, role: user.role };
+  startApp();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value  = '';
+}
+
+// ═══════════════════════════════
+//  START APP
+// ═══════════════════════════════
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  var u = currentUser;
+  var isProfe = u.role === 'profe';
+  var initial = u.name.charAt(0).toUpperCase();
+
+  // Topbar
+  document.getElementById('user-avatar').textContent = initial;
+  document.getElementById('user-name-display').textContent = u.name;
+  var badge = document.getElementById('user-role-badge');
+  badge.textContent = isProfe ? 'Profe' : 'Alumno';
+  badge.className = 'user-role-badge ' + (isProfe ? 'role-profe' : 'role-alumno');
+
+  // Dashboard
+  document.getElementById('dash-name').textContent = u.name;
+  document.getElementById('dash-sub').textContent = isProfe
+    ? 'Tu sistema completo para enseñar, organizar y hacer crecer tu escuela.'
+    : 'Continuá donde dejaste. Cada lección te acerca al siguiente nivel.';
+
+  var banner = document.getElementById('role-banner');
+  banner.className = 'role-banner ' + (isProfe ? 'profe' : 'alumno');
+  document.getElementById('rb-icon').textContent  = isProfe ? '🏅' : '🎾';
+  document.getElementById('rb-title').textContent = isProfe
+    ? 'Acceso Padel Connect Pro — Certificación para Profesores'
+    : 'Acceso Padel Connect Player — Programa Personal del Jugador';
+  document.getElementById('rb-text').textContent  = isProfe
+    ? 'Tenés acceso completo al método de enseñanza. Cada módulo incluye perspectiva de profe: cómo explicar el gesto, qué observar en tus alumnos y cómo corregir con criterio.'
+    : 'Tenés acceso completo al programa por nivel. Cada lección está pensada para que vos, como jugador, entiendas el gesto técnico, lo practiques y notes la mejora en cancha.';
+
+  showView('dashboard', null);
+}
+
+// ═══════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════
+function showView(view, btn) {
+  // hide all views
+  ['dashboard','lesson','bonus','progress'].forEach(function(v) {
+    var el = document.getElementById('view-' + v);
+    if (el) { el.style.display = 'none'; el.classList.remove('active'); }
+  });
+  // show target
+  var target = document.getElementById('view-' + view);
+  if (target) { target.style.display = 'block'; target.classList.add('active'); }
+
+  // update topbar title
+  var titles = { dashboard:'Dashboard', lesson:'', bonus:'Bonus', progress:'Mi progreso' };
+  if (view !== 'lesson') document.getElementById('topbar-title').textContent = titles[view] || '';
+
+  // update sidebar active
+  document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  else {
+    var matched = document.querySelector('[data-view="' + view + '"]');
+    if (matched) matched.classList.add('active');
+  }
+
+  closeSidebar();
+}
+
+// ── LESSON CONTENT DATA ──
+var lessons = {
+  '1-1': {
+    title: 'Grip y primer contacto',
+    time: '15 min', location: 'En cancha', level: 'Nivel 1–2',
+    module: 'Módulo 1 — Fundamentos',
+    profe: {
+      riTitle: 'Lo que enseñás en esta clase',
+      riText: 'Tu objetivo es que el alumno establezca el grip continental correcto. No corrijas dirección ni potencia — solo el grip. Cualquier corrección adicional fragmenta el aprendizaje motor en esta etapa.',
+      objetivo: '<p>Enseñar el <strong>grip continental</strong> y lograr que el alumno produzca su primer contacto controlado y repetible. Este fundamento mal instalado genera vicios muy difíciles de corregir.</p><p>Observá la posición del pulgar y la firmeza del agarre durante los drills. Eso es todo lo que evaluás hoy.</p>',
+      tip: 'No corrijas la dirección ni la potencia en esta primera clase. El único foco es el grip y el contacto. Cualquier corrección adicional contamina el aprendizaje motor.'
+    },
+    alumno: {
+      riTitle: 'Lo que aprendés en esta clase',
+      riText: 'Hoy establecés la base de todo: cómo agarrar la pala. Parece simple pero es lo más importante. Un grip incorrecto limita todo tu juego futuro. Prestale atención total a este gesto.',
+      objetivo: '<p>Aprender el <strong>grip continental</strong> y lograr tu primer contacto limpio y repetible con la pelota. Esta es la lección más importante del programa.</p><p>No importa si la bola no va adonde querés todavía. Lo que importa es que la mano encuentre la posición correcta y el contacto sea sólido.</p>',
+      tip: 'No te frustres si la bola no va donde querés. En esta lección el éxito es un contacto limpio, no una dirección perfecta. La dirección viene después.'
+    },
+    drills: [
+      ['Rebotes en la pala', 'Rebotá la bola sobre la pala sin que caiga. Primero lado plano, luego alternando los dos lados.', '20 rebotes seguidos'],
+      ['Grip + Toque estático', 'El profe lanza suavemente. Golpeás de vuelta con el grip trabajado, sin mover los pies.', '8/10 contactos limpios'],
+      ['Primeros 5 rebotes', 'A 3m de la pared, primer peloteo real. No importa la dirección — importa el contacto.', '5 rebotes seguidos']
+    ]
+  },
+  '1-2': {
+    title: 'Derecha de fondo',
+    time: '20 min', location: 'En cancha', level: 'Nivel 1–2',
+    module: 'Módulo 1 — Fundamentos',
+    profe: {
+      riTitle: 'Lo que enseñás en esta clase',
+      riText: 'Enfocate en tres puntos: giro de hombros, armado corto y acompañamiento del golpe. El alumno nivel rojo va pecho a la red — eso es lo primero que corregís.',
+      objetivo: '<p>Instalar la <strong>mecánica completa de la derecha de fondo</strong>: giro lateral, armado corto adelantado y acompañamiento del golpe.</p><p>Observá si el alumno se queda de frente a la red (nivel rojo) o si empieza a girar los hombros (nivel amarillo/verde).</p>',
+      tip: 'Lanzá las 5 bolas desde la red en posición fija. Eso garantiza condiciones iguales para todos los alumnos y te permite comparar resultados objetivamente.'
+    },
+    alumno: {
+      riTitle: 'Lo que aprendés en esta clase',
+      riText: 'La derecha de fondo es el golpe más usado del pádel. Hoy aprendés los tres gestos clave: girar el cuerpo, armar la pala y acompañar el golpe. Si hacés estas tres cosas, la bola va.',
+      objetivo: '<p>Dominar la <strong>mecánica de la derecha de fondo</strong>: giro lateral de hombros, armado corto adelantado y acompañamiento completo del golpe.</p><p>Si tu cuerpo está de frente a la red cuando golpeás, ese es el error a corregir hoy.</p>',
+      tip: 'Antes de cada golpe, pensá: "giro – armo – acompaño". Los tres gestos en ese orden. No busques potencia todavía — buscá repetir el gesto correcto.'
+    },
+    drills: [
+      ['Sombra de derecha', 'Sin bola. Armado de derecha ×10 veces, lento, sintiendo la posición lateral y el acompañamiento.', '10 repeticiones correctas'],
+      ['Peloteo dirigido', 'El profe lanza desde la red. Vos golpeás con giro de hombros. 5 bolas por serie.', '4/5 con giro correcto'],
+      ['Derecha cruzada', 'Mismo drill pero apuntando al sector cruzado. Primero la dirección, después la precisión.', '3/5 al sector correcto']
+    ]
+  },
+  '1-3': {
+    title: 'Revés de fondo',
+    time: '20 min', location: 'En cancha', level: 'Nivel 1–2',
+    module: 'Módulo 1 — Fundamentos',
+    profe: {
+      riTitle: 'Lo que enseñás en esta clase',
+      riText: 'El error de nivel rojo en el revés es cruzar la pala por delante como si fuera una derecha invertida. Observá si el alumno gira el hombro correctamente o si evita el golpe.',
+      objetivo: '<p>Instalar el concepto real de <strong>revés técnico</strong>: rotación de hombro, pala adelante en el contacto y control de dirección.</p><p>La diferencia con el minuto 1 (derecha) es clave: acá observás si el alumno tiene incorporado el concepto o lo evita.</p>',
+      tip: 'Lanzá solo al lado izquierdo. Si el alumno cruza la pala, detenés y corregís la posición del hombro antes de continuar. Este es el vicio más frecuente en este nivel.'
+    },
+    alumno: {
+      riTitle: 'Lo que aprendés en esta clase',
+      riText: 'El revés es el golpe que más diferencia a los jugadores. Hoy aprendés a hacerlo bien desde el principio: giro de hombro y pala adelante. Si lo hacés así, el revés se vuelve tu arma, no tu punto débil.',
+      objetivo: '<p>Aprender la mecánica correcta del <strong>revés técnico</strong>: giro de hombro, pala adelante en el contacto y primera dirección controlada.</p><p>El error más común es cruzar la pala por delante como si fuera una derecha al revés. Si te pasa eso, es lo primero que corregimos.</p>',
+      tip: 'Si la bola te va al techo o a la pared lateral, no es que sos malo en el revés — es que todavía no giraste el hombro. Eso se corrige con repetición consciente, no con más fuerza.'
+    },
+    drills: [
+      ['Sombra de revés', 'Sin bola. Giro de hombro + armado + contacto ×10, lento y consciente.', '10 repeticiones correctas'],
+      ['Toque de revés estático', 'El profe lanza al lado izquierdo. Golpeás con giro de hombro, sin moverte.', '4/5 contactos con giro'],
+      ['Revés en movimiento', 'El profe lanza alternando derecha y revés. Tenés que identificar y girar para cada uno.', '3/5 reveses correctos']
+    ]
+  },
+  '1-4': {
+    title: 'Volea en red',
+    time: '20 min', location: 'En cancha', level: 'Nivel 1–2',
+    module: 'Módulo 1 — Fundamentos',
+    profe: {
+      riTitle: 'Lo que enseñás en esta clase',
+      riText: 'La volea diferencia inmediatamente a un jugador con formación de uno sin ella. Lo que observás: ¿hace swing largo (nivel rojo) o bloquea con pala firme (nivel verde)? El concepto de bloqueo es lo que instalás hoy.',
+      objetivo: '<p>Instalar el concepto de <strong>volea de bloqueo</strong>: pala firme al frente, sin swing, pisando adelante después del contacto.</p><p>Este es uno de los golpes más específicos del pádel y que mejor diferencia un jugador con formación de uno sin ella.</p>',
+      tip: 'Si el alumno retrocede después de volear, perdió la posición de red. Corregí esto primero: "pisa adelante después del golpe". Ese solo gesto cambia toda la postura de red.'
+    },
+    alumno: {
+      riTitle: 'Lo que aprendés en esta clase',
+      riText: 'La volea en red es donde se ganan los puntos en el pádel. Hoy aprendés el gesto que más jugadores hacen mal: bloquear sin swing. Si hacés swing largo en la volea, la bola se te escapa siempre.',
+      objetivo: '<p>Aprender la <strong>volea de bloqueo</strong>: pala firme al frente, sin swing, pisando adelante después del contacto para mantener la posición de red.</p><p>Este golpe, bien aprendido hoy, es una de las herramientas más poderosas de tu juego.</p>',
+      tip: 'La volea no es un golpe de fuerza — es un golpe de posición y timing. Cuanto más quieta tenés la pala y más adelante la ponés, mejor sale la volea.'
+    },
+    drills: [
+      ['Bloqueo estático', 'El profe lanza desde 3m. Bloqueás con pala firme sin mover el brazo. ×10 repeticiones.', '7/10 bloqueos limpios'],
+      ['Volea con paso', 'Mismo drill pero pisando adelante después de cada volea. Trabajás posición de red.', '5/10 con paso correcto'],
+      ['Volea cruzada', 'Bloqueás dirigiendo la bola al sector cruzado. Primero el bloqueo, después la dirección.', '3/5 al sector correcto']
+    ]
+  },
+  '1-5': {
+    title: 'Lectura de pared',
+    time: '25 min', location: 'En cancha', level: 'Nivel 1–2',
+    module: 'Módulo 1 — Fundamentos',
+    profe: {
+      riTitle: 'Lo que enseñás en esta clase',
+      riText: 'Este es el gesto más padelístico de todos y el que mejor revela si el alumno entiende el juego. Observá si corre hacia la pared (nivel rojo) o espera en la zona correcta (~1.5m). Ese es el único criterio de hoy.',
+      objetivo: '<p>Instalar el concepto de <strong>zona de espera del rebote</strong>: aproximadamente 1.5m de la pared de fondo, esperando que la bola baje antes de golpear.</p><p>Este gesto no existe en ningún otro deporte. Por eso es el más difícil de instalar y el más revelador del nivel real del alumno.</p>',
+      tip: 'Lanzá fuerte a la pared de fondo y observá: ¿corre hacia ella o espera? Si corre, paralo antes de que llegue y posicionalo en los 1.5m. Repetí hasta que el cuerpo aprenda la distancia.'
+    },
+    alumno: {
+      riTitle: 'Lo que aprendés en esta clase',
+      riText: 'La lectura de pared es lo que hace especial al pádel. No existe en ningún otro deporte. Hoy aprendés el secreto que separa a los jugadores que "parecen" buenos de los que realmente entienden el juego: dónde pararte para esperar el rebote.',
+      objetivo: '<p>Aprender a <strong>leer el rebote de la pared de fondo</strong> y ubicarte en la zona correcta: aproximadamente 1.5m de la pared, esperando que la bola baje.</p><p>El error más común es correr hacia la pared. Si hacés eso, la bola te rebota en el cuerpo. La clave es esperar, no correr.</p>',
+      tip: 'Regla simple: cuando la bola va a la pared, no te muevas hacia ella — movete hacia atrás hasta los 1.5m y esperá. La bola viene a vos. Ese es el pensamiento que cambia todo.'
+    },
+    drills: [
+      ['Observación de rebote', 'El profe lanza fuerte a la pared. Vos solo mirás sin golpear — calculás adónde va la bola.', 'Predecir 4/5 rebotes'],
+      ['Posición de espera', 'Mismo lanzamiento. Esta vez te posicionás en los 1.5m y dejás picar antes de golpear.', '3/5 desde zona correcta'],
+      ['Rebote + golpe', 'Posición de espera + golpe dirigido. Cruzado o paralelo, vos elegís antes del rebote.', '3/5 con zona y dirección']
+    ]
+  },
+  '1-6': {
+    title: 'Peloteo libre', time: '20 min', location: 'En cancha', level: 'Nivel 1–2',
+    module: 'Módulo 1 — Fundamentos',
+    profe: {
+      riTitle: 'Lo que observás en esta clase',
+      riText: 'El peloteo libre muestra todo lo que los cinco minutos anteriores no muestran por separado. Observá: ¿recupera posición central? ¿Lee la bola antes del pique? ¿Mira al rival o solo a la bola? Esos tres datos te dicen el nivel real.',
+      objetivo: '<p>Evaluación integrada: el alumno pone en juego todo lo aprendido en condiciones reales de peloteo profe–alumno.</p><p>Tomá nota de los tres indicadores clave: recuperación de posición, lectura anticipada de la bola y conciencia táctica.</p>',
+      tip: 'Hoy observás, no enseñás. No corrijas durante el peloteo libre — eso contamina el resultado. Al terminar hacés el feedback con los números de la planilla.'
+    },
+    alumno: {
+      riTitle: 'Tu primera evaluación real',
+      riText: 'Hoy ponés en juego todo lo que aprendiste. No hay ejercicios dirigidos — es peloteo real. No te preocupes por hacerlo perfecto. El objetivo es que apliques naturalmente lo que practicaste.',
+      objetivo: '<p>Aplicar de forma integrada: grip, derecha, revés, volea y lectura de pared en situación real de peloteo.</p><p>Al terminar vas a ver exactamente en qué golpes estás en verde, en amarillo y en qué necesitás más trabajo.</p>',
+      tip: 'Después de cada golpe, volvé al centro de la cancha. Ese hábito — recuperar posición — es lo que separa a los jugadores que mejoran rápido de los que se quedan en el mismo nivel.'
+    },
+    drills: [
+      ['Peloteo libre 5 min', 'Peloteo profe–alumno sin consigna de dirección. El alumno juega naturalmente.', 'Sin meta de resultado'],
+      ['Peloteo con recuperación', 'Mismo peloteo pero el alumno debe volver al centro después de cada golpe.', 'Volver al centro 8/10 veces'],
+      ['Peloteo + predicción', 'Antes de golpear, el alumno grita "¡CRUZADO!" o "¡PARALELO!". Va donde dijo.', '5/10 predicciones correctas']
+    ]
+  }
+};
+
+function loadLesson(id, clickedEl) {
+  var data = lessons[id];
+  if (!data) return;
+
+  var isProfe = currentUser && currentUser.role === 'profe';
+  var roleData = isProfe ? data.profe : data.alumno;
+
+  // breadcrumb & title
+  document.getElementById('lesson-breadcrumb-title').textContent = data.title;
+  document.getElementById('lesson-main-title').textContent = data.title;
+  document.getElementById('topbar-title').textContent = data.title;
+  document.getElementById('lesson-time').textContent = data.time;
+  document.getElementById('lesson-location').textContent = data.location;
+  document.getElementById('lesson-level').textContent = data.level;
+
+  // role intro
+  var ri = document.getElementById('role-intro');
+  ri.className = 'role-intro ' + (isProfe ? 'profe' : 'alumno');
+  document.getElementById('ri-tag').textContent   = isProfe ? '🏅 Para el profe' : '🎾 Para el jugador';
+  document.getElementById('ri-title').textContent = roleData.riTitle;
+  document.getElementById('ri-text').textContent  = roleData.riText;
+
+  // objetivo
+  document.getElementById('cb-objetivo').innerHTML = roleData.objetivo;
+
+  // tip
+  document.getElementById('cb-tip').textContent = roleData.tip;
+
+  // drills
+  var tbody = document.getElementById('drills-tbody');
+  tbody.innerHTML = '';
+  data.drills.forEach(function(d) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + d[0] + '<div class="drill-tag">Drill</div></td><td>' + d[1] + '</td><td>' + d[2] + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // sidebar active
+  document.querySelectorAll('.lesson-item').forEach(function(el) { el.classList.remove('active'); });
+  if (clickedEl) clickedEl.classList.add('active');
+
+  showView('lesson', null);
+  document.getElementById('topbar-title').textContent = data.title;
+  document.getElementById('main-content').scrollTop = 0;
+}
+
+function markComplete() {
+  var btn = document.querySelector('.complete-btn');
+  btn.textContent = '✓ ¡Completada!';
+  btn.style.background = 'var(--navy)';
+  btn.disabled = true;
+  // update a lesson dot in sidebar as example
+  var active = document.querySelector('.lesson-item.active');
+  if (active) active.classList.add('done');
+}
+
+// ═══════════════════════════════
+//  MODULE ACCORDION
+// ═══════════════════════════════
+function toggleModule(header) {
+  header.classList.toggle('open');
+}
+
+// ═══════════════════════════════
+//  SIDEBAR MOBILE
+// ═══════════════════════════════
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// Enter key on login
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    doLogin();
+  }
+});
+</script>
+</body>
+</html>
