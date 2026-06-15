@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Padel Connect Pro — Certificación Profesional</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0B1F3A;
+    --navy-mid: #1A3456;
+    --green: #00C27C;
+    --green-dark: #009960;
+    --green-light: #E6FBF3;
+    --gold: #F5A623;
+    --gold-light: #FFF8EC;
+    --red: #E8342A;
+    --surface: #F7F9FC;
+    --border: rgba(11,31,58,0.12);
+    --text: #0B1F3A;
+    --muted: #5A6B82;
+    --white: #FFFFFF;
+    --court-line: rgba(0,194,124,0.18);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── QUIZ WRAPPER ── */
+  #quiz-wrapper {
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #quiz-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--court-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--court-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .quiz-logo {
+    font-family: 'DM Serif Display', serif;
+    color: var(--green);
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    max-width: 520px;
+    height: 4px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 99px;
+    margin-bottom: 2.5rem;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── QUIZ SCREENS ── */
+  .quiz-screen {
+    display: none;
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.35s ease both;
+  }
+  .quiz-screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .quiz-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .quiz-step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 1rem;
+  }
+
+  .quiz-q {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.65rem;
+    color: #FFFFFF;
+    line-height: 1.25;
+    margin-bottom: 0.6rem;
+  }
+
+  .quiz-sub {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .quiz-btn {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+  .quiz-btn:hover {
+    background: rgba(0,194,124,0.15);
+    border-color: var(--green);
+    transform: translateY(-1px);
+  }
+
+  .quiz-btn-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .icon-yes { background: rgba(0,194,124,0.2); }
+  .icon-no  { background: rgba(255,255,255,0.08); }
+  .icon-teacher { background: rgba(245,166,35,0.2); }
+  .icon-player  { background: rgba(0,194,124,0.2); }
+
+  /* ── INSIGHT CARD ── */
+  .insight-card {
+    background: rgba(0,194,124,0.10);
+    border: 1px solid rgba(0,194,124,0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .insight-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .insight-text {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.55;
+  }
+  .insight-text strong { color: var(--green); }
+
+  .quiz-cta-btn {
+    width: 100%;
+    background: var(--green);
+    border: none;
+    border-radius: 14px;
+    padding: 1.1rem;
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.01em;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 0.5rem;
+  }
+  .quiz-cta-btn:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+  /* ── LOADING ── */
+  .loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 1.5rem 0;
+  }
+  .loading-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.5);
+    transition: color 0.3s;
+  }
+  .loading-step.done { color: rgba(255,255,255,0.9); }
+  .step-dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .loading-step.done .step-dot {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+
+  .spinner-ring {
+    width: 48px; height: 48px;
+    border: 3px solid rgba(0,194,124,0.2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 1.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ────────────────────────────
+     SALES PAGE
+  ──────────────────────────── */
+  #sales-page { display: none; }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--navy);
+    color: rgba(255,255,255,0.9);
+    text-align: center;
+    padding: 10px 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .topbar span { color: var(--green); }
+
+  /* ── TIMER ── */
+  .timer-bar {
+    background: linear-gradient(135deg, #1A3456 0%, #0B1F3A 100%);
+    text-align: center;
+    padding: 12px 1rem;
+    border-bottom: 1px solid rgba(0,194,124,0.2);
+  }
+  .timer-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 2px; }
+  .timer-digits {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--navy);
+    color: #fff;
+    padding: 4rem 1.5rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--court-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--court-line) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(0,194,124,0.15);
+    border: 1px solid rgba(0,194,124,0.35);
+    border-radius: 99px;
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.12;
+    margin-bottom: 1.2rem;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-title .accent { color: var(--green); font-style: italic; }
+  .hero-sub {
+    font-size: clamp(1rem, 2.5vw, 1.15rem);
+    color: rgba(255,255,255,0.7);
+    max-width: 560px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+    margin-top: 1.5rem;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat-n {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+  }
+  .hero-stat-l {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 3.5rem 1.5rem;
+    max-width: 840px;
+    margin: 0 auto;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.55;
+  }
+
+  /* ── PROBLEM / SOLUTION ── */
+  .split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 640px) { .split-grid { grid-template-columns: 1fr; } }
+
+  .problem-col {
+    background: #FFF5F5;
+    border: 1px solid #FFD0CE;
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  .solution-col {
+    background: var(--green-light);
+    border: 1px solid #99E8CC;
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  .col-head {
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .col-head.bad  { color: var(--red); }
+  .col-head.good { color: var(--green-dark); }
+  .col-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+  .col-item:last-child { margin-bottom: 0; }
+  .col-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── WHAT'S INCLUDED ── */
+  .include-section { background: var(--white); }
+
+  .tomos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .tomo-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .tomo-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(11,31,58,0.08); }
+  .tomo-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--green);
+    border-radius: 14px 14px 0 0;
+  }
+  .tomo-num {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .tomo-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .tomo-desc {
+    font-size: 0.83rem;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  /* ── BONUS ── */
+  .bonus-section { background: var(--navy); color: #fff; }
+  .bonus-section .section-title { color: #fff; }
+  .bonus-section .section-sub { color: rgba(255,255,255,0.6); }
+
+  .bonus-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .bonus-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 14px;
+    padding: 1.25rem;
+    position: relative;
+  }
+  .bonus-badge {
+    display: inline-block;
+    background: rgba(0,194,124,0.2);
+    border: 1px solid rgba(0,194,124,0.35);
+    color: var(--green);
+    border-radius: 99px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    margin-bottom: 0.75rem;
+  }
+  .bonus-title {
+    font-weight: 700;
+    font-size: 0.97rem;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .bonus-desc {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.45;
+  }
+  .bonus-price {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+  }
+  .bonus-price s { text-decoration: line-through; }
+  .bonus-price strong { color: var(--green); margin-left: 6px; }
+
+  /* ── FOR WHOM ── */
+  .for-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  @media (max-width: 640px) { .for-grid { grid-template-columns: 1fr; } }
+
+  .for-col {
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  .for-yes { background: var(--green-light); border: 1px solid #99E8CC; }
+  .for-no  { background: #FFF5F5; border: 1px solid #FFD0CE; }
+  .for-item {
+    display: flex; align-items: flex-start;
+    gap: 8px; font-size: 0.9rem;
+    line-height: 1.45; margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-section { background: var(--surface); }
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+  .testimonial-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+  }
+  .testimonial-stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 0.6rem; }
+  .testimonial-text {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 0.8rem;
+    font-style: italic;
+  }
+  .testimonial-author { font-weight: 600; font-size: 0.85rem; color: var(--navy); }
+  .testimonial-role { font-size: 0.78rem; color: var(--muted); }
+
+  /* ── OFFER BLOCK ── */
+  .offer-section { background: var(--white); }
+
+  .offer-box {
+    border: 2px solid var(--green);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .offer-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at top, rgba(0,194,124,0.06) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .offer-label {
+    display: inline-block;
+    background: var(--green);
+    color: #fff;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    margin-bottom: 1.25rem;
+  }
+  .offer-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+    line-height: 1.15;
+  }
+  .offer-tagline {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .include-list {
+    text-align: left;
+    margin-bottom: 2rem;
+  }
+  .include-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .include-item:last-child { border-bottom: none; }
+  .check-icon { color: var(--green); font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+
+  .price-block { margin: 1.5rem 0 1.75rem; }
+  .price-old {
+    font-size: 1rem;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-bottom: 4px;
+  }
+  .price-new {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .price-new sup { font-size: 1.4rem; vertical-align: super; }
+  .price-period { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+  .cta-main {
+    display: block;
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 1.15rem 2rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(0,194,124,0.35);
+    text-decoration: none;
+    margin-bottom: 1rem;
+  }
+  .cta-main:hover {
+    background: var(--green-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0,194,124,0.4);
+  }
+
+  .trust-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .trust-icon { color: var(--green); }
+
+  /* ── FAQ ── */
+  .faq-section { background: var(--surface); }
+  .faq-item {
+    border-bottom: 1px solid var(--border);
+    padding: 1.1rem 0;
+  }
+  .faq-q {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--navy);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    user-select: none;
+  }
+  .faq-arrow { transition: transform 0.25s; flex-shrink: 0; color: var(--green); }
+  .faq-item.open .faq-arrow { transform: rotate(180deg); }
+  .faq-a {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.2s;
+  }
+  .faq-item.open .faq-a { max-height: 300px; padding-top: 0.75rem; }
+
+  /* ── GUARANTEE ── */
+  .guarantee-box {
+    background: var(--gold-light);
+    border: 1px solid #F5C875;
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-top: 2.5rem;
+    max-width: 620px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .guarantee-icon { font-size: 2.4rem; flex-shrink: 0; }
+  .guarantee-title { font-weight: 700; font-size: 1rem; color: var(--navy); margin-bottom: 4px; }
+  .guarantee-text { font-size: 0.88rem; color: var(--muted); line-height: 1.55; }
+
+  /* ── FOOTER ── */
+  .footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    padding: 2rem 1.5rem;
+    font-size: 0.78rem;
+  }
+  .footer a { color: rgba(255,255,255,0.4); text-decoration: underline; }
+
+  /* ── NOTIFICATION TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 18px;
+    box-shadow: 0 8px 32px rgba(11,31,58,0.14);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    z-index: 9999;
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+    opacity: 0;
+    min-width: 260px;
+    max-width: 340px;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  .toast-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .toast-text strong { color: var(--navy); }
+  .toast-text span { color: var(--muted); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .quiz-card { padding: 1.75rem 1.25rem; }
+    .quiz-q { font-size: 1.35rem; }
+    .offer-box { padding: 1.75rem 1.25rem; }
+    .hero { padding: 3rem 1.25rem 2rem; }
+    .hero-stats { gap: 1.25rem; }
+    .guarantee-box { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════
+     QUIZ FLOW
+═══════════════════════════════════ -->
+<div id="quiz-wrapper">
+  <div class="quiz-logo">🎾 Padel Connect Pro</div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar" style="width:14%"></div>
+  </div>
+
+  <!-- ── SCREEN 1 ── -->
+  <div class="quiz-screen active" id="s1">
+    <div class="quiz-card">
+      <div class="quiz-step-label">Pregunta 1 de 6</div>
+      <div class="quiz-q">¿Tenés grupos de alumnos que no progresan al ritmo que deberían?</div>
+      <div class="quiz-sub">¿Sentís que algo en la dinámica de tus clases no está funcionando?</div>
+      <div class="quiz-options">
+        <button class="quiz-btn" onclick="next(2, 'yes')">
+          <div class="quiz-btn-icon icon-yes">✅</div>
+          Sí, me pasa seguido
+        </button>
+        <button class="quiz-btn" onclick="next(2, 'no')">
+          <div class="quiz-btn-icon icon-no">❌</div>
+          No, mis grupos van bien
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 2 ── -->
+  <div class="quiz-screen" id="s2">
+    <div class="quiz-card">
+      <div class="quiz-step-label">Pregunta 2 de 6</div>
+      <div class="quiz-q">¿Improvisás el contenido de tus clases o tenés un plan estructurado?</div>
+      <div class="quiz-sub">Sin un método claro, los alumnos sienten que "siempre es lo mismo" y se van.</div>
+      <div class="quiz-options">
+        <button class="quiz-btn" onclick="next(3, 'improv')">
+          <div class="quiz-btn-icon icon-no">⚡</div>
+          Mayormente improviso semana a semana
+        </button>
+        <button class="quiz-btn" onclick="next(3, 'plan')">
+          <div class="quiz-btn-icon icon-yes">📋</div>
+          Tengo algo planificado, pero no es completo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3 — INSIGHT ── -->
+  <div class="quiz-screen" id="s3">
+    <div class="quiz-card">
+      <div class="quiz-step-label">¿Sabías que?</div>
+      <div class="quiz-q">La razón #1 por la que los alumnos dejan las clases de pádel</div>
+      <div class="insight-card" style="margin-top:1.25rem">
+        <div class="insight-icon">📊</div>
+        <div class="insight-text">
+          Los alumnos no se van porque encontraron algo mejor. Se van porque <strong>dejan de sentir que progresan.</strong> Un sistema de nivelación + periodización anual retiene hasta 3 veces más alumnos que un programa improvisado.
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon">🗓️</div>
+        <div class="insight-text">
+          Los profesores que trabajan con <strong>tomos por nivel + plan anual de 52 semanas</strong> reportan grupos más homogéneos, menos conflictos y mayor renovación de abonos.
+        </div>
+      </div>
+      <button class="quiz-cta-btn" onclick="next(4)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 4 ── -->
+  <div class="quiz-screen" id="s4">
+    <div class="quiz-card">
+      <div class="quiz-step-label">Pregunta 3 de 6</div>
+      <div class="quiz-q">¿Querés sistematizar tu escuela y escalar tu ingreso como profe?</div>
+      <div class="quiz-sub">Tanto si ya tenés alumnos como si estás arrancando tu carrera.</div>
+      <div class="quiz-options">
+        <button class="quiz-btn" onclick="next(5, 'yes')">
+          <div class="quiz-btn-icon icon-yes">✅</div>
+          Sí, quiero crecer profesionalmente
+        </button>
+        <button class="quiz-btn" onclick="next(5, 'no')">
+          <div class="quiz-btn-icon icon-no">❌</div>
+          Estoy bien como estoy
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 5 ── -->
+  <div class="quiz-screen" id="s5">
+    <div class="quiz-card">
+      <div class="quiz-step-label">Pregunta 4 de 6</div>
+      <div class="quiz-q">¿Cuándo llueve o falta la cancha, sabés exactamente qué hacer con el grupo?</div>
+      <div class="quiz-sub">El profe que siempre tiene un plan nunca pierde una clase.</div>
+      <div class="quiz-options">
+        <button class="quiz-btn" onclick="next(6, 'no')">
+          <div class="quiz-btn-icon icon-no">🌧️</div>
+          No, suelo cancelar o improvisar
+        </button>
+        <button class="quiz-btn" onclick="next(6, 'yes')">
+          <div class="quiz-btn-icon icon-yes">✅</div>
+          Sí, siempre tengo alternativas preparadas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 6 — LOADING ── -->
+  <div class="quiz-screen" id="s6">
+    <div class="quiz-card" style="text-align:center">
+      <div class="quiz-step-label" style="text-align:center">Analizando tu perfil</div>
+      <div class="spinner-ring" id="spinner"></div>
+      <div class="quiz-q" style="font-size:1.35rem; margin-bottom:1.5rem">Preparando tu programa personalizado...</div>
+      <div class="loading-steps">
+        <div class="loading-step" id="ls1">
+          <div class="step-dot" id="ld1">1</div>
+          Identificando tu perfil de entrenador
+        </div>
+        <div class="loading-step" id="ls2">
+          <div class="step-dot" id="ld2">2</div>
+          Seleccionando tomos y herramientas clave
+        </div>
+        <div class="loading-step" id="ls3">
+          <div class="step-dot" id="ld3">3</div>
+          Calculando tu plan anual de 52 semanas
+        </div>
+        <div class="loading-step" id="ls4">
+          <div class="step-dot" id="ld4">4</div>
+          Asignando bonus y certificación
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end quiz-wrapper -->
+
+
+<!-- ═══════════════════════════════════
+     SALES PAGE
+═══════════════════════════════════ -->
+<div id="sales-page">
+
+  <!-- Timer bar -->
+  <div class="timer-bar">
+    <div class="timer-label">⚡ Oferta de lanzamiento expira en:</div>
+    <div class="timer-digits" id="timer">14:59</div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    Tu perfil: <span>Profe con potencial de escala</span> — Te preparamos el sistema completo 🎾
+  </div>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-badge">🏅 Certificación Profesional para Profesores de Pádel</div>
+    <h1 class="hero-title">
+      Tu año de clases resuelto.<br>
+      <span class="accent">Método Padel Connect Pro.</span>
+    </h1>
+    <p class="hero-sub">
+      12 Tomos por nivel · Plan anual de 52 semanas · Nivelómetro 360 · 6 Bonus aplicados. Todo lo que un profe necesita para organizar, crecer y retener alumnos.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-n">12</div>
+        <div class="hero-stat-l">Tomos por nivel</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">52</div>
+        <div class="hero-stat-l">Semanas planificadas</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">6</div>
+        <div class="hero-stat-l">Bonus exclusivos</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">240+</div>
+        <div class="hero-stat-l">Páginas de material</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROBLEMA / SOLUCIÓN ── -->
+  <section class="section" style="background:var(--white); max-width:100%; padding-left:1.5rem; padding-right:1.5rem;">
+    <div style="max-width:840px; margin:0 auto;">
+      <div class="section-title">¿Te reconocés en alguno de estos escenarios?</div>
+      <div class="section-sub">Los domingos a las 21:00, miles de profes de pádel viven el mismo ritual de ansiedad.</div>
+      <div class="split-grid">
+        <div class="problem-col">
+          <div class="col-head bad">❌ Sin sistema</div>
+          <div class="col-item"><span class="col-icon">•</span>Adivinas qué nivel tiene cada alumno nuevo</div>
+          <div class="col-item"><span class="col-icon">•</span>Grupos desiguales que no fluyen en clase</div>
+          <div class="col-item"><span class="col-icon">•</span>El domingo sin saber qué dar el lunes</div>
+          <div class="col-item"><span class="col-icon">•</span>Cuando llueve, cancelás la clase (y no cobrás)</div>
+          <div class="col-item"><span class="col-icon">•</span>Alumnos que se aburren y no renuevan</div>
+          <div class="col-item"><span class="col-icon">•</span>No sabés quién te debe clases ni cuándo</div>
+        </div>
+        <div class="solution-col">
+          <div class="col-head good">✅ Con Padel Connect Pro</div>
+          <div class="col-item"><span class="col-icon">•</span>Nivelás cualquier alumno en 5 minutos con el Nivelómetro 360</div>
+          <div class="col-item"><span class="col-icon">•</span>Grupos homogéneos que progresan de verdad</div>
+          <div class="col-item"><span class="col-icon">•</span>52 semanas planificadas de enero a diciembre</div>
+          <div class="col-item"><span class="col-icon">•</span>10 actividades alternativas para días de lluvia</div>
+          <div class="col-item"><span class="col-icon">•</span>Diplomas + evaluaciones que fidelizan y renuevan</div>
+          <div class="col-item"><span class="col-icon">•</span>Planillas de pagos, asistencia y progreso individual</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TOMOS ── -->
+  <section class="section" style="background:var(--surface); max-width:100%; padding-left:1.5rem; padding-right:1.5rem;">
+    <div style="max-width:900px; margin:0 auto;">
+      <div class="section-title">Los 12 Tomos del método</div>
+      <div class="section-sub">Cada tomo es una etapa del camino del alumno. Vos sabés exactamente qué enseñar en cada clase.</div>
+      <div class="tomos-grid">
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 1 · Inicial</div>
+          <div class="tomo-name">Iniciante Absoluto</div>
+          <div class="tomo-desc">Grip, primer contacto técnico, derecha estática. El alumno toca la pelota por primera vez con propósito.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 2 · Inicial</div>
+          <div class="tomo-name">Inicial con Base</div>
+          <div class="tomo-desc">Peloteo cruzado, globo defensivo, volea de bloqueo, pared lateral. Del peloteo al juego real.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 3 · Intermedio</div>
+          <div class="tomo-name">Intermedio 1</div>
+          <div class="tomo-desc">Control direccional, juego de fondo, movimiento de pareja, contragolpe de pared.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 4 · Intermedio</div>
+          <div class="tomo-name">Intermedio 2</div>
+          <div class="tomo-desc">Sistema de red, cuándo bajar, ataque al cuerpo, recuperación de red, partidos tácticos con roles.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 5 · Avanzado</div>
+          <div class="tomo-name">Avanzado 1</div>
+          <div class="tomo-desc">Bandeja, víbora básica, remate por tres, globo con efecto, sistema ofensivo completo.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 6 · Avanzado</div>
+          <div class="tomo-name">Avanzado 2</div>
+          <div class="tomo-desc">Sistema de juego propio, lectura del rival, juego bajo presión, recuperación de posición.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 7 · Adultos</div>
+          <div class="tomo-name">Adultos Mayores 1</div>
+          <div class="tomo-desc">Seguridad y confianza básica, movilidad, contacto con bola, juego cooperativo adaptado.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 8 · Adultos</div>
+          <div class="tomo-name">Adultos Mayores 2</div>
+          <div class="tomo-desc">Coordinación ojo-pala, desplazamiento seguro, juego de pareja AM, torneo social.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 9 · Kids</div>
+          <div class="tomo-name">Kids Fase 1</div>
+          <div class="tomo-desc">Exploración lúdica, coordinación, desplazamiento, primer peloteo real. Todo con juego.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 10 · Kids</div>
+          <div class="tomo-name">Kids Fase 2</div>
+          <div class="tomo-desc">Técnica lúdica completa, partido real con reglas, torneo social de fin de año kids.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 11 · Especial</div>
+          <div class="tomo-name">Lesiones 1</div>
+          <div class="tomo-desc">Adaptaciones para alumnos en recuperación. Prorrateo de drills y protocolo de cuidado.</div>
+        </div>
+        <div class="tomo-card">
+          <div class="tomo-num">Tomo 12 · Especial</div>
+          <div class="tomo-name">Lesiones 2</div>
+          <div class="tomo-desc">Reintegro progresivo al juego completo. Criterios de alta y seguimiento individual.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BONUS ── -->
+  <section class="bonus-section" style="padding: 3.5rem 1.5rem;">
+    <div style="max-width:900px; margin:0 auto;">
+      <p style="color:var(--green); font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem;">Incluido sin costo extra</p>
+      <div class="section-title">Los 6 Bonus Exclusivos</div>
+      <div class="section-sub">Cada bonus resuelve un problema real que los cursos de profe nunca enseñan.</div>
+      <div class="bonus-cards">
+        <div class="bonus-card">
+          <div class="bonus-badge">Bonus 1</div>
+          <div class="bonus-title">Nivelómetro 360</div>
+          <div class="bonus-desc">Test de 5 minutos para ubicar a cualquier alumno en su nivel correcto. Planilla imprimible, tabla de equivalencia y frases para comunicar el nivel sin conflicto.</div>
+          <div class="bonus-price"><s>$29</s><strong>GRATIS</strong></div>
+        </div>
+        <div class="bonus-card">
+          <div class="bonus-badge">Bonus 2</div>
+          <div class="bonus-title">Preparación Física de 15 min</div>
+          <div class="bonus-desc">4 rutinas sin gimnasio ni equipo: Fuerza, Velocidad, Resistencia y Recuperación. Adaptadas por nivel (inicial, intermedio, avanzado, adultos mayores).</div>
+          <div class="bonus-price"><s>$22</s><strong>GRATIS</strong></div>
+        </div>
+        <div class="bonus-card">
+          <div class="bonus-badge">Bonus 3</div>
+          <div class="bonus-title">Nutrición para el Jugador</div>
+          <div class="bonus-desc">Qué comer antes, durante y después del partido. Protocolo de hidratación, suplementación básica y los 7 errores nutricionales más comunes.</div>
+          <div class="bonus-price"><s>$18</s><strong>GRATIS</strong></div>
+        </div>
+        <div class="bonus-card">
+          <div class="bonus-badge">Bonus 4</div>
+          <div class="bonus-title">Plan para Cuando Llueve</div>
+          <div class="bonus-desc">10 actividades sin cancha listas para usar. 3 tipos de lluvia con protocolos: pizarrón táctico, video-análisis, visualización guiada, clase virtual.</div>
+          <div class="bonus-price"><s>$24</s><strong>GRATIS</strong></div>
+        </div>
+        <div class="bonus-card">
+          <div class="bonus-badge">Bonus 5</div>
+          <div class="bonus-title">Kit de Supervivencia del Profe</div>
+          <div class="bonus-desc">Grupos mixtos sin aviso, sin materiales, solo 20 minutos, grupo de mal humor. 4 protocolos + 5 juegos de emergencia que siempre funcionan.</div>
+          <div class="bonus-price"><s>$27</s><strong>GRATIS</strong></div>
+        </div>
+        <div class="bonus-card">
+          <div class="bonus-badge">Bonus 6</div>
+          <div class="bonus-title">Pack de Organización Semanal</div>
+          <div class="bonus-desc">Planilla maestra semanal, control de pagos, planificador de clases, asistencia mensual, ficha de progreso individual y ritual del domingo de 15 minutos.</div>
+          <div class="bonus-price"><s>$31</s><strong>GRATIS</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PLAN ANUAL ── -->
+  <section class="section" style="background:var(--white); max-width:100%; padding-left:1.5rem; padding-right:1.5rem;">
+    <div style="max-width:840px; margin:0 auto;">
+      <div class="section-title">El Programador Maestro — 52 semanas resueltas</div>
+      <div class="section-sub">De enero a diciembre, sabés exactamente qué dar en cada clase. El domingo a la noche deja de ser el día de la ansiedad del profe.</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:1rem; margin-top:1.5rem;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem;">
+          <div style="color:var(--green); font-size:1.6rem; font-weight:900; line-height:1;">Ene–Mar</div>
+          <div style="font-weight:700; font-size:0.9rem; color:var(--navy); margin:4px 0 6px;">Bloque 1 — Fundamentos</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Tomos 1 y 2. Evaluación con Nivelómetro en semana 5. Mini torneo y diploma de cierre.</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem;">
+          <div style="color:var(--green); font-size:1.6rem; font-weight:900; line-height:1;">Abr–Jun</div>
+          <div style="font-weight:700; font-size:0.9rem; color:var(--navy); margin:4px 0 6px;">Bloque 2 — Táctica</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Tomos 3 y 4. El alumno decide antes de golpear. Torneo táctico y diploma de bloque.</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem;">
+          <div style="color:var(--green); font-size:1.6rem; font-weight:900; line-height:1;">Jul–Sep</div>
+          <div style="font-weight:700; font-size:0.9rem; color:var(--navy); margin:4px 0 6px;">Bloque 3 — Potencia</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Tomos 5 y 6. Víbora, bandeja, sistema ofensivo. Video-análisis y diploma de potencia.</div>
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:1.25rem;">
+          <div style="color:var(--green); font-size:1.6rem; font-weight:900; line-height:1;">Oct–Dic</div>
+          <div style="font-weight:700; font-size:0.9rem; color:var(--navy); margin:4px 0 6px;">Bloque 4 — Competición</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Torneos internos por zona + Torneo Anual. Diplomas de todos los tomos. Renovación de abono.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOR WHOM ── -->
+  <section class="section" style="max-width:100%; padding-left:1.5rem; padding-right:1.5rem; background:var(--surface);">
+    <div style="max-width:840px; margin:0 auto;">
+      <div class="section-title">¿Para quién es Padel Connect Pro?</div>
+      <div class="for-grid">
+        <div class="for-col for-yes">
+          <div class="col-head good">✅ Para vos si...</div>
+          <div class="for-item"><span>✓</span>Sos profe de pádel y querés estructurar tu escuela</div>
+          <div class="for-item"><span>✓</span>Tus grupos no progresan al ritmo que esperás</div>
+          <div class="for-item"><span>✓</span>Querés dejar de improvisar el contenido semanal</div>
+          <div class="for-item"><span>✓</span>Necesitás herramientas concretas para retener alumnos</div>
+          <div class="for-item"><span>✓</span>Querés cobrar más por ofrecer algo diferente</div>
+          <div class="for-item"><span>✓</span>Recién arrancás y querés hacerlo bien desde el día 1</div>
+        </div>
+        <div class="for-col for-no">
+          <div class="col-head bad">❌ No es para vos si...</div>
+          <div class="for-item"><span>✗</span>Buscás resultados sin aplicar los protocolos</div>
+          <div class="for-item"><span>✗</span>No tenés intención de cambiar tu metodología</div>
+          <div class="for-item"><span>✗</span>Creés que ya lo sabés todo y no necesitás mejorar</div>
+          <div class="for-item"><span>✗</span>No das clases de pádel ni pensás darlas</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TESTIMONIALS ── -->
+  <section class="section" style="background:var(--white); max-width:100%; padding-left:1.5rem; padding-right:1.5rem;">
+    <div style="max-width:900px; margin:0 auto;">
+      <div class="section-title">Lo que dicen los profes</div>
+      <div class="section-sub">Profesores reales que aplicaron el método en sus escuelas.</div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-text">"El Nivelómetro cambió todo. Antes tardaba semanas en saber qué nivel tenía un alumno nuevo. Ahora en 5 minutos lo ubico y ya sé en qué tomo meterlo. Los grupos quedaron mucho más parejos."</div>
+          <div class="testimonial-author">Martín R.</div>
+          <div class="testimonial-role">Profe — Buenos Aires, Argentina</div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-text">"El Plan de 52 semanas me salvó el año. Antes los domingos a la noche era un caos. Ahora abro el calendario, veo qué tomo corresponde, preparo el drill y listo. El lunes entro a la cancha con todo claro."</div>
+          <div class="testimonial-author">Luciana P.</div>
+          <div class="testimonial-role">Profe — Córdoba, Argentina</div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <div class="testimonial-text">"El Bonus de lluvia es increíble. La semana pasada diluvió y en vez de cancelar hice la sesión táctica con pizarrón. Mis alumnos dijeron que fue de las mejores clases del año. Y yo cobré igual."</div>
+          <div class="testimonial-author">Diego F.</div>
+          <div class="testimonial-role">Profe — Rosario, Argentina</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── OFFER ── -->
+  <section class="offer-section" style="padding: 4rem 1.5rem;">
+    <div style="max-width:840px; margin:0 auto; text-align:center; margin-bottom:2.5rem;">
+      <div class="section-title">Acceso completo a Padel Connect Pro</div>
+      <div class="section-sub">Todo lo que un profe necesita para organizar, crecer y retener alumnos durante todo el año.</div>
+    </div>
+    <div class="offer-box">
+      <div class="offer-label">🎾 Acceso Completo</div>
+      <div class="offer-name">Certificación Profesional<br>Padel Connect Pro</div>
+      <div class="offer-tagline">La infraestructura completa para profesores de pádel — de enero a diciembre.</div>
+      <div class="include-list">
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>12 Tomos por nivel</strong> — Inicial, Intermedio, Avanzado, Adultos Mayores, Kids, Lesiones</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>Nivelómetro 360</strong> — Test de 5 minutos + planilla imprimible</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>Plan anual de 52 semanas</strong> — Calendario con drills, evaluaciones y diplomas</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>Sistema de Rotación Infinita</strong> — El mismo drill siempre se siente nuevo</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>6 Bonus exclusivos</strong> — Preparación física, nutrición, lluvia, emergencias, organización</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>Pack de Organización Semanal</strong> — Planillas de pagos, asistencia y progreso</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>Certificado digital personalizado</strong> — Con tu nombre y sello del método</span></div>
+        <div class="include-item"><span class="check-icon">✓</span><span><strong>Actualizaciones incluidas</strong> — Edición 2026 Argentina, siempre al día</span></div>
+      </div>
+      <div class="price-block">
+        <div class="price-old">Precio normal: $197 USD</div>
+        <div class="price-new"><sup>$</sup>47</div>
+        <div class="price-period">USD · pago único · acceso completo · sin suscripción</div>
+      </div>
+      <a href="#" class="cta-main" onclick="return false;">⚡ QUIERO ACCESO AHORA</a>
+      <div class="trust-row">
+        <div class="trust-item"><span class="trust-icon">🔒</span> Pago seguro</div>
+        <div class="trust-item"><span class="trust-icon">⚡</span> Acceso inmediato</div>
+        <div class="trust-item"><span class="trust-icon">🛡️</span> Garantía 7 días</div>
+        <div class="trust-item"><span class="trust-icon">♾️</span> Acceso vitalicio</div>
+      </div>
+    </div>
+
+    <!-- Guarantee -->
+    <div class="guarantee-box">
+      <div class="guarantee-icon">🛡️</div>
+      <div>
+        <div class="guarantee-title">Garantía de 7 días sin preguntas</div>
+        <div class="guarantee-text">Si por cualquier motivo no quedás satisfecho con el material dentro de los primeros 7 días, te devolvemos el 100% de tu dinero. Sin formularios, sin esperas, sin justificaciones.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section class="faq-section" style="padding: 3.5rem 1.5rem;">
+    <div style="max-width:640px; margin:0 auto;">
+      <div class="section-title" style="text-align:center; margin-bottom:2rem;">Preguntas frecuentes</div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">¿Cómo accedo tras la compra? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Tras el pago recibís un acceso directo al portal con todos los tomos, bonus y planillas descargables. Funciona en cualquier navegador — celular, tablet u ordenador.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">¿Cuánto tiempo tengo acceso? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Acceso vitalicio. Pagás una vez y usás para siempre, sin mensualidades ni suscripción. Incluye las actualizaciones futuras del método.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">¿Funciona si recién arranco como profe? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Sí. El sistema está diseñado para que puedas arrancar directamente desde el Tomo 1, con criterios claros y protocolos paso a paso. No hace falta experiencia previa en metodología de enseñanza.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">¿Sirve si ya tengo alumnos avanzados? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Absolutamente. Los Tomos 5 y 6 cubren el nivel avanzado (víbora, bandeja, sistema de juego propio) y el Bloque 4 del Programador Maestro está pensado para competición y torneos.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">¿Y si no me gusta el material? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Garantía de 7 días. Si por cualquier motivo no quedás satisfecho, te devolvemos el 100% del valor pagado sin preguntas ni trámites.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">¿Incluye material para grupos de adultos mayores y niños? <span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Sí. Los Tomos 7 y 8 están diseñados específicamente para adultos mayores (priorizando seguridad y confianza), y los Tomos 9 y 10 para niños de 6 a 12 años con metodología lúdica.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINAL CTA ── -->
+  <section style="background:var(--navy); padding:4rem 1.5rem; text-align:center; position:relative; overflow:hidden;">
+    <div style="position:absolute;inset:0;background-image:linear-gradient(var(--court-line) 1px,transparent 1px),linear-gradient(90deg,var(--court-line) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;"></div>
+    <div style="position:relative;z-index:1;max-width:580px;margin:0 auto;">
+      <div style="font-family:'DM Serif Display',serif;font-size:clamp(1.6rem,4vw,2.4rem);color:#fff;margin-bottom:1rem;line-height:1.2;">El nivel no se adivina.<br><span style="color:var(--green); font-style:italic;">Se mide. Se enseña. Se construye.</span></div>
+      <p style="color:rgba(255,255,255,0.6);margin-bottom:2rem;font-size:1rem;line-height:1.6;">Empezá el lunes con el sistema completo. Tus alumnos van a notar la diferencia desde la primera clase.</p>
+      <a href="#" class="cta-main" onclick="return false;" style="display:inline-block;width:auto;padding:1.15rem 2.5rem;font-size:1.1rem;">⚡ QUIERO ACCESO AHORA — $47 USD</a>
+      <div class="trust-row" style="justify-content:center; margin-top:1.25rem;">
+        <div class="trust-item" style="color:rgba(255,255,255,0.4);"><span class="trust-icon">🔒</span> Pago seguro</div>
+        <div class="trust-item" style="color:rgba(255,255,255,0.4);"><span class="trust-icon">🛡️</span> Garantía 7 días</div>
+        <div class="trust-item" style="color:rgba(255,255,255,0.4);"><span class="trust-icon">♾️</span> Acceso vitalicio</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>© 2026 Padel Connect Pro — Método desarrollado en Argentina. Todos los derechos reservados.</p>
+    <p style="margin-top:6px;"><a href="#">Términos y condiciones</a> · <a href="#">Política de privacidad</a> · <a href="#">Contacto</a></p>
+  </div>
+
+</div><!-- end sales-page -->
+
+<!-- TOAST -->
+<div id="toast">
+  <div class="toast-dot"></div>
+  <div class="toast-text">
+    <strong id="toast-name">Diego F.</strong>
+    <span id="toast-detail"> acaba de acceder — de Córdoba, hace 12 min</span>
+  </div>
+</div>
+
+<script>
+  var answers = {};
+  var currentScreen = 1;
+
+  var progressMap = { 1:14, 2:28, 3:45, 4:62, 5:78, 6:95 };
+
+  function next(screen, answer) {
+    if (answer) answers[currentScreen] = answer;
+    var prev = document.getElementById('s'+currentScreen);
+    if (prev) prev.classList.remove('active');
+    currentScreen = screen;
+    var bar = document.getElementById('progress-bar');
+    bar.style.width = (progressMap[screen] || 95) + '%';
+    var next = document.getElementById('s'+currentScreen);
+    if (next) {
+      next.style.animation = 'none';
+      next.classList.add('active');
+      setTimeout(function(){ next.style.animation = ''; }, 10);
+    }
+    if (screen === 6) startLoading();
+  }
+
+  function startLoading() {
+    var steps = [1,2,3,4];
+    steps.forEach(function(i, idx) {
+      setTimeout(function() {
+        document.getElementById('ls'+i).classList.add('done');
+        document.getElementById('ld'+i).textContent = '✓';
+      }, 700 + idx * 800);
+    });
+    setTimeout(function() {
+      document.getElementById('spinner').style.display = 'none';
+      document.getElementById('quiz-wrapper').style.display = 'none';
+      document.getElementById('sales-page').style.display = 'block';
+      document.getElementById('progress-bar').style.width = '100%';
+      startTimer();
+      setTimeout(cycleToasts, 4000);
+    }, 700 + 4 * 800 + 600);
+  }
+
+  function toggleFaq(el) {
+    var item = el.parentElement;
+    item.classList.toggle('open');
+  }
+
+  /* TIMER */
+  var timerSecs = 14 * 60 + 59;
+  function startTimer() {
+    var el = document.getElementById('timer');
+    var interval = setInterval(function() {
+      if (timerSecs <= 0) { clearInterval(interval); el.textContent = '00:00'; return; }
+      timerSecs--;
+      var m = Math.floor(timerSecs / 60);
+      var s = timerSecs % 60;
+      el.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+  }
+
+  /* TOASTS */
+  var toastData = [
+    { name:'Martín G.', detail:' acaba de acceder — de Buenos Aires, hace 3 min' },
+    { name:'Luciana P.', detail:' acaba de acceder — de Córdoba, hace 7 min' },
+    { name:'Diego F.',   detail:' acaba de acceder — de Rosario, hace 11 min' },
+    { name:'Valeria M.', detail:' acaba de acceder — de Mendoza, hace 5 min' },
+    { name:'Rodrigo S.', detail:' acaba de acceder — de Montevideo, hace 9 min' },
+    { name:'Carolina H.', detail:' acaba de acceder — de Santiago, hace 2 min' },
+    { name:'Nicolás A.', detail:' acaba de acceder — de Salta, hace 14 min' },
+  ];
+  var toastIdx = 0;
+
+  function showToast() {
+    var data = toastData[toastIdx % toastData.length];
+    toastIdx++;
+    document.getElementById('toast-name').textContent = data.name;
+    document.getElementById('toast-detail').textContent = data.detail;
+    var toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 3800);
+  }
+
+  function cycleToasts() {
+    showToast();
+    var delay = 12000 + Math.random() * 10000;
+    setTimeout(cycleToasts, delay);
+  }
+</script>
+</body>
+</html>
