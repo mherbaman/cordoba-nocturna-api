@@ -5,6 +5,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="manifest" href="/manifest-padel.json">
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -609,12 +611,6 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
     const userId = localStorage.getItem("cl_usuario") ? JSON.parse(localStorage.getItem("cl_usuario")).id : null;
     if (userId) {
       await OneSignal.login(userId);
-      const permission = await OneSignal.Notifications.permission;
-      if (!permission) {
-        setTimeout(async () => {
-          await OneSignal.Notifications.requestPermission();
-        }, 3000);
-      }
     }
   });
 </script>
@@ -1675,7 +1671,7 @@ async function doRegister(){
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
     // Asociar OneSignal al usuario logueado
-    if (window.OneSignal && usuario?.id) { try { await window.OneSignal.login(usuario.id); await window.OneSignal.Notifications.requestPermission(); } catch(e){} }
+    if (window.OneSignal && usuario?.id) { try { await window.OneSignal.login(usuario.id); } catch(e){} }
     await cargarZonasPadel();
     showScreen('perfil-padel');
   }catch(e){
@@ -1699,7 +1695,7 @@ async function doLogin(){
     clSetToken(token);clSetUsuario(usuario);
     syncProfileBtn();connectSocket();
     // Asociar OneSignal al usuario logueado
-    if (window.OneSignal && usuario?.id) { try { await window.OneSignal.login(usuario.id); await window.OneSignal.Notifications.requestPermission(); } catch(e){} }
+    if (window.OneSignal && usuario?.id) { try { await window.OneSignal.login(usuario.id); } catch(e){} }
     const tienePerfil = await verificarPerfilPadel();
     if(tienePerfil === 'incompleto'){ mostrarModalPerfilIncompleto(); return; }
     if (!tienePerfil) { await cargarZonasPadel(); showScreen('perfil-padel'); return; }
@@ -5233,6 +5229,19 @@ async function copiarWaPartido() {
   try { await navigator.clipboard.writeText(txt); btn.textContent = '✅ Copiado!'; }
   catch(e) { btn.textContent = '❌ Error'; }
   setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/padel/sw.js', { scope: '/padel/' })
+      .then(function(reg) {
+        console.log('SW registrado:', reg.scope);
+      })
+      .catch(function(err) {
+        console.log('SW error:', err);
+      });
+  });
 }
 </script>
 </body>
