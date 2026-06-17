@@ -1226,6 +1226,7 @@ function renderTurnosDia(reservas, disponibles, filtro) {
 
   // Agregar reservas
   lista.forEach(r => {
+    if (r.estado === 'cancelado') return;
     const n = r.numero_cancha || 1;
     if (!porCancha[n]) porCancha[n] = { nombre: 'Cancha ' + n, slots: [] };
     porCancha[n].slots.push({ tipo: 'reserva', ...r });
@@ -1249,10 +1250,10 @@ function renderTurnosDia(reservas, disponibles, filtro) {
       const hi = String(s.hora_inicio).substring(0,5);
       const hf = String(s.hora_fin).substring(0,5);
       if (s.tipo === 'libre') {
-        html += '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;margin-bottom:4px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04)">';
-        html += '<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.3);min-width:38px">' + hi + '</span>';
-        html += '<span style="font-size:11px;color:rgba(255,255,255,.2);flex:1">hasta ' + hf + '</span>';
-        html += '<span style="font-size:10px;background:rgba(34,197,94,.08);color:rgba(34,197,94,.4);border:1px solid rgba(34,197,94,.12);padding:1px 7px;border-radius:20px">Libre</span>';
+        html += '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;margin-bottom:4px;background:rgba(34,197,94,.05);border:1px dashed rgba(34,197,94,.3)">';
+        html += '<span style="font-size:12px;font-weight:700;color:#fff;min-width:38px">' + hi + '</span>';
+        html += '<span style="font-size:11px;color:rgba(255,255,255,.5);flex:1">hasta ' + hf + '</span>';
+        html += '<span style="font-size:10px;background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.45);padding:1px 7px;border-radius:20px;font-weight:700">Libre</span>';
         html += '</div>';
       } else {
         const canal = s.canal || (s.pago_por_app ? 'app' : 'presencial');
