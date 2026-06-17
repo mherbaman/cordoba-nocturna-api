@@ -1552,6 +1552,7 @@ function renderAgenda(dias, disponibles, reservas) {
   const celdasBloqueadas = {};
   reservas.forEach(r => {
     if (!r._fecha) return;
+    if (r.estado === 'cancelado') return;
     const num = r.numero_cancha || 1;
     const hi = String(r.hora_inicio).substring(0,5);
     const hf = String(r.hora_fin).substring(0,5);
