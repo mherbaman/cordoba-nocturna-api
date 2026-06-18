@@ -903,7 +903,7 @@ function renderClasesDia(turnos, clases) {
       html += '<div style="font-size:11px;color:rgba(255,255,255,.2);text-align:center;padding:8px 0">Sin reservas</div>';
     }
 
-    html += '<button onclick="abrirModalTurnoFecha(&quot;'+clasesDiaFecha+'&quot;,&quot;'+hi+'&quot;)" style="width:100%;margin-top:6px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#22c55e;padding:4px;border-radius:6px;font-size:11px;cursor:pointer">+ Editar</button>';
+    html += '<button onclick="borrarTurno(&quot;'+t.id+'&quot;)" style="width:100%;margin-top:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;padding:4px;border-radius:6px;font-size:11px;cursor:pointer">🗑 Eliminar turno</button>';
     html += '</div>';
   });
 
