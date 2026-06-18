@@ -1528,6 +1528,22 @@ router.post('/profesores/disponibilidad', authUsuario, async (req, res) => {
     const p = await pool.query('SELECT id FROM profesores_padel WHERE usuario_id = $1', [usuario_id]);
     if (!p.rows.length) return res.status(404).json({ error: 'Perfil de profesor no encontrado' });
     const profesor_id = p.rows[0].id;
+    // Verificar superposicion de horarios
+    const solapado = await pool.query(`
+      SELECT id FROM disponibilidad_profesor
+      WHERE profesor_id = $1
+        AND activo = true
+        AND hora_inicio < $3
+        AND hora_fin > $2
+        AND (
+          (fecha_especifica IS NOT NULL AND fecha_especifica = $4)
+          OR
+          (fecha_especifica IS NULL AND dia_semana = $5)
+        )
+    `, [profesor_id, hora_inicio, hora_fin, fecha||null, dia_semana !== undefined ? dia_semana : null]);
+    if (solapado.rows.length) {
+      return res.status(400).json({ error: 'Ya tenés un turno que se superpone con ese horario' });
+    }
     const result = await pool.query(`
       INSERT INTO disponibilidad_profesor
         (profesor_id, fecha_especifica, dia_semana, hora_inicio, hora_fin, zona, lugar, cupos, privado, nombre_alumno)
