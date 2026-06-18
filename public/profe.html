@@ -766,7 +766,7 @@ async function borrarTurno(id) {
   if (!confirm('¿Eliminar este turno?')) return;
   try {
     await apiProfe('/padel/profesores/disponibilidad/'+id, { method:'DELETE' });
-    cargarAgenda();
+    cargarClasesDia();
   } catch(e) { alert(e.message); }
 }
 
