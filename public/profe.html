@@ -639,7 +639,7 @@ function renderAgendaProfe(dias, turnos) {
 
   // Horas 12:00 a 20:00 cada 30min
   const horas = [];
-  for (let m = 16*60; m < 18*60; m += 30) {
+  for (let m = 15*60+30; m <= 18*60; m += 30) {
     horas.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
   }
 
@@ -847,7 +847,7 @@ function renderClasesDia(turnos, clases) {
 
   // Horas 12:00 a 20:00 cada 30min
   const horas = [];
-  for (let m = 16*60; m < 18*60; m += 30) {
+  for (let m = 15*60+30; m <= 18*60; m += 30) {
     horas.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
   }
 
