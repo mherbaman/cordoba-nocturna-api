@@ -1150,8 +1150,11 @@ router.post('/partidos-publicos', async (req, res) => {
     try {
       const jwt = require('jsonwebtoken');
       const decoded = jwt.verify(authHeader.replace('Bearer ',''), process.env.JWT_SECRET);
-      if (decoded.tipo === 'admin') {
-        // sigue como admin
+      if (decoded.negocio_id) {
+        // token de negocio/club — guardar negocio_id
+        req._negocio_id = decoded.negocio_id;
+      } else if (decoded.tipo === 'admin' || decoded.es_superadmin) {
+        // admin general — sigue sin negocio_id
       } else {
         creado_por_usuario_id = decoded.id;
         const uRes = await pool.query('SELECT nombre FROM usuarios WHERE id = $1', [decoded.id]);
@@ -1169,7 +1172,7 @@ router.post('/partidos-publicos', async (req, res) => {
     const result = await pool.query(
       `INSERT INTO partidos_publicos (zona, categoria, fecha, hora, lugar, costo, descripcion, cupos, creado_por_usuario_id, creado_por_nombre, negocio_id)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
-      [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4, creado_por_usuario_id, creado_por_nombre, req.admin?.negocio_id || null]
+      [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4, creado_por_usuario_id, creado_por_nombre, req._negocio_id || null]
     );
 
     // Enviar emails a jugadores de la zona
