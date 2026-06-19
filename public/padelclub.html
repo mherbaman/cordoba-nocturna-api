@@ -1792,7 +1792,7 @@ async function cargarPartidosTorneos() {
   if (!el) return;
   el.innerHTML = '<div class="loader"></div>';
   try {
-    const partidos = await apiAdmin('/padel/mis-partidos-publicos').catch(()=>[]);
+    const partidos = await fetch(API + '/padel/partidos-publicos').then(r=>r.json()).catch(()=>[]);
     if (!Array.isArray(partidos) || !partidos.length) {
       el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:16px;font-size:13px;text-align:center">No hay partidos publicados</div>';
       return;
