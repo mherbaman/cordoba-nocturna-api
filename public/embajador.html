@@ -302,6 +302,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
             <button class="btn-copy" onclick="showToast('Próximamente — crear torneo')">Nuevo torneo ↗</button>
             <button class="btn-copy" onclick="showToast('Próximamente — Super 8')">Super 8 ↗</button>
             <button class="btn-copy" onclick="showToast('Próximamente — Americano')">Americano ↗</button>
+            <button class="btn-copy" onclick="abrirModalPartido()" style="background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#22c55e">⚡ Crear Partido ↗</button>
           </div>
         </div>
       </div>
@@ -549,9 +550,10 @@ function mostrarShell(){
 }
 
 // ── API CALLS ─────────────────────────────────────────────────────────
-async function apiFetch(path){
-  const r = await fetch(API+path, { headers:{'Authorization':'Bearer '+getToken()} });
-  if(!r.ok) throw new Error('API error '+r.status);
+async function apiFetch(path, opts={}){
+  const headers = {'Authorization':'Bearer '+getToken(), 'Content-Type':'application/json'};
+  const r = await fetch(API+path, {...opts, headers});
+  if(!r.ok){ const e = await r.json().catch(()=>{}); throw new Error(e?.error||'API error '+r.status); }
   return r.json();
 }
 
@@ -687,19 +689,23 @@ async function cargarMisEventos(){
   const el = document.getElementById('mis-eventos-list');
   el.innerHTML = '<div class="loading">Cargando...</div>';
   try {
-    const d = await apiFetch('/embajadores/eventos-proximos');
+    const [d, partidos] = await Promise.all([
+      apiFetch('/embajadores/eventos-proximos'),
+      apiFetch('/embajadores/mis-partidos').catch(()=>[])
+    ]);
     const todos = [
       ...d.torneos.map(t => ({...t, tipo:'torneo'})),
-      ...d.americanos.map(a => ({...a, tipo: a.max_jugadores <= 8 ? 'super8' : 'americano'}))
+      ...d.americanos.map(a => ({...a, tipo: a.max_jugadores <= 8 ? 'super8' : 'americano'})),
+      ...(Array.isArray(partidos) ? partidos : []).map(p => ({...p, tipo:'partido', fecha: p.fecha}))
     ].sort((a,b) => new Date(a.fecha||a.fecha_inicio) - new Date(b.fecha||b.fecha_inicio));
     if(todos.length === 0){
       el.innerHTML = '<div class="empty">No hay eventos activos.<br>Creá tu primer torneo o Super 8.</div>';
       return;
     }
-    const IC    = { torneo:'ti-trophy', americano:'ti-rotate-clockwise', super8:'ti-users' };
-    const ICBG  = { torneo:'rgba(124,58,237,.15)', americano:'rgba(245,158,11,.1)', super8:'rgba(34,197,94,.1)' };
-    const ICCOL = { torneo:'#a78bfa', americano:'#f59e0b', super8:'#22c55e' };
-    const TLBL  = { torneo:'Torneo', americano:'Americano', super8:'Super 8' };
+    const IC    = { torneo:'ti-trophy', americano:'ti-rotate-clockwise', super8:'ti-users', partido:'ti-bolt' };
+    const ICBG  = { torneo:'rgba(124,58,237,.15)', americano:'rgba(245,158,11,.1)', super8:'rgba(34,197,94,.1)', partido:'rgba(251,191,36,.1)' };
+    const ICCOL = { torneo:'#a78bfa', americano:'#f59e0b', super8:'#22c55e', partido:'#fbbf24' };
+    const TLBL  = { torneo:'Torneo', americano:'Americano', super8:'Super 8', partido:'Partido' };
     let html = '';
     todos.forEach(ev => {
       const fecha = new Date(ev.fecha||ev.fecha_inicio).toLocaleDateString('es-AR',{day:'2-digit',month:'short'});
@@ -848,6 +854,100 @@ function showToast(msg){
   document.getElementById('loginEmail').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('loginPass').focus(); });
   calcSim();
 })();
+
+function abrirModalPartido() {
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear(), mm=String(hoy.getMonth()+1).padStart(2,'0'), dd=String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('emb-p-fecha').value = yyyy+'-'+mm+'-'+dd;
+  document.getElementById('emb-p-error').style.display = 'none';
+  document.getElementById('modal-partido-emb').style.display = 'flex';
+}
+function cerrarModalPartido() {
+  document.getElementById('modal-partido-emb').style.display = 'none';
+}
+async function confirmarCrearPartidoEmb() {
+  const zona     = document.getElementById('emb-p-zona').value;
+  const categoria= document.getElementById('emb-p-cat').value;
+  const fecha    = document.getElementById('emb-p-fecha').value;
+  const hora     = document.getElementById('emb-p-hora').value;
+  const lugar    = document.getElementById('emb-p-lugar').value.trim();
+  const cupos    = parseInt(document.getElementById('emb-p-cupos').value)||4;
+  const costo    = parseFloat(document.getElementById('emb-p-costo').value)||0;
+  const errEl    = document.getElementById('emb-p-error');
+  if (!fecha||!hora) { errEl.textContent='Completá fecha y hora'; errEl.style.display='block'; return; }
+  try {
+    await apiFetch('/embajadores/partidos', {
+      method:'POST',
+      body: JSON.stringify({zona,categoria,fecha,hora,lugar,cupos,costo})
+    });
+    cerrarModalPartido();
+    showToast('✅ Partido publicado');
+    cargarMisEventos();
+  } catch(e) { errEl.textContent='Error: '+e.message; errEl.style.display='block'; }
+}
 </script>
+<!-- BOTON FLOTANTE -->
+<button onclick="abrirModalPartido()" style="position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.4);z-index:999">⚡</button>
+
+<!-- MODAL CREAR PARTIDO -->
+<div id="modal-partido-emb" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:flex-end;justify-content:center;padding:0">
+  <div style="background:#0a1a0f;border:1px solid rgba(34,197,94,.2);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:480px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:#fff">⚡ Crear Partido Público</div>
+      <button onclick="cerrarModalPartido()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">ZONA *</label>
+        <select id="emb-p-zona" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+          <option value="CBA Centro">CBA Centro</option>
+          <option value="CBA Norte">CBA Norte</option>
+          <option value="CBA Sur">CBA Sur</option>
+          <option value="CBA Este">CBA Este</option>
+          <option value="CBA Oeste">CBA Oeste</option>
+          <option value="INTERIOR RIOIV">Interior RIV</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">CATEGORÍA *</label>
+        <select id="emb-p-cat" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+          <option value="octava">8va categoría</option>
+          <option value="septima">7ma categoría</option>
+          <option value="sexta">6ta categoría</option>
+          <option value="quinta">5ta categoría</option>
+          <option value="cuarta">4ta categoría</option>
+          <option value="tercera">3ra categoría</option>
+          <option value="segunda">2da categoría</option>
+          <option value="primera">1ra categoría</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">FECHA *</label>
+        <input id="emb-p-fecha" type="date" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark">
+      </div>
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">HORA *</label>
+        <input id="emb-p-hora" type="time" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px;color-scheme:dark">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">LUGAR</label>
+      <input id="emb-p-lugar" type="text" placeholder="Ej: Club Atlético Córdoba" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">CUPOS</label>
+        <input id="emb-p-cupos" type="number" value="4" min="2" max="20" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+      </div>
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.4);display:block;margin-bottom:4px">COSTO (ARS)</label>
+        <input id="emb-p-costo" type="number" value="0" min="0" style="width:100%;padding:10px;background:#051a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:13px">
+      </div>
+    </div>
+    <div id="emb-p-error" style="display:none;color:#f87171;font-size:12px;margin-bottom:10px;text-align:center"></div>
+    <button onclick="confirmarCrearPartidoEmb()" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">⚡ Publicar Partido</button>
+  </div>
+</div>
+
 </body>
 </html>

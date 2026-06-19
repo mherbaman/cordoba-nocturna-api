@@ -228,4 +228,45 @@ router.get('/eventos-proximos', authEmbajador, async (req, res) => {
   }
 });
 
+// ── POST /embajadores/partidos — crear partido público como embajador
+router.post('/partidos', authEmbajador, async (req, res) => {
+  try {
+    const { embajador_id, nombre } = req.embajador;
+    const { zona, categoria, fecha, hora, lugar, costo, descripcion, cupos } = req.body;
+    if (!zona || !categoria || !fecha || !hora) {
+      return res.status(400).json({ error: 'zona, categoria, fecha y hora son obligatorios' });
+    }
+    const result = await pool.query(
+      `INSERT INTO partidos_publicos (zona, categoria, fecha, hora, lugar, costo, descripcion, cupos, creado_por_nombre, embajador_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [zona, categoria, fecha, hora, lugar||null, costo||null, descripcion||null, cupos||4, nombre, embajador_id]
+    );
+    res.json(result.rows[0]);
+  } catch(err) {
+    console.error('POST /embajadores/partidos:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /embajadores/mis-partidos — partidos creados por este embajador
+router.get('/mis-partidos', authEmbajador, async (req, res) => {
+  try {
+    const { embajador_id } = req.embajador;
+    const { rows } = await pool.query(`
+      SELECT pp.*,
+        COUNT(pi2.id)::int AS inscriptos
+      FROM partidos_publicos pp
+      LEFT JOIN partidos_publicos_inscriptos pi2 ON pi2.partido_id = pp.id
+      WHERE pp.embajador_id = $1
+        AND pp.fecha >= (NOW() AT TIME ZONE 'America/Argentina/Cordoba')::date
+      GROUP BY pp.id
+      ORDER BY pp.fecha ASC, pp.hora ASC
+    `, [embajador_id]);
+    res.json(rows);
+  } catch(err) {
+    console.error('GET /embajadores/mis-partidos:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
