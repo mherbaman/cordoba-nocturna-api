@@ -331,8 +331,8 @@ function navTo(page, btn) {
   if (el) el.classList.add("active");
   if (btn) btn.classList.add("active");
   if (page === "dashboard")  cargarDashboard();
-  if (page === "canchas") {
   if (page === 'torneos')   { cargarTorneosActivos(); cargarPartidosTorneos(); }
+  if (page === "canchas") {
     setTimeout(function() {
       var gSec = document.getElementById('ci-gestion');
       var tSec = document.getElementById('ci-turnos');
