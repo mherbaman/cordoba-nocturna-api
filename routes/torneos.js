@@ -27,6 +27,7 @@ const APP_URL = 'https://cordobalux.com';
 // GET /torneos — lista torneos visibles
 router.get('/', async (req, res) => {
   try {
+    const negocio_id = req.query.negocio_id || null;
     const { rows } = await pool.query(`
       SELECT t.*, to_char(t.fecha_inicio, 'YYYY-MM-DD') AS fecha_inicio, to_char(t.fecha_fin, 'YYYY-MM-DD') AS fecha_fin,
         json_agg(
@@ -45,9 +46,10 @@ router.get('/', async (req, res) => {
       FROM torneos t
       LEFT JOIN categorias_torneo ct ON ct.torneo_id = t.id AND ct.activa = true
       WHERE t.estado != 'borrador'
+      AND ($1::uuid IS NULL OR t.negocio_id = $1::uuid)
       GROUP BY t.id
       ORDER BY t.fecha_inicio DESC
-    `);
+    `, [negocio_id]);
     res.json(rows);
   } catch (err) {
     console.error(err);

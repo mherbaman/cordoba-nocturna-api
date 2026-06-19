@@ -236,9 +236,10 @@ async function enviarFixturePorEmail(americano_id) {
 // ── GET /americanos ───────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
+    const negocio_id = req.query.negocio_id || null;
     const r = await pool.query(
-      'SELECT a.*, (SELECT COUNT(*) FROM americanos_jugadores aj WHERE aj.americano_id = a.id AND aj.estado = $1) AS inscriptos FROM americanos a ORDER BY a.fecha DESC, a.creado_en DESC',
-      ['confirmado']
+      'SELECT a.*, (SELECT COUNT(*) FROM americanos_jugadores aj WHERE aj.americano_id = a.id AND aj.estado = $1) AS inscriptos FROM americanos a WHERE ($2::uuid IS NULL OR a.negocio_id = $2::uuid) ORDER BY a.fecha DESC, a.creado_en DESC',
+      ['confirmado', negocio_id]
     );
     res.json(r.rows);
   } catch(err) { console.error('GET /americanos:', err); res.status(500).json({ error: err.message }); }

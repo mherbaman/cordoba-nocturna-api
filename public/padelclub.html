@@ -1727,9 +1727,12 @@ async function cargarTorneosActivos() {
   if (!el) return;
   el.innerHTML = '<div class="loader"></div>';
   try {
-    const [torneos, americanos] = await Promise.all([
-      fetch(API + '/torneos').then(r=>r.json()).catch(()=>[]),
-      fetch(API + '/americanos-parejas').then(r=>r.json()).catch(()=>[])
+    const nid = getCanchasNegocioId();
+    const qNid = nid ? '?negocio_id=' + nid : '';
+    const [torneos, americanos, americanosParejas] = await Promise.all([
+      fetch(API + '/torneos' + qNid).then(r=>r.json()).catch(()=>[]),
+      fetch(API + '/americanos' + qNid).then(r=>r.json()).catch(()=>[]),
+      fetch(API + '/americanos-parejas' + qNid).then(r=>r.json()).catch(()=>[])
     ]);
     const todos = [
       ...( Array.isArray(torneos) ? torneos : [] ).map(t => {
@@ -1743,6 +1746,11 @@ async function cargarTorneosActivos() {
         return {...t, _tipo:'torneo', _fecha: t.fecha_inicio, _inscriptos: insc, _max: max || '?'};
       }),
       ...( Array.isArray(americanos) ? americanos : [] ).map(a => ({
+        ...a, _tipo:'super8', _fecha: a.fecha,
+        _inscriptos: parseInt(a.inscriptos||0),
+        _max: a.cantidad_canchas ? a.cantidad_canchas * 4 : '?'
+      })),
+      ...( Array.isArray(americanosParejas) ? americanosParejas : [] ).map(a => ({
         ...a, _tipo:'americano', _fecha: a.fecha,
         _inscriptos: parseInt(a.total_inscriptos||0),
         _max: a.cantidad_canchas ? a.cantidad_canchas * 4 : '?'

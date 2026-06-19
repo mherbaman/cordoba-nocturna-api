@@ -95,13 +95,15 @@ router.post('/setup', authAdmin, async (req, res) => {
 // ── LISTAR AMERICANOS PAREJAS (público) ─────────────────────────────
 router.get('/', async (req, res) => {
   try {
+    const negocio_id = req.query.negocio_id || null;
     const { rows } = await pool.query(`
       SELECT ap.*,
         (SELECT COUNT(*) FROM americanos_parejas_inscripciones WHERE americano_id = ap.id) as total_inscriptos,
         (SELECT COUNT(*) FROM americanos_parejas_categorias WHERE americano_id = ap.id) as total_categorias
       FROM americanos_parejas ap
+      WHERE ($1::uuid IS NULL OR ap.negocio_id = $1::uuid)
       ORDER BY ap.fecha DESC, ap.creado_en DESC
-    `);
+    `, [negocio_id]);
     // Por cada americano, obtener inscriptos por categoría
     for (const a of rows) {
       const { rows: cats } = await pool.query(`
