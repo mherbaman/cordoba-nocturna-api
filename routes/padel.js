@@ -1167,9 +1167,9 @@ router.post('/partidos-publicos', async (req, res) => {
       return res.status(400).json({ error: 'zona, categoria, fecha y hora son obligatorios' });
     }
     const result = await pool.query(
-      `INSERT INTO partidos_publicos (zona, categoria, fecha, hora, lugar, costo, descripcion, cupos, creado_por_usuario_id, creado_por_nombre)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4, creado_por_usuario_id, creado_por_nombre]
+      `INSERT INTO partidos_publicos (zona, categoria, fecha, hora, lugar, costo, descripcion, cupos, creado_por_usuario_id, creado_por_nombre, negocio_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+      [zona, categoria, fecha, hora, lugar || null, costo || null, descripcion || null, cupos || 4, creado_por_usuario_id, creado_por_nombre, req.admin?.negocio_id || null]
     );
 
     // Enviar emails a jugadores de la zona
@@ -1220,6 +1220,18 @@ router.post('/partidos-publicos', async (req, res) => {
 router.delete('/partidos-publicos/:id', authAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM partidos_publicos WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// DELETE /padel/partidos-publicos/:id/negocio — eliminar partido público (club dueño)
+router.delete('/partidos-publicos/:id/negocio', authAdmin, async (req, res) => {
+  try {
+    const negocio_id = req.admin.negocio_id;
+    if (!negocio_id) return res.status(403).json({ error: 'No autorizado' });
+    const r = await pool.query('DELETE FROM partidos_publicos WHERE id = $1 AND negocio_id = $2 RETURNING id', [req.params.id, negocio_id]);
+    if (!r.rowCount) return res.status(404).json({ error: 'Partido no encontrado o no pertenece a tu club' });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
