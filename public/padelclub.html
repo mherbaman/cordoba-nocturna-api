@@ -332,7 +332,7 @@ function navTo(page, btn) {
   if (btn) btn.classList.add("active");
   if (page === "dashboard")  cargarDashboard();
   if (page === "canchas") {
-  if (page === 'torneos')   { cargarTorneosActivos(); cargarPartidos(); }
+  if (page === 'torneos')   { cargarTorneosActivos(); cargarPartidosTorneos(); }
     setTimeout(function() {
       var gSec = document.getElementById('ci-gestion');
       var tSec = document.getElementById('ci-turnos');
@@ -1787,6 +1787,30 @@ async function cargarTorneosActivos() {
   }
 }
 
+async function cargarPartidosTorneos() {
+  const el = document.getElementById('torneos-partidos-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loader"></div>';
+  try {
+    const partidos = await apiAdmin('/padel/mis-partidos-publicos').catch(()=>[]);
+    if (!Array.isArray(partidos) || !partidos.length) {
+      el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:16px;font-size:13px;text-align:center">No hay partidos publicados</div>';
+      return;
+    }
+    el.innerHTML = partidos.slice(0,5).map(p => {
+      const estadoCls = p.estado === 'abierto' ? 'color:#22c55e' : p.estado === 'completo' ? 'color:#f59e0b' : 'color:#9ca3af';
+      return '<div class="ev-activo-card">' +
+        '<div class="ev-activo-ic" style="background:rgba(34,197,94,.1);color:#22c55e">&#9889;</div>' +
+        '<div class="ev-activo-info">' +
+          '<div class="ev-activo-title">' + (p.zona||'—') + ' · ' + (p.categoria||'—') + '</div>' +
+          '<div class="ev-activo-sub">📅 ' + p.fecha + ' · ' + (p.cupos||4) + ' cupos · <span style="' + estadoCls + '">' + (p.estado||'abierto') + '</span></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch(err) {
+    el.innerHTML = '<div style="color:#ef4444;padding:16px;font-size:12px">Error: ' + err.message + '</div>';
+  }
+}
 function abrirCrearTorneo() { navTo('partidos', document.querySelectorAll('.tab')[4]); }
 function abrirCrearSuper8() { navTo('partidos', document.querySelectorAll('.tab')[4]); }
 function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.tab')[4]); }
@@ -2129,7 +2153,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Eventos activos en tu club</div>
           <div id="torneos-activos-list"><div class="loader"></div></div>
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:16px">Partidos publicados</div>
-          <div id="partidos-list"><div class="loader"></div></div>
+          <div id="torneos-partidos-list"><div class="loader"></div></div>
         </div>
 
       </div>
