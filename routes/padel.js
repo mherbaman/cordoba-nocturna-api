@@ -1105,7 +1105,7 @@ router.get('/resenas-partido/:partido_id/mias', authUsuario, async (req, res) =>
 router.get('/partidos-publicos', async (req, res) => {
   try {
     const { zona, categoria } = req.query;
-    let conditions = ["pp.estado = 'abierto'", 'pp.fecha >= CURRENT_DATE'];
+    let conditions = ["pp.estado = 'abierto'", "pp.fecha >= (NOW() AT TIME ZONE 'America/Argentina/Cordoba')::date"];
     const params = [];
     if (zona) { params.push(zona); conditions.push(`pp.zona ILIKE $${params.length}`); }
     if (categoria) { params.push(categoria); conditions.push(`pp.categoria = $${params.length}`); }
