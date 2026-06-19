@@ -1815,7 +1815,7 @@ async function cargarPartidosTorneos() {
           '<div class="ev-activo-title">' + (p.zona||'—') + ' · ' + (p.categoria||'—') + '</div>' +
           '<div class="ev-activo-sub">📅 ' + p.fecha + ' · ' + (p.cupos||4) + ' cupos · <span style="' + estadoCls + '">' + (p.estado||'abierto') + '</span></div>' +
         '</div>' +
-        '<button onclick="borrarPartidoClub('' + p.id + '')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">🗑</button>' +
+        '<button onclick="borrarPartidoClub(&apos;' + p.id + '&apos;)" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#ef4444;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">🗑</button>' +
       '</div>';
     }).join('');
   } catch(err) {
