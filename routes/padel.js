@@ -239,7 +239,6 @@ router.get('/canchas', async (req, res) => {
         n.direccion,
         MIN(d.precio_por_hora) AS precio_por_hora,
         MIN(d.precio_app) AS precio_app,
-        d.precio_app,
         COUNT(d.id) AS turnos_disponibles
       FROM negocios n
       LEFT JOIN disponibilidad_padel d ON d.negocio_id = n.id AND d.activo = true
