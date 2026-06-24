@@ -2229,6 +2229,16 @@ function irAMiActividad() {
 
 
 </script>
+<!-- MODAL GPS -->
+<div id="modal-gps" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)">
+  <div style="background:#0a1a0f;border:1px solid rgba(34,197,94,.25);border-radius:20px 20px 0 0;padding:28px 24px 36px;width:100%;max-width:480px">
+    <div style="font-size:36px;text-align:center;margin-bottom:12px">📍</div>
+    <div style="font-family:Bebas Neue,cursive;font-size:24px;text-align:center;letter-spacing:1px;margin-bottom:8px">¿Activás tu ubicación?</div>
+    <div style="color:rgba(255,255,255,.6);font-size:14px;text-align:center;margin-bottom:24px;line-height:1.5">Para mostrarte partidos y clubes cercanos en tiempo real. Solo se usa mientras usás la app.</div>
+    <button onclick="aceptarGPS()" style="width:100%;background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;font-size:15px;font-weight:800;padding:14px;border-radius:50px;border:none;cursor:pointer;margin-bottom:10px">ACTIVAR UBICACIÓN →</button>
+    <button onclick="rechazarGPS()" style="width:100%;background:transparent;color:rgba(255,255,255,.4);font-size:13px;padding:10px;border:none;cursor:pointer">Ahora no</button>
+  </div>
+</div>
 <!-- MODAL RESENAS JUGADOR -->
 <div id="modal-resenas-jugador" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div style="background:#030d06;border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:24px;width:90%;max-width:420px;max-height:80vh;overflow-y:auto">
@@ -4123,9 +4133,36 @@ async function guardarPerfilPadel() {
     perfilPadel = { nivel: nivelSeleccionado, zona };
     await cargarJugadoresPadel();
     showScreen('swipe');
+    setTimeout(mostrarModalGPS, 1500);
   } catch(err) {
     errEl.textContent = err.message; errEl.style.display='block';
   } finally { hideLoader(); }
+}
+
+
+// ── GPS POST-REGISTRO ─────────────────────────────────────────────────
+function mostrarModalGPS() {
+  if (localStorage.getItem('cl_gps_preguntado')) return;
+  const modal = document.getElementById('modal-gps');
+  if (modal) { modal.style.display = 'flex'; }
+}
+
+async function aceptarGPS() {
+  document.getElementById('modal-gps').style.display = 'none';
+  localStorage.setItem('cl_gps_preguntado', '1');
+  try {
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, {timeout:8000})
+    );
+    _userLat = pos.coords.latitude;
+    _userLng = pos.coords.longitude;
+    console.log('GPS activado:', _userLat, _userLng);
+  } catch(e) {}
+}
+
+function rechazarGPS() {
+  document.getElementById('modal-gps').style.display = 'none';
+  localStorage.setItem('cl_gps_preguntado', '1');
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────
