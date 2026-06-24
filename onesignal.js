@@ -35,7 +35,7 @@ async function enviarNotificacion(filtros, titulo, mensaje, url) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Key ${ONESIGNAL_API_KEY}`
+        'Authorization': `Bearer ${ONESIGNAL_API_KEY}`
       },
       body: JSON.stringify(body)
     });
