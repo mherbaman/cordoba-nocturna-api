@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const { Resend } = require('resend');
 const { authAdmin, authUsuario } = require('../middleware/auth');
 const { pool } = require('../database');
+const { notificarTodos, notificarUsuario, notificarUsuarios } = require('../onesignal');
+
 const {
   generarFixture,
   generarBracket,
@@ -479,6 +481,15 @@ router.post('/', authAdmin, async (req, res) => {
         }
       } catch (e) { console.error('Error emails torneo:', e.message); }
     }
+    // Push a todos
+    try {
+      const fechaLbl = fecha_inicio ? new Date(fecha_inicio).toLocaleDateString('es-AR',{day:'numeric',month:'short'}) : '';
+      await notificarTodos(
+        '🎾 Nuevo Torneo — ' + nombre,
+        '📍 ' + (sede||'a confirmar') + ' · 📅 ' + fechaLbl,
+        'https://cordobalux.com/padel/'
+      );
+    } catch(e) { console.error('Push torneo error:', e.message); }
     res.json({
       ok: true,
       torneo,
@@ -1018,6 +1029,11 @@ async function notificarClasificadoFinal(torneoId, categoriaId, ganadorId) {
         </div>`
       }).catch(err => console.error('Error email final:', err));
     }
+    // Push personal a los jugadores de la pareja
+    try {
+      const ids = [p.jugador1_id, p.jugador2_id].filter(Boolean);
+      if (ids.length) await notificarUsuarios(ids, '🎾 ¡Clasificaste a la Final!', `${p.nombre_pareja} clasificó a la final de ${catNombre} — ${torneoNombre}`, 'https://cordobalux.com/padel/');
+    } catch(e) { console.error('Push clasificado final error:', e.message); }
   } catch(e) { console.error('notificarClasificadoFinal error:', e); }
 }
 
@@ -1049,6 +1065,11 @@ async function notificarCampeon(torneoId, categoriaId, ganadorId) {
         </div>`
       }).catch(err => console.error('Error email campeón:', err));
     }
+    // Push personal a los campeones
+    try {
+      const ids = [p.jugador1_id, p.jugador2_id].filter(Boolean);
+      if (ids.length) await notificarUsuarios(ids, '🏆 ¡Campeones!', `${p.nombre_pareja} ganó el torneo ${torneoNombre} — ${catNombre}`, 'https://cordobalux.com/padel/');
+    } catch(e) { console.error('Push campeon error:', e.message); }
   } catch(e) { console.error('notificarCampeon error:', e); }
 }
 

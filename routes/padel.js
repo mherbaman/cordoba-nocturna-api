@@ -6,6 +6,8 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
+const { notificarTodos, notificarUsuario, notificarUsuarios } = require('../onesignal');
+
 const { authAdmin, authUsuario } = require('../middleware/auth');
 
 // ════════════════════════════════════════════════
@@ -1259,6 +1261,17 @@ router.post('/partidos-publicos', async (req, res) => {
       }
     } catch (e) { console.error('Error emails:', e.message); }
 
+    // Push notification a todos
+    try {
+      const catLabels = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
+      const catLbl = catLabels[categoria] || categoria;
+      const lugarLbl = lugar ? lugar : 'lugar a confirmar';
+      await notificarTodos(
+        '⚡ Nuevo partido — ' + catLbl,
+        '📍 ' + lugarLbl + ' · 📅 ' + fecha + ' ' + hora.substring(0,5) + 'hs',
+        'https://cordobalux.com/padel/'
+      );
+    } catch(e) { console.error('Push partido error:', e.message); }
     res.json({ ok: true, partido: result.rows[0] });
   } catch (err) {
     console.error('Error crear partido público:', err);
@@ -1351,6 +1364,16 @@ router.post('/partidos-publicos/:id/inscribirse', authUsuario, async (req, res) 
           } catch (e) { console.error('Error email falta1 a', j.email, e.message); }
         }
       } catch (e) { console.error('Error emails falta1:', e.message); }
+      // Push a todos — falta 1 jugador
+      try {
+        const catLabels2 = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
+        const catLbl2 = catLabels2[partido.categoria] || partido.categoria;
+        await notificarTodos(
+          '🔥 ¡Falta 1 jugador! — ' + catLbl2,
+          '📍 ' + (partido.lugar||partido.zona) + ' · ' + (partido.hora||'').substring(0,5) + 'hs',
+          'https://cordobalux.com/padel/'
+        );
+      } catch(e) { console.error('Push falta1 error:', e.message); }
     }
     // Retornar partido actualizado con inscriptos
     const updated = await pool.query(`

@@ -5,6 +5,8 @@
 const express = require('express');
 const router  = express.Router();
 const { pool } = require('../database');
+const { notificarTodos, notificarUsuario, notificarUsuarios } = require('../onesignal');
+
 const { Resend } = require('resend');
 const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
 const { authAdmin, authUsuario } = require('../middleware/auth');
@@ -185,6 +187,15 @@ router.post('/', authAdmin, async (req, res) => {
         await resend.emails.send({ from:'PadelConnect <partidos@send.cordobalux.com>', to: u.email, subject:'🤝 ¡Inscripciones abiertas! — '+a.nombre, html: htmlEmail });
       }
     } catch(emailErr) { console.error('Error email americano:', emailErr.message); }
+    // Push a todos
+    try {
+      const fechaLbl = a.fecha ? new Date(a.fecha).toLocaleDateString('es-AR',{day:'numeric',month:'short'}) : '';
+      await notificarTodos(
+        '🤝 Nuevo Americano por Parejas — ' + a.nombre,
+        '📍 ' + (a.sede||'a confirmar') + ' · 📅 ' + fechaLbl + ' ' + (a.hora_inicio||'09:00').substring(0,5) + 'hs',
+        'https://cordobalux.com/padel/'
+      );
+    } catch(e) { console.error('Push americanos_parejas error:', e.message); }
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

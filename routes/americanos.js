@@ -4,6 +4,8 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
+const { notificarTodos, notificarUsuario, notificarUsuarios } = require('../onesignal');
+
 const { Resend } = require('resend');
 const resend = new Resend('re_9bDafDkq_EDfpWKTWcE4gmB7rpdMJXA3G');
 const FROM_EMAIL = 'PadelConnect <partidos@send.cordobalux.com>';
@@ -300,6 +302,15 @@ router.post('/', async (req, res) => {
         }
       } catch (e) { console.error('Error emails americano:', e.message); }
     }
+    // Push a todos
+    try {
+      const fechaLbl = new Date(fecha).toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+      await notificarTodos(
+        '⚡ Nuevo Super 8 — ' + nombre,
+        '📍 ' + (sede||'a confirmar') + ' · 📅 ' + fechaLbl + (hora_inicio ? ' ' + hora_inicio.substring(0,5) + 'hs' : ''),
+        'https://cordobalux.com/padel/'
+      );
+    } catch(e) { console.error('Push americano error:', e.message); }
     res.json(r.rows[0]);
   } catch(err) { console.error('POST /americanos:', err); res.status(500).json({ error: err.message }); }
 });

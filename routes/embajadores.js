@@ -8,6 +8,8 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../database');
+const { notificarTodos, notificarUsuario, notificarUsuarios } = require('../onesignal');
+
 
 // ── Middleware auth embajador ─────────────────────────────────────────
 function authEmbajador(req, res, next) {
@@ -241,6 +243,16 @@ router.post('/partidos', authEmbajador, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [zona, categoria, fecha, hora, lugar||null, costo||null, descripcion||null, cupos||4, nombre, embajador_id]
     );
+    // Push a todos
+    try {
+      const catLabels = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
+      const catLbl = catLabels[categoria] || categoria;
+      await notificarTodos(
+        '⚡ Nuevo partido — ' + catLbl,
+        '📍 ' + (lugar||'a confirmar') + ' · 📅 ' + fecha + ' ' + hora.substring(0,5) + 'hs',
+        'https://cordobalux.com/padel/'
+      );
+    } catch(e) { console.error('Push embajador partido error:', e.message); }
     res.json(result.rows[0]);
   } catch(err) {
     console.error('POST /embajadores/partidos:', err);
