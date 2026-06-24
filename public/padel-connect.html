@@ -2185,8 +2185,19 @@ function ocultarReservarCancha() {
 async function cargarCanchasJugador2() {
   const el = document.getElementById('canchas-jugador-list-2');
   el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
+  // GPS cache
+  if (!_userLat || !_userLng) {
+    try {
+      const pos = await new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, {timeout:5000})
+      );
+      _userLat = pos.coords.latitude;
+      _userLng = pos.coords.longitude;
+    } catch(e) {}
+  }
   try {
-    const canchas = await api('/padel/canchas?solo_con_turnos=true');
+    const gps = (_userLat && _userLng) ? `&lat=${_userLat}&lng=${_userLng}` : '';
+    const canchas = await api(`/padel/canchas?solo_con_turnos=true${gps}`);
     if (!canchas.length) {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
       return;
@@ -2199,9 +2210,14 @@ async function cargarCanchasJugador2() {
     });
     el.innerHTML = Object.values(porNegocio).map(c => `
       <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
-        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
-        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
-        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
+        ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="cancha-nombre">🏟️ ${c.nombre}</div>
+          ${c.distancia_km != null ? `<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${c.distancia_km} km</span>` : ''}
+        </div>
+        ${c.zona ? `<div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px">📍 ${c.zona}</div>` : ''}
+        ${c.direccion ? `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">📌 ${c.direccion}</div>` : ''}
+        <div style="color:var(--green);font-size:13px;margin-top:4px">💰 Desde $${parseInt(c.precio_app||c.precio_min)} por App · ${c.total_turnos} turnos · Ver →</div>
       </div>`).join('');
   } catch(err) {
     el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
@@ -4195,9 +4211,14 @@ async function cargarCanchasJugador() {
     });
     el.innerHTML = Object.values(porNegocio).map(c => `
       <div class="cancha-card" onclick="verTurnosCancha('${c.id}','${c.nombre}')">
-        <div class="cancha-nombre">🏟️ ${c.nombre}</div>
-        <div class="cancha-zona">📍 ${c.zona_cancha||''} · ${c.total_turnos} turnos cargados</div>
-        <div style="color:var(--green);font-size:13px">💰 Desde ${c.precio_min} · Ver turnos →</div>
+        ${c.foto_url ? `<img src="${c.foto_url}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;margin-bottom:8px">` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="cancha-nombre">🏟️ ${c.nombre}</div>
+          ${c.distancia_km != null ? `<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#4ade80;padding:3px 10px;border-radius:50px;font-size:11px;font-weight:700">${c.distancia_km} km</span>` : ''}
+        </div>
+        ${c.zona ? `<div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px">📍 ${c.zona}</div>` : ''}
+        ${c.direccion ? `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">📌 ${c.direccion}</div>` : ''}
+        <div style="color:var(--green);font-size:13px;margin-top:4px">💰 Desde $${parseInt(c.precio_app||c.precio_min)} por App · ${c.total_turnos} turnos · Ver →</div>
       </div>`).join('');
   } catch(err) {
     el.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Error: ${err.message}</div>`;
