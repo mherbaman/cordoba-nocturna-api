@@ -252,8 +252,9 @@ router.get('/canchas', async (req, res) => {
       query += ` AND n.zona ILIKE $${idx++}`;
       params.push(`%${zona}%`);
     }
+    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, n.zona, n.lat, n.lng, n.foto_url, n.dueno_tel, n.whatsapp, n.instagram, n.direccion, d.precio_por_hora, d.precio_app, d.zona`;
     if (solo_con_turnos === 'true') query += ' HAVING COUNT(d.id) > 0';
-    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, n.zona, n.lat, n.lng, n.foto_url, n.dueno_tel, n.whatsapp, n.instagram, n.direccion, d.precio_por_hora, d.precio_app, d.zona ORDER BY n.nombre ASC`;
+    query += ` ORDER BY n.nombre ASC`;
     const result = await pool.query(query, params);
     let clubes = result.rows;
     if (tieneGPS) {
