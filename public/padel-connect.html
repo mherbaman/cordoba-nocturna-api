@@ -28,6 +28,7 @@ if (typeof crypto !== "undefined" && !crypto.randomUUID) {
 // ─── JUGADORES PADEL (tab Jugar) ─────────────────────────────────────
 let favoritosSet = new Set();
 let jugadoresList = [], jugadorIdx = 0;
+let _userLat = null, _userLng = null;
 const NIVELES_PADEL = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
 
 function puedeContactar(nivelJugador, nivelOtro) {
@@ -3411,21 +3412,22 @@ async function cargarClubes() {
   const lista = document.getElementById('clubes-list');
   if (!lista) return;
   lista.innerHTML = '<div class="loader"></div>';
-  // Intentar obtener GPS
-  let gpsParams = '';
-  try {
-    const pos = await new Promise((res, rej) => 
-      navigator.geolocation.getCurrentPosition(res, rej, {timeout:4000})
-    );
-    gpsParams = `&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`;
-  } catch(e) {}
+  // Intentar obtener GPS — usa cache si ya lo tiene
+  if (!_userLat || !_userLng) {
+    try {
+      const pos = await new Promise((res, rej) => 
+        navigator.geolocation.getCurrentPosition(res, rej, {timeout:5000})
+      );
+      _userLat = pos.coords.latitude;
+      _userLng = pos.coords.longitude;
+    } catch(e) {}
+  }
   try {
     const params = new URLSearchParams();
     if (zona) params.set('zona', zona);
-    if (gpsParams) {
-      const gps = new URLSearchParams(gpsParams.slice(1));
-      params.set('lat', gps.get('lat'));
-      params.set('lng', gps.get('lng'));
+    if (_userLat && _userLng) {
+      params.set('lat', _userLat);
+      params.set('lng', _userLng);
     }
     const url = '/padel/canchas?' + params.toString();
     const clubes = await fetch('https://api.cordobalux.com' + url).then(r => r.json());
