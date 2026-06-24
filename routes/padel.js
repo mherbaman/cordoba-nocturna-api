@@ -237,10 +237,9 @@ router.get('/canchas', async (req, res) => {
         d.zona AS zona_cancha,
         COUNT(d.id) AS turnos_disponibles
       FROM negocios n
-      JOIN disponibilidad_padel d ON d.negocio_id = n.id
+      LEFT JOIN disponibilidad_padel d ON d.negocio_id = n.id AND d.activo = true
       WHERE n.activo = true
         AND n.tipo = 'padel'
-        AND d.activo = true
     `;
     const params = [];
     let idx = 1;
