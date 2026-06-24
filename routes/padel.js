@@ -217,7 +217,10 @@ router.get('/resenas/:id', async (req, res) => {
 // ── GET /padel/canchas ───────────────────────────────────────────────
 // Clubs con disponibilidad activa (para el jugador que busca cancha)
 router.get('/canchas', async (req, res) => {
-  const { zona } = req.query;
+  const { zona, lat, lng } = req.query;
+  const userLat = parseFloat(lat);
+  const userLng = parseFloat(lng);
+  const tieneGPS = !isNaN(userLat) && !isNaN(userLng);
   try {
     let query = `
       SELECT DISTINCT
@@ -226,7 +229,11 @@ router.get('/canchas', async (req, res) => {
         n.slug,
         n.logo_url,
         n.descripcion,
+        n.zona,
+        n.lat,
+        n.lng,
         d.precio_por_hora,
+        d.precio_app,
         d.zona AS zona_cancha,
         COUNT(d.id) AS turnos_disponibles
       FROM negocios n
@@ -236,17 +243,31 @@ router.get('/canchas', async (req, res) => {
         AND d.activo = true
     `;
     const params = [];
-
+    let idx = 1;
     if (zona) {
-      query += ` AND d.zona ILIKE $1`;
+      query += ` AND n.zona ILIKE $${idx++}`;
       params.push(`%${zona}%`);
     }
-
-    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, d.precio_por_hora, d.zona
-               ORDER BY n.nombre ASC`;
-
+    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, n.zona, n.lat, n.lng, d.precio_por_hora, d.precio_app, d.zona ORDER BY n.nombre ASC`;
     const result = await pool.query(query, params);
-    res.json(result.rows);
+    let clubes = result.rows;
+    if (tieneGPS) {
+      clubes = clubes.map(c => {
+        if (c.lat && c.lng) {
+          const R = 6371;
+          const dLat = (c.lat - userLat) * Math.PI / 180;
+          const dLng = (c.lng - userLng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(userLat * Math.PI / 180) * Math.cos(Number(c.lat) * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+          const distancia_km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return { ...c, distancia_km: Math.round(distancia_km * 10) / 10 };
+        }
+        return { ...c, distancia_km: null };
+      });
+      clubes.sort((a, b) => (a.distancia_km ?? 999) - (b.distancia_km ?? 999));
+    }
+    res.json(clubes);
   } catch (err) {
     console.error('GET /padel/canchas:', err);
     res.status(500).json({ error: 'Error interno' });
