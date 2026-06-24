@@ -33,7 +33,10 @@ router.get('/jugadores/mi-perfil', async (req, res) => {
 // ── GET /padel/jugadores ─────────────────────────────────────────────
 // Matchmaking: lista jugadores filtrando por nivel, zona, disponibilidad
 router.get('/jugadores', async (req, res) => {
-  const { nivel, zona, excluir_id } = req.query;
+  const { nivel, zona, excluir_id, lat, lng } = req.query;
+  const userLat = parseFloat(lat);
+  const userLng = parseFloat(lng);
+  const tieneGPS = !isNaN(userLat) && !isNaN(userLng);
   const NIVELES = ['octava','septima','sexta','quinta','cuarta','tercera','segunda','primera'];
   try {
     let conditions = ['j.activo = true'];
@@ -57,7 +60,8 @@ router.get('/jugadores', async (req, res) => {
         j.foto_url, j.descripcion, j.ranking_puntos,
         j.partidos_jugados, j.victorias,
         ROUND(j.promedio_resenas::numeric, 1) AS promedio_resenas,
-        j.total_resenas, u.edad, u.vibe, u.apellido, u.email
+        j.total_resenas, u.edad, u.vibe, u.apellido, u.email,
+        j.lat, j.lng
       FROM jugadores_padel j
       LEFT JOIN usuarios u ON u.id = j.usuario_id
       ${where}
@@ -71,6 +75,23 @@ router.get('/jugadores', async (req, res) => {
         const db = Math.abs(NIVELES.indexOf(b.nivel) - idxNivel);
         return da - db;
       });
+    }
+    // Calcular distancia si hay GPS
+    if (tieneGPS) {
+      jugadores = jugadores.map(j => {
+        if (j.lat && j.lng) {
+          const R = 6371;
+          const dLat = (j.lat - userLat) * Math.PI / 180;
+          const dLng = (j.lng - userLng) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(userLat * Math.PI / 180) * Math.cos(Number(j.lat) * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+          const distancia_km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return { ...j, distancia_km: Math.round(distancia_km * 10) / 10 };
+        }
+        return { ...j, distancia_km: null };
+      });
+      jugadores.sort((a, b) => (a.distancia_km ?? 999) - (b.distancia_km ?? 999));
     }
     res.json(jugadores);
   } catch (err) {

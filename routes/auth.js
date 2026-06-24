@@ -289,4 +289,24 @@ router.post('/enviar-bienvenida/:id', async (req, res) => {
   }
 });
 
+
+// ── PUT /auth/ubicacion ──────────────────────────────────────────────
+// Actualizar ubicación GPS del usuario (silencioso, cada login)
+router.put('/ubicacion', authUsuario, async (req, res) => {
+  const { lat, lng } = req.body;
+  if (!lat || !lng) return res.status(400).json({ error: 'lat y lng requeridos' });
+  try {
+    await pool.query(`
+      UPDATE usuarios SET lat=$1, lng=$2, ubicacion_actualizada_en=NOW() WHERE id=$3
+    `, [lat, lng, req.usuario.id]);
+    await pool.query(`
+      UPDATE jugadores_padel SET lat=$1, lng=$2 WHERE usuario_id=$3
+    `, [lat, lng, req.usuario.id]);
+    res.json({ ok: true });
+  } catch(err) {
+    console.error('PUT /auth/ubicacion:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 module.exports = router;
