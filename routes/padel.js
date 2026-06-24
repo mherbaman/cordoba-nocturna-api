@@ -1267,7 +1267,7 @@ router.post('/partidos-publicos', async (req, res) => {
       const catLbl = catLabels[categoria] || categoria;
       const lugarLbl = lugar ? lugar : 'lugar a confirmar';
       await notificarTodos(
-        '⚡ Nuevo partido — ' + catLbl,
+        '⚡ Nuevo partido — ' + catLbl + ' · ' + zona,
         '📍 ' + lugarLbl + ' · 📅 ' + fecha + ' ' + hora.substring(0,5) + 'hs',
         'https://cordobalux.com/padel/'
       );
