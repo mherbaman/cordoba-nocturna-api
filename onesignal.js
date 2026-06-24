@@ -3,7 +3,7 @@
 const fetch = require('node-fetch');
 
 const ONESIGNAL_APP_ID = '997d5c8c-eb9f-4dc6-b613-6d80c24832ed';
-const ONESIGNAL_API_KEY = 'os_v2_app_tf6vzdhlt5g4nnqtnwamesbs5xwwqf3wehcebdvnhizz6ibj5boppvjackvjw2yd52yeiyx7s7ybwloj56t6bxsp3s7o4fz223qhkeq';
+const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY;
 
 // Enviar a todos los suscriptores
 async function notificarTodos(titulo, mensaje, url = 'https://cordobalux.com/padel') {
@@ -35,7 +35,7 @@ async function enviarNotificacion(filtros, titulo, mensaje, url) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ONESIGNAL_API_KEY}`
+        'Authorization': `Key ${ONESIGNAL_API_KEY}`
       },
       body: JSON.stringify(body)
     });
