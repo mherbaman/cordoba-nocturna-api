@@ -237,9 +237,9 @@ router.get('/canchas', async (req, res) => {
         n.whatsapp,
         n.instagram,
         n.direccion,
-        d.precio_por_hora,
+        MIN(d.precio_por_hora) AS precio_por_hora,
+        MIN(d.precio_app) AS precio_app,
         d.precio_app,
-        d.zona AS zona_cancha,
         COUNT(d.id) AS turnos_disponibles
       FROM negocios n
       LEFT JOIN disponibilidad_padel d ON d.negocio_id = n.id AND d.activo = true
@@ -252,7 +252,7 @@ router.get('/canchas', async (req, res) => {
       query += ` AND n.zona ILIKE $${idx++}`;
       params.push(`%${zona}%`);
     }
-    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, n.zona, n.lat, n.lng, n.foto_url, n.dueno_tel, n.whatsapp, n.instagram, n.direccion, d.precio_por_hora, d.precio_app, d.zona`;
+    query += ` GROUP BY n.id, n.nombre, n.slug, n.logo_url, n.descripcion, n.zona, n.lat, n.lng, n.foto_url, n.dueno_tel, n.whatsapp, n.instagram, n.direccion`;
     if (solo_con_turnos === 'true') query += ' HAVING COUNT(d.id) > 0';
     query += ` ORDER BY n.nombre ASC`;
     const result = await pool.query(query, params);
