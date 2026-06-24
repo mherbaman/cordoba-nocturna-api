@@ -3,7 +3,7 @@
 const fetch = require('node-fetch');
 
 const ONESIGNAL_APP_ID = '997d5c8c-eb9f-4dc6-b613-6d80c24832ed';
-const ONESIGNAL_API_KEY = 'os_v2_app_tf6vzdhlt5g4nnqtnwamesbs5wz4o7cvm4mu2353anse2eaj3oijjfu6gqdhbf2g44k6zmebdmlqjk4uty2nfzqay6prhuyyscwln7q';
+const ONESIGNAL_API_KEY = 'os_v2_app_tf6vzdhlt5g4nnqtnwamesbs5xzpcnqxkslevn4ndgaxvwvadjrjzrnc5lyfta5nehfus7tmespd4qfmtpdxo5pjpmb6btdbsvaahla';
 
 // Enviar a todos los suscriptores
 async function notificarTodos(titulo, mensaje, url = 'https://cordobalux.com/padel') {
