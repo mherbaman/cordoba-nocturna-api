@@ -248,7 +248,7 @@ router.post('/partidos', authEmbajador, async (req, res) => {
       const catLabels = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
       const catLbl = catLabels[categoria] || categoria;
       await notificarTodos(
-        '⚡ Nuevo partido — ' + catLbl,
+        '⚡ Nuevo partido — ' + catLbl + ' · ' + zona,
         '📍 ' + (lugar||'a confirmar') + ' · 📅 ' + fecha + ' ' + hora.substring(0,5) + 'hs',
         'https://cordobalux.com/padel/'
       );

@@ -1369,7 +1369,7 @@ router.post('/partidos-publicos/:id/inscribirse', authUsuario, async (req, res) 
         const catLabels2 = { octava:'8va', septima:'7ma', sexta:'6ta', quinta:'5ta', cuarta:'4ta', tercera:'3ra', segunda:'2da', primera:'1ra' };
         const catLbl2 = catLabels2[partido.categoria] || partido.categoria;
         await notificarTodos(
-          '🔥 ¡Falta 1 jugador! — ' + catLbl2,
+          '🔥 ¡Falta 1! — ' + catLbl2 + ' · ' + partido.zona,
           '📍 ' + (partido.lugar||partido.zona) + ' · ' + (partido.hora||'').substring(0,5) + 'hs',
           'https://cordobalux.com/padel/'
         );
