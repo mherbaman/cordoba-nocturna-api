@@ -2186,7 +2186,7 @@ async function cargarCanchasJugador2() {
   const el = document.getElementById('canchas-jugador-list-2');
   el.innerHTML = '<div style="display:flex;justify-content:center;padding:32px"><div class="loader"></div></div>';
   try {
-    const canchas = await api('/padel/canchas');
+    const canchas = await api('/padel/canchas?solo_con_turnos=true');
     if (!canchas.length) {
       el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay canchas disponibles</div>';
       return;
