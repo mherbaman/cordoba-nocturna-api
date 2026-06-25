@@ -71,6 +71,7 @@ app.use('/americanos', require('./routes/americanos'));
 app.use('/embajadores', require('./routes/embajadores'));
 const americanosParejas = require('./routes/americanos_parejas');
 app.use('/americanos-parejas', americanosParejas);
+app.use('/galeria', require('./routes/galeria'));
 
 // ── Ruta raíz — sirve la app ─────────────────────────────────────────
 app.get('/', (req, res) => {
