@@ -242,6 +242,9 @@ if('serviceWorker' in navigator){
       <button class="nav-item" onclick="navTo('americanos',this)"><span class="icon">🎾</span> Super 8 Americano</button>
       <button class="nav-item" onclick="navTo('americanos-parejas',this)"><span class="icon">🤝</span> Pádel Americano</button>
       <button class="nav-item" onclick="navTo('embajadores',this)"><span class="icon">🌟</span> Embajadores</button>
+      <div class="nav-section" style="margin-top:16px">Fotos & Mkt</div>
+      <button class="nav-item" onclick="navTo('galeria',this)"><span class="icon">📸</span> Galería Fotos</button>
+      <button class="nav-item" onclick="navTo('torneos-ext',this)"><span class="icon">🏆</span> Torneos Externos</button>
       <div class="sidebar-footer">
         <button class="logout-nav" onclick="doAdminLogout()">🚪 Cerrar sesión</button>
       </div>
@@ -1664,6 +1667,34 @@ function mostrarApp() {
   cargarDashboard();
 }
 
+</div><!-- /page-americanos-parejas cierre extra si falta -->
+
+<!-- ===== GALERÍA FOTOS ===== -->
+<div class="page" id="page-galeria">
+  <div class="page-title">GALERÍA FOTOS 📸</div>
+  <div class="page-sub">Subí fotos que se muestran como collage en la landing de PadelConnect.</div>
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
+    <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="previsualizarFoto(this)">
+    <button onclick="document.getElementById('foto-input').click()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">📸 Seleccionar foto</button>
+    <input type="text" id="foto-desc" placeholder="Descripción (opcional)" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#1a0030;color:#fff;font-size:13px;flex:1;min-width:200px">
+    <button onclick="subirFoto()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.2);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">⬆️ Subir</button>
+  </div>
+  <div id="foto-preview" style="margin-bottom:16px"></div>
+  <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+    <div style="color:rgba(255,255,255,.3);padding:40px;text-align:center;grid-column:1/-1">Cargando...</div>
+  </div>
+</div>
+
+<!-- ===== TORNEOS EXTERNOS ===== -->
+<div class="page" id="page-torneos-ext">
+  <div class="page-title">TORNEOS EXTERNOS 🏆</div>
+  <div class="page-sub">Torneos enviados por clubes y organizadores externos. Aprobá los que querés publicar en la app.</div>
+  <div id="torneos-ext-list" style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
+    <div style="color:rgba(255,255,255,.3);padding:40px;text-align:center">Cargando...</div>
+  </div>
+</div>
+
+<script>
 window.onload = () => {
   if (adminToken && adminUser) mostrarApp();
 };
@@ -1709,6 +1740,8 @@ function navTo(page, btn) {
   if (page === 'americanos') cargarAmericanosAdmin();
   if (page === 'americanos-parejas') cargarAmericanosParejas();
   if (page === 'embajadores') cargarEmbajadores();
+  if (page === 'galeria') cargarGaleria();
+  if (page === 'torneos-ext') cargarTorneosExt();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────
@@ -4406,6 +4439,112 @@ async function procesarImportCRM() {
   cargarCRM();
 }
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+// ── GALERÍA FOTOS ─────────────────────────────────────────────────────
+let fotoFile = null;
+function previsualizarFoto(input) {
+  fotoFile = input.files[0];
+  if (!fotoFile) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('foto-preview').innerHTML =
+      '<img src="' + e.target.result + '" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:2px solid rgba(34,197,94,.4)">';
+  };
+  reader.readAsDataURL(fotoFile);
+}
+async function subirFoto() {
+  if (!fotoFile) { alert('Seleccioná una foto primero'); return; }
+  const desc = document.getElementById('foto-desc').value.trim();
+  const fd = new FormData();
+  fd.append('foto', fotoFile);
+  if (desc) fd.append('descripcion', desc);
+  try {
+    const r = await fetch(API + '/galeria/fotos', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + adminToken },
+      body: fd
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Error');
+    alert('✅ Foto subida');
+    fotoFile = null;
+    document.getElementById('foto-preview').innerHTML = '';
+    document.getElementById('foto-desc').value = '';
+    document.getElementById('foto-input').value = '';
+    cargarGaleria();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+async function cargarGaleria() {
+  const el = document.getElementById('galeria-grid');
+  if (!el) return;
+  el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:40px;text-align:center;grid-column:1/-1">Cargando...</div>';
+  try {
+    const fotos = await apiAdmin('/galeria/fotos');
+    if (!fotos.length) {
+      el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:40px;text-align:center;grid-column:1/-1">No hay fotos aún. Subí la primera.</div>';
+      return;
+    }
+    el.innerHTML = fotos.map(f => `
+      <div style="position:relative;border-radius:12px;overflow:hidden;aspect-ratio:1;background:#1a0030">
+        <img src="${f.url}" style="width:100%;height:100%;object-fit:cover">
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);opacity:0;transition:.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+          <button onclick="borrarFoto(${f.id})" style="position:absolute;bottom:8px;right:8px;background:rgba(239,68,68,.9);border:none;color:#fff;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer">🗑 Borrar</button>
+          ${f.descripcion ? '<div style="position:absolute;bottom:8px;left:8px;font-size:10px;color:#fff">' + f.descripcion + '</div>' : ''}
+        </div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + e.message + '</div>'; }
+}
+async function borrarFoto(id) {
+  if (!confirm('¿Borrar esta foto?')) return;
+  try {
+    await apiAdmin('/galeria/fotos/' + id, { method: 'DELETE' });
+    cargarGaleria();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── TORNEOS EXTERNOS ──────────────────────────────────────────────────
+async function cargarTorneosExt() {
+  const el = document.getElementById('torneos-ext-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:40px;text-align:center">Cargando...</div>';
+  try {
+    const torneos = await apiAdmin('/galeria/torneos/admin');
+    if (!torneos.length) {
+      el.innerHTML = '<div style="color:rgba(255,255,255,.3);padding:40px;text-align:center">No hay torneos externos enviados aún.</div>';
+      return;
+    }
+    el.innerHTML = torneos.map(t => {
+      const estadoColor = t.estado === 'publicado' ? '#22c55e' : t.estado === 'rechazado' ? '#ef4444' : '#fbbf24';
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:16px;align-items:flex-start">
+        ${t.flyer_url ? `<img src="${t.flyer_url}" style="width:80px;height:80px;object-fit:cover;border-radius:10px;flex-shrink:0">` : '<div style="width:80px;height:80px;background:#1a0030;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px">🏆</div>'}
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px">${t.titulo}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:4px">${t.tipo||'torneo'} ${t.organizador ? '· ' + t.organizador : ''} ${t.zona ? '· ' + t.zona : ''}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px">${t.fecha ? '📅 ' + new Date(t.fecha).toLocaleDateString('es-AR') : ''} ${t.contacto ? '· 📞 ' + t.contacto : ''}</div>
+          <span style="font-size:11px;font-weight:700;color:${estadoColor};background:rgba(255,255,255,.05);padding:3px 10px;border-radius:20px">${t.estado}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+          ${t.estado !== 'publicado' ? `<button onclick="cambiarEstadoTorneoExt(${t.id},'publicado')" style="padding:6px 14px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:12px;font-weight:700;cursor:pointer">✅ Publicar</button>` : ''}
+          ${t.estado !== 'rechazado' ? `<button onclick="cambiarEstadoTorneoExt(${t.id},'rechazado')" style="padding:6px 14px;border-radius:50px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#ef4444;font-size:12px;font-weight:700;cursor:pointer">❌ Rechazar</button>` : ''}
+          <button onclick="borrarTorneoExt(${t.id})" style="padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">🗑 Borrar</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + e.message + '</div>'; }
+}
+async function cambiarEstadoTorneoExt(id, estado) {
+  try {
+    await apiAdmin('/galeria/torneos/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado }) });
+    cargarTorneosExt();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+async function borrarTorneoExt(id) {
+  if (!confirm('¿Borrar este torneo externo?')) return;
+  try {
+    await apiAdmin('/galeria/torneos/' + id, { method: 'DELETE' });
+    cargarTorneosExt();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+</script>
 </body>
 </html>
