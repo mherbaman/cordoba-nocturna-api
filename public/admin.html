@@ -884,6 +884,31 @@ if('serviceWorker' in navigator){
       </div>
 
 
+
+<!-- ===== GALERÍA FOTOS ===== -->
+<div class="page" id="page-galeria">
+  <div class="page-title">GALERÍA FOTOS 📸</div>
+  <div class="page-sub">Subí fotos que se muestran como collage en la landing de PadelConnect.</div>
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
+    <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="previsualizarFoto(this)">
+    <button onclick="document.getElementById('foto-input').click()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">📸 Seleccionar foto</button>
+    <input type="text" id="foto-desc" placeholder="Descripción (opcional)" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#1a0030;color:#fff;font-size:13px;flex:1;min-width:200px">
+    <button onclick="subirFoto()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.2);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">⬆️ Subir</button>
+  </div>
+  <div id="foto-preview" style="margin-bottom:16px"></div>
+  <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+    <div style="color:rgba(255,255,255,.3);padding:40px;text-align:center;grid-column:1/-1">Cargando...</div>
+  </div>
+</div>
+
+<!-- ===== TORNEOS EXTERNOS ===== -->
+<div class="page" id="page-torneos-ext">
+  <div class="page-title">TORNEOS EXTERNOS 🏆</div>
+  <div class="page-sub">Torneos enviados por clubes y organizadores externos. Aprobá los que querés publicar en la app.</div>
+  <div id="torneos-ext-list" style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
+    <div style="color:rgba(255,255,255,.3);padding:40px;text-align:center">Cargando...</div>
+  </div>
+</div>
 <!-- ── 4. SCRIPT (pegar antes de </body>) ────────────────────────── -->
 <script>
 // ── AMERICANO PAREJAS — Variables ─────────────────────────────────────
@@ -1666,33 +1691,8 @@ function mostrarApp() {
   document.getElementById('app').style.display = 'block';
   cargarDashboard();
 }
+</script>
 
-</div><!-- /page-americanos-parejas cierre extra si falta -->
-
-<!-- ===== GALERÍA FOTOS ===== -->
-<div class="page" id="page-galeria">
-  <div class="page-title">GALERÍA FOTOS 📸</div>
-  <div class="page-sub">Subí fotos que se muestran como collage en la landing de PadelConnect.</div>
-  <div style="display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap">
-    <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="previsualizarFoto(this)">
-    <button onclick="document.getElementById('foto-input').click()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">📸 Seleccionar foto</button>
-    <input type="text" id="foto-desc" placeholder="Descripción (opcional)" style="padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#1a0030;color:#fff;font-size:13px;flex:1;min-width:200px">
-    <button onclick="subirFoto()" style="padding:10px 20px;border-radius:50px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.2);color:#22c55e;font-size:13px;font-weight:700;cursor:pointer">⬆️ Subir</button>
-  </div>
-  <div id="foto-preview" style="margin-bottom:16px"></div>
-  <div id="galeria-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
-    <div style="color:rgba(255,255,255,.3);padding:40px;text-align:center;grid-column:1/-1">Cargando...</div>
-  </div>
-</div>
-
-<!-- ===== TORNEOS EXTERNOS ===== -->
-<div class="page" id="page-torneos-ext">
-  <div class="page-title">TORNEOS EXTERNOS 🏆</div>
-  <div class="page-sub">Torneos enviados por clubes y organizadores externos. Aprobá los que querés publicar en la app.</div>
-  <div id="torneos-ext-list" style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
-    <div style="color:rgba(255,255,255,.3);padding:40px;text-align:center">Cargando...</div>
-  </div>
-</div>
 
 <script>
 window.onload = () => {
