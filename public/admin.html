@@ -4455,6 +4455,9 @@ function previsualizarFoto(input) {
 }
 async function subirFoto() {
   if (!fotoFile) { alert('Seleccioná una foto primero'); return; }
+  const btn = document.querySelector('button[onclick="subirFoto()"]');
+  btn.disabled = true;
+  btn.textContent = '⏳ Subiendo...';
   const desc = document.getElementById('foto-desc').value.trim();
   const fd = new FormData();
   fd.append('foto', fotoFile);
@@ -4474,6 +4477,10 @@ async function subirFoto() {
     document.getElementById('foto-input').value = '';
     cargarGaleria();
   } catch(e) { alert('Error: ' + e.message); }
+  finally {
+    btn.disabled = false;
+    btn.textContent = '⬆️ Subir';
+  }
 }
 async function cargarGaleria() {
   const el = document.getElementById('galeria-grid');
