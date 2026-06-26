@@ -424,6 +424,7 @@ body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);min
 /* MATCHES */
 #matches-screen{justify-content:flex-start;padding:0}
 .matches-header{width:100%;max-width:420px;padding:20px 18px 0;display:flex;align-items:center;gap:12px;margin-bottom:20px}
+@keyframes marquee-btn{0%{transform:translateX(0)}100%{transform:translateX(-33.33%)}}
 @keyframes swipeHint{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.95)}}
 .back-btn{background:none;border:none;color:#fff;font-size:22px;cursor:pointer}
 .matches-title{font-family:'Bebas Neue',cursive;font-size:28px;letter-spacing:.5px}
@@ -836,6 +837,17 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
   </div>
 </div>
 
+<!-- TORNEOS & EVENTOS -->
+<div class="screen" id="eventos-screen" style="justify-content:flex-start;padding:0;background:var(--bg)">
+  <div style="width:100%;max-width:420px;padding:16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:var(--bg);z-index:10">
+    <button onclick="showScreen('swipe')" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">←</button>
+    <div style="font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:#a78bfa">🏆 TORNEOS & EVENTOS</div>
+  </div>
+  <div id="eventos-list" style="width:100%;max-width:420px;padding:16px;display:flex;flex-direction:column;gap:16px">
+    <div style="text-align:center;padding:40px;color:rgba(255,255,255,.3)">Cargando...</div>
+  </div>
+</div>
+
 <!-- PRÓXIMOS PARTIDOS PÚBLICOS -->
 <div class="screen" id="proximos-partidos">
   <div class="pp-header">
@@ -1182,10 +1194,15 @@ let selectedVibes = JSON.parse(localStorage.getItem(APPKEY+'_vibes')||'[]');
       <span class="badge" id="msg-badge">0</span>
     </button>
   </div>
-  <div style="width:100%;max-width:420px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06)">
+  <div style="width:100%;max-width:420px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px 4px">
     <button onclick="showScreen('proximos-partidos')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:#fbbf24;font-size:10px;font-weight:700;cursor:pointer;text-align:center">⚡ Próximos Partidos</button>
     <button onclick="showScreen('clases-screen')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(99,102,241,.3);background:rgba(99,102,241,.08);color:#a5b4fc;font-size:10px;font-weight:700;cursor:pointer;text-align:center">📚 Clases</button>
     <button onclick="showScreen('competir-screen')" style="padding:6px 4px;border-radius:50px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:10px;font-weight:700;cursor:pointer;text-align:center">🏆 Competir</button>
+  </div>
+  <div style="width:100%;max-width:420px;padding:4px 12px 8px;border-bottom:1px solid rgba(255,255,255,.06)">
+    <button onclick="showScreen('eventos-screen')" style="width:100%;padding:7px;border-radius:50px;border:1px solid rgba(124,58,237,.4);background:rgba(124,58,237,.08);color:#a78bfa;font-size:10px;font-weight:700;cursor:pointer;text-align:center;overflow:hidden;position:relative">
+      <span style="display:inline-block;animation:marquee-btn 12s linear infinite;white-space:nowrap">🏆 Torneos &amp; Eventos Próximos &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; 🏆 Torneos &amp; Eventos Próximos &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; 🏆 Torneos &amp; Eventos Próximos</span>
+    </button>
   </div>
   <div class="swipe-tabs" id="swipe-tabs">
     <div class="swipe-tab active" onclick="switchTab('jugar',this)">🎾 Jugar</div>
@@ -1454,9 +1471,52 @@ function showScreen(id){
   if(id==='swipe'){cargarJugadoresPadel();cargarFavoritos();poblarZonas();pingActividad();cargarMatchCount();}
   if(id==='matches-screen'){loadMatches();renderizarAds('matches');}
   if(id==='proximos-partidos'){cargarPartidosPublicos();}
+  if(id==='eventos-screen'){cargarEventosExternos();}
   if(id==='favoritos-screen'){renderFavoritos();}
 }
 
+async function cargarEventosExternos() {
+  const el = document.getElementById('eventos-list');
+  if (!el) return;
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.3)">Cargando...</div>';
+  try {
+    const r = await fetch('https://api.cordobalux.com/galeria/torneos');
+    const eventos = await r.json();
+    const hoy = new Date().toISOString().split('T')[0];
+    const proximos = Array.isArray(eventos)
+      ? eventos.filter(e => !e.fecha || e.fecha >= hoy).sort((a,b) => new Date(a.fecha||'9999') - new Date(b.fecha||'9999'))
+      : [];
+    if (!proximos.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,.3)">No hay eventos próximos publicados.</div>';
+      return;
+    }
+    el.innerHTML = proximos.map(e => {
+      const fecha = e.fecha ? new Date(e.fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
+      const tipoLabels = { torneo:'🏆 Torneo', super8:'⚡ Super 8', americano:'🤝 Americano', social:'🎾 Social', relampago:'🌩 Relámpago' };
+      const tipoLbl = tipoLabels[e.tipo] || '🏆 Torneo';
+      return `<div style="background:var(--card);border:1px solid rgba(124,58,237,.2);border-radius:16px;overflow:hidden;cursor:pointer" onclick="abrirEventoExterno('${e.flyer_url||''}','${e.titulo}')">
+        ${e.flyer_url ? `<img src="${e.flyer_url}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block">` : `<div style="width:100%;aspect-ratio:9/16;background:rgba(124,58,237,.1);display:flex;align-items:center;justify-content:center;font-size:48px">🏆</div>`}
+        <div style="padding:14px">
+          <div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px">${tipoLbl} ${e.zona ? '· ' + e.zona : ''}</div>
+          <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px">${e.titulo}</div>
+          ${fecha ? `<div style="font-size:12px;color:rgba(255,255,255,.5)">📅 ${fecha}</div>` : ''}
+          ${e.organizador ? `<div style="font-size:12px;color:rgba(255,255,255,.4)">🏟️ ${e.organizador}</div>` : ''}
+          ${e.contacto ? `<div style="font-size:12px;color:#a78bfa;margin-top:8px">📞 ${e.contacto}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444">Error al cargar eventos.</div>';
+  }
+}
+function abrirEventoExterno(url, titulo) {
+  if (!url) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick = () => document.body.removeChild(overlay);
+  overlay.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px">${titulo}</div><img src="${url}" style="max-width:100%;max-height:85vh;object-fit:contain;border-radius:12px"><div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:12px">Tocá para cerrar</div>`;
+  document.body.appendChild(overlay);
+}
 function checkAge(){
   const edad=document.getElementById('check-edad')?.checked;
   const pol=document.getElementById('check-pol')?.checked;
