@@ -745,7 +745,7 @@ async function publicarTorneoExterno() {
     const r = await fetch('https://api.cordobalux.com/galeria/torneos', { method: 'POST', body: fd });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Error');
-    okEl.textContent = '✅ ¡Tu evento fue enviado! Lo revisamos y lo publicamos en la app en menos de 24hs.';
+    okEl.innerHTML = '✅ ¡Tu evento fue enviado!<br><span style="font-size:12px;color:rgba(255,255,255,.7)">Lo revisamos y lo publicamos en menos de 24hs para que miles de jugadores lo vean.<br><br>👉 <a href="https://cordobalux.com/padel" style="color:#22c55e;font-weight:700">Descargá PadelConnect</a> y seguí tu evento en tiempo real.</span>';
     okEl.style.display = 'block';
     document.getElementById('te-titulo').value = '';
     document.getElementById('te-fecha').value = '';
