@@ -1496,13 +1496,16 @@ async function cargarEventosExternos() {
       const tipoLabels = { torneo:'🏆 Torneo', super8:'⚡ Super 8', americano:'🤝 Americano', social:'🎾 Social', relampago:'🌩 Relámpago' };
       const tipoLbl = tipoLabels[e.tipo] || '🏆 Torneo';
       return `<div style="background:var(--card);border:1px solid rgba(124,58,237,.2);border-radius:16px;overflow:hidden;cursor:pointer" onclick="abrirEventoExterno('${e.flyer_url||''}','${e.titulo}')">
-        ${e.flyer_url ? `<img src="${e.flyer_url}" style="width:100%;aspect-ratio:9/16;object-fit:cover;display:block">` : `<div style="width:100%;aspect-ratio:9/16;background:rgba(124,58,237,.1);display:flex;align-items:center;justify-content:center;font-size:48px">🏆</div>`}
-        <div style="padding:14px">
-          <div style="font-size:11px;color:#a78bfa;font-weight:700;margin-bottom:4px">${tipoLbl} ${e.zona ? '· ' + e.zona : ''}</div>
-          <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px">${e.titulo}</div>
-          ${fecha ? `<div style="font-size:12px;color:rgba(255,255,255,.5)">📅 ${fecha}</div>` : ''}
-          ${e.organizador ? `<div style="font-size:12px;color:rgba(255,255,255,.4)">🏟️ ${e.organizador}</div>` : ''}
-          ${e.contacto ? `<div style="display:flex;align-items:center;gap:8px;margin-top:8px"><span style="font-size:12px;color:rgba(255,255,255,.5)">📞 ${e.contacto}</span><a href="https://wa.me/54${e.contacto.replace(/\D/g,'')}?text=${encodeURIComponent('Hola! Vi tu torneo en PadelConnect: '+e.titulo+'. ¿Podés darme más info?')}" target="_blank" onclick="event.stopPropagation()" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25d366;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-decoration:none">WhatsApp →</a></div>` : ''}
+        <div style="display:flex;gap:12px;padding:14px;align-items:flex-start">
+          ${e.flyer_url ? `<img src="${e.flyer_url}" style="width:70px;height:105px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();abrirEventoExterno('${e.flyer_url}','${e.titulo}')">` : `<div style="width:70px;height:105px;background:rgba(124,58,237,.1);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px">🏆</div>`}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10px;color:#a78bfa;font-weight:700;margin-bottom:4px">${tipoLbl} ${e.zona ? '· ' + e.zona : ''}</div>
+            <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;line-height:1.3">${e.titulo}</div>
+            ${fecha ? `<div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:2px">📅 ${fecha}</div>` : ''}
+            ${e.organizador ? `<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:6px">🏟️ ${e.organizador}</div>` : ''}
+            ${e.contacto ? `<div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap"><span style="font-size:11px;color:rgba(255,255,255,.4)">📞 ${e.contacto}</span><a href="https://wa.me/54${e.contacto.replace(/\D/g,'')}?text=${encodeURIComponent('Hola! Vi tu torneo en PadelConnect: '+e.titulo+'. ¿Podés darme más info?')}" target="_blank" onclick="event.stopPropagation()" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25d366;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-decoration:none">WhatsApp →</a></div>` : ''}
+            ${e.flyer_url ? `<button onclick="event.stopPropagation();abrirEventoExterno('${e.flyer_url}','${e.titulo}')" style="margin-top:8px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);color:#a78bfa;font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;cursor:pointer">Ver flyer completo →</button>` : ''}
+          </div>
         </div>
       </div>`;
     }).join('');
