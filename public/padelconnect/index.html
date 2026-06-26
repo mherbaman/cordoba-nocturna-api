@@ -224,6 +224,7 @@ footer{background:var(--card);border-top:1px solid var(--border);padding:60px 48
     <a href="#planes">Planes</a>
     <a href="#contacto">Contacto</a>
   </div>
+  <a href="#publica-torneo" class="nav-cta" style="margin-right:10px;border-color:#fbbf24;color:#fbbf24"><span>🏆 Publicá tu torneo gratis</span></a>
   <a href="https://wa.me/543512291554?text=Hola!%20Quiero%20info%20sobre%20PadelConnect" class="nav-cta" target="_blank"><span>Contactar →</span></a>
 </nav>
 
@@ -496,6 +497,68 @@ footer{background:var(--card);border-top:1px solid var(--border);padding:60px 48
   </div>
 </section>
 
+<!-- PUBLICÁ TU TORNEO -->
+<section id="publica-torneo" style="padding:90px 48px;background:linear-gradient(180deg,var(--card),var(--bg))">
+  <div class="container" style="max-width:700px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:48px" class="reveal">
+      <div class="section-eyebrow" style="justify-content:center;margin-bottom:16px"><div class="se-line"></div><span class="se-text">Gratis para todos</span><div class="se-line"></div></div>
+      <h2 class="section-title">PUBLICÁ TU <em>TORNEO.</em></h2>
+      <p class="section-sub" style="margin:0 auto">Torneo, Super 8, Social, Relámpago o Americano — publicalo gratis y llegá a miles de jugadores en la app.</p>
+    </div>
+    <div style="background:var(--card);border:1px solid rgba(251,191,36,.2);border-radius:20px;padding:40px" class="reveal">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <div style="grid-column:1/-1">
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Título del evento *</label>
+          <input id="te-titulo" type="text" placeholder="Ej: Torneo Americano Mixto — Junio 2026" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Tipo de evento</label>
+          <select id="te-tipo" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px">
+            <option value="torneo">🏆 Torneo</option>
+            <option value="super8">⚡ Super 8</option>
+            <option value="americano">🤝 Americano</option>
+            <option value="social">🎾 Social</option>
+            <option value="relampago">🌩 Relámpago</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Fecha</label>
+          <input id="te-fecha" type="date" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;color-scheme:dark;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Zona</label>
+          <select id="te-zona" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px">
+            <option value="">Seleccioná la zona</option>
+            <option value="CBA Centro">CBA Centro</option>
+            <option value="CBA Norte">CBA Norte</option>
+            <option value="CBA Sur">CBA Sur</option>
+            <option value="CBA Este">CBA Este</option>
+            <option value="CBA Oeste">CBA Oeste</option>
+            <option value="INTERIOR RIOIV">Interior RIV</option>
+            <option value="Otra provincia">Otra provincia</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Organizador / Club</label>
+          <input id="te-organizador" type="text" placeholder="Nombre del club u organizador" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Contacto (WhatsApp o email)</label>
+          <input id="te-contacto" type="text" placeholder="Ej: 3512345678" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;box-sizing:border-box">
+        </div>
+        <div style="grid-column:1/-1">
+          <label style="font-size:11px;color:rgba(255,255,255,.4);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:8px">Flyer del evento (imagen)</label>
+          <input id="te-flyer" type="file" accept="image/*" style="width:100%;padding:12px 16px;background:#0a1a0a;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:rgba(255,255,255,.6);font-size:13px;box-sizing:border-box">
+        </div>
+      </div>
+      <div id="te-error" style="display:none;color:#f87171;font-size:13px;margin-bottom:12px;text-align:center"></div>
+      <div id="te-success" style="display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:16px;text-align:center;color:#22c55e;font-size:14px;margin-bottom:12px"></div>
+      <button id="te-btn" onclick="publicarTorneoExterno()" style="width:100%;padding:16px;background:linear-gradient(135deg,#b45309,#fbbf24);border:none;color:#000;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px">🏆 PUBLICAR MI EVENTO GRATIS →</button>
+      <p style="text-align:center;font-size:11px;color:rgba(255,255,255,.3);margin-top:12px">Tu evento será revisado y publicado en la app en menos de 24hs.</p>
+    </div>
+  </div>
+</section>
+
 <!-- COMO FUNCIONA PADELCONNECT -->
 <section id="como-funciona" style="background:linear-gradient(180deg,var(--bg),var(--card),var(--bg))">
   <div class="container">
@@ -653,6 +716,50 @@ function abrirFoto(url) {
   document.body.appendChild(overlay);
 }
 document.addEventListener('DOMContentLoaded', cargarGaleriaLanding);
+
+async function publicarTorneoExterno() {
+  const titulo = document.getElementById('te-titulo').value.trim();
+  const tipo = document.getElementById('te-tipo').value;
+  const fecha = document.getElementById('te-fecha').value;
+  const zona = document.getElementById('te-zona').value;
+  const organizador = document.getElementById('te-organizador').value.trim();
+  const contacto = document.getElementById('te-contacto').value.trim();
+  const flyerInput = document.getElementById('te-flyer');
+  const errEl = document.getElementById('te-error');
+  const okEl = document.getElementById('te-success');
+  const btn = document.getElementById('te-btn');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+  if (!titulo) { errEl.textContent = 'El título es obligatorio'; errEl.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+  try {
+    const fd = new FormData();
+    fd.append('titulo', titulo);
+    fd.append('tipo', tipo);
+    if (fecha) fd.append('fecha', fecha);
+    if (zona) fd.append('zona', zona);
+    if (organizador) fd.append('organizador', organizador);
+    if (contacto) fd.append('contacto', contacto);
+    if (flyerInput.files[0]) fd.append('flyer', flyerInput.files[0]);
+    const r = await fetch('https://api.cordobalux.com/galeria/torneos', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Error');
+    okEl.textContent = '✅ ¡Tu evento fue enviado! Lo revisamos y lo publicamos en la app en menos de 24hs.';
+    okEl.style.display = 'block';
+    document.getElementById('te-titulo').value = '';
+    document.getElementById('te-fecha').value = '';
+    document.getElementById('te-organizador').value = '';
+    document.getElementById('te-contacto').value = '';
+    document.getElementById('te-flyer').value = '';
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🏆 PUBLICAR MI EVENTO GRATIS →';
+  }
+}
 </script>
 </body>
 </html>
