@@ -1491,7 +1491,8 @@ async function cargarEventosExternos() {
       return;
     }
     el.innerHTML = proximos.map(e => {
-      const fecha = e.fecha ? new Date(e.fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
+      const fechaStr = e.fecha ? String(e.fecha).substring(0,10) : '';
+      const fecha = fechaStr ? new Date(fechaStr+'T12:00:00').toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'}) : '';
       const tipoLabels = { torneo:'🏆 Torneo', super8:'⚡ Super 8', americano:'🤝 Americano', social:'🎾 Social', relampago:'🌩 Relámpago' };
       const tipoLbl = tipoLabels[e.tipo] || '🏆 Torneo';
       return `<div style="background:var(--card);border:1px solid rgba(124,58,237,.2);border-radius:16px;overflow:hidden;cursor:pointer" onclick="abrirEventoExterno('${e.flyer_url||''}','${e.titulo}')">
@@ -1501,7 +1502,7 @@ async function cargarEventosExternos() {
           <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px">${e.titulo}</div>
           ${fecha ? `<div style="font-size:12px;color:rgba(255,255,255,.5)">📅 ${fecha}</div>` : ''}
           ${e.organizador ? `<div style="font-size:12px;color:rgba(255,255,255,.4)">🏟️ ${e.organizador}</div>` : ''}
-          ${e.contacto ? `<div style="font-size:12px;color:#a78bfa;margin-top:8px">📞 ${e.contacto}</div>` : ''}
+          ${e.contacto ? `<div style="display:flex;align-items:center;gap:8px;margin-top:8px"><span style="font-size:12px;color:rgba(255,255,255,.5)">📞 ${e.contacto}</span><a href="https://wa.me/54${e.contacto.replace(/\D/g,'')}?text=${encodeURIComponent('Hola! Vi tu torneo en PadelConnect: '+e.titulo+'. ¿Podés darme más info?')}" target="_blank" onclick="event.stopPropagation()" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25d366;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-decoration:none">WhatsApp →</a></div>` : ''}
         </div>
       </div>`;
     }).join('');
