@@ -857,7 +857,7 @@ function getCanchasToken() {
 
 // Inner tabs
 function showCanchaTab(tab) {
-  ['gestion','agenda','turnos','caja'].forEach(t => {
+  ['gestion','agenda','turnos','caja','comandas','productos'].forEach(t => {
     const sec = document.getElementById('ci-' + t);
     const btn = document.getElementById('cit-' + t);
     if (sec) sec.style.display = t === tab ? 'block' : 'none';
