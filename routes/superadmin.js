@@ -256,6 +256,16 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+// ── GET /superadmin/admin-negocio/:id ───────────────────────────────────
+router.get('/admin-negocio/:id', authSuperAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT nombre, email FROM admins WHERE negocio_id = $1 AND es_superadmin = false ORDER BY creado_en DESC LIMIT 1',
+      [req.params.id]
+    );
+    res.json(result.rows[0] || null);
+  } catch (err) { res.status(500).json({ error: 'Error interno' }); }
+});
 // ── POST /superadmin/admin-negocio ───────────────────────────────────
 router.post('/admin-negocio', authSuperAdmin, async (req, res) => {
   const { negocio_id, nombre, email, password } = req.body;
