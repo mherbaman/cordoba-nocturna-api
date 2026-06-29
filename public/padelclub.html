@@ -1147,6 +1147,8 @@ async function confirmarNuevaCancha() {
   }
   if (turnos.length === 0) { alert('No se pudieron generar turnos con ese rango y duración'); return; }
   if (!confirm(`Se van a crear ${turnos.length} turnos. ¿Confirmás?`)) return;
+  const btnCrear = document.getElementById('btn-crear-cancha');
+  if (btnCrear) { btnCrear.disabled = true; btnCrear.textContent = 'Creando turnos...'; }
   try {
     for (const t of turnos) {
       await apiAdmin('/padel/disponibilidad', {
@@ -1161,7 +1163,10 @@ async function confirmarNuevaCancha() {
     cerrarModalNuevaCancha();
     cargarCanchasConfig();
     alert(`✅ ${turnos.length} turnos creados correctamente`);
-  } catch(e) { alert('Error: ' + (e.message||e)); }
+  } catch(e) {
+    alert('Error: ' + (e.message||e));
+    if (btnCrear) { btnCrear.disabled = false; btnCrear.textContent = 'CREAR'; }
+  }
 }
 
 // ── TURNOS DEL DIA ──────────────────────────────────────────
@@ -2588,7 +2593,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     </div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onclick="cerrarModalNuevaCancha()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
-      <button onclick="confirmarNuevaCancha()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR</button>
+      <button id="btn-crear-cancha" onclick="confirmarNuevaCancha()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR</button>
     </div>
   </div>
 </div>
