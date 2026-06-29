@@ -1413,11 +1413,10 @@ let _modalComandaAbierto = false;
 function fmt(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
 
 async function cargarComandas() {
-  const token = localStorage.getItem('neg_token');
   try {
     const [cmdRes, prodRes] = await Promise.all([
-      fetch('https://api.cordobalux.com/club/comandas', { headers:{ Authorization:'Bearer '+token } }).then(r=>r.json()),
-      fetch('https://api.cordobalux.com/club/productos', { headers:{ Authorization:'Bearer '+token } }).then(r=>r.json())
+      apiAdmin('/club/comandas'),
+      apiAdmin('/club/productos')
     ]);
     window._productos = Array.isArray(prodRes) ? prodRes : [];
     renderComandas(Array.isArray(cmdRes) ? cmdRes : []);
@@ -1539,11 +1538,7 @@ async function agregarItemComanda(id) {
   } else return;
 
   try {
-    await fetch('https://api.cordobalux.com/club/comandas/' + id + '/items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-      body: JSON.stringify({ descripcion, monto, tipo })
-    });
+    await apiAdmin('/club/comandas/' + id + '/items', { method: 'POST', body: JSON.stringify({ descripcion, monto, tipo }) });
     cargarComandas();
   } catch(e) { alert('Error: ' + e.message); }
 }
@@ -1552,9 +1547,7 @@ async function cerrarComanda(id) {
   if (!confirm('Cerrar y cobrar esta comanda?')) return;
   const token = localStorage.getItem('neg_token');
   try {
-    await fetch('https://api.cordobalux.com/club/comandas/' + id + '/cerrar', {
-      method: 'PUT', headers: { Authorization: 'Bearer ' + token }
-    });
+    await apiAdmin('/club/comandas/' + id + '/cerrar', { method: 'PUT' });
     cargarComandas();
   } catch(e) { alert('Error: ' + e.message); }
 }
@@ -1563,9 +1556,7 @@ async function eliminarComanda(id) {
   if (!confirm('Eliminar esta comanda?')) return;
   const token = localStorage.getItem('neg_token');
   try {
-    await fetch('https://api.cordobalux.com/club/comandas/' + id, {
-      method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
-    });
+    await apiAdmin('/club/comandas/' + id, { method: 'DELETE' });
     cargarComandas();
   } catch(e) { alert('Error: ' + e.message); }
 }
@@ -1575,21 +1566,15 @@ function abrirModalComanda() {
   if (!nomb) return;
   const precioStr = prompt('Precio de la cancha en ARS (Enter si no aplica)');
   const precio_cancha = parseInt(precioStr) || 0;
-  const token = localStorage.getItem('neg_token');
-  fetch('https://api.cordobalux.com/club/comandas', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ nombre: nomb, precio_cancha })
-  }).then(() => cargarComandas()).catch(e => alert('Error: ' + e.message));
+  apiAdmin('/club/comandas', { method: 'POST', body: JSON.stringify({ nombre: nomb, precio_cancha }) })
+    .then(() => cargarComandas()).catch(e => alert('Error: ' + e.message));
 }
 
 // ── PRODUCTOS DEL CLUB ─────────────────────────────────────────────────
 
 async function cargarProductosClub() {
-  const token = localStorage.getItem('neg_token');
   try {
-    const res = await fetch('https://api.cordobalux.com/club/productos', { headers:{ Authorization:'Bearer '+token } });
-    const prods = await res.json();
+    const prods = await apiAdmin('/club/productos');
     renderProductosClub(Array.isArray(prods) ? prods : []);
   } catch(e) {
     document.getElementById('prod-club-list').innerHTML = '<div style="color:#ef4444">Error</div>';
@@ -1614,31 +1599,14 @@ function renderProductosClub(prods) {
 async function editarPrecioProducto(id, precioActual) {
   const nuevo = prompt('Nuevo precio para el producto:', precioActual);
   if (!nuevo || isNaN(nuevo)) return;
-  const token = localStorage.getItem('neg_token');
-  await fetch('https://api.cordobalux.com/club/productos/' + id, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ precio: parseInt(nuevo) })
-  });
+  await apiAdmin('/club/productos/' + id, { method: 'PUT', body: JSON.stringify({ precio: parseInt(nuevo) }) });
   cargarProductosClub();
 }
-
-async function toggleProductoClub(id, activo) {
-  const token = localStorage.getItem('neg_token');
-  await fetch('https://api.cordobalux.com/club/productos/' + id, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ activo: !activo })
-  });
-  cargarProductosClub();
 }
 
 async function borrarProductoClub(id) {
   if (!confirm('Borrar este producto?')) return;
-  const token = localStorage.getItem('neg_token');
-  await fetch('https://api.cordobalux.com/club/productos/' + id, {
-    method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
-  });
+  await apiAdmin('/club/productos/' + id, { method: 'DELETE' });
   cargarProductosClub();
 }
 
@@ -1646,12 +1614,7 @@ async function agregarProductoClub() {
   const nombre = document.getElementById('np-nombre').value.trim();
   const precio = parseInt(document.getElementById('np-precio').value) || 0;
   if (!nombre || precio <= 0) return alert('Completa nombre y precio');
-  const token = localStorage.getItem('neg_token');
-  await fetch('https://api.cordobalux.com/club/productos', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ nombre, precio })
-  });
+  await apiAdmin('/club/productos', { method: 'POST', body: JSON.stringify({ nombre, precio }) });
   document.getElementById('np-nombre').value = '';
   document.getElementById('np-precio').value = '';
   cargarProductosClub();
