@@ -2232,7 +2232,7 @@ function renderNegocios(negocios) {
           ${n.vencimiento_plan?`<span class="badge badge-yellow" style="font-size:10px">Vence: ${new Date(n.vencimiento_plan.slice(0,10)+'T12:00:00').toLocaleDateString('es-AR')}</span>`:''}</td>
         <td><div class="td-actions">
           <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
-          <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}')">🔑 Acceso</button>
+          <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}','${n.tipo}')">🔑 Acceso</button>
           <button class="btn-sm" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)" onclick="verPasswordNegocio('${n.id}','${n.nombre}')">🔐 Contraseña</button>
           <button class="btn-sm" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2)" onclick="verPanelNegocio('${n.id}','${n.nombre}')">👁 Ver panel</button>
         </div></td>
@@ -2417,7 +2417,7 @@ function abrirModalNegocio(n={}) {
 
 function editarNegocio(n) { abrirModalNegocio(n); }
 
-async function gestionarAdminNegocio(negocioId, negocioNombre) {
+async function gestionarAdminNegocio(negocioId, negocioNombre, negocioTipo) {
   document.getElementById('modal-title').textContent = `🔑 Acceso — ${negocioNombre}`;
   document.getElementById('modal-body').innerHTML = `
     <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Creá o actualizá las credenciales de acceso para el panel del negocio.</p>
@@ -2436,8 +2436,8 @@ async function gestionarAdminNegocio(negocioId, negocioNombre) {
       </div>
     </div>
     <div style="background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.7)">
-      📱 El dueño va a entrar en:<br>
-      <strong style="color:#a78bfa">https://api.cordobalux.com/negocio.html</strong>
+      📱 ${negocioTipo === 'padel' ? 'El club va a entrar en' : 'El dueño va a entrar en'}:<br>
+      <strong style="color:#a78bfa">${negocioTipo === 'padel' ? 'https://cordobalux.com/padelclub' : 'https://api.cordobalux.com/negocio.html'}</strong>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
@@ -2458,7 +2458,7 @@ async function crearAdminNegocio(negocioId) {
       body: JSON.stringify({ negocio_id: negocioId, nombre, email, password })
     });
     cerrarModal();
-    alert(`✅ Acceso creado!\n\nEl dueño puede entrar en:\nhttps://api.cordobalux.com/negocio.html\n\nEmail: ${email}`);
+    alert(`✅ Acceso creado!\n\n${negocioTipo === 'padel' ? 'El club puede entrar en:\nhttps://cordobalux.com/padelclub' : 'El dueño puede entrar en:\nhttps://api.cordobalux.com/negocio.html'}\n\nEmail: ${email}`);
   } catch(err) { alert(err.message); }
 }
 
