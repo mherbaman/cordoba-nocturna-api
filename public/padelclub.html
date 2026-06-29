@@ -985,6 +985,7 @@ function renderCanchasConfig(data) {
     html += '<div class="cancha-actions">';
     html += '<button class="btn-sm" onclick="activarTodosSlots(' + num + ', true)">Activar todos</button>';
     html += '<button class="btn-sm" onclick="activarTodosSlots(' + num + ', false)">Desactivar todos</button>';
+    html += '<button class="btn-sm" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#f87171" onclick="borrarCancha(' + num + ')">🗑 Borrar cancha</button>';
     html += '<button class="btn-sm" style="margin-left:auto;background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:var(--green)" onclick="guardarPrecios(' + num + ')">Guardar precios</button>';
     html += '</div>';
     html += '</div>';
@@ -993,6 +994,18 @@ function renderCanchasConfig(data) {
   cont.innerHTML = html;
 }
 
+async function borrarCancha(num) {
+  if (!confirm(`¿Borrar todos los turnos de la Cancha ${num}? Esta acción no se puede deshacer.`)) return;
+  try {
+    const nid = getCanchasNegocioId();
+    await apiAdmin('/padel/club/canchas/numero/' + num, {
+      method: 'DELETE',
+      body: JSON.stringify({ negocio_id: nid })
+    });
+    cargarCanchasConfig();
+    alert('✅ Cancha borrada correctamente');
+  } catch(e) { alert('Error: ' + (e.message||e)); }
+}
 function calcDescCancha(num) {
   const pres = parseFloat(document.getElementById('ppres-' + num).value) || 0;
   const app = parseFloat(document.getElementById('papp-' + num).value) || 0;
@@ -1147,7 +1160,7 @@ async function confirmarNuevaCancha() {
     }
     cerrarModalNuevaCancha();
     cargarCanchasConfig();
-    mostrarToast(`✅ ${turnos.length} turnos creados`);
+    alert(`✅ ${turnos.length} turnos creados correctamente`);
   } catch(e) { alert('Error: ' + (e.message||e)); }
 }
 

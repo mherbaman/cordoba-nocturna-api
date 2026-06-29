@@ -2093,6 +2093,21 @@ router.get('/club/canchas', authAdmin, async (req, res) => {
   }
 });
 
+// ── DELETE /padel/club/canchas/numero/:num ───────────────────────────
+// Borrar TODOS los turnos de una cancha por numero_cancha
+router.delete('/club/canchas/numero/:num', authAdmin, async (req, res) => {
+  const { negocio_id } = req.body;
+  try {
+    const result = await pool.query(
+      'DELETE FROM disponibilidad_padel WHERE negocio_id = $1 AND numero_cancha = $2 RETURNING id',
+      [negocio_id, req.params.num]
+    );
+    res.json({ borrados: result.rowCount });
+  } catch (err) {
+    console.error('DELETE /padel/club/canchas/numero/:num:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
 // ── PUT /padel/club/canchas/numero/:num/toggle-todos ─────────────────
 // Activar o desactivar TODOS los turnos de una cancha por numero_cancha
 // DEBE ir ANTES de /:id para evitar conflicto de rutas en Express
