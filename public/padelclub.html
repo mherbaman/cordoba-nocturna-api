@@ -1106,24 +1106,48 @@ async function confirmarNuevaCancha() {
   const nombre = document.getElementById('nc-nombre').value.trim();
   const tipo = document.getElementById('nc-tipo').value;
   const numero = parseInt(document.getElementById('nc-numero').value) || 1;
-  const dia = parseInt(document.getElementById('nc-dia').value);
   const hi = document.getElementById('nc-hinicio').value;
   const hf = document.getElementById('nc-hfin').value;
+  const duracion = parseInt(document.getElementById('nc-duracion').value);
   const ppres = parseFloat(document.getElementById('nc-ppres').value) || 0;
   const papp = parseFloat(document.getElementById('nc-papp').value) || 0;
-  if (!hi || !hf || !ppres) { alert('Completá todos los campos obligatorios'); return; }
+  const dias = [...document.querySelectorAll('.nc-dia-check:checked')].map(c => parseInt(c.value));
+  if (!nombre) { alert('Ingresá el nombre de la cancha'); return; }
+  if (dias.length === 0) { alert('Seleccioná al menos un día'); return; }
+  if (!hi || !hf) { alert('Ingresá hora inicio y fin del bloque'); return; }
+  if (!ppres) { alert('Ingresá el precio presencial'); return; }
   if (ppres - papp < 3000) { alert('El precio app debe ser al menos ARS 3.000 menor al precio presencial'); return; }
+  // Generar turnos
+  const turnos = [];
+  const [hiH, hiM] = hi.split(':').map(Number);
+  const [hfH, hfM] = hf.split(':').map(Number);
+  const inicioMin = hiH * 60 + hiM;
+  const finMin = hfH * 60 + hfM;
+  for (const dia of dias) {
+    let cur = inicioMin;
+    while (cur + duracion <= finMin) {
+      const tIni = String(Math.floor(cur/60)).padStart(2,'0') + ':' + String(cur%60).padStart(2,'0');
+      const tFin = String(Math.floor((cur+duracion)/60)).padStart(2,'0') + ':' + String((cur+duracion)%60).padStart(2,'0');
+      turnos.push({ dia_semana: dia, hora_inicio: tIni, hora_fin: tFin });
+      cur += duracion;
+    }
+  }
+  if (turnos.length === 0) { alert('No se pudieron generar turnos con ese rango y duración'); return; }
+  if (!confirm(`Se van a crear ${turnos.length} turnos. ¿Confirmás?`)) return;
   try {
-    await apiAdmin('/padel/disponibilidad', {
-      method: 'POST',
-      body: JSON.stringify({
-        negocio_id: nid, dia_semana: dia, hora_inicio: hi, hora_fin: hf,
-        precio_por_hora: ppres, precio_app: papp, cantidad_canchas: 1,
-        zona: '', numero_cancha: numero, nombre_cancha: nombre, tipo_cancha: tipo
-      })
-    });
+    for (const t of turnos) {
+      await apiAdmin('/padel/disponibilidad', {
+        method: 'POST',
+        body: JSON.stringify({
+          negocio_id: nid, dia_semana: t.dia_semana, hora_inicio: t.hora_inicio, hora_fin: t.hora_fin,
+          precio_por_hora: ppres, precio_app: papp, cantidad_canchas: 1,
+          zona: '', numero_cancha: numero, nombre_cancha: nombre, tipo_cancha: tipo
+        })
+      });
+    }
     cerrarModalNuevaCancha();
     cargarCanchasConfig();
+    mostrarToast(`✅ ${turnos.length} turnos creados`);
   } catch(e) { alert('Error: ' + (e.message||e)); }
 }
 
@@ -2488,7 +2512,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
 <!-- MODAL NUEVA CANCHA -->
 <div id="modal-nueva-cancha" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div class="modal-inner" style="max-height:90vh;overflow-y:auto">
-    <div class="modal-title">Nueva Cancha / Turno</div>
+    <div class="modal-title">Nueva Cancha / Turnos</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div style="grid-column:1/-1">
         <label class="field-label">Nombre de la cancha</label>
@@ -2504,21 +2528,38 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
         </select>
       </div>
       <div>
-        <label class="field-label">Numero de cancha</label>
+        <label class="field-label">Número de cancha</label>
         <input class="input-field" id="nc-numero" type="number" value="1" min="1" style="margin:0">
       </div>
-      <div>
-        <label class="field-label">Dia (0=Dom 1=Lun 2=Mar 3=Mie 4=Jue 5=Vie 6=Sab)</label>
-        <input class="input-field" id="nc-dia" type="number" value="1" min="0" max="6" style="margin:0">
+      <div style="grid-column:1/-1">
+        <label class="field-label">Días de la semana</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="0"> Dom</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="1" checked> Lun</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="2" checked> Mar</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="3" checked> Mié</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="4" checked> Jue</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="5" checked> Vie</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;color:rgba(255,255,255,.8);cursor:pointer"><input type="checkbox" class="nc-dia-check" value="6"> Sáb</label>
+        </div>
       </div>
       <div>
-        <label class="field-label">Hora inicio</label>
+        <label class="field-label">Hora inicio del bloque</label>
         <input class="input-field" id="nc-hinicio" type="time" value="08:00" style="margin:0;color-scheme:dark">
       </div>
       <div>
-        <label class="field-label">Hora fin</label>
-        <input class="input-field" id="nc-hfin" type="time" value="09:00" style="margin:0;color-scheme:dark">
+        <label class="field-label">Hora fin del bloque</label>
+        <input class="input-field" id="nc-hfin" type="time" value="23:00" style="margin:0;color-scheme:dark">
       </div>
+      <div>
+        <label class="field-label">Duración por turno</label>
+        <select class="input-field" id="nc-duracion" style="margin:0;color:#fff;background:#1a0030">
+          <option value="60">60 min</option>
+          <option value="90">90 min</option>
+          <option value="120">120 min</option>
+        </select>
+      </div>
+      <div></div>
       <div>
         <label class="field-label">Precio presencial (ARS)</label>
         <input class="input-field" id="nc-ppres" type="number" placeholder="50000" style="margin:0" oninput="validarDescNC()">
@@ -2529,6 +2570,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
       </div>
       <div style="grid-column:1/-1">
         <div id="nc-desc-msg" style="font-size:12px;color:var(--green);min-height:18px"></div>
+        <div id="nc-preview-msg" style="font-size:12px;color:rgba(255,255,255,.5);min-height:18px;margin-top:4px"></div>
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:20px">
