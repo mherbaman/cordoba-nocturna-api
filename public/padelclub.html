@@ -1412,22 +1412,38 @@ let _modalComandaAbierto = false;
 
 function fmt(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
 
-async function cargarComandas() {
+async function cargarComandas(periodo, fecha) {
+  periodo = periodo || 'hoy';
   try {
+    let url = '/club/comandas?periodo=' + periodo;
+    if (fecha) url = '/club/comandas?fecha=' + fecha;
     const [cmdRes, prodRes] = await Promise.all([
-      apiAdmin('/club/comandas'),
+      apiAdmin(url),
       apiAdmin('/club/productos')
     ]);
     window._productos = Array.isArray(prodRes) ? prodRes : [];
-    renderComandas(Array.isArray(cmdRes) ? cmdRes : []);
+    renderComandas(Array.isArray(cmdRes) ? cmdRes : [], periodo);
   } catch(e) {
     document.getElementById('comandas-abiertas').innerHTML = '<div style="color:#ef4444">Error al cargar comandas</div>';
   }
 }
 
-function renderComandas(comandas) {
+function filtrarComandas(periodo, btn) {
+  document.querySelectorAll('.cp-btn[id^="cmd-"]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (periodo === 'fecha') {
+    const fecha = document.getElementById('cmd-fecha').value;
+    if (fecha) cargarComandas('fecha', fecha);
+  } else {
+    document.getElementById('cmd-fecha').value = '';
+    cargarComandas(periodo);
+  }
+}
+
+function renderComandas(comandas, periodo) {
   const abiertas = comandas.filter(c => c.estado === 'abierta');
   const cerradas = comandas.filter(c => c.estado === 'cerrada');
+  const soloHoy = periodo === 'hoy' || periodo == null;
 
   let totCanchas = 0, totConsumos = 0;
   comandas.forEach(c => (c.items||[]).forEach(i => {
@@ -1441,7 +1457,11 @@ function renderComandas(comandas) {
     <div class="caja-card"><div class="caja-card-lbl">Total del dia</div><div class="caja-card-val g">${fmt(totCanchas+totConsumos)}</div></div>
   `;
 
-  document.getElementById('comandas-abiertas').innerHTML = abiertas.length === 0
+  const secAbiertas = document.getElementById('comandas-abiertas');
+  const btnNueva = document.querySelector('#ci-comandas .btn-export');
+  if (btnNueva) btnNueva.style.display = soloHoy ? '' : 'none';
+  secAbiertas.style.display = soloHoy ? '' : 'none';
+  secAbiertas.innerHTML = abiertas.length === 0
     ? '<div style="color:var(--muted);font-size:13px;padding:12px 0">No hay comandas abiertas</div>'
     : abiertas.map(c => renderComandaCard(c, true)).join('');
 
@@ -2324,6 +2344,13 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
         <div class="section-hdr">
           <div class="section-title">&#127860; Comandas del dia</div>
           <button class="btn-export" onclick="abrirModalComanda()">+ Nueva comanda</button>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <button class="btn-sm cp-btn active" id="cmd-hoy" onclick="filtrarComandas('hoy',this)">Hoy</button>
+          <button class="btn-sm cp-btn" id="cmd-ayer" onclick="filtrarComandas('ayer',this)">Ayer</button>
+          <button class="btn-sm cp-btn" id="cmd-semana" onclick="filtrarComandas('semana',this)">Esta semana</button>
+          <button class="btn-sm cp-btn" id="cmd-mes" onclick="filtrarComandas('mes',this)">Este mes</button>
+          <input type="date" id="cmd-fecha" onchange="filtrarComandas('fecha',null)" style="padding:5px 8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a2a1c;color:#fff;font-size:12px">
         </div>
         <div id="comandas-resumen" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
         <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Abiertas</div>

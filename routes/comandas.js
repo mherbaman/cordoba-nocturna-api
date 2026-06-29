@@ -73,12 +73,25 @@ router.delete('/productos/:id', authAdmin, async (req, res) => {
   }
 });
 
-// GET comandas del día
+// GET comandas por periodo o fecha
 router.get('/comandas', authAdmin, async (req, res) => {
   try {
     const { negocio_id } = req.admin;
+    const { periodo, fecha } = req.query;
+    let filtro = '';
+    if (fecha) {
+      filtro = `AND DATE(creado_en) = '${fecha}'`;
+    } else if (periodo === 'ayer') {
+      filtro = "AND DATE(creado_en) = CURRENT_DATE - INTERVAL '1 day'";
+    } else if (periodo === 'semana') {
+      filtro = "AND DATE(creado_en) >= CURRENT_DATE - INTERVAL '6 days'";
+    } else if (periodo === 'mes') {
+      filtro = "AND DATE(creado_en) >= CURRENT_DATE - INTERVAL '29 days'";
+    } else {
+      filtro = 'AND DATE(creado_en) = CURRENT_DATE';
+    }
     const comandas = await pool.query(
-      `SELECT * FROM comandas WHERE negocio_id = $1 AND DATE(creado_en) = CURRENT_DATE ORDER BY creado_en DESC`,
+      `SELECT * FROM comandas WHERE negocio_id = $1 ${filtro} ORDER BY creado_en DESC`,
       [negocio_id]
     );
     for (const c of comandas.rows) {
