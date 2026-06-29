@@ -1314,7 +1314,7 @@ function renderTurnosDia(reservas, disponibles, filtro) {
         html += '<span style="font-size:12px;color:rgba(255,255,255,.8);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + nombre + '</span>';
         if (tel) {
           const nombreClub = (negocioData && negocioData.nombre) ? negocioData.nombre : 'el club';
-          const msgWA = encodeURIComponent('Hola! Te escribimos de ' + nombreClub + ' para confirmar tu turno del ' + turnosFechaActual + ' en la Cancha ' + (s.numero_cancha||1) + ' a las ' + hi + ' hs.');
+          const msgWA = encodeURIComponent('Hola ' + nombre + '! Te escribimos de ' + nombreClub + ' para confirmar tu turno del ' + turnosFechaActual + ' en la Cancha ' + (s.numero_cancha||1) + ' a las ' + hi + ' hs.');
           html += '<a href="https://wa.me/' + tel + '?text=' + msgWA + '" target="_blank" style="font-size:10px;color:#22c55e;text-decoration:none;white-space:nowrap" title="Enviar mensaje">💬 Confirmar</a>';
         }
         html += '<span class="canal-badge ' + canalCls + '" style="font-size:9px;padding:1px 5px">' + (CANAL_LBL[canal]||canal) + '</span>';
