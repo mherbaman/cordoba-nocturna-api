@@ -2441,12 +2441,12 @@ async function gestionarAdminNegocio(negocioId, negocioNombre, negocioTipo) {
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-primary" onclick="crearAdminNegocio('${negocioId}')">GUARDAR ACCESO</button>
+      <button class="btn-primary" onclick="crearAdminNegocio('${negocioId}','${negocioTipo}')">GUARDAR ACCESO</button>
     </div>`;
   document.getElementById('modal-overlay').classList.add('show');
 }
 
-async function crearAdminNegocio(negocioId) {
+async function crearAdminNegocio(negocioId, negocioTipo) {
   const nombre   = document.getElementById('adm-nombre').value.trim();
   const email    = document.getElementById('adm-email').value.trim();
   const password = document.getElementById('adm-password').value;
