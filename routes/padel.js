@@ -478,7 +478,7 @@ router.post('/reservas', async (req, res) => {
     );
     const n = negocioData.rows[0] || {};
     const telClub = (n.whatsapp || n.dueno_tel || '').replace(/\D/g, '');
-    const precioTotal = parseFloat(t.precio_por_hora);
+    const precioTotal = parseFloat(t.precio_app || t.precio_por_hora);
     const comision = Math.round(precioTotal * 0.10);
     const horaInicio = String(t.hora_inicio).substring(0, 5);
     const horaFin = String(t.hora_fin).substring(0, 5);
@@ -491,13 +491,13 @@ router.post('/reservas', async (req, res) => {
         + ' - Horario: ' + horaInicio + ' a ' + horaFin
         + ' - Cancha: ' + (t.numero_cancha || 1)
         + ' - Precio: $' + precioTotal
-        + ' - Ver: https://cordobalux.com/negocio.html';
+        + ' - Ver: https://cordobalux.com/padelclub';
       whatsapp_club = 'https://wa.me/' + telClub + '?text=' + encodeURIComponent(msg);
     }
 
     const result = await client.query(
       'INSERT INTO reservas_padel (negocio_id, usuario_id, jugador_id, disponibilidad_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, whatsapp_club, notas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-      [negocio_id, usuarioIdReal, jugadorIdReal, disponibilidad_id, fecha, t.hora_inicio, t.hora_fin, precioTotal, 'confirmado', parseInt(t.numero_cancha) || 1, whatsapp_club, notas || null]
+      [negocio_id, usuarioIdReal, jugadorIdReal, disponibilidad_id, fecha, t.hora_inicio, t.hora_fin, precioTotal, 'pendiente', parseInt(t.numero_cancha) || 1, whatsapp_club, notas || null]
     );
 
     await client.query('COMMIT');
