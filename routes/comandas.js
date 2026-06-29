@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../database');
-const { authSuperAdmin } = require('../middleware/auth');
+const { authAdmin } = require('../middleware/auth');
 
 // GET productos del club
-router.get('/productos', authSuperAdmin, async (req, res) => {
+router.get('/productos', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     const result = await pool.query(
       'SELECT * FROM productos_club WHERE negocio_id = $1 ORDER BY nombre ASC',
       [negocio_id]
@@ -19,9 +19,9 @@ router.get('/productos', authSuperAdmin, async (req, res) => {
 });
 
 // POST nuevo producto
-router.post('/productos', authSuperAdmin, async (req, res) => {
+router.post('/productos', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     const { nombre, precio } = req.body;
     if (!nombre || !precio) return res.status(400).json({ error: 'Faltan datos' });
     const result = await pool.query(
@@ -36,9 +36,9 @@ router.post('/productos', authSuperAdmin, async (req, res) => {
 });
 
 // PUT editar precio o activo
-router.put('/productos/:id', authSuperAdmin, async (req, res) => {
+router.put('/productos/:id', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     const { precio, activo } = req.body;
     const fields = [];
     const values = [];
@@ -59,9 +59,9 @@ router.put('/productos/:id', authSuperAdmin, async (req, res) => {
 });
 
 // DELETE producto
-router.delete('/productos/:id', authSuperAdmin, async (req, res) => {
+router.delete('/productos/:id', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     await pool.query(
       'DELETE FROM productos_club WHERE id = $1 AND negocio_id = $2',
       [req.params.id, negocio_id]
@@ -74,9 +74,9 @@ router.delete('/productos/:id', authSuperAdmin, async (req, res) => {
 });
 
 // GET comandas del día
-router.get('/comandas', authSuperAdmin, async (req, res) => {
+router.get('/comandas', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     const comandas = await pool.query(
       `SELECT * FROM comandas WHERE negocio_id = $1 AND DATE(creado_en) = CURRENT_DATE ORDER BY creado_en DESC`,
       [negocio_id]
@@ -96,9 +96,9 @@ router.get('/comandas', authSuperAdmin, async (req, res) => {
 });
 
 // POST nueva comanda
-router.post('/comandas', authSuperAdmin, async (req, res) => {
+router.post('/comandas', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     const { nombre, precio_cancha } = req.body;
     if (!nombre) return res.status(400).json({ error: 'Falta el nombre' });
     const comanda = await pool.query(
@@ -122,9 +122,9 @@ router.post('/comandas', authSuperAdmin, async (req, res) => {
 });
 
 // POST agregar item a comanda
-router.post('/comandas/:id/items', authSuperAdmin, async (req, res) => {
+router.post('/comandas/:id/items', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     const { descripcion, monto, tipo } = req.body;
     if (!descripcion || !monto) return res.status(400).json({ error: 'Faltan datos' });
     const check = await pool.query(
@@ -144,9 +144,9 @@ router.post('/comandas/:id/items', authSuperAdmin, async (req, res) => {
 });
 
 // PUT cerrar comanda
-router.put('/comandas/:id/cerrar', authSuperAdmin, async (req, res) => {
+router.put('/comandas/:id/cerrar', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     await pool.query(
       `UPDATE comandas SET estado = 'cerrada', cerrado_en = NOW() WHERE id = $1 AND negocio_id = $2`,
       [req.params.id, negocio_id]
@@ -159,9 +159,9 @@ router.put('/comandas/:id/cerrar', authSuperAdmin, async (req, res) => {
 });
 
 // DELETE comanda
-router.delete('/comandas/:id', authSuperAdmin, async (req, res) => {
+router.delete('/comandas/:id', authAdmin, async (req, res) => {
   try {
-    const { negocio_id } = req.user;
+    const { negocio_id } = req.admin;
     await pool.query(
       'DELETE FROM comandas WHERE id = $1 AND negocio_id = $2',
       [req.params.id, negocio_id]
