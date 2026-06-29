@@ -231,7 +231,7 @@ router.post('/negocios', authSuperAdmin, async (req, res) => {
 
 // ── PUT /superadmin/negocios/:id ─────────────────────────────────────
 router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan, estado_pago, zona } = req.body;
+  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan, estado_pago, zona, direccion, instagram, foto_url, fecha_vencimiento } = req.body;
   try {
     const result = await pool.query(`
       UPDATE negocios SET
@@ -245,10 +245,13 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
         activo           = COALESCE($8, activo),
         vencimiento_plan = COALESCE($9, vencimiento_plan),
         estado_pago      = COALESCE($10, estado_pago),
-        zona             = COALESCE($11, zona)
-      WHERE id = $12
+        zona             = COALESCE($11, zona),
+        direccion        = COALESCE($12, direccion),
+        instagram        = COALESCE($13, instagram),
+        foto_url         = COALESCE($14, foto_url)
+      WHERE id = $15
       RETURNING *
-    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan||null, estado_pago||null, zona||null, req.params.id]);
+    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan||null, estado_pago||null, zona||null, direccion||null, instagram||null, foto_url||null, req.params.id]);
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
