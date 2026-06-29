@@ -1602,7 +1602,6 @@ async function editarPrecioProducto(id, precioActual) {
   await apiAdmin('/club/productos/' + id, { method: 'PUT', body: JSON.stringify({ precio: parseInt(nuevo) }) });
   cargarProductosClub();
 }
-}
 
 async function borrarProductoClub(id) {
   if (!confirm('Borrar este producto?')) return;
