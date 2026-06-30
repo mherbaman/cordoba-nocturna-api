@@ -2253,6 +2253,258 @@ router.get('/club/comunidad', authAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error interno' });
   }
 });
+// ════════════════════════════════════════════════
+//   PERSONAL DEL CLUB
+// ════════════════════════════════════════════════
+const bcryptPersonal = require('bcryptjs');
+const jwtPersonal = require('jsonwebtoken');
+
+// ── POST /padel/personal/login ───────────────────────────────────────
+router.post('/personal/login', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
+  try {
+    const result = await pool.query('SELECT * FROM personal_club WHERE email = $1 AND activo = true', [email]);
+    if (result.rows.length === 0) return res.status(401).json({ error: 'Credenciales inválidas' });
+    const p = result.rows[0];
+    const ok = await bcryptPersonal.compare(password, p.password_hash);
+    if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });
+    const token = jwtPersonal.sign({ personal_id: p.id, negocio_id: p.negocio_id, rol_acceso: p.rol_acceso }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    delete p.password_hash;
+    res.json({ token, personal: p });
+  } catch (err) {
+    console.error('POST /padel/personal/login:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/club/personal ─────────────────────────────────────────
+router.get('/club/personal', authAdmin, async (req, res) => {
+  const { negocio_id } = req.query;
+  if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
+  try {
+    const result = await pool.query(
+      'SELECT id, nombre, email, telefono, cargo, rol_acceso, activo, creado_en FROM personal_club WHERE negocio_id = $1 ORDER BY creado_en DESC',
+      [negocio_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/club/personal:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /padel/club/personal ────────────────────────────────────────
+router.post('/club/personal', authAdmin, async (req, res) => {
+  const { negocio_id, nombre, email, telefono, password, cargo, rol_acceso } = req.body;
+  if (!negocio_id || !nombre || !email || !password) return res.status(400).json({ error: 'Faltan datos requeridos' });
+  try {
+    const password_hash = await bcryptPersonal.hash(password, 10);
+    const result = await pool.query(
+      `INSERT INTO personal_club (negocio_id, nombre, email, telefono, password_hash, cargo, rol_acceso)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, nombre, email, telefono, cargo, rol_acceso, activo`,
+      [negocio_id, nombre, email, telefono || null, password_hash, cargo || 'otro', rol_acceso || 'empleado']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(400).json({ error: 'El email ya está registrado' });
+    console.error('POST /padel/club/personal:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── PUT /padel/club/personal/:id ─────────────────────────────────────
+router.put('/club/personal/:id', authAdmin, async (req, res) => {
+  const { nombre, telefono, cargo, rol_acceso, activo, password } = req.body;
+  try {
+    let password_hash = null;
+    if (password) password_hash = await bcryptPersonal.hash(password, 10);
+    const result = await pool.query(
+      `UPDATE personal_club SET
+        nombre = COALESCE($1, nombre),
+        telefono = COALESCE($2, telefono),
+        cargo = COALESCE($3, cargo),
+        rol_acceso = COALESCE($4, rol_acceso),
+        activo = COALESCE($5, activo),
+        password_hash = COALESCE($6, password_hash)
+       WHERE id = $7 RETURNING id, nombre, email, telefono, cargo, rol_acceso, activo`,
+      [nombre, telefono, cargo, rol_acceso, activo, password_hash, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('PUT /padel/club/personal/:id:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── DELETE /padel/club/personal/:id ──────────────────────────────────
+router.delete('/club/personal/:id', authAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM personal_club WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /padel/club/personal/:id:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /padel/club/personal/:id/turnos ─────────────────────────────
+router.post('/club/personal/:id/turnos', authAdmin, async (req, res) => {
+  const { turnos } = req.body;
+  if (!Array.isArray(turnos)) return res.status(400).json({ error: 'turnos debe ser un array' });
+  try {
+    await pool.query('DELETE FROM personal_turnos WHERE personal_id = $1', [req.params.id]);
+    for (const t of turnos) {
+      await pool.query(
+        'INSERT INTO personal_turnos (personal_id, dia_semana, hora_inicio, hora_fin) VALUES ($1, $2, $3, $4)',
+        [req.params.id, t.dia_semana, t.hora_inicio, t.hora_fin]
+      );
+    }
+    res.json({ ok: true, total: turnos.length });
+  } catch (err) {
+    console.error('POST /padel/club/personal/:id/turnos:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/club/personal/:id/turnos ──────────────────────────────
+router.get('/club/personal/:id/turnos', authAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM personal_turnos WHERE personal_id = $1 ORDER BY dia_semana ASC, hora_inicio ASC',
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/club/personal/:id/turnos:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/club/personal/:id/asistencia ──────────────────────────
+router.get('/club/personal/:id/asistencia', authAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM personal_asistencia WHERE personal_id = $1 ORDER BY fecha DESC LIMIT 60',
+      [req.params.id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/club/personal/:id/asistencia:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── Middleware authPersonal ───────────────────────────────────────────
+function authPersonal(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Token requerido' });
+  try {
+    req.personal = jwtPersonal.verify(token, process.env.JWT_SECRET);
+    if (!req.personal.personal_id) return res.status(401).json({ error: 'Token inválido' });
+    next();
+  } catch {
+    res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+}
+
+// ── GET /padel/personal/mi-perfil ────────────────────────────────────
+router.get('/personal/mi-perfil', authPersonal, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT p.id, p.nombre, p.email, p.telefono, p.cargo, p.rol_acceso, n.nombre as negocio_nombre FROM personal_club p JOIN negocios n ON n.id = p.negocio_id WHERE p.id = $1',
+      [req.personal.personal_id]
+    );
+    res.json(result.rows[0] || null);
+  } catch (err) {
+    console.error('GET /padel/personal/mi-perfil:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/personal/mis-turnos ───────────────────────────────────
+router.get('/personal/mis-turnos', authPersonal, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM personal_turnos WHERE personal_id = $1 ORDER BY dia_semana ASC, hora_inicio ASC',
+      [req.personal.personal_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/personal/mis-turnos:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── GET /padel/personal/mi-asistencia ────────────────────────────────
+router.get('/personal/mi-asistencia', authPersonal, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM personal_asistencia WHERE personal_id = $1 ORDER BY fecha DESC LIMIT 30',
+      [req.personal.personal_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/personal/mi-asistencia:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /padel/personal/checkin ─────────────────────────────────────
+router.post('/personal/checkin', authPersonal, async (req, res) => {
+  const hoy = new Date().toISOString().split('T')[0];
+  try {
+    const existe = await pool.query(
+      'SELECT * FROM personal_asistencia WHERE personal_id = $1 AND fecha = $2',
+      [req.personal.personal_id, hoy]
+    );
+    if (existe.rows.length > 0 && existe.rows[0].check_in) {
+      return res.status(400).json({ error: 'Ya hiciste check-in hoy' });
+    }
+    let result;
+    if (existe.rows.length > 0) {
+      result = await pool.query(
+        'UPDATE personal_asistencia SET check_in = now() WHERE id = $1 RETURNING *',
+        [existe.rows[0].id]
+      );
+    } else {
+      result = await pool.query(
+        'INSERT INTO personal_asistencia (personal_id, fecha, check_in) VALUES ($1, $2, now()) RETURNING *',
+        [req.personal.personal_id, hoy]
+      );
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('POST /padel/personal/checkin:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── POST /padel/personal/checkout ────────────────────────────────────
+router.post('/personal/checkout', authPersonal, async (req, res) => {
+  const hoy = new Date().toISOString().split('T')[0];
+  try {
+    const existe = await pool.query(
+      'SELECT * FROM personal_asistencia WHERE personal_id = $1 AND fecha = $2',
+      [req.personal.personal_id, hoy]
+    );
+    if (existe.rows.length === 0 || !existe.rows[0].check_in) {
+      return res.status(400).json({ error: 'Todavía no hiciste check-in hoy' });
+    }
+    if (existe.rows[0].check_out) {
+      return res.status(400).json({ error: 'Ya hiciste check-out hoy' });
+    }
+    const result = await pool.query(
+      'UPDATE personal_asistencia SET check_out = now() WHERE id = $1 RETURNING *',
+      [existe.rows[0].id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('POST /padel/personal/checkout:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // ── GET /padel/club/turnos-del-dia ───────────────────────────────────
 // Todos los turnos de un día específico para el club
 router.get('/club/turnos-del-dia', authAdmin, async (req, res) => {
