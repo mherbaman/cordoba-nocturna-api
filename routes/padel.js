@@ -2196,6 +2196,37 @@ router.post('/club/turnos/manual', authAdmin, async (req, res) => {
   }
 });
 
+// ── GET /padel/club/jugadores ────────────────────────────────────────
+// Top jugadores del club por cantidad de reservas
+router.get('/club/jugadores', authAdmin, async (req, res) => {
+  const { negocio_id } = req.query;
+  if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
+  try {
+    const result = await pool.query(`
+      SELECT
+        COALESCE(NULLIF(j.nombre,''), NULLIF(u.nombre,''), 'Sin nombre') AS nombre,
+        j.nivel,
+        j.foto_url,
+        u.telefono,
+        COUNT(r.id) AS total_reservas,
+        SUM(r.precio_cobrado) AS total_gastado,
+        MAX(r.fecha) AS ultima_reserva
+      FROM reservas_padel r
+      LEFT JOIN jugadores_padel j ON j.id = r.jugador_id
+      LEFT JOIN usuarios u ON u.id = r.usuario_id
+      WHERE r.negocio_id = $1
+        AND r.estado NOT IN ('rechazado','cancelado')
+        AND (j.nombre IS NOT NULL OR u.nombre IS NOT NULL)
+      GROUP BY j.nombre, u.nombre, j.nivel, j.foto_url, u.telefono
+      ORDER BY total_reservas DESC
+      LIMIT 20
+    `, [negocio_id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('GET /padel/club/jugadores:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
 // ── GET /padel/club/turnos-del-dia ───────────────────────────────────
 // Todos los turnos de un día específico para el club
 router.get('/club/turnos-del-dia', authAdmin, async (req, res) => {

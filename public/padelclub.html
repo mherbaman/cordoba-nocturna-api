@@ -864,6 +864,7 @@ function showCanchaTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
   if (tab === 'gestion') cargarCanchasConfig();
+  if (tab === 'jugadores') cargarJugadoresClub();
   if (tab === 'agenda') {
     agendaFechaBase = agendaFechaBase || lunesDe(new Date());
     renderAgendaNav();
@@ -1169,6 +1170,36 @@ async function confirmarNuevaCancha() {
   }
 }
 
+// ── JUGADORES DEL CLUB ───────────────────────────────────────
+async function cargarJugadoresClub() {
+  const nid = getCanchasNegocioId();
+  if (!nid) return;
+  const cont = document.getElementById('jugadores-top-list');
+  if (!cont) return;
+  cont.innerHTML = '<div class="loader"></div>';
+  try {
+    const jugadores = await apiAdmin('/padel/club/jugadores?negocio_id=' + nid);
+    if (!jugadores.length) {
+      cont.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0">Aún no hay jugadores con reservas en el club.</div>';
+      return;
+    }
+    cont.innerHTML = jugadores.map((j, i) => {
+      const tel = j.telefono ? j.telefono.replace(/\D/g,'') : null;
+      const foto = j.foto_url ? `<img src="${j.foto_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover">` : `<div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:16px">🎾</div>`;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:8px">
+        <span style="font-size:12px;color:rgba(255,255,255,.3);min-width:18px">#${i+1}</span>
+        ${foto}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#fff">${j.nombre}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4)">${j.nivel||'—'} · ${j.total_reservas} reserva${j.total_reservas!=1?'s':''} · ARS ${Math.round(j.total_gastado||0).toLocaleString('es-AR')}</div>
+        </div>
+        ${tel ? `<a href="https://wa.me/${tel}" target="_blank" style="font-size:11px;color:#22c55e;text-decoration:none;white-space:nowrap">💬 WA</a>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;font-size:13px">Error: ' + (e.message||e) + '</div>';
+  }
+}
 // ── TURNOS DEL DIA ──────────────────────────────────────────
 
 let turnosFechaActual = new Date().toISOString().split('T')[0];
