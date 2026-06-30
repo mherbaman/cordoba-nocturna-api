@@ -346,6 +346,7 @@ function navTo(page, btn) {
   }
   if (page === "reservas")   cargarReservas();
   if (page === 'jugadores')  { cargarJugadoresClub(); cargarComunidadClub(); }
+  if (page === 'personal')   cargarPersonal();
   if (page === "partidos")   cargarPartidos();
   if (page === "stats")      cargarStats();
   if (page === "resenas")    cargarResenasClub();
@@ -1201,6 +1202,146 @@ async function cargarJugadoresClub() {
     cont.innerHTML = '<div style="color:#ef4444;font-size:13px">Error: ' + (e.message||e) + '</div>';
   }
 }
+// ── PERSONAL DEL CLUB ────────────────────────────────────────
+const CARGOS = ['mozo','barman','cajero','cocina','recepcion','mantenimiento','profesor','otro'];
+const CARGO_LBL = { mozo:'Mozo', barman:'Barman', cajero:'Cajero', cocina:'Cocina', recepcion:'Recepción', mantenimiento:'Mantenimiento', profesor:'Profesor', otro:'Otro' };
+const ROL_LBL = { empleado:'Empleado', encargado:'Encargado' };
+const DIAS_LBL = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+async function cargarPersonal() {
+  const nid = getCanchasNegocioId();
+  if (!nid) return;
+  const cont = document.getElementById('personal-list');
+  if (!cont) return;
+  cont.innerHTML = '<div class="loader"></div>';
+  try {
+    const personal = await apiAdmin('/padel/club/personal?negocio_id=' + nid);
+    if (!personal.length) {
+      cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">No hay empleados cargados.<br>Usá "+ Agregar empleado" para empezar.</div>';
+      return;
+    }
+    cont.innerHTML = personal.map(p => {
+      const tel = p.telefono ? p.telefono.replace(/\D/g,'') : null;
+      return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👤</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#fff">${p.nombre}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.5)">${CARGO_LBL[p.cargo]||p.cargo} · ${ROL_LBL[p.rol_acceso]||p.rol_acceso}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3)">${p.email}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;${p.activo ? 'background:rgba(34,197,94,.15);color:#22c55e' : 'background:rgba(239,68,68,.15);color:#f87171'}">${p.activo ? 'Activo' : 'Inactivo'}</span>
+          <div style="display:flex;gap:6px">
+            ${tel ? `<a href="https://wa.me/${tel}" target="_blank" style="font-size:11px;color:#22c55e;text-decoration:none">💬</a>` : ''}
+            <button onclick="verAsistencia('${p.id}','${p.nombre}')" style="font-size:10px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a78bfa;padding:3px 8px;border-radius:20px;cursor:pointer">📋 Asistencia</button>
+            <button onclick="editarEmpleado(${JSON.stringify(p).replace(/"/g,'&quot;')})" style="font-size:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:3px 8px;border-radius:20px;cursor:pointer">✏️</button>
+            <button onclick="borrarEmpleado('${p.id}')" style="font-size:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:3px 8px;border-radius:20px;cursor:pointer">🗑</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message||e) + '</div>';
+  }
+}
+
+function abrirModalNuevoEmpleado() { abrirModalEmpleado(null); }
+function editarEmpleado(p) { abrirModalEmpleado(p); }
+
+function abrirModalEmpleado(p) {
+  const esNuevo = !p;
+  document.getElementById('modal-title').textContent = esNuevo ? '👤 Nuevo empleado' : '✏️ Editar empleado';
+  const nid = getCanchasNegocioId();
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-grid">
+      <div class="full"><label class="field-label">Nombre completo</label><input class="input-field" id="emp-nombre" value="${p?.nombre||''}" placeholder="Juan García"></div>
+      <div class="full"><label class="field-label">Email (para login)</label><input class="input-field" id="emp-email" type="email" value="${p?.email||''}" placeholder="juan@club.com" ${p?'readonly':''}></div>
+      <div><label class="field-label">Teléfono</label><input class="input-field" id="emp-tel" value="${p?.telefono||''}" placeholder="3511234567"></div>
+      <div><label class="field-label">Contraseña ${p?'(dejar vacío = no cambiar)':''}</label><input class="input-field" id="emp-pass" type="password" placeholder="Mínimo 6 caracteres"></div>
+      <div><label class="field-label">Cargo</label>
+        <select class="input-field" id="emp-cargo" style="color:#fff;background:#1a0030">
+          ${CARGOS.map(c => `<option value="${c}" ${p?.cargo===c?'selected':''}>${CARGO_LBL[c]}</option>`).join('')}
+        </select>
+      </div>
+      <div><label class="field-label">Rol de acceso</label>
+        <select class="input-field" id="emp-rol" style="color:#fff;background:#1a0030">
+          <option value="empleado" ${(!p||p.rol_acceso==='empleado')?'selected':''}>Empleado</option>
+          <option value="encargado" ${p?.rol_acceso==='encargado'?'selected':''}>Encargado</option>
+        </select>
+      </div>
+    </div>
+    <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin:12px 0;font-size:12px;color:rgba(255,255,255,.6)">
+      📱 El empleado va a entrar en: <strong style="color:#f59e0b">https://cordobalux.com/padelclub</strong> con su email y contraseña
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarEmpleado('${p?.id||''}','${nid}')">${esNuevo?'CREAR EMPLEADO':'GUARDAR CAMBIOS'}</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+async function guardarEmpleado(id, nid) {
+  const nombre = document.getElementById('emp-nombre').value.trim();
+  const email = document.getElementById('emp-email').value.trim();
+  const telefono = document.getElementById('emp-tel').value.trim();
+  const password = document.getElementById('emp-pass').value;
+  const cargo = document.getElementById('emp-cargo').value;
+  const rol_acceso = document.getElementById('emp-rol').value;
+  if (!nombre || !email) { alert('Nombre y email son requeridos'); return; }
+  if (!id && !password) { alert('La contraseña es requerida para nuevos empleados'); return; }
+  if (password && password.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+  try {
+    if (id) {
+      const body = { nombre, telefono, cargo, rol_acceso };
+      if (password) body.password = password;
+      await apiAdmin('/padel/club/personal/' + id, { method:'PUT', body:JSON.stringify(body) });
+    } else {
+      await apiAdmin('/padel/club/personal', { method:'POST', body:JSON.stringify({ negocio_id:nid, nombre, email, telefono, password, cargo, rol_acceso }) });
+    }
+    cerrarModal();
+    cargarPersonal();
+  } catch(e) { alert(e.message||e); }
+}
+
+async function borrarEmpleado(id) {
+  if (!confirm('¿Borrar este empleado? Esta acción no se puede deshacer.')) return;
+  try {
+    await apiAdmin('/padel/club/personal/' + id, { method:'DELETE' });
+    cargarPersonal();
+  } catch(e) { alert(e.message||e); }
+}
+
+async function verAsistencia(id, nombre) {
+  document.getElementById('modal-title').textContent = '📋 Asistencia — ' + nombre;
+  document.getElementById('modal-body').innerHTML = '<div class="loader"></div>';
+  document.getElementById('modal-overlay').classList.add('show');
+  try {
+    const data = await apiAdmin('/padel/club/personal/' + id + '/asistencia');
+    if (!data.length) {
+      document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Sin registros de asistencia todavía.</div><div class="modal-actions"><button class="btn-cancel" onclick="cerrarModal()">Cerrar</button></div>';
+      return;
+    }
+    const rows = data.map(a => {
+      const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      let horas = '—';
+      if (a.check_in && a.check_out) {
+        const diff = (new Date(a.check_out) - new Date(a.check_in)) / 3600000;
+        horas = diff.toFixed(1) + ' hs';
+      }
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px">
+        <span style="color:rgba(255,255,255,.7)">${a.fecha}</span>
+        <span style="color:#22c55e">▶ ${ci}</span>
+        <span style="color:#f87171">■ ${co}</span>
+        <span style="color:rgba(255,255,255,.4)">${horas}</span>
+      </div>`;
+    }).join('');
+    document.getElementById('modal-body').innerHTML = rows + '<div class="modal-actions"><button class="btn-cancel" onclick="cerrarModal()">Cerrar</button></div>';
+  } catch(e) {
+    document.getElementById('modal-body').innerHTML = '<div style="color:#ef4444">Error: ' + (e.message||e) + '</div><div class="modal-actions"><button class="btn-cancel" onclick="cerrarModal()">Cerrar</button></div>';
+  }
+}
+
 // ── COMUNIDAD DEL CLUB ────────────────────────────────────────
 async function cargarComunidadClub() {
   const nid = getCanchasNegocioId();
@@ -2230,6 +2371,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     <button class="tab" onclick="navTo('torneos',this)">&#127942; Torneos</button>
     <button class="tab" onclick="navTo('jugadores',this)">&#128101; Jugadores</button>
     <button class="tab" onclick="navTo('resenas',this)">&#11088; Resenas</button>
+    <button class="tab" onclick="navTo('personal',this)">&#128100; Personal <span style="font-size:9px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:2px 6px;border-radius:20px;font-weight:700;margin-left:4px">⭐ PREMIUM</span></button>
   </div>
 
   <div class="main">
@@ -2600,6 +2742,15 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     <div class="page" id="page-resenas">
       <div class="section-hdr"><div class="section-title">&#11088; Resenas de jugadores</div></div>
       <div id="resenas-list"><div class="loader"></div></div>
+    </div>
+
+    <!-- ===== PERSONAL ===== -->
+    <div class="page" id="page-personal">
+      <div class="section-hdr" style="display:flex;align-items:center;justify-content:space-between">
+        <div class="section-title">&#128100; Personal <span style="font-size:11px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:2px 8px;border-radius:20px;font-weight:700;margin-left:8px">&#11088; PREMIUM</span></div>
+        <button class="btn-export" onclick="abrirModalNuevoEmpleado()">+ Agregar empleado</button>
+      </div>
+      <div id="personal-list"><div class="loader"></div></div>
     </div>
 
   </div><!-- /main -->
