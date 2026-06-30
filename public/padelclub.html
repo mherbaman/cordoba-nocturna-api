@@ -1204,6 +1204,132 @@ async function cargarJugadoresClub() {
     cont.innerHTML = '<div style="color:#ef4444;font-size:13px">Error: ' + (e.message||e) + '</div>';
   }
 }
+// ── LOGIN EMPLEADO ───────────────────────────────────────────
+function mostrarLoginEmpleado() {
+  document.getElementById('login-box-club').style.display = 'none';
+  document.getElementById('login-box-empleado').style.display = 'block';
+}
+function mostrarLoginClub() {
+  document.getElementById('login-box-empleado').style.display = 'none';
+  document.getElementById('login-box-club').style.display = 'block';
+}
+async function doLoginEmpleado() {
+  const email = document.getElementById('login-emp-email').value.trim();
+  const password = document.getElementById('login-emp-password').value;
+  const errEl = document.getElementById('login-emp-error');
+  const btn = document.getElementById('btn-login-emp');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Completá todos los campos'; return; }
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+  try {
+    const data = await fetch('https://api.cordobalux.com/padel/personal/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    }).then(r => r.json());
+    if (data.error) throw new Error(data.error);
+    localStorage.setItem('personal_token', data.token);
+    localStorage.setItem('personal_data', JSON.stringify(data.personal));
+    document.getElementById('login-screen').style.display = 'none';
+    mostrarPantallaEmpleado(data.personal);
+  } catch(e) {
+    errEl.textContent = e.message || 'Error al iniciar sesión';
+    btn.textContent = 'ENTRAR →'; btn.disabled = false;
+  }
+}
+function doLogoutEmpleado() {
+  localStorage.removeItem('personal_token');
+  localStorage.removeItem('personal_data');
+  document.getElementById('empleado-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  mostrarLoginEmpleado();
+}
+async function mostrarPantallaEmpleado(p) {
+  const CARGO_LBL = { mozo:'Mozo', barman:'Barman', cajero:'Cajero', cocina:'Cocina', recepcion:'Recepción', mantenimiento:'Mantenimiento', profesor:'Profesor', otro:'Otro' };
+  document.getElementById('empleado-screen').style.display = 'flex';
+  document.getElementById('emp-nombre-bienvenida').textContent = 'Hola, ' + p.nombre + ' 👋';
+  document.getElementById('emp-cargo-label').textContent = (CARGO_LBL[p.cargo]||p.cargo) + ' · ' + (p.negocio_nombre||'');
+  document.getElementById('emp-negocio-nombre').textContent = p.negocio_nombre || '';
+  cargarDatosEmpleado();
+}
+async function apiPersonal(url, opts={}) {
+  const token = localStorage.getItem('personal_token');
+  const res = await fetch('https://api.cordobalux.com' + url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, ...(opts.headers||{}) }
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+async function cargarDatosEmpleado() {
+  const DIAS_LBL = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  try {
+    const [turnos, asistencia] = await Promise.all([
+      apiPersonal('/padel/personal/mis-turnos'),
+      apiPersonal('/padel/personal/mi-asistencia')
+    ]);
+    // Turnos
+    const turnosCont = document.getElementById('emp-turnos-list');
+    if (turnos.length) {
+      turnosCont.innerHTML = turnos.map(t =>
+        `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px">
+          <span style="color:rgba(255,255,255,.7)">${DIAS_LBL[t.dia_semana]}</span>
+          <span style="color:#f59e0b">${String(t.hora_inicio).substring(0,5)} — ${String(t.hora_fin).substring(0,5)}</span>
+        </div>`
+      ).join('');
+    } else {
+      turnosCont.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:13px">Sin horarios asignados todavía.</div>';
+    }
+    // Historial
+    const histCont = document.getElementById('emp-historial-list');
+    if (asistencia.length) {
+      histCont.innerHTML = asistencia.slice(0,10).map(a => {
+        const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
+        const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
+        let horas = '';
+        if (a.check_in && a.check_out) horas = ' · ' + ((new Date(a.check_out)-new Date(a.check_in))/3600000).toFixed(1) + ' hs';
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">
+          <span style="color:rgba(255,255,255,.5)">${a.fecha}</span>
+          <span style="color:#22c55e">▶ ${ci}</span>
+          <span style="color:#f87171">■ ${co}${horas}</span>
+        </div>`;
+      }).join('');
+    } else {
+      histCont.innerHTML = '<div style="color:rgba(255,255,255,.3);font-size:13px">Sin registros todavía.</div>';
+    }
+    // Asistencia hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    const hoyReg = asistencia.find(a => a.fecha === hoy || a.fecha?.startsWith(hoy));
+    const asCont = document.getElementById('emp-asistencia-hoy');
+    const btnCI = document.getElementById('btn-checkin');
+    const btnCO = document.getElementById('btn-checkout');
+    if (hoyReg?.check_in && hoyReg?.check_out) {
+      asCont.innerHTML = '✅ Jornada completa · Entrada: ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) + ' · Salida: ' + new Date(hoyReg.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+      btnCI.disabled = true; btnCO.disabled = true;
+    } else if (hoyReg?.check_in) {
+      asCont.innerHTML = '▶ Entraste a las ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+      btnCI.disabled = true; btnCO.disabled = false;
+    } else {
+      asCont.innerHTML = 'Todavía no registraste entrada hoy.';
+      btnCI.disabled = false; btnCO.disabled = true;
+    }
+  } catch(e) { console.error(e); }
+}
+async function doCheckin() {
+  try {
+    await apiPersonal('/padel/personal/checkin', { method:'POST' });
+    alert('✅ Check-in registrado');
+    cargarDatosEmpleado();
+  } catch(e) { alert(e.message); }
+}
+async function doCheckout() {
+  try {
+    await apiPersonal('/padel/personal/checkout', { method:'POST' });
+    alert('✅ Check-out registrado');
+    cargarDatosEmpleado();
+  } catch(e) { alert(e.message); }
+}
 // ── PERSONAL DEL CLUB ────────────────────────────────────────
 const CARGOS = ['mozo','barman','cajero','cocina','recepcion','mantenimiento','profesor','otro'];
 const CARGO_LBL = { mozo:'Mozo', barman:'Barman', cajero:'Cajero', cocina:'Cocina', recepcion:'Recepción', mantenimiento:'Mantenimiento', profesor:'Profesor', otro:'Otro' };
@@ -2340,7 +2466,8 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-box">
+  <!-- LOGIN CLUB -->
+  <div class="login-box" id="login-box-club">
     <div class="login-logo">PADEL<span>CLUB</span></div>
     <p class="login-sub">Panel de gestión para clubes de pádel</p>
     <div class="error-msg" id="login-error"></div>
@@ -2349,6 +2476,55 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
     <label class="field-label">Contraseña</label>
     <input class="input-field" id="login-password" type="password" placeholder="••••••••">
     <button class="btn-primary" id="btn-login">ENTRAR →</button>
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="mostrarLoginEmpleado()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;text-decoration:underline">👤 Soy empleado del club</button>
+    </div>
+  </div>
+  <!-- LOGIN EMPLEADO -->
+  <div class="login-box" id="login-box-empleado" style="display:none">
+    <div class="login-logo">PADEL<span>STAFF</span></div>
+    <p class="login-sub">Acceso para empleados del club</p>
+    <div class="error-msg" id="login-emp-error"></div>
+    <label class="field-label">Email</label>
+    <input class="input-field" id="login-emp-email" type="email" placeholder="tu@club.com">
+    <label class="field-label">Contraseña</label>
+    <input class="input-field" id="login-emp-password" type="password" placeholder="••••••••">
+    <button class="btn-primary" id="btn-login-emp" onclick="doLoginEmpleado()">ENTRAR →</button>
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="mostrarLoginClub()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;text-decoration:underline">← Volver al login del club</button>
+    </div>
+  </div>
+</div>
+<!-- PANTALLA EMPLEADO -->
+<div id="empleado-screen" style="display:none;flex-direction:column;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,rgba(245,158,11,.08) 0%,transparent 60%)">
+  <div style="background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.08);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:1px">PADEL<span style="color:#f59e0b">STAFF</span></div>
+      <div id="emp-negocio-nombre" style="font-size:11px;color:rgba(255,255,255,.4)">Club</div>
+    </div>
+    <button onclick="doLogoutEmpleado()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer">Salir</button>
+  </div>
+  <div style="padding:24px;max-width:500px;margin:0 auto;width:100%">
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px">
+      <div id="emp-nombre-bienvenida" style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">Hola 👋</div>
+      <div id="emp-cargo-label" style="font-size:13px;color:rgba(255,255,255,.5)">—</div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Asistencia de hoy</div>
+      <div id="emp-asistencia-hoy" style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:14px">Cargando...</div>
+      <div style="display:flex;gap:10px">
+        <button id="btn-checkin" onclick="doCheckin()" style="flex:1;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">▶ CHECK-IN</button>
+        <button id="btn-checkout" onclick="doCheckout()" style="flex:1;background:linear-gradient(135deg,#b91c1c,#ef4444);border:none;color:#fff;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">■ CHECK-OUT</button>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Mi horario semanal</div>
+      <div id="emp-turnos-list">Cargando...</div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Últimas asistencias</div>
+      <div id="emp-historial-list">Cargando...</div>
+    </div>
   </div>
 </div>
 
