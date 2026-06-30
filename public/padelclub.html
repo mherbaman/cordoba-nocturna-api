@@ -345,7 +345,7 @@ function navTo(page, btn) {
     }, 50);
   }
   if (page === "reservas")   cargarReservas();
-  if (page === 'jugadores')  cargarJugadoresClub();
+  if (page === 'jugadores')  { cargarJugadoresClub(); cargarComunidadClub(); }
   if (page === "partidos")   cargarPartidos();
   if (page === "stats")      cargarStats();
   if (page === "resenas")    cargarResenasClub();
@@ -865,7 +865,7 @@ function showCanchaTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
   if (tab === 'gestion') cargarCanchasConfig();
-  if (tab === 'jugadores') cargarJugadoresClub();
+  if (tab === 'jugadores') { cargarJugadoresClub(); cargarComunidadClub(); }
   if (tab === 'agenda') {
     agendaFechaBase = agendaFechaBase || lunesDe(new Date());
     renderAgendaNav();
@@ -1197,6 +1197,48 @@ async function cargarJugadoresClub() {
         ${tel ? `<a href="https://wa.me/${tel}" target="_blank" style="font-size:11px;color:#22c55e;text-decoration:none;white-space:nowrap">💬 WA</a>` : ''}
       </div>`;
     }).join('');
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#ef4444;font-size:13px">Error: ' + (e.message||e) + '</div>';
+  }
+}
+// ── COMUNIDAD DEL CLUB ────────────────────────────────────────
+async function cargarComunidadClub() {
+  const nid = getCanchasNegocioId();
+  if (!nid) return;
+  const cont = document.getElementById('jugadores-comunidad');
+  if (!cont) return;
+  cont.innerHTML = '<div class="loader"></div>';
+  try {
+    const d = await apiAdmin('/padel/club/comunidad?negocio_id=' + nid);
+    const NIVEL_LBL = { octava:'8ª', septima:'7ª', sexta:'6ª', quinta:'5ª', cuarta:'4ª', tercera:'3ª', segunda:'2ª', primera:'1ª' };
+    let html = '';
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="text-align:center;padding:10px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.15)"><div style="font-size:18px;font-weight:700;color:var(--green)">${d.total_jugadores}</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Jugadores</div></div>
+      <div style="text-align:center;padding:10px;background:rgba(99,102,241,.06);border-radius:10px;border:1px solid rgba(99,102,241,.15)"><div style="font-size:18px;font-weight:700;color:#818cf8">${d.total_reservas}</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Reservas</div></div>
+      <div style="text-align:center;padding:10px;background:rgba(251,191,36,.06);border-radius:10px;border:1px solid rgba(251,191,36,.15)"><div style="font-size:13px;font-weight:700;color:#fbbf24">ARS ${Math.round(d.total_recaudado).toLocaleString('es-AR')}</div><div style="font-size:10px;color:rgba(255,255,255,.4)">Recaudado</div></div>
+    </div>`;
+    if (d.niveles && d.niveles.length) {
+      const maxN = Math.max(...d.niveles.map(n=>parseInt(n.total)));
+      html += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px;font-weight:600">Por categoría</div>';
+      d.niveles.forEach(n => {
+        const pct = Math.round((parseInt(n.total)/maxN)*100);
+        html += `<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.7);margin-bottom:2px"><span>${NIVEL_LBL[n.nivel]||n.nivel}</span><span>${n.total}</span></div><div style="height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#22c55e,#15803d)"></div></div></div>`;
+      });
+    }
+    if (d.zonas && d.zonas.length) {
+      html += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin:14px 0 6px;font-weight:600">Top zonas</div>';
+      d.zonas.forEach(z => {
+        html += `<div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.7);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span>📍 ${z.zona}</span><span style="color:rgba(255,255,255,.4)">${z.total}</span></div>`;
+      });
+    }
+    if (d.edades && d.edades.length) {
+      const promedioEdad = Math.round(d.edades.reduce((s,e)=>s+(e.edad*parseInt(e.total)),0) / d.edades.reduce((s,e)=>s+parseInt(e.total),0));
+      html += `<div style="font-size:11px;color:rgba(255,255,255,.4);margin:14px 0 4px;font-weight:600">Edad promedio</div><div style="font-size:16px;font-weight:700;color:#fff">${promedioEdad} años</div>`;
+    }
+    if (!d.niveles.length && !d.zonas.length && !d.edades.length) {
+      html += '<div style="color:var(--muted);font-size:13px">Sin datos suficientes todavía.</div>';
+    }
+    cont.innerHTML = html;
   } catch(e) {
     cont.innerHTML = '<div style="color:#ef4444;font-size:13px">Error: ' + (e.message||e) + '</div>';
   }

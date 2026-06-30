@@ -2227,6 +2227,32 @@ router.get('/club/jugadores', authAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error interno' });
   }
 });
+// ── GET /padel/club/comunidad ────────────────────────────────────────
+router.get('/club/comunidad', authAdmin, async (req, res) => {
+  const { negocio_id } = req.query;
+  if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
+  try {
+    const [niveles, zonas, edades, totalJugadores, totalReservas, totalRecaudado] = await Promise.all([
+      pool.query(`SELECT j.nivel, COUNT(DISTINCT r.jugador_id) as total FROM reservas_padel r JOIN jugadores_padel j ON j.id=r.jugador_id WHERE r.negocio_id=$1 AND r.estado NOT IN ('rechazado','cancelado') AND j.nivel IS NOT NULL GROUP BY j.nivel ORDER BY total DESC`, [negocio_id]),
+      pool.query(`SELECT j.zona, COUNT(DISTINCT r.jugador_id) as total FROM reservas_padel r JOIN jugadores_padel j ON j.id=r.jugador_id WHERE r.negocio_id=$1 AND r.estado NOT IN ('rechazado','cancelado') AND j.zona IS NOT NULL GROUP BY j.zona ORDER BY total DESC LIMIT 5`, [negocio_id]),
+      pool.query(`SELECT u.edad, COUNT(DISTINCT r.usuario_id) as total FROM reservas_padel r JOIN usuarios u ON u.id=r.usuario_id WHERE r.negocio_id=$1 AND r.estado NOT IN ('rechazado','cancelado') AND u.edad IS NOT NULL GROUP BY u.edad ORDER BY u.edad ASC`, [negocio_id]),
+      pool.query(`SELECT COUNT(DISTINCT COALESCE(r.jugador_id::text, r.usuario_id::text)) as total FROM reservas_padel r WHERE r.negocio_id=$1 AND r.estado NOT IN ('rechazado','cancelado')`, [negocio_id]),
+      pool.query(`SELECT COUNT(*) as total FROM reservas_padel WHERE negocio_id=$1 AND estado NOT IN ('rechazado','cancelado')`, [negocio_id]),
+      pool.query(`SELECT SUM(precio_cobrado) as total FROM reservas_padel WHERE negocio_id=$1 AND estado NOT IN ('rechazado','cancelado')`, [negocio_id]),
+    ]);
+    res.json({
+      niveles: niveles.rows,
+      zonas: zonas.rows,
+      edades: edades.rows,
+      total_jugadores: parseInt(totalJugadores.rows[0].total),
+      total_reservas: parseInt(totalReservas.rows[0].total),
+      total_recaudado: parseFloat(totalRecaudado.rows[0].total || 0),
+    });
+  } catch (err) {
+    console.error('GET /padel/club/comunidad:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
 // ── GET /padel/club/turnos-del-dia ───────────────────────────────────
 // Todos los turnos de un día específico para el club
 router.get('/club/turnos-del-dia', authAdmin, async (req, res) => {
