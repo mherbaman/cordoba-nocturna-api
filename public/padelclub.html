@@ -1306,7 +1306,7 @@ async function cargarDatosEmpleado() {
     }
     // Asistencia hoy
     const hoy = new Date().toISOString().split('T')[0];
-    const hoyReg = asistencia.find(a => a.fecha === hoy || a.fecha?.startsWith(hoy));
+    const hoyReg = asistencia.find(a => String(a.fecha).substring(0,10) === hoy);
     const asCont = document.getElementById('emp-asistencia-hoy');
     const btnCI = document.getElementById('btn-checkin');
     const btnCO = document.getElementById('btn-checkout');
@@ -1323,18 +1323,28 @@ async function cargarDatosEmpleado() {
   } catch(e) { console.error(e); }
 }
 async function doCheckin() {
+  const btn = document.getElementById('btn-checkin');
+  btn.disabled = true; btn.textContent = 'Registrando...';
   try {
     await apiPersonal('/padel/personal/checkin', { method:'POST' });
     alert('✅ Check-in registrado');
     cargarDatosEmpleado();
-  } catch(e) { alert(e.message); }
+  } catch(e) {
+    alert(e.message);
+    btn.disabled = false; btn.textContent = '▶ CHECK-IN';
+  }
 }
 async function doCheckout() {
+  const btn = document.getElementById('btn-checkout');
+  btn.disabled = true; btn.textContent = 'Registrando...';
   try {
     await apiPersonal('/padel/personal/checkout', { method:'POST' });
     alert('✅ Check-out registrado');
     cargarDatosEmpleado();
-  } catch(e) { alert(e.message); }
+  } catch(e) {
+    alert(e.message);
+    btn.disabled = false; btn.textContent = '■ CHECK-OUT';
+  }
 }
 // ── PERSONAL DEL CLUB ────────────────────────────────────────
 const CARGOS = ['mozo','barman','cajero','cocina','recepcion','mantenimiento','profesor','otro'];
