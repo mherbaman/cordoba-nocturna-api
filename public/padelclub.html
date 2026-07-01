@@ -1367,7 +1367,9 @@ async function cargarPersonal() {
     cont.innerHTML = personal.map(p => {
       const tel = p.telefono ? p.telefono.replace(/\D/g,'') : null;
       return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">👤</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden">
+          ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : `<span style="font-weight:700;color:#fff;font-size:16px">${p.nombre.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</span>`}
+        </div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:#fff">${p.nombre}</div>
           <div style="font-size:12px;color:rgba(255,255,255,.5)">${CARGO_LBL[p.cargo]||p.cargo} · ${ROL_LBL[p.rol_acceso]||p.rol_acceso}</div>
@@ -1389,6 +1391,29 @@ async function cargarPersonal() {
   }
 }
 
+function previewFotoEmpleado(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('emp-foto-preview');
+    if (preview) preview.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    const status = document.getElementById('emp-foto-status');
+    if (status) status.textContent = '✓ Lista para subir al guardar';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function quitarFotoEmpleado() {
+  const urlInput = document.getElementById('emp-foto-url');
+  if (urlInput) urlInput.value = '';
+  const fotoInput = document.getElementById('emp-foto-input');
+  if (fotoInput) fotoInput.value = '';
+  const nombre = document.getElementById('emp-nombre')?.value || '';
+  const iniciales = nombre.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() || '?';
+  const preview = document.getElementById('emp-foto-preview');
+  if (preview) preview.innerHTML = `<span style="font-weight:700;color:#fff;font-size:18px">${iniciales}</span>`;
+  const status = document.getElementById('emp-foto-status');
+  if (status) status.textContent = 'Foto eliminada (se guardará sin foto)';
+}
 function abrirModalNuevoEmpleado() { abrirModalEmpleado(null); }
 function editarEmpleado(p) { abrirModalEmpleado(p); }
 
@@ -1432,6 +1457,21 @@ async function abrirModalEmpleado(p) {
     <div class="modal-grid">
       <div class="full"><label class="field-label">Nombre completo</label><input class="input-field" id="emp-nombre" value="${p?.nombre||''}" placeholder="Juan Garcia"></div>
       <div class="full"><label class="field-label">Email (para login)</label><input class="input-field" id="emp-email" type="email" value="${p?.email||''}" placeholder="juan@club.com" ${p?'readonly':''}></div>
+      <div class="full">
+        <label class="field-label">Foto del empleado</label>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+          <div id="emp-foto-preview" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+            ${p?.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-weight:700;color:#fff;font-size:18px" id="emp-foto-iniciales">${p?.nombre ? p.nombre.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase() : '?'}</span>`}
+          </div>
+          <div style="flex:1">
+            <input type="file" id="emp-foto-input" accept="image/*" style="display:none" onchange="previewFotoEmpleado(this)">
+            <button type="button" onclick="document.getElementById('emp-foto-input').click()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#fff;padding:7px 14px;border-radius:20px;cursor:pointer;font-size:12px">📷 Subir foto</button>
+            ${p?.foto_url ? `<button type="button" onclick="quitarFotoEmpleado()" style="margin-left:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:7px 14px;border-radius:20px;cursor:pointer;font-size:12px">🗑 Quitar</button>` : ''}
+            <div id="emp-foto-status" style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px"></div>
+          </div>
+        </div>
+        <input type="hidden" id="emp-foto-url" value="${p?.foto_url||''}">
+      </div>
       <div><label class="field-label">Telefono</label><input class="input-field" id="emp-tel" value="${p?.telefono||''}" placeholder="3511234567"></div>
       <div><label class="field-label">Contrasena ${p?'(vacio = no cambiar)':''}</label><input class="input-field" id="emp-pass" type="password" placeholder="Minimo 6 caracteres"></div>
       <div><label class="field-label">Cargo</label>
@@ -1477,14 +1517,36 @@ async function guardarEmpleado(id, nid) {
   if (!nombre || !email) { alert('Nombre y email son requeridos'); return; }
   if (!id && !password) { alert('La contrasena es requerida para nuevos empleados'); return; }
   if (password && password.length < 6) { alert('La contrasena debe tener al menos 6 caracteres'); return; }
+  // Subir foto a Cloudinary si hay archivo seleccionado
+  const fotoInput = document.getElementById('emp-foto-input');
+  let foto_url = document.getElementById('emp-foto-url')?.value || null;
+  if (fotoInput?.files?.length) {
+    const statusEl = document.getElementById('emp-foto-status');
+    if (statusEl) statusEl.textContent = 'Subiendo foto...';
+    try {
+      const fd = new FormData();
+      fd.append('file', fotoInput.files[0]);
+      fd.append('upload_preset', 'ml_default');
+      fd.append('folder', 'personal_club');
+      const r = await fetch('https://api.cloudinary.com/v1_1/dtu8z7jrx/image/upload', { method:'POST', body:fd });
+      const data = await r.json();
+      if (!data.secure_url) throw new Error('Error al subir foto');
+      foto_url = data.secure_url;
+      if (statusEl) statusEl.textContent = '';
+    } catch(e) {
+      alert('Error al subir la foto: ' + (e.message||e));
+      return;
+    }
+  }
   try {
     let empId = id;
     if (id) {
       const body = { nombre, telefono, cargo, rol_acceso };
       if (password) body.password = password;
+      if (foto_url !== undefined) body.foto_url = foto_url;
       await apiAdmin('/padel/club/personal/' + id, { method:'PUT', body:JSON.stringify(body) });
     } else {
-      const nuevo = await apiAdmin('/padel/club/personal', { method:'POST', body:JSON.stringify({ negocio_id:nid, nombre, email, telefono, password, cargo, rol_acceso }) });
+      const nuevo = await apiAdmin('/padel/club/personal', { method:'POST', body:JSON.stringify({ negocio_id:nid, nombre, email, telefono, password, cargo, rol_acceso, foto_url }) });
       empId = nuevo.id;
     }
     // Guardar horarios
@@ -1589,11 +1651,9 @@ async function guardarAsistencia(asistenciaId) {
   try {
     const hoy = empIdActual ? (await apiAdmin('/padel/club/personal/' + empIdActual + '/asistencia')).find(a => a.id === asistenciaId)?.fecha : null;
     const fechaBase = hoy ? String(hoy).substring(0,10) : new Date().toISOString().split('T')[0];
-    // Compensar UTC-3: sumar 3 horas para que al guardar en UTC quede la hora local correcta
+    // Guardar como UTC-3: simplemente agregar offset sin pasar por Date
     function toUTC(fecha, hora) {
-      const d = new Date(fecha + 'T' + hora + ':00');
-      d.setHours(d.getHours() + 3);
-      return d.toISOString();
+      return fecha + 'T' + hora + ':00.000-03:00';
     }
     const check_in = toUTC(fechaBase, ci);
     const check_out = co ? toUTC(fechaBase, co) : null;

@@ -2284,7 +2284,7 @@ router.get('/club/personal', authAdmin, async (req, res) => {
   if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
   try {
     const result = await pool.query(
-      'SELECT id, nombre, email, telefono, cargo, rol_acceso, activo, creado_en FROM personal_club WHERE negocio_id = $1 ORDER BY creado_en DESC',
+      'SELECT id, nombre, email, telefono, cargo, rol_acceso, activo, foto_url, creado_en FROM personal_club WHERE negocio_id = $1 ORDER BY creado_en DESC',
       [negocio_id]
     );
     res.json(result.rows);
@@ -2296,14 +2296,14 @@ router.get('/club/personal', authAdmin, async (req, res) => {
 
 // ── POST /padel/club/personal ────────────────────────────────────────
 router.post('/club/personal', authAdmin, async (req, res) => {
-  const { negocio_id, nombre, email, telefono, password, cargo, rol_acceso } = req.body;
+  const { negocio_id, nombre, email, telefono, password, cargo, rol_acceso, foto_url } = req.body;
   if (!negocio_id || !nombre || !email || !password) return res.status(400).json({ error: 'Faltan datos requeridos' });
   try {
     const password_hash = await bcryptPersonal.hash(password, 10);
     const result = await pool.query(
-      `INSERT INTO personal_club (negocio_id, nombre, email, telefono, password_hash, cargo, rol_acceso)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, nombre, email, telefono, cargo, rol_acceso, activo`,
-      [negocio_id, nombre, email, telefono || null, password_hash, cargo || 'otro', rol_acceso || 'empleado']
+      `INSERT INTO personal_club (negocio_id, nombre, email, telefono, password_hash, cargo, rol_acceso, foto_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, nombre, email, telefono, cargo, rol_acceso, activo, foto_url`,
+      [negocio_id, nombre, email, telefono || null, password_hash, cargo || 'otro', rol_acceso || 'empleado', foto_url || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -2315,7 +2315,7 @@ router.post('/club/personal', authAdmin, async (req, res) => {
 
 // ── PUT /padel/club/personal/:id ─────────────────────────────────────
 router.put('/club/personal/:id', authAdmin, async (req, res) => {
-  const { nombre, telefono, cargo, rol_acceso, activo, password } = req.body;
+  const { nombre, telefono, cargo, rol_acceso, activo, password, foto_url } = req.body;
   try {
     let password_hash = null;
     if (password) password_hash = await bcryptPersonal.hash(password, 10);
@@ -2326,9 +2326,10 @@ router.put('/club/personal/:id', authAdmin, async (req, res) => {
         cargo = COALESCE($3, cargo),
         rol_acceso = COALESCE($4, rol_acceso),
         activo = COALESCE($5, activo),
-        password_hash = COALESCE($6, password_hash)
-       WHERE id = $7 RETURNING id, nombre, email, telefono, cargo, rol_acceso, activo`,
-      [nombre, telefono, cargo, rol_acceso, activo, password_hash, req.params.id]
+        password_hash = COALESCE($6, password_hash),
+        foto_url = CASE WHEN $8::text IS NOT NULL THEN $8::text ELSE foto_url END
+       WHERE id = $7 RETURNING id, nombre, email, telefono, cargo, rol_acceso, activo, foto_url`,
+      [nombre, telefono, cargo, rol_acceso, activo, password_hash, req.params.id, foto_url ?? null]
     );
     res.json(result.rows[0]);
   } catch (err) {
