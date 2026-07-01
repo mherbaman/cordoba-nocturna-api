@@ -1291,8 +1291,8 @@ async function cargarDatosEmpleado() {
     const histCont = document.getElementById('emp-historial-list');
     if (asistencia.length) {
       histCont.innerHTML = asistencia.slice(0,10).map(a => {
-        const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
-        const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
+        const ci = a.check_in ? horaLocal(a.check_in) : '—';
+        const co = a.check_out ? horaLocal(a.check_out) : '—';
         let horas = '';
         if (a.check_in && a.check_out) horas = ' · ' + ((new Date(a.check_out)-new Date(a.check_in))/3600000).toFixed(1) + ' hs';
         return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">
@@ -1311,10 +1311,10 @@ async function cargarDatosEmpleado() {
     const btnCI = document.getElementById('btn-checkin');
     const btnCO = document.getElementById('btn-checkout');
     if (hoyReg?.check_in && hoyReg?.check_out) {
-      asCont.innerHTML = '✅ Jornada completa · Entrada: ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) + ' · Salida: ' + new Date(hoyReg.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false});
+      asCont.innerHTML = '✅ Jornada completa · Entrada: ' + horaLocal(hoyReg.check_in) + ' · Salida: ' + horaLocal(hoyReg.check_out);
       btnCI.disabled = true; btnCO.disabled = true;
     } else if (hoyReg?.check_in) {
-      asCont.innerHTML = '▶ Entraste a las ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false});
+      asCont.innerHTML = '▶ Entraste a las ' + horaLocal(hoyReg.check_in);
       btnCI.disabled = true; btnCO.disabled = false;
     } else {
       asCont.innerHTML = 'Todavía no registraste entrada hoy.';
@@ -1588,8 +1588,8 @@ async function verAsistencia(id, nombre) {
       return;
     }
     const rows = data.map(a => {
-      const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
-      const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
+      const ci = a.check_in ? horaLocal(a.check_in) : '—';
+      const co = a.check_out ? horaLocal(a.check_out) : '—';
       let horas = '—';
       if (a.check_in && a.check_out) {
         const diffMin = Math.round((new Date(a.check_out) - new Date(a.check_in)) / 60000);
@@ -1643,6 +1643,13 @@ function editarAsistencia(asistenciaId, checkIn, checkOut) {
       <button class="btn-cancel" onclick="verAsistencia(empIdActual, empNombreActual)">Cancelar</button>
       <button class="btn-primary" onclick="guardarAsistencia('${asistenciaId}')">GUARDAR</button>
     </div>`;
+}
+function horaLocal(ts) {
+  // TIMESTAMP WITHOUT TIME ZONE viene como '2026-06-30T20:00:00.000Z' pero es hora local
+  // Extraer HH:MM directo del string sin pasar por Date
+  const s = String(ts);
+  const m = s.match(/T(\d{2}):(\d{2})/);
+  return m ? m[1] + ':' + m[2] : '—';
 }
 async function guardarAsistencia(asistenciaId) {
   const ci = document.getElementById('edit-ci').value;
