@@ -258,6 +258,33 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
 
+// DELETE /superadmin/negocios/:id — borrar negocio completo
+router.delete('/negocios/:id', authAdmin, async (req, res) => {
+  const { id } = req.params;
+  // Solo superadmin puede borrar negocios
+  if (!req.admin || !req.admin.es_superadmin) {
+    return res.status(403).json({ ok: false, error: 'Solo el superadmin puede borrar negocios' });
+  }
+  try {
+    const { rows } = await pool.query('SELECT nombre FROM negocios WHERE id = $1', [id]);
+    if (!rows.length) return res.status(404).json({ ok: false, error: 'Negocio no encontrado' });
+    const nombre = rows[0].nombre;
+
+    // Borrar en cascada: reservas → disponibilidad → admins → negocios
+    await pool.query('DELETE FROM reservas_padel WHERE negocio_id = $1', [id]);
+    await pool.query('DELETE FROM disponibilidad_padel WHERE negocio_id = $1', [id]);
+    await pool.query('DELETE FROM cierre_caja_diaria WHERE negocio_id = $1', [id]);
+    await pool.query('DELETE FROM admins WHERE negocio_id = $1', [id]);
+    await pool.query('DELETE FROM negocios WHERE id = $1', [id]);
+
+    console.log(`[SUPERADMIN] Negocio eliminado: ${nombre} (${id})`);
+    res.json({ ok: true, mensaje: `Negocio "${nombre}" eliminado correctamente` });
+  } catch (e) {
+    console.error('[DELETE negocio] Error:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // ── GET /superadmin/admin-negocio/:id ───────────────────────────────────
 router.get('/admin-negocio/:id', authSuperAdmin, async (req, res) => {
   try {

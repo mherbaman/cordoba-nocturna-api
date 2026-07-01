@@ -2232,6 +2232,7 @@ function renderNegocios(negocios) {
           ${n.vencimiento_plan?`<span class="badge badge-yellow" style="font-size:10px">Vence: ${new Date(n.vencimiento_plan.slice(0,10)+'T12:00:00').toLocaleDateString('es-AR')}</span>`:''}</td>
         <td><div class="td-actions">
           <button class="btn-sm btn-edit" onclick="editarNegocio(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️ Editar</button>
+            <button class="btn-sm btn-delete" onclick="borrarNegocio('${n.id}','${n.nombre}')" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#f87171;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:700">🗑 Borrar</button>
           <button class="btn-sm" style="background:rgba(124,58,237,.15);color:#a78bfa" onclick="gestionarAdminNegocio('${n.id}','${n.nombre}','${n.tipo}')">🔑 Acceso</button>
           <button class="btn-sm" style="background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)" onclick="verPasswordNegocio('${n.id}','${n.nombre}')">🔐 Contraseña</button>
           <button class="btn-sm" style="background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2)" onclick="verPanelNegocio('${n.id}','${n.nombre}')">👁 Ver panel</button>
@@ -2609,6 +2610,27 @@ async function borrarUsuario(id, nombre) {
     alert(`✅ Usuario ${nombre} eliminado`);
     cargarUsuarios();
   } catch(err) { alert('Error: ' + err.message); }
+}
+
+async function borrarNegocio(id, nombre) {
+  if (!confirm('⚠️ ¿Borrar el negocio "' + nombre + '"?\n\nEsto eliminará el negocio y todos sus datos. Esta acción NO se puede deshacer.')) return;
+  if (!confirm('🔴 SEGUNDA CONFIRMACIÓN\n\n¿Estás completamente seguro de borrar "' + nombre + '"?\n\nSe eliminarán: canchas, reservas, admins y todo el historial.')) return;
+  try {
+    const token = localStorage.getItem('admin_token');
+    const res = await fetch('/superadmin/negocios/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      mostrarToast('✅ Negocio "' + nombre + '" eliminado correctamente');
+      cargarNegocios();
+    } else {
+      alert('❌ Error: ' + (data.error || 'No se pudo borrar el negocio'));
+    }
+  } catch (e) {
+    alert('❌ Error de conexión: ' + e.message);
+  }
 }
 
 async function editarEmailUsuario(id, nombre, emailActual) {
