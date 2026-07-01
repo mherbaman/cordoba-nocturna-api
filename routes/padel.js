@@ -2412,6 +2412,7 @@ function authPersonal(req, res, next) {
 // ── PUT /padel/club/personal/asistencia/:id ──────────────────────────────
 router.put('/club/personal/asistencia/:id', authAdmin, async (req, res) => {
   const { check_in, check_out } = req.body;
+  console.log('ASISTENCIA DEBUG check_in:', check_in, 'check_out:', check_out);
   try {
     const result = await pool.query(
       'UPDATE personal_asistencia SET check_in=$1, check_out=$2 WHERE id=$3 RETURNING *',
