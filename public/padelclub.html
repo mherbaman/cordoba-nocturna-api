@@ -275,6 +275,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btn) btn.addEventListener("click", doLogin);
   document.getElementById("login-password").addEventListener("keydown", e => { if(e.key==="Enter") doLogin(); });
   if (adminToken) initApp();
+  const personalToken = localStorage.getItem("personal_token");
+  const personalData = localStorage.getItem("personal_data");
+  if (personalToken && personalData) {
+    document.getElementById("login-screen").style.display = "none";
+    mostrarPantallaEmpleado(JSON.parse(personalData));
+  }
 });
 
 async function doLogin() {
