@@ -1627,8 +1627,8 @@ async function borrarAsistencia(asistenciaId, empId, empNombre) {
   } catch(e) { alert(e.message||e); }
 }
 function editarAsistencia(asistenciaId, checkIn, checkOut) {
-  const ciVal = checkIn ? new Date(checkIn).toTimeString().substring(0,5) : '';
-  const coVal = checkOut ? new Date(checkOut).toTimeString().substring(0,5) : '';
+  const ciVal = checkIn ? (String(checkIn).match(/T(\d{2}:\d{2})/) || [])[1] || '' : '';
+  const coVal = checkOut ? (String(checkOut).match(/T(\d{2}:\d{2})/) || [])[1] || '' : '';
   document.getElementById('modal-title').textContent = 'Editar registro';
   document.getElementById('modal-body').innerHTML = `
     <div class="modal-grid">
