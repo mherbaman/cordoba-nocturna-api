@@ -1525,13 +1525,12 @@ async function guardarEmpleado(id, nid) {
     if (statusEl) statusEl.textContent = 'Subiendo foto...';
     try {
       const fd = new FormData();
-      fd.append('file', fotoInput.files[0]);
-      fd.append('upload_preset', 'ml_default');
-      fd.append('folder', 'personal_club');
-      const r = await fetch('https://api.cloudinary.com/v1_1/dtu8z7jrx/image/upload', { method:'POST', body:fd });
+      fd.append('foto', fotoInput.files[0]);
+      const token = localStorage.getItem('neg_token') || localStorage.getItem('neg_admin');
+      const r = await fetch('https://api.cordobalux.com/padel/club/personal/upload-foto', { method:'POST', headers:{ 'Authorization':'Bearer ' + token }, body:fd });
       const data = await r.json();
-      if (!data.secure_url) throw new Error('Error al subir foto');
-      foto_url = data.secure_url;
+      if (!data.url) throw new Error(data.error || 'Error al subir foto');
+      foto_url = data.url;
       if (statusEl) statusEl.textContent = '';
     } catch(e) {
       alert('Error al subir la foto: ' + (e.message||e));
