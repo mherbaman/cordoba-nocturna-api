@@ -2463,7 +2463,7 @@ router.delete('/club/personal/asistencia/:id', authAdmin, async (req, res) => {
 router.get('/personal/mi-perfil', authPersonal, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT p.id, p.nombre, p.email, p.telefono, p.cargo, p.rol_acceso, n.nombre as negocio_nombre FROM personal_club p JOIN negocios n ON n.id = p.negocio_id WHERE p.id = $1',
+      'SELECT p.id, p.nombre, p.email, p.telefono, p.cargo, p.rol_acceso, p.foto_url, n.nombre as negocio_nombre FROM personal_club p JOIN negocios n ON n.id = p.negocio_id WHERE p.id = $1',
       [req.personal.personal_id]
     );
     res.json(result.rows[0] || null);

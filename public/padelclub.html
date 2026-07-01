@@ -1254,6 +1254,13 @@ async function mostrarPantallaEmpleado(p) {
   const CARGO_LBL = { mozo:'Mozo', barman:'Barman', cajero:'Cajero', cocina:'Cocina', recepcion:'Recepción', mantenimiento:'Mantenimiento', profesor:'Profesor', otro:'Otro' };
   document.getElementById('empleado-screen').style.display = 'flex';
   document.getElementById('emp-nombre-bienvenida').textContent = 'Hola, ' + p.nombre + ' 👋';
+  const avatarEl = document.getElementById('emp-avatar-screen');
+  if (avatarEl) {
+    const iniciales = p.nombre.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    avatarEl.innerHTML = p.foto_url
+      ? '<img src="' + p.foto_url + '" style="width:100%;height:100%;object-fit:cover">'
+      : '<span style="font-weight:700;color:#fff;font-size:18px">' + iniciales + '</span>';
+  }
   document.getElementById('emp-cargo-label').textContent = (CARGO_LBL[p.cargo]||p.cargo) + ' · ' + (p.negocio_nombre||'');
   document.getElementById('emp-negocio-nombre').textContent = p.negocio_nombre || '';
   cargarDatosEmpleado();
@@ -2706,8 +2713,13 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
   </div>
   <div style="padding:24px;max-width:500px;margin:0 auto;width:100%">
     <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px">
-      <div id="emp-nombre-bienvenida" style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">Hola 👋</div>
-      <div id="emp-cargo-label" style="font-size:13px;color:rgba(255,255,255,.5)">—</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+        <div id="emp-avatar-screen" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"></div>
+        <div>
+          <div id="emp-nombre-bienvenida" style="font-size:20px;font-weight:700;color:#fff;margin-bottom:2px">Hola 👋</div>
+          <div id="emp-cargo-label" style="font-size:13px;color:rgba(255,255,255,.5)">—</div>
+        </div>
+      </div>
     </div>
     <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px;margin-bottom:16px">
       <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Asistencia de hoy</div>
