@@ -1589,8 +1589,14 @@ async function guardarAsistencia(asistenciaId) {
   try {
     const hoy = empIdActual ? (await apiAdmin('/padel/club/personal/' + empIdActual + '/asistencia')).find(a => a.id === asistenciaId)?.fecha : null;
     const fechaBase = hoy ? String(hoy).substring(0,10) : new Date().toISOString().split('T')[0];
-    const check_in = fechaBase + 'T' + ci + ':00';
-    const check_out = co ? fechaBase + 'T' + co + ':00' : null;
+    // Compensar UTC-3: sumar 3 horas para que al guardar en UTC quede la hora local correcta
+    function toUTC(fecha, hora) {
+      const d = new Date(fecha + 'T' + hora + ':00');
+      d.setHours(d.getHours() + 3);
+      return d.toISOString();
+    }
+    const check_in = toUTC(fechaBase, ci);
+    const check_out = co ? toUTC(fechaBase, co) : null;
     await apiAdmin('/padel/club/personal/asistencia/' + asistenciaId, {
       method: 'PUT',
       body: JSON.stringify({ check_in, check_out })
