@@ -1291,8 +1291,8 @@ async function cargarDatosEmpleado() {
     const histCont = document.getElementById('emp-historial-list');
     if (asistencia.length) {
       histCont.innerHTML = asistencia.slice(0,10).map(a => {
-        const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
-        const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
+        const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
+        const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
         let horas = '';
         if (a.check_in && a.check_out) horas = ' · ' + ((new Date(a.check_out)-new Date(a.check_in))/3600000).toFixed(1) + ' hs';
         return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">
@@ -1311,10 +1311,10 @@ async function cargarDatosEmpleado() {
     const btnCI = document.getElementById('btn-checkin');
     const btnCO = document.getElementById('btn-checkout');
     if (hoyReg?.check_in && hoyReg?.check_out) {
-      asCont.innerHTML = '✅ Jornada completa · Entrada: ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) + ' · Salida: ' + new Date(hoyReg.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+      asCont.innerHTML = '✅ Jornada completa · Entrada: ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) + ' · Salida: ' + new Date(hoyReg.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false});
       btnCI.disabled = true; btnCO.disabled = true;
     } else if (hoyReg?.check_in) {
-      asCont.innerHTML = '▶ Entraste a las ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+      asCont.innerHTML = '▶ Entraste a las ' + new Date(hoyReg.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false});
       btnCI.disabled = true; btnCO.disabled = false;
     } else {
       asCont.innerHTML = 'Todavía no registraste entrada hoy.';
@@ -1526,8 +1526,8 @@ async function verAsistencia(id, nombre) {
       return;
     }
     const rows = data.map(a => {
-      const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
-      const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      const ci = a.check_in ? new Date(a.check_in).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
+      const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',hour12:false}) : '—';
       let horas = '—';
       if (a.check_in && a.check_out) {
         const diffMin = Math.round((new Date(a.check_out) - new Date(a.check_in)) / 60000);
