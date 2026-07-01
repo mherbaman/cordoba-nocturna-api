@@ -2408,6 +2408,30 @@ function authPersonal(req, res, next) {
   }
 }
 
+// ── PUT /padel/club/personal/asistencia/:id ──────────────────────────────
+router.put('/club/personal/asistencia/:id', authAdmin, async (req, res) => {
+  const { check_in, check_out } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE personal_asistencia SET check_in=$1, check_out=$2 WHERE id=$3 RETURNING *',
+      [check_in||null, check_out||null, req.params.id]
+    );
+    res.json(result.rows[0]);
+  } catch(err) {
+    console.error('PUT /padel/club/personal/asistencia/:id:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+// ── DELETE /padel/club/personal/asistencia/:id ────────────────────────────
+router.delete('/club/personal/asistencia/:id', authAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM personal_asistencia WHERE id=$1', [req.params.id]);
+    res.json({ ok: true });
+  } catch(err) {
+    console.error('DELETE /padel/club/personal/asistencia/:id:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
 // ── GET /padel/personal/mi-perfil ────────────────────────────────────
 router.get('/personal/mi-perfil', authPersonal, async (req, res) => {
   try {

@@ -1501,8 +1501,12 @@ async function borrarEmpleado(id) {
   } catch(e) { alert(e.message||e); }
 }
 
+let empIdActual = null;
+let empNombreActual = null;
 async function verAsistencia(id, nombre) {
-  document.getElementById('modal-title').textContent = '📋 Asistencia — ' + nombre;
+  empIdActual = id;
+  empNombreActual = nombre;
+  document.getElementById('modal-title').textContent = 'Asistencia — ' + nombre;
   document.getElementById('modal-body').innerHTML = '<div class="loader"></div>';
   document.getElementById('modal-overlay').classList.add('show');
   try {
@@ -1516,14 +1520,24 @@ async function verAsistencia(id, nombre) {
       const co = a.check_out ? new Date(a.check_out).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '—';
       let horas = '—';
       if (a.check_in && a.check_out) {
-        const diff = (new Date(a.check_out) - new Date(a.check_in)) / 3600000;
-        horas = diff.toFixed(1) + ' hs';
+        const diffMin = Math.round((new Date(a.check_out) - new Date(a.check_in)) / 60000);
+        if (diffMin < 60) horas = diffMin + ' min';
+        else horas = Math.floor(diffMin/60) + ' h ' + (diffMin%60 > 0 ? (diffMin%60) + ' min' : '');
       }
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px">
-        <span style="color:rgba(255,255,255,.7)">${(()=>{ const [y,m,d]=String(a.fecha).substring(0,10).split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); })()}</span>
-        <span style="color:#22c55e">▶ ${ci}</span>
-        <span style="color:#f87171">■ ${co}</span>
-        <span style="color:rgba(255,255,255,.4)">${horas}</span>
+      const fechaLabel = (()=>{ const [y,m,d]=String(a.fecha).substring(0,10).split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); })();
+      return `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="color:rgba(255,255,255,.7);font-size:11px">${fechaLabel}</span>
+          <div style="display:flex;gap:6px">
+            <button onclick="editarAsistencia('${a.id}','${a.check_in||''}','${a.check_out||''}')" style="font-size:10px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:#a78bfa;padding:2px 7px;border-radius:20px;cursor:pointer">✏️</button>
+            <button onclick="borrarAsistencia('${a.id}','${empIdActual}','${empNombreActual}')" style="font-size:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;padding:2px 7px;border-radius:20px;cursor:pointer">🗑</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:4px">
+          <span style="color:#22c55e">▶ ${ci}</span>
+          <span style="color:#f87171">■ ${co}</span>
+          <span style="color:rgba(255,255,255,.4)">${horas}</span>
+        </div>
       </div>`;
     }).join('');
     document.getElementById('modal-body').innerHTML = rows + '<div class="modal-actions"><button class="btn-cancel" onclick="cerrarModal()">Cerrar</button></div>';
@@ -1532,6 +1546,48 @@ async function verAsistencia(id, nombre) {
   }
 }
 
+// ── EDITAR/BORRAR ASISTENCIA ─────────────────────────────────
+async function borrarAsistencia(asistenciaId, empId, empNombre) {
+  if (!confirm('Borrar este registro de asistencia?')) return;
+  try {
+    await apiAdmin('/padel/club/personal/asistencia/' + asistenciaId, { method:'DELETE' });
+    verAsistencia(empId, empNombre);
+  } catch(e) { alert(e.message||e); }
+}
+function editarAsistencia(asistenciaId, checkIn, checkOut) {
+  const ciVal = checkIn ? new Date(checkIn).toTimeString().substring(0,5) : '';
+  const coVal = checkOut ? new Date(checkOut).toTimeString().substring(0,5) : '';
+  document.getElementById('modal-title').textContent = 'Editar registro';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="modal-grid">
+      <div><label class="field-label">Hora entrada</label>
+        <input class="input-field" id="edit-ci" type="time" value="${ciVal}" style="color-scheme:dark">
+      </div>
+      <div><label class="field-label">Hora salida</label>
+        <input class="input-field" id="edit-co" type="time" value="${coVal}" style="color-scheme:dark">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="verAsistencia(empIdActual, empNombreActual)">Cancelar</button>
+      <button class="btn-primary" onclick="guardarAsistencia('${asistenciaId}')">GUARDAR</button>
+    </div>`;
+}
+async function guardarAsistencia(asistenciaId) {
+  const ci = document.getElementById('edit-ci').value;
+  const co = document.getElementById('edit-co').value;
+  if (!ci) { alert('La hora de entrada es requerida'); return; }
+  try {
+    const hoy = empIdActual ? (await apiAdmin('/padel/club/personal/' + empIdActual + '/asistencia')).find(a => a.id === asistenciaId)?.fecha : null;
+    const fechaBase = hoy ? String(hoy).substring(0,10) : new Date().toISOString().split('T')[0];
+    const check_in = fechaBase + 'T' + ci + ':00';
+    const check_out = co ? fechaBase + 'T' + co + ':00' : null;
+    await apiAdmin('/padel/club/personal/asistencia/' + asistenciaId, {
+      method: 'PUT',
+      body: JSON.stringify({ check_in, check_out })
+    });
+    verAsistencia(empIdActual, empNombreActual);
+  } catch(e) { alert(e.message||e); }
+}
 // ── COMUNIDAD DEL CLUB ────────────────────────────────────────
 async function cargarComunidadClub() {
   const nid = getCanchasNegocioId();
