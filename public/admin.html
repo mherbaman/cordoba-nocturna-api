@@ -2322,35 +2322,12 @@ function abrirModalNegocio(n={}) {
         <label class="field-label">Zona / Barrio</label>
         <select class="input-field" id="neg-zona" style="color:#fff;background:#1a0030;" onchange="toggleZonaCustom(this.value)">
           <option value="" style="background:#1a0030">Seleccioná la zona...</option>
-          <option value="Centro" style="background:#1a0030" ${n.zona==='Centro'?'selected':''}>Centro</option>
-          <option value="Nueva Córdoba" style="background:#1a0030" ${n.zona==='Nueva Córdoba'?'selected':''}>Nueva Córdoba</option>
-          <option value="Güemes" style="background:#1a0030" ${n.zona==='Güemes'?'selected':''}>Güemes</option>
-          <option value="Alberdi" style="background:#1a0030" ${n.zona==='Alberdi'?'selected':''}>Alberdi</option>
-          <option value="General Paz" style="background:#1a0030" ${n.zona==='General Paz'?'selected':''}>General Paz</option>
-          <option value="Cerro de las Rosas" style="background:#1a0030" ${n.zona==='Cerro de las Rosas'?'selected':''}>Cerro de las Rosas</option>
-          <option value="Villa Allende" style="background:#1a0030" ${n.zona==='Villa Allende'?'selected':''}>Villa Allende</option>
-          <option value="Arguello" style="background:#1a0030" ${n.zona==='Arguello'?'selected':''}>Arguello</option>
-          <option value="Colinas de Vélez Sársfield" style="background:#1a0030" ${n.zona==='Colinas de Vélez Sársfield'?'selected':''}>Colinas de Vélez Sársfield</option>
-          <option value="Urca" style="background:#1a0030" ${n.zona==='Urca'?'selected':''}>Urca</option>
-          <option value="Quebrada de las Rosas" style="background:#1a0030" ${n.zona==='Quebrada de las Rosas'?'selected':''}>Quebrada de las Rosas</option>
-          <option value="San Vicente" style="background:#1a0030" ${n.zona==='San Vicente'?'selected':''}>San Vicente</option>
-          <option value="Alta Córdoba" style="background:#1a0030" ${n.zona==='Alta Córdoba'?'selected':''}>Alta Córdoba</option>
-          <option value="Talleres" style="background:#1a0030" ${n.zona==='Talleres'?'selected':''}>Talleres</option>
-          <option value="Villa del Parque" style="background:#1a0030" ${n.zona==='Villa del Parque'?'selected':''}>Villa del Parque</option>
-          <option value="Jardín" style="background:#1a0030" ${n.zona==='Jardín'?'selected':''}>Jardín</option>
-          <option value="Cañitas" style="background:#1a0030" ${n.zona==='Cañitas'?'selected':''}>Cañitas</option>
-          <option value="Maipú" style="background:#1a0030" ${n.zona==='Maipú'?'selected':''}>Maipú</option>
-          <option value="Palermo" style="background:#1a0030" ${n.zona==='Palermo'?'selected':''}>Palermo</option>
-          <option value="Villa Belgrano" style="background:#1a0030" ${n.zona==='Villa Belgrano'?'selected':''}>Villa Belgrano</option>
-          <option value="Country Club" style="background:#1a0030" ${n.zona==='Country Club'?'selected':''}>Country Club</option>
-          <option value="Buen Pastor" style="background:#1a0030" ${n.zona==='Buen Pastor'?'selected':''}>Buen Pastor</option>
-          <option value="Poeta Lugones" style="background:#1a0030" ${n.zona==='Poeta Lugones'?'selected':''}>Poeta Lugones</option>
-          <option value="Manantiales" style="background:#1a0030" ${n.zona==='Manantiales'?'selected':''}>Manantiales</option>
-          <option value="Villa Warcalde" style="background:#1a0030" ${n.zona==='Villa Warcalde'?'selected':''}>Villa Warcalde</option>
-          <option value="La Calera" style="background:#1a0030" ${n.zona==='La Calera'?'selected':''}>La Calera</option>
-          <option value="Unquillo" style="background:#1a0030" ${n.zona==='Unquillo'?'selected':''}>Unquillo</option>
-          <option value="Mendiolaza" style="background:#1a0030" ${n.zona==='Mendiolaza'?'selected':''}>Mendiolaza</option>
-          <option value="Salsipuedes" style="background:#1a0030" ${n.zona==='Salsipuedes'?'selected':''}>Salsipuedes</option>
+          <option value="CBA Centro" style="background:#1a0030" ${n.zona==='CBA Centro'?'selected':''}>CBA Centro</option>
+          <option value="CBA Norte" style="background:#1a0030" ${n.zona==='CBA Norte'?'selected':''}>CBA Norte</option>
+          <option value="CBA Sur" style="background:#1a0030" ${n.zona==='CBA Sur'?'selected':''}>CBA Sur</option>
+          <option value="CBA Este" style="background:#1a0030" ${n.zona==='CBA Este'?'selected':''}>CBA Este</option>
+          <option value="CBA Oeste" style="background:#1a0030" ${n.zona==='CBA Oeste'?'selected':''}>CBA Oeste</option>
+          <option value="INTERIOR RIOIV" style="background:#1a0030" ${n.zona==='INTERIOR RIOIV'?'selected':''}>Interior Río IV</option>
           <option value="otra" style="background:#1a0030">📍 Otra zona...</option>
         </select>
         <input class="input-field" id="neg-zona-custom" placeholder="Escribí la zona..." style="display:none;margin-top:8px">
@@ -2378,6 +2355,14 @@ function abrirModalNegocio(n={}) {
       <div class="full">
         <label class="field-label">Foto URL (jpg/png liviano)</label>
         <input class="input-field" id="neg-foto" value="${n.foto_url||''}" placeholder="https://...imagen.jpg">
+      </div>
+      <div>
+        <label class="field-label">Latitud</label>
+        <input class="input-field" id="neg-lat" value="${n.lat||''}" placeholder="-31.4135">
+      </div>
+      <div>
+        <label class="field-label">Longitud</label>
+        <input class="input-field" id="neg-lng" value="${n.lng||''}" placeholder="-64.1811">
       </div>
     </div>
     <div class="modal-actions">
@@ -2521,7 +2506,9 @@ async function guardarNegocio(id) {
     })(),
     direccion:   document.getElementById('neg-direccion').value.trim()||null,
     instagram:   document.getElementById('neg-instagram').value.trim()||null,
-    foto_url:    document.getElementById('neg-foto').value.trim()||null
+    foto_url:    document.getElementById('neg-foto').value.trim()||null,
+    lat:     parseFloat(document.getElementById('neg-lat').value)||null,
+    lng:    parseFloat(document.getElementById('neg-lng').value)||null
   };
   if (!body.nombre || !body.slug) { alert('Nombre y slug son requeridos'); return; }
   try {

@@ -211,17 +211,17 @@ router.get('/sesiones', authSuperAdmin, async (req, res) => {
 
 // ── POST /superadmin/negocios ────────────────────────────────────────
 router.post('/negocios', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel } = req.body;
+  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, zona, direccion, instagram, foto_url, lat, lng } = req.body;
   if (!nombre || !slug) return res.status(400).json({ error: 'Nombre y slug son requeridos' });
   try {
     // Calcular fecha de vencimiento: 1 mes desde hoy (mes de prueba)
     const vencimiento = new Date();
     vencimiento.setMonth(vencimiento.getMonth() + 1);
     const result = await pool.query(`
-      INSERT INTO negocios (nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, vencimiento_plan, estado_pago)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'prueba')
+      INSERT INTO negocios (nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, vencimiento_plan, estado_pago, zona, direccion, instagram, foto_url, lat, lng)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'prueba', $9, $10, $11, $12, $13, $14)
       RETURNING *
-    `, [nombre, tipo||'disco', slug, plan||'basico', dueno_nombre||'', dueno_email||'', dueno_tel||'', vencimiento.toISOString().split('T')[0]]);
+    `, [nombre, tipo||'disco', slug, plan||'basico', dueno_nombre||'', dueno_email||'', dueno_tel||'', vencimiento.toISOString().split('T')[0], zona||null, direccion||null, instagram||null, foto_url||null, lat||null, lng||null]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(400).json({ error: 'El slug ya existe' });
@@ -231,7 +231,7 @@ router.post('/negocios', authSuperAdmin, async (req, res) => {
 
 // ── PUT /superadmin/negocios/:id ─────────────────────────────────────
 router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
-  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan, estado_pago, zona, direccion, instagram, foto_url, fecha_vencimiento } = req.body;
+  const { nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan, estado_pago, zona, direccion, instagram, foto_url, fecha_vencimiento, lat, lng } = req.body;
   try {
     const result = await pool.query(`
       UPDATE negocios SET
@@ -248,10 +248,12 @@ router.put('/negocios/:id', authSuperAdmin, async (req, res) => {
         zona             = COALESCE($11, zona),
         direccion        = COALESCE($12, direccion),
         instagram        = COALESCE($13, instagram),
-        foto_url         = COALESCE($14, foto_url)
+        foto_url         = COALESCE($14, foto_url),
+        lat              = COALESCE($16, lat),
+        lng              = COALESCE($17, lng)
       WHERE id = $15
       RETURNING *
-    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan||null, estado_pago||null, zona||null, direccion||null, instagram||null, foto_url||null, req.params.id]);
+    `, [nombre, tipo, slug, plan, dueno_nombre, dueno_email, dueno_tel, activo, vencimiento_plan||null, estado_pago||null, zona||null, direccion||null, instagram||null, foto_url||null, req.params.id, lat||null, lng||null]);
     res.json(result.rows[0]);
   } catch (err) { res.status(500).json({ error: 'Error interno' }); }
 });
