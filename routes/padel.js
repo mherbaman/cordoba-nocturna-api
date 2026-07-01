@@ -2440,7 +2440,7 @@ router.get('/personal/mis-turnos', authPersonal, async (req, res) => {
 router.get('/personal/mi-asistencia', authPersonal, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM personal_asistencia WHERE personal_id = $1 ORDER BY fecha DESC LIMIT 30',
+      'SELECT * FROM personal_asistencia WHERE personal_id = $1 ORDER BY fecha DESC LIMIT 60',
       [req.personal.personal_id]
     );
     res.json(result.rows);

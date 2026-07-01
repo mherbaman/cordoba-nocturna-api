@@ -1296,7 +1296,7 @@ async function cargarDatosEmpleado() {
         let horas = '';
         if (a.check_in && a.check_out) horas = ' · ' + ((new Date(a.check_out)-new Date(a.check_in))/3600000).toFixed(1) + ' hs';
         return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px">
-          <span style="color:rgba(255,255,255,.5)">${a.fecha}</span>
+          <span style="color:rgba(255,255,255,.5)">${new Date(a.fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span>
           <span style="color:#22c55e">▶ ${ci}</span>
           <span style="color:#f87171">■ ${co}${horas}</span>
         </div>`;
