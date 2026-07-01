@@ -1520,7 +1520,7 @@ async function verAsistencia(id, nombre) {
         horas = diff.toFixed(1) + ' hs';
       }
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px">
-        <span style="color:rgba(255,255,255,.7)">${a.fecha}</span>
+        <span style="color:rgba(255,255,255,.7)">${(()=>{ const [y,m,d]=String(a.fecha).substring(0,10).split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); })()}</span>
         <span style="color:#22c55e">▶ ${ci}</span>
         <span style="color:#f87171">■ ${co}</span>
         <span style="color:rgba(255,255,255,.4)">${horas}</span>
