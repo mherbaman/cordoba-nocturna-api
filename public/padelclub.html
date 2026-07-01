@@ -1651,9 +1651,9 @@ async function guardarAsistencia(asistenciaId) {
   try {
     const hoy = empIdActual ? (await apiAdmin('/padel/club/personal/' + empIdActual + '/asistencia')).find(a => a.id === asistenciaId)?.fecha : null;
     const fechaBase = hoy ? String(hoy).substring(0,10) : new Date().toISOString().split('T')[0];
-    // Guardar como UTC-3: simplemente agregar offset sin pasar por Date
+    // TIMESTAMP WITHOUT TIME ZONE: mandar hora local sin offset
     function toUTC(fecha, hora) {
-      return fecha + 'T' + hora + ':00.000-03:00';
+      return fecha + 'T' + hora + ':00';
     }
     const check_in = toUTC(fechaBase, ci);
     const check_out = co ? toUTC(fechaBase, co) : null;
