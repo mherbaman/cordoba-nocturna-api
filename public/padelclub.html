@@ -1382,16 +1382,48 @@ async function cargarPersonal() {
 function abrirModalNuevoEmpleado() { abrirModalEmpleado(null); }
 function editarEmpleado(p) { abrirModalEmpleado(p); }
 
-function abrirModalEmpleado(p) {
+async function abrirModalEmpleado(p) {
   const esNuevo = !p;
-  document.getElementById('modal-title').textContent = esNuevo ? '👤 Nuevo empleado' : '✏️ Editar empleado';
+  document.getElementById('modal-title').textContent = esNuevo ? 'Nuevo empleado' : 'Editar empleado';
   const nid = getCanchasNegocioId();
+  let turnosExistentes = [];
+  if (p?.id) {
+    try { turnosExistentes = await apiAdmin('/padel/club/personal/' + p.id + '/turnos'); } catch(e) {}
+  }
+  const DIAS = ['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+  window.horariosPorDia = {};
+  DIAS.forEach((_,i) => { window.horariosPorDia[i] = []; });
+  turnosExistentes.forEach(t => {
+    if (!window.horariosPorDia[t.dia_semana]) window.horariosPorDia[t.dia_semana] = [];
+    window.horariosPorDia[t.dia_semana].push({ hi: String(t.hora_inicio).substring(0,5), hf: String(t.hora_fin).substring(0,5) });
+  });
+  function filaFranja(dia, i, f) {
+    return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">'
+      + '<input type="time" value="' + f.hi + '" onchange="window.horariosPorDia[' + dia + '][' + i + '].hi=this.value" style="background:#0a0015;border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;padding:4px 8px;font-size:12px;color-scheme:dark">'
+      + '<span style="color:rgba(255,255,255,.4);font-size:11px">a</span>'
+      + '<input type="time" value="' + f.hf + '" onchange="window.horariosPorDia[' + dia + '][' + i + '].hf=this.value" style="background:#0a0015;border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;padding:4px 8px;font-size:12px;color-scheme:dark">'
+      + '<button onclick="quitarFranja(' + dia + ',' + i + ')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer">x</button>'
+      + '</div>';
+  }
+  window.renderFranjasDia = function(dia) {
+    const cont = document.getElementById('franjas-dia-' + dia);
+    if (!cont) return;
+    cont.innerHTML = (window.horariosPorDia[dia]||[]).map((f,i) => filaFranja(dia,i,f)).join('');
+  };
+  const diasHtml = DIAS.map((d,i) => '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    + '<span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.8)">' + d + '</span>'
+    + '<button onclick="agregarFranja(' + i + ')" style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:20px;padding:2px 10px;font-size:11px;cursor:pointer">+ Agregar</button>'
+    + '</div>'
+    + '<div id="franjas-dia-' + i + '">' + (window.horariosPorDia[i]||[]).map((f,j) => filaFranja(i,j,f)).join('') + '</div>'
+    + '</div>').join('');
   document.getElementById('modal-body').innerHTML = `
+    <div style="max-height:70vh;overflow-y:auto;padding-right:4px">
     <div class="modal-grid">
-      <div class="full"><label class="field-label">Nombre completo</label><input class="input-field" id="emp-nombre" value="${p?.nombre||''}" placeholder="Juan García"></div>
+      <div class="full"><label class="field-label">Nombre completo</label><input class="input-field" id="emp-nombre" value="${p?.nombre||''}" placeholder="Juan Garcia"></div>
       <div class="full"><label class="field-label">Email (para login)</label><input class="input-field" id="emp-email" type="email" value="${p?.email||''}" placeholder="juan@club.com" ${p?'readonly':''}></div>
-      <div><label class="field-label">Teléfono</label><input class="input-field" id="emp-tel" value="${p?.telefono||''}" placeholder="3511234567"></div>
-      <div><label class="field-label">Contraseña ${p?'(dejar vacío = no cambiar)':''}</label><input class="input-field" id="emp-pass" type="password" placeholder="Mínimo 6 caracteres"></div>
+      <div><label class="field-label">Telefono</label><input class="input-field" id="emp-tel" value="${p?.telefono||''}" placeholder="3511234567"></div>
+      <div><label class="field-label">Contrasena ${p?'(vacio = no cambiar)':''}</label><input class="input-field" id="emp-pass" type="password" placeholder="Minimo 6 caracteres"></div>
       <div><label class="field-label">Cargo</label>
         <select class="input-field" id="emp-cargo" style="color:#fff;background:#1a0030">
           ${CARGOS.map(c => `<option value="${c}" ${p?.cargo===c?'selected':''}>${CARGO_LBL[c]}</option>`).join('')}
@@ -1404,14 +1436,27 @@ function abrirModalEmpleado(p) {
         </select>
       </div>
     </div>
-    <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px;margin:12px 0;font-size:12px;color:rgba(255,255,255,.6)">
-      📱 El empleado va a entrar en: <strong style="color:#f59e0b">https://cordobalux.com/padelclub</strong> con su email y contraseña
+    <div style="margin:16px 0">
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Horario semanal</div>
+      ${diasHtml}
+    </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
       <button class="btn-primary" onclick="guardarEmpleado('${p?.id||''}','${nid}')">${esNuevo?'CREAR EMPLEADO':'GUARDAR CAMBIOS'}</button>
     </div>`;
   document.getElementById('modal-overlay').classList.add('show');
+}
+function agregarFranja(dia) {
+  if (!window.horariosPorDia[dia]) window.horariosPorDia[dia] = [];
+  window.horariosPorDia[dia].push({ hi: '08:00', hf: '12:00' });
+  window.renderFranjasDia(dia);
+}
+function quitarFranja(dia, idx) {
+  window.horariosPorDia[dia].splice(idx, 1);
+  window.renderFranjasDia(dia);
+}
+
 }
 
 async function guardarEmpleado(id, nid) {
@@ -1422,18 +1467,31 @@ async function guardarEmpleado(id, nid) {
   const cargo = document.getElementById('emp-cargo').value;
   const rol_acceso = document.getElementById('emp-rol').value;
   if (!nombre || !email) { alert('Nombre y email son requeridos'); return; }
-  if (!id && !password) { alert('La contraseña es requerida para nuevos empleados'); return; }
-  if (password && password.length < 6) { alert('La contraseña debe tener al menos 6 caracteres'); return; }
+  if (!id && !password) { alert('La contrasena es requerida para nuevos empleados'); return; }
+  if (password && password.length < 6) { alert('La contrasena debe tener al menos 6 caracteres'); return; }
   try {
+    let empId = id;
     if (id) {
       const body = { nombre, telefono, cargo, rol_acceso };
       if (password) body.password = password;
       await apiAdmin('/padel/club/personal/' + id, { method:'PUT', body:JSON.stringify(body) });
     } else {
-      await apiAdmin('/padel/club/personal', { method:'POST', body:JSON.stringify({ negocio_id:nid, nombre, email, telefono, password, cargo, rol_acceso }) });
+      const nuevo = await apiAdmin('/padel/club/personal', { method:'POST', body:JSON.stringify({ negocio_id:nid, nombre, email, telefono, password, cargo, rol_acceso }) });
+      empId = nuevo.id;
+    }
+    // Guardar horarios
+    if (empId && window.horariosPorDia) {
+      const turnos = [];
+      Object.keys(window.horariosPorDia).forEach(dia => {
+        (window.horariosPorDia[dia]||[]).forEach(f => {
+          if (f.hi && f.hf) turnos.push({ dia_semana: parseInt(dia), hora_inicio: f.hi, hora_fin: f.hf });
+        });
+      });
+      await apiAdmin('/padel/club/personal/' + empId + '/turnos', { method:'POST', body:JSON.stringify({ turnos }) });
     }
     cerrarModal();
     cargarPersonal();
+    alert('Empleado guardado correctamente');
   } catch(e) { alert(e.message||e); }
 }
 
