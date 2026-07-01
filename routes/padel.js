@@ -9,6 +9,20 @@ const { pool } = require('../database');
 const { notificarTodos, notificarUsuario, notificarUsuarios } = require('../onesignal');
 
 const { authAdmin, authUsuario } = require('../middleware/auth');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+  cloud_name: 'dtu8z7jrx',
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
+});
+const storagePersonal = new CloudinaryStorage({
+  cloudinary,
+  params: { folder: 'personal_club', allowed_formats: ['jpg','jpeg','png','webp'], transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }] }
+});
+const uploadPersonal = multer({ storage: storagePersonal, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ════════════════════════════════════════════════
 //   JUGADORES
@@ -2258,6 +2272,17 @@ router.get('/club/comunidad', authAdmin, async (req, res) => {
 // ════════════════════════════════════════════════
 const bcryptPersonal = require('bcryptjs');
 const jwtPersonal = require('jsonwebtoken');
+
+// ── POST /padel/club/personal/upload-foto ────────────────────────────
+router.post('/club/personal/upload-foto', authAdmin, uploadPersonal.single('foto'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se recibió ninguna imagen' });
+    res.json({ url: req.file.path });
+  } catch (err) {
+    console.error('upload-foto:', err);
+    res.status(500).json({ error: 'Error al subir imagen' });
+  }
+});
 
 // ── POST /padel/personal/login ───────────────────────────────────────
 router.post('/personal/login', async (req, res) => {
