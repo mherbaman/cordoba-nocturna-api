@@ -2452,7 +2452,7 @@ router.get('/personal/mi-asistencia', authPersonal, async (req, res) => {
 
 // ── POST /padel/personal/checkin ─────────────────────────────────────
 router.post('/personal/checkin', authPersonal, async (req, res) => {
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = new Date(new Date().getTime() - 3*60*60*1000).toISOString().split('T')[0];
   try {
     const existe = await pool.query(
       'SELECT * FROM personal_asistencia WHERE personal_id = $1 AND fecha = $2',
@@ -2482,7 +2482,7 @@ router.post('/personal/checkin', authPersonal, async (req, res) => {
 
 // ── POST /padel/personal/checkout ────────────────────────────────────
 router.post('/personal/checkout', authPersonal, async (req, res) => {
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = new Date(new Date().getTime() - 3*60*60*1000).toISOString().split('T')[0];
   try {
     const existe = await pool.query(
       'SELECT * FROM personal_asistencia WHERE personal_id = $1 AND fecha = $2',
@@ -2553,7 +2553,7 @@ router.get('/club/cierre-caja', authAdmin, async (req, res) => {
   if (!negocio_id) return res.status(400).json({ error: 'negocio_id requerido' });
 
   let fechaDesde, fechaHasta;
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy = new Date(new Date().getTime() - 3*60*60*1000).toISOString().split('T')[0];
 
   if (periodo === 'semana') {
     const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1);
