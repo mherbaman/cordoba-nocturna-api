@@ -2081,58 +2081,76 @@ function totalComanda(c) { return (c.items||[]).reduce((s,i) => s + parseInt(i.m
 
 function renderComandaCard(c, abierta) {
   const total = totalComanda(c);
+  const borderColor = abierta ? 'rgba(249,115,22,.7)' : 'rgba(34,197,94,.25)';
+  const headerBg = abierta ? 'rgba(249,115,22,.15)' : 'rgba(34,197,94,.07)';
+  const headerColor = abierta ? '#fb923c' : '#22c55e';
+
   const items = (c.items||[]).map(i => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px">
-      <span style="color:rgba(255,255,255,.6);display:flex;align-items:center;gap:6px">
-        <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${i.tipo==='cancha'?'rgba(251,191,36,.1)':'rgba(96,165,250,.1)'};color:${i.tipo==='cancha'?'#fbbf24':'#60a5fa'};border:1px solid ${i.tipo==='cancha'?'rgba(251,191,36,.2)':'rgba(96,165,250,.2)'}">${i.tipo}</span>
-        ${i.descripcion}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed rgba(255,255,255,.06);font-size:12px">
+      <span style="color:rgba(255,255,255,.75);display:flex;align-items:center;gap:5px;flex:1;min-width:0">
+        <span style="font-size:9px;padding:1px 5px;border-radius:4px;white-space:nowrap;background:${i.tipo==='cancha'?'rgba(251,191,36,.15)':i.tipo==='egreso'?'rgba(239,68,68,.15)':'rgba(96,165,250,.15)'};color:${i.tipo==='cancha'?'#fbbf24':i.tipo==='egreso'?'#ef4444':'#60a5fa'};border:1px solid ${i.tipo==='cancha'?'rgba(251,191,36,.3)':i.tipo==='egreso'?'rgba(239,68,68,.3)':'rgba(96,165,250,.3)'}">${i.tipo}</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.descripcion}</span>
       </span>
-      <span style="font-weight:600">${fmt(i.monto)}</span>
+      <span style="font-weight:700;font-size:13px;min-width:60px;text-align:right">${fmt(i.monto)}</span>
     </div>`).join('');
 
-  const opts = (window._productos||[]).filter(p=>p.activo).map(p =>
-    `<option value="${p.id}" data-precio="${p.precio}">${p.nombre} — ${fmt(p.precio)}</option>`
+  const opts = (window._productos||[]).filter(p=>p.activo && (p.stock||0) > 0).map(p =>
+    `<option value="${p.id}" data-precio="${p.precio}">${p.nombre} — ${fmt(p.precio)} (stock: ${p.stock})</option>`
   ).join('');
 
   return `
-  <div class="caja-card" style="margin-bottom:10px;opacity:${abierta?1:.6}">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;cursor:pointer" onclick="toggleComanda(${c.id})">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:10px;padding:2px 8px;border-radius:20px;background:${abierta?'rgba(34,197,94,.1)':'rgba(255,255,255,.06)'};color:${abierta?'var(--green)':'var(--muted)'};border:1px solid ${abierta?'rgba(34,197,94,.2)':'rgba(255,255,255,.1)'}">${abierta?'Abierta':'Cerrada'}</span>
-        <span style="font-size:14px;font-weight:600">${c.nombre}</span>
-        <span style="font-size:12px;color:var(--muted)">${(c.items||[]).length} items</span>
+  <div style="background:#0d001a;border:2px solid ${borderColor};border-radius:14px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 18px ${abierta?'rgba(249,115,22,.15)':'rgba(34,197,94,.05)'}">
+    <!-- Header ticket -->
+    <div style="background:${headerBg};padding:10px 12px;border-bottom:1px dashed ${borderColor}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:11px;font-weight:800;color:${headerColor};text-transform:uppercase;letter-spacing:1px">${abierta?'🔥 ABIERTA':'✅ CERRADA'}</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.4)">#${c.id} · ${c.fecha||new Date(c.creado_en).toLocaleDateString('es-AR')}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:15px;font-weight:700">${fmt(total)}</span>
-        <button onclick="event.stopPropagation();imprimirComanda(${c.id},'${c.nombre.replace(/'/g,"&#39;")}',[${(c.items||[]).map(i=>`{descripcion:'${(i.descripcion||'').replace(/'/g,"&#39;")}',monto:${i.monto||0},tipo:'${i.tipo||''}'}`).join(',')}])" style="padding:4px 10px;border:1px solid rgba(255,255,255,.15);border-radius:20px;background:rgba(255,255,255,.06);color:#fff;font-size:11px;cursor:pointer">🖨️</button>
+      <div style="font-size:15px;font-weight:700;color:#fff;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</div>
+      ${c.descripcion ? `<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">${c.descripcion}</div>` : ''}
+    </div>
+    <!-- Items -->
+    <div style="padding:10px 12px;flex:1;cursor:pointer" onclick="toggleComanda(${c.id})">
+      <div id="cmd-body-${c.id}" style="display:block">
+        ${items || '<div style="font-size:12px;color:rgba(255,255,255,.3);padding:6px 0;text-align:center">Sin items</div>'}
       </div>
     </div>
-    <div id="cmd-body-${c.id}" style="display:none">
-      <div style="margin-bottom:8px">${items || '<div style="font-size:12px;color:var(--muted);padding:8px 0">Sin items aun</div>'}</div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding:8px 0;border-top:1px solid rgba(34,197,94,.15)">
-        <span>Total</span><span style="color:var(--green)">${fmt(total)}</span>
+    <!-- Footer total -->
+    <div style="padding:8px 12px;border-top:1px dashed ${borderColor};display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:rgba(255,255,255,.4)">${(c.items||[]).length} items</span>
+      <span style="font-size:16px;font-weight:800;color:${headerColor}">${fmt(total)}</span>
+    </div>
+    ${abierta ? `
+    <!-- Acciones -->
+    <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:8px">
+      <select id="sel-${c.id}" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px" onchange="onSelProducto(${c.id})">
+        <option value="">+ Agregar producto o item</option>
+        ${opts}
+        <option value="libre">✏ Item libre</option>
+        <option value="egreso">👤 Egreso personal</option>
+      </select>
+      <div id="libre-${c.id}" style="display:none;flex-direction:column;gap:6px">
+        <input type="text" id="desc-${c.id}" placeholder="Descripción" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px;box-sizing:border-box">
+        <input type="number" id="monto-${c.id}" placeholder="$ monto" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px;box-sizing:border-box">
       </div>
-      ${abierta ? `
-      <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-        <select id="sel-${c.id}" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a2a1c;color:#fff;font-size:13px" onchange="onSelProducto(${c.id})">
-          <option value="">— elegir producto —</option>
-          ${opts}
-          <option value="libre">✏ Escribir libre</option>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="number" id="cant-${c.id}" value="1" min="1" placeholder="Cant." style="width:60px;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px">
+        <select id="pago-${c.id}" style="flex:1;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px">
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="qr">📱 QR</option>
+          <option value="transferencia">🏦 Transferencia</option>
         </select>
-        <div id="libre-${c.id}" style="display:none;gap:8px;flex-direction:column">
-          <input type="text" id="desc-${c.id}" placeholder="Descripcion" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a2a1c;color:#fff;font-size:13px">
-          <input type="number" id="monto-${c.id}" placeholder="$ monto" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a2a1c;color:#fff;font-size:13px">
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="number" id="cant-${c.id}" value="1" min="1" placeholder="Cant." style="width:70px;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a2a1c;color:#fff;font-size:13px">
-          <button onclick="agregarItemComanda(${c.id})" style="flex:1;padding:8px;border:1px solid rgba(34,197,94,.3);border-radius:8px;background:rgba(34,197,94,.1);color:var(--green);font-size:13px;cursor:pointer">+ Agregar</button>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:4px">
-          <button onclick="cerrarComanda(${c.id})" style="flex:1;padding:8px;border:1px solid rgba(34,197,94,.3);border-radius:8px;background:rgba(34,197,94,.1);color:var(--green);font-size:13px;font-weight:600;cursor:pointer">&#10003; Cobrar y cerrar</button>
-          <button onclick="eliminarComanda(${c.id})" style="padding:8px 12px;border:1px solid rgba(239,68,68,.3);border-radius:8px;background:rgba(239,68,68,.1);color:#ef4444;font-size:13px;cursor:pointer">&#128465;</button>
-        </div>
-      </div>` : ''}
-    </div>
+        <button onclick="agregarItemComanda(${c.id})" style="padding:8px 12px;border:1px solid rgba(249,115,22,.5);border-radius:8px;background:rgba(249,115,22,.2);color:#fb923c;font-size:13px;font-weight:700;cursor:pointer">+</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:2px">
+        <button onclick="cerrarComanda(${c.id})" style="flex:1;padding:9px;border:none;border-radius:8px;background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ Cobrar y cerrar</button>
+        <button onclick="imprimirComanda(${c.id},'${c.nombre.replace(/'/g,"&#39;")}',[${(c.items||[]).map(i=>`{descripcion:'${(i.descripcion||'').replace(/'/g,"&#39;")}',monto:${i.monto||0},tipo:'${i.tipo||''}'}`).join(',')}])" style="padding:9px 12px;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font-size:13px;cursor:pointer">🖨️</button>
+        <button onclick="eliminarComanda(${c.id})" style="padding:9px 12px;border:1px solid rgba(239,68,68,.3);border-radius:8px;background:rgba(239,68,68,.1);color:#ef4444;font-size:13px;cursor:pointer">🗑</button>
+      </div>
+    </div>` : `
+    <div style="padding:8px 12px;border-top:1px solid rgba(255,255,255,.06)">
+      <button onclick="imprimirComanda(${c.id},'${c.nombre.replace(/'/g,"&#39;")}',[${(c.items||[]).map(i=>`{descripcion:'${(i.descripcion||'').replace(/'/g,"&#39;")}',monto:${i.monto||0},tipo:'${i.tipo||''}'}`).join(',')}])" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer">🖨️ Reimprimir</button>
+    </div>`}
   </div>`;
 }
 
