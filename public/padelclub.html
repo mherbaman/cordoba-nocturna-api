@@ -1840,7 +1840,9 @@ function renderTurnosDia(reservas, disponibles, filtro) {
 
   let html = '';
   // Grid 3 columnas — cada columna es una cancha
-  html += '<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start">';
+  const totalCanchas = Object.keys(porCancha).length;
+  const cols = totalCanchas <= 4 ? totalCanchas : totalCanchas <= 6 ? 3 : totalCanchas <= 9 ? 3 : 4;
+  html += '<div style="display:grid;grid-template-columns:repeat(' + cols + ',minmax(0,1fr));gap:12px;align-items:start">';
   Object.keys(porCancha).sort((a,b) => parseInt(a)-parseInt(b)).forEach(num => {
     const cancha = porCancha[num];
     cancha.slots.sort((a,b) => String(a.hora_inicio).localeCompare(String(b.hora_inicio)));
@@ -1925,7 +1927,6 @@ async function confirmarTurnoManual() {
     });
     cerrarModalTurnoManual();
     cargarTurnosDia(fecha);
-    cargarAgenda();
     cargarAgenda();
   } catch(e) { alert('Error: ' + (e.message||e)); }
 }
