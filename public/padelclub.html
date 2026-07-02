@@ -2124,6 +2124,7 @@ function renderComandaCard(c, abierta) {
     <div style="padding:10px 12px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:8px">
       <select id="sel-${c.id}" style="width:100%;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px" onchange="onSelProducto(${c.id})">
         <option value="">+ Agregar producto o item</option>
+        <option value="cancha">🎾 Cancha</option>
         ${opts}
         <option value="libre">✏ Item libre</option>
         <option value="egreso">👤 Egreso personal</option>
@@ -2202,31 +2203,45 @@ function toggleComanda(id) {
 function onSelProducto(id) {
   const sel = document.getElementById('sel-' + id);
   const libreWrap = document.getElementById('libre-' + id);
-  libreWrap.style.display = sel.value === 'libre' ? 'flex' : 'none';
+  libreWrap.style.display = (sel.value === 'libre' || sel.value === 'egreso' || sel.value === 'cancha') ? 'flex' : 'none';
+  // Limpiar campos
+  const descEl = document.getElementById('desc-' + id);
+  const montoEl = document.getElementById('monto-' + id);
+  if (descEl) descEl.placeholder = sel.value === 'egreso' ? 'Descripción egreso (ej: almuerzo)' : sel.value === 'cancha' ? 'Descripción (opcional)' : 'Descripción';
+  if (montoEl) montoEl.placeholder = sel.value === 'cancha' ? '$ precio cancha' : '$ monto';
 }
 
 async function agregarItemComanda(id) {
-  const token = localStorage.getItem('neg_token');
   const sel = document.getElementById('sel-' + id);
   const cant = parseInt(document.getElementById('cant-' + id).value) || 1;
-  let descripcion = '', monto = 0, tipo = 'consumo';
-
-  if (sel.value === 'libre') {
+  const metodo_pago = document.getElementById('pago-' + id).value;
+  let descripcion = '', monto = 0, tipo = 'consumo', producto_id = null;
+  if (sel.value === 'cancha') {
+    descripcion = document.getElementById('desc-' + id).value.trim() || 'Cancha';
+    monto = parseInt(document.getElementById('monto-' + id).value) || 0;
+    if (monto <= 0) return alert('Ingresá el monto de la cancha');
+    tipo = 'cancha';
+  } else if (sel.value === 'egreso') {
     descripcion = document.getElementById('desc-' + id).value.trim();
     monto = parseInt(document.getElementById('monto-' + id).value) || 0;
-    if (!descripcion || monto <= 0) return alert('Completá descripcion y monto');
+    if (!descripcion || monto <= 0) return alert('Completá descripción y monto del egreso');
+    tipo = 'egreso';
+  } else if (sel.value === 'libre') {
+    descripcion = document.getElementById('desc-' + id).value.trim();
+    monto = parseInt(document.getElementById('monto-' + id).value) || 0;
+    if (!descripcion || monto <= 0) return alert('Completá descripción y monto');
     if (cant > 1) descripcion = cant + 'x ' + descripcion;
     monto *= cant;
   } else if (sel.value) {
     const opt = sel.options[sel.selectedIndex];
     const precio = parseInt(opt.dataset.precio) || 0;
+    producto_id = parseInt(sel.value);
     descripcion = cant > 1 ? cant + 'x ' + opt.text.split(' —')[0] : opt.text.split(' —')[0];
     monto = precio * cant;
-    if (descripcion.toLowerCase().includes('cancha')) tipo = 'cancha';
+    tipo = 'consumo';
   } else return;
-
   try {
-    await apiAdmin('/club/comandas/' + id + '/items', { method: 'POST', body: JSON.stringify({ descripcion, monto, tipo }) });
+    await apiAdmin('/club/comandas/' + id + '/items', { method: 'POST', body: JSON.stringify({ descripcion, monto, tipo, metodo_pago, producto_id, cantidad: cant }) });
     cargarComandas();
   } catch(e) { alert('Error: ' + e.message); }
 }

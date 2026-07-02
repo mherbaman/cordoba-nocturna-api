@@ -132,16 +132,25 @@ router.post('/comandas', authAdmin, async (req, res) => {
 router.post('/comandas/:id/items', authAdmin, async (req, res) => {
   try {
     const { negocio_id } = req.admin;
-    const { descripcion, monto, tipo } = req.body;
+    const { descripcion, monto, tipo, metodo_pago, producto_id, cantidad } = req.body;
     if (!descripcion || !monto) return res.status(400).json({ error: 'Faltan datos' });
     const check = await pool.query(
       'SELECT id FROM comandas WHERE id = $1 AND negocio_id = $2 AND estado = $3',
       [req.params.id, negocio_id, 'abierta']
     );
     if (check.rows.length === 0) return res.status(404).json({ error: 'Comanda no encontrada' });
+    // Descontar stock si es un producto
+    if (producto_id && cantidad) {
+      const prod = await pool.query('SELECT stock FROM productos_club WHERE id = $1 AND negocio_id = $2', [producto_id, negocio_id]);
+      if (prod.rows.length > 0) {
+        const stockActual = prod.rows[0].stock || 0;
+        const nuevoStock = Math.max(0, stockActual - parseInt(cantidad));
+        await pool.query('UPDATE productos_club SET stock = $1 WHERE id = $2', [nuevoStock, producto_id]);
+      }
+    }
     const item = await pool.query(
-      'INSERT INTO comanda_items (comanda_id, descripcion, monto, tipo) VALUES ($1, $2, $3, $4) RETURNING *',
-      [req.params.id, descripcion, parseInt(monto), tipo || 'consumo']
+      'INSERT INTO comanda_items (comanda_id, descripcion, monto, tipo, metodo_pago, producto_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [req.params.id, descripcion, parseInt(monto), tipo || 'consumo', metodo_pago || 'efectivo', producto_id || null]
     );
     res.json(item.rows[0]);
   } catch (err) {
