@@ -1857,7 +1857,7 @@ function renderTurnosDia(reservas, disponibles, filtro) {
         const canal = s.canal || (s.pago_por_app ? 'app' : 'presencial');
         const canalCls = CANAL_CLASS[canal] || 'canal-presencial';
         const estadoCls = ESTADO_CLASS[s.estado] || 'estado-pendiente-b';
-        const nombre = (s.jugador_nombre || s.nombre_manual || 'Sin nombre').split(' ')[0];
+        const nombre = s.jugador_nombre || s.nombre_manual || 'Sin nombre';
         const monto = parseFloat(s.precio_cobrado || 0);
         const isCancel = ['rechazado','cancelado'].includes(s.estado);
         const borderColor = isCancel ? 'rgba(239,68,68,.2)' : canal === 'app' ? 'rgba(99,102,241,.3)' : canal === 'whatsapp' ? 'rgba(14,165,233,.3)' : 'rgba(34,197,94,.25)';
@@ -1923,6 +1923,8 @@ async function confirmarTurnoManual() {
     });
     cerrarModalTurnoManual();
     cargarTurnosDia(fecha);
+    cargarAgenda();
+    cargarAgenda();
   } catch(e) { alert('Error: ' + (e.message||e)); }
 }
 
@@ -2463,7 +2465,7 @@ function renderAgenda(dias, disponibles, reservas) {
         if (bloqueado) {
           const reserva = bloqueado;
           const canal = reserva.canal || 'presencial';
-          const nombre = (reserva.jugador_nombre || reserva.nombre_manual || 'Reservado').split(' ')[0];
+          const nombre = reserva.jugador_nombre || reserva.nombre_manual || 'Reservado';
           const isCancelada = reserva.estado === 'cancelado';
           const tipoTurno = reserva.tipo_turno || (canal === 'app' ? 'jugador' : 'jugador');
           const cls = isCancelada ? 'cancelado' : (canal === 'app' ? 'app' : tipoTurno === 'fijo' ? 'fijo' : tipoTurno === 'profesor' ? 'profesor' : '');
@@ -3344,6 +3346,14 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
       <div style="grid-column:1/-1">
         <label class="field-label">Jugador / Referencia</label>
         <input class="input-field" id="er-jugador" placeholder="Nombre" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Tipo de turno</label>
+        <select class="input-field" id="er-tipo" style="color:#fff;background:#1a0030;margin:0">
+          <option value="jugador" style="background:#1a0030">🟠 Jugador</option>
+          <option value="fijo" style="background:#1a0030">🟡 Fijo</option>
+          <option value="profesor" style="background:#1a0030">🔵 Profesor</option>
+        </select>
       </div>
       <div>
         <label class="field-label">Canal</label>
