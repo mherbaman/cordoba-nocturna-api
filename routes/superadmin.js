@@ -6,7 +6,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('../database');
-const { authSuperAdmin } = require('../middleware/auth');
+const { authSuperAdmin, authAdmin } = require('../middleware/auth');
 
 // ── POST /superadmin/login ───────────────────────────────────────────
 router.post('/login', async (req, res) => {
