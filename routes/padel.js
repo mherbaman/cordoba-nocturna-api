@@ -2184,15 +2184,15 @@ router.put('/club/canchas/:id/precios', authAdmin, async (req, res) => {
 // ── POST /padel/club/turnos/manual ───────────────────────────────────
 // Cargar un turno manual (presencial o whatsapp)
 router.post('/club/turnos/manual', authAdmin, async (req, res) => {
-  const { negocio_id, numero_cancha, fecha, hora_inicio, hora_fin, nombre_jugador, canal, monto, estado_pago } = req.body;
+  const { negocio_id, numero_cancha, fecha, hora_inicio, hora_fin, nombre_jugador, canal, monto, estado_pago, tipo_turno } = req.body;
   if (!negocio_id || !fecha || !hora_inicio || !hora_fin) {
     return res.status(400).json({ error: 'negocio_id, fecha, hora_inicio, hora_fin requeridos' });
   }
   try {
     const result = await pool.query(`
       INSERT INTO reservas_padel
-        (negocio_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, canal, cargado_manual, nombre_manual, notas)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, $10)
+        (negocio_id, fecha, hora_inicio, hora_fin, precio_cobrado, estado, numero_cancha, canal, cargado_manual, nombre_manual, notas, tipo_turno)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9, $10, $11)
       RETURNING *
     `, [
       negocio_id, fecha, hora_inicio, hora_fin,
@@ -2201,7 +2201,8 @@ router.post('/club/turnos/manual', authAdmin, async (req, res) => {
       numero_cancha || 1,
       canal || 'presencial',
       nombre_jugador || '',
-      ''
+      '',
+      tipo_turno || 'jugador'
     ]);
     res.status(201).json(result.rows[0]);
   } catch (err) {

@@ -231,6 +231,10 @@
     .slot-ocupado.app{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.35);color:#c4b5fd}
     .slot-ocupado.whatsapp{background:rgba(14,165,233,.12);border-color:rgba(14,165,233,.35);color:#7dd3fc}
     .slot-ocupado.cancelado{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.15);color:rgba(239,68,68,.45);text-decoration:line-through;opacity:.6}
+    .slot-ocupado.fijo{background:rgba(234,179,8,.12);border-color:rgba(234,179,8,.35);color:#fde047}
+    .slot-ocupado.fijo:hover{background:rgba(234,179,8,.22);border-color:rgba(234,179,8,.6)}
+    .slot-ocupado.profesor{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35);color:#93c5fd}
+    .slot-ocupado.profesor:hover{background:rgba(59,130,246,.22);border-color:rgba(59,130,246,.6)}
     .slot-nombre{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
     .slot-info{opacity:.65;font-size:10px;margin-top:2px;display:flex;align-items:center;gap:3px}
     .agenda-leyenda{display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
@@ -1915,7 +1919,7 @@ async function confirmarTurnoManual() {
   try {
     await apiAdmin('/padel/club/turnos/manual', {
       method: 'POST',
-      body: JSON.stringify({ negocio_id: nid, numero_cancha: cancha, fecha, hora_inicio: hi, hora_fin: hf, nombre_jugador: jugador, canal, monto, estado_pago: estado })
+      body: JSON.stringify({ negocio_id: nid, numero_cancha: cancha, fecha, hora_inicio: hi, hora_fin: hf, nombre_jugador: jugador, canal, monto, estado_pago: estado, tipo_turno: document.getElementById('tm-tipo').value })
     });
     cerrarModalTurnoManual();
     cargarTurnosDia(fecha);
@@ -2461,8 +2465,9 @@ function renderAgenda(dias, disponibles, reservas) {
           const canal = reserva.canal || 'presencial';
           const nombre = (reserva.jugador_nombre || reserva.nombre_manual || 'Reservado').split(' ')[0];
           const isCancelada = reserva.estado === 'cancelado';
-          const cls = isCancelada ? 'cancelado' : (canal === 'app' ? 'app' : canal === 'whatsapp' ? 'whatsapp' : '');
-          const canalIco = canal === 'app' ? '&#128241;' : canal === 'whatsapp' ? '&#128172;' : '&#127968;';
+          const tipoTurno = reserva.tipo_turno || (canal === 'app' ? 'jugador' : 'jugador');
+          const cls = isCancelada ? 'cancelado' : (canal === 'app' ? 'app' : tipoTurno === 'fijo' ? 'fijo' : tipoTurno === 'profesor' ? 'profesor' : '');
+          const canalIco = canal === 'app' ? '&#128241;' : tipoTurno === 'fijo' ? '&#11088;' : tipoTurno === 'profesor' ? '&#127979;' : '&#127968;';
 
           if (bloqueado._esInicio) {
             const hiSlot = String(reserva.hora_inicio).substring(0,5);
@@ -3279,6 +3284,14 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
       <div style="grid-column:1/-1">
         <label class="field-label">Jugador / Referencia</label>
         <input class="input-field" id="tm-jugador" placeholder="Nombre del jugador o grupo" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Tipo de turno</label>
+        <select class="input-field" id="tm-tipo" style="color:#fff;background:#1a0030;margin:0">
+          <option value="jugador" style="background:#1a0030">🟠 Jugador</option>
+          <option value="fijo" style="background:#1a0030">🟡 Fijo</option>
+          <option value="profesor" style="background:#1a0030">🔵 Profesor</option>
+        </select>
       </div>
       <div>
         <label class="field-label">Canal</label>
