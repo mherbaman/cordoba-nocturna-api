@@ -2256,8 +2256,10 @@ function renderProductosClub(prods) {
     ? '<div style="color:var(--muted);font-size:13px;padding:12px 0">No hay productos cargados</div>'
     : prods.map(p => `
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;opacity:${p.activo?1:.45}">
-        <span style="flex:1;font-size:13px">${p.nombre}${p.activo?'':' <span style=\'font-size:11px;color:var(--muted)\'>(inactivo)</span>'}</span>
+        <span style="flex:1;font-size:13px;font-weight:600">${p.nombre}${p.activo?'':' <span style=\'font-size:11px;color:var(--muted)\'>(inactivo)</span>'}</span>
+        <span style="font-size:11px;color:var(--muted);min-width:60px;text-align:center">Stock: <span id="stock-lbl-${p.id}" style="font-weight:700;color:${(p.stock||0)===0?'#ef4444':(p.stock||0)<5?'#fbbf24':'#22c55e'}">${p.stock||0}</span></span>
         <span id="precio-lbl-${p.id}" style="font-size:13px;font-weight:600;color:var(--green);min-width:70px;text-align:right">$${parseInt(p.precio).toLocaleString('es-AR')}</span>
+        <button onclick="editarStockProducto(${p.id},${p.stock||0})" style="padding:5px 8px;border:1px solid rgba(34,197,94,.3);border-radius:6px;background:rgba(34,197,94,.08);color:#22c55e;font-size:12px;cursor:pointer">📦 Stock</button>
         <button onclick="editarPrecioProducto(${p.id},${p.precio})" style="padding:5px 8px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer">✏ Precio</button>
         <button onclick="toggleProductoClub(${p.id},${p.activo})" style="padding:5px 8px;border:1px solid rgba(251,191,36,.3);border-radius:6px;background:rgba(251,191,36,.08);color:#fbbf24;font-size:12px;cursor:pointer">${p.activo?'Pausar':'Activar'}</button>
         <button onclick="borrarProductoClub(${p.id})" style="padding:5px 8px;border:1px solid rgba(239,68,68,.3);border-radius:6px;background:rgba(239,68,68,.08);color:#ef4444;font-size:12px;cursor:pointer">&#128465;</button>
@@ -2268,6 +2270,12 @@ async function editarPrecioProducto(id, precioActual) {
   const nuevo = prompt('Nuevo precio para el producto:', precioActual);
   if (!nuevo || isNaN(nuevo)) return;
   await apiAdmin('/club/productos/' + id, { method: 'PUT', body: JSON.stringify({ precio: parseInt(nuevo) }) });
+  cargarProductosClub();
+}
+async function editarStockProducto(id, stockActual) {
+  const nuevo = prompt('Stock actual: ' + stockActual + '\nIngresá el nuevo stock:', stockActual);
+  if (nuevo === null || isNaN(nuevo)) return;
+  await apiAdmin('/club/productos/' + id, { method: 'PUT', body: JSON.stringify({ stock: parseInt(nuevo) }) });
   cargarProductosClub();
 }
 

@@ -39,12 +39,13 @@ router.post('/productos', authAdmin, async (req, res) => {
 router.put('/productos/:id', authAdmin, async (req, res) => {
   try {
     const { negocio_id } = req.admin;
-    const { precio, activo } = req.body;
+    const { precio, activo, stock } = req.body;
     const fields = [];
     const values = [];
     let i = 1;
     if (precio !== undefined) { fields.push(`precio = $${i++}`); values.push(parseInt(precio)); }
     if (activo !== undefined) { fields.push(`activo = $${i++}`); values.push(activo); }
+    if (stock !== undefined) { fields.push(`stock = $${i++}`); values.push(parseInt(stock)); }
     if (fields.length === 0) return res.status(400).json({ error: 'Nada que actualizar' });
     values.push(req.params.id, negocio_id);
     await pool.query(
