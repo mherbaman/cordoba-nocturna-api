@@ -2047,6 +2047,7 @@ function filtrarComandas(periodo, btn) {
 }
 
 function renderComandas(comandas, periodo) {
+  window._todasComandas = comandas;
   const abiertas = comandas.filter(c => c.estado === 'abierta');
   const cerradas = comandas.filter(c => c.estado === 'cerrada');
   const soloHoy = periodo === 'hoy' || periodo == null;
@@ -2135,12 +2136,7 @@ function renderComandaCard(c, abierta) {
       </div>
       <div style="display:flex;gap:6px;align-items:center">
         <input type="number" id="cant-${c.id}" value="1" min="1" placeholder="Cant." style="width:60px;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px">
-        <select id="pago-${c.id}" style="flex:1;padding:8px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:#1a0030;color:#fff;font-size:12px">
-          <option value="efectivo">💵 Efectivo</option>
-          <option value="qr">📱 QR</option>
-          <option value="transferencia">🏦 Transferencia</option>
-        </select>
-        <button onclick="agregarItemComanda(${c.id})" style="padding:8px 12px;border:1px solid rgba(249,115,22,.5);border-radius:8px;background:rgba(249,115,22,.2);color:#fb923c;font-size:13px;font-weight:700;cursor:pointer">+</button>
+        <button onclick="agregarItemComanda(${c.id})" style="flex:1;padding:8px 12px;border:1px solid rgba(249,115,22,.5);border-radius:8px;background:rgba(249,115,22,.2);color:#fb923c;font-size:13px;font-weight:700;cursor:pointer">+ Agregar</button>
       </div>
       <div style="display:flex;gap:6px;margin-top:2px">
         <button onclick="cerrarComanda(${c.id})" style="flex:1;padding:9px;border:none;border-radius:8px;background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ Cobrar y cerrar</button>
@@ -2187,6 +2183,45 @@ function imprimirComanda(id, nombre, items) {
   
 
 
+
+<!-- MODAL COBRO COMANDA -->
+<div id="modal-cobro-comanda" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner" style="max-width:420px;width:92%">
+    <div class="modal-title">💰 Cobrar y Cerrar Comanda</div>
+    <input type="hidden" id="cobro-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;font-size:12px;color:rgba(255,255,255,.5);text-align:center">
+      <div>Cancha: <span id="cobro-total-cancha" style="color:#fbbf24;font-weight:700"></span></div>
+      <div>Otros: <span id="cobro-total-otros" style="color:#60a5fa;font-weight:700"></span></div>
+      <div>Egresos: <span id="cobro-total-egreso" style="color:#ef4444;font-weight:700"></span></div>
+    </div>
+    <!-- Cancha -->
+    <div style="background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#fbbf24;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🎾 Pago Cancha</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div><label style="font-size:10px;color:rgba(255,255,255,.4)">💵 Efectivo</label><input id="cobro-cancha-efectivo" type="number" placeholder="0" style="width:100%;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#1a0030;color:#fff;font-size:13px;box-sizing:border-box;margin-top:2px"></div>
+        <div><label style="font-size:10px;color:rgba(255,255,255,.4)">📱 QR</label><input id="cobro-cancha-qr" type="number" placeholder="0" style="width:100%;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#1a0030;color:#fff;font-size:13px;box-sizing:border-box;margin-top:2px"></div>
+        <div><label style="font-size:10px;color:rgba(255,255,255,.4)">🏦 Transf.</label><input id="cobro-cancha-transf" type="number" placeholder="0" style="width:100%;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#1a0030;color:#fff;font-size:13px;box-sizing:border-box;margin-top:2px"></div>
+      </div>
+    </div>
+    <!-- Otros -->
+    <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:10px;padding:12px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🛒 Pago Otros Items</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div><label style="font-size:10px;color:rgba(255,255,255,.4)">💵 Efectivo</label><input id="cobro-otros-efectivo" type="number" placeholder="0" style="width:100%;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#1a0030;color:#fff;font-size:13px;box-sizing:border-box;margin-top:2px"></div>
+        <div><label style="font-size:10px;color:rgba(255,255,255,.4)">📱 QR</label><input id="cobro-otros-qr" type="number" placeholder="0" style="width:100%;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#1a0030;color:#fff;font-size:13px;box-sizing:border-box;margin-top:2px"></div>
+        <div><label style="font-size:10px;color:rgba(255,255,255,.4)">🏦 Transf.</label><input id="cobro-otros-transf" type="number" placeholder="0" style="width:100%;padding:6px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:#1a0030;color:#fff;font-size:13px;box-sizing:border-box;margin-top:2px"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:10px 14px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px">
+      <span style="font-size:13px;color:rgba(255,255,255,.6)">Total a cobrar</span>
+      <span id="cobro-total" style="font-size:20px;font-weight:800;color:#22c55e"></span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="cerrarModalCobro()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarCobro()" style="flex:2;background:linear-gradient(135deg,#15803d,#22c55e);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">✓ CONFIRMAR COBRO</button>
+    </div>
+  </div>
+</div>
 </body></html>`;
   const w = window.open('', '_blank', 'width=320,height=500');
   w.document.write(html);
@@ -2214,7 +2249,7 @@ function onSelProducto(id) {
 async function agregarItemComanda(id) {
   const sel = document.getElementById('sel-' + id);
   const cant = parseInt(document.getElementById('cant-' + id).value) || 1;
-  const metodo_pago = document.getElementById('pago-' + id).value;
+  const metodo_pago = 'efectivo'; // se define al cerrar la comanda
   let descripcion = '', monto = 0, tipo = 'consumo', producto_id = null;
   if (sel.value === 'cancha') {
     descripcion = document.getElementById('desc-' + id).value.trim() || 'Cancha';
@@ -2246,11 +2281,50 @@ async function agregarItemComanda(id) {
   } catch(e) { alert('Error: ' + e.message); }
 }
 
-async function cerrarComanda(id) {
-  if (!confirm('Cerrar y cobrar esta comanda?')) return;
-  const token = localStorage.getItem('neg_token');
+function cerrarComanda(id) {
+  // Buscar la comanda en memoria
+  const todas = window._todasComandas || [];
+  const c = todas.find(x => x.id === id);
+  if (!c) return;
+  const items = c.items || [];
+  const totalCancha = items.filter(i => i.tipo === 'cancha').reduce((s,i) => s + parseInt(i.monto||0), 0);
+  const totalOtros = items.filter(i => i.tipo !== 'cancha' && i.tipo !== 'egreso').reduce((s,i) => s + parseInt(i.monto||0), 0);
+  const totalEgreso = items.filter(i => i.tipo === 'egreso').reduce((s,i) => s + parseInt(i.monto||0), 0);
+  const total = totalCancha + totalOtros;
+
+  document.getElementById('cobro-id').value = id;
+  document.getElementById('cobro-total-cancha').textContent = '$' + totalCancha.toLocaleString('es-AR');
+  document.getElementById('cobro-total-otros').textContent = '$' + totalOtros.toLocaleString('es-AR');
+  document.getElementById('cobro-total-egreso').textContent = '$' + totalEgreso.toLocaleString('es-AR');
+  document.getElementById('cobro-total').textContent = '$' + total.toLocaleString('es-AR');
+
+  // Limpiar campos
+  ['cancha-efectivo','cancha-qr','cancha-transf','otros-efectivo','otros-qr','otros-transf'].forEach(f => {
+    const el = document.getElementById('cobro-' + f);
+    if (el) el.value = '';
+  });
+  // Pre-llenar con totales
+  if (totalCancha > 0) document.getElementById('cobro-cancha-efectivo').value = totalCancha;
+  if (totalOtros > 0) document.getElementById('cobro-otros-efectivo').value = totalOtros;
+
+  document.getElementById('modal-cobro-comanda').style.display = 'flex';
+}
+function cerrarModalCobro() {
+  document.getElementById('modal-cobro-comanda').style.display = 'none';
+}
+async function confirmarCobro() {
+  const id = parseInt(document.getElementById('cobro-id').value);
+  const pagos = {
+    cancha_efectivo: parseInt(document.getElementById('cobro-cancha-efectivo').value) || 0,
+    cancha_qr: parseInt(document.getElementById('cobro-cancha-qr').value) || 0,
+    cancha_transf: parseInt(document.getElementById('cobro-cancha-transf').value) || 0,
+    otros_efectivo: parseInt(document.getElementById('cobro-otros-efectivo').value) || 0,
+    otros_qr: parseInt(document.getElementById('cobro-otros-qr').value) || 0,
+    otros_transf: parseInt(document.getElementById('cobro-otros-transf').value) || 0,
+  };
   try {
-    await apiAdmin('/club/comandas/' + id + '/cerrar', { method: 'PUT' });
+    await apiAdmin('/club/comandas/' + id + '/cerrar', { method: 'PUT', body: JSON.stringify({ pagos }) });
+    cerrarModalCobro();
     cargarComandas();
   } catch(e) { alert('Error: ' + e.message); }
 }

@@ -163,9 +163,15 @@ router.post('/comandas/:id/items', authAdmin, async (req, res) => {
 router.put('/comandas/:id/cerrar', authAdmin, async (req, res) => {
   try {
     const { negocio_id } = req.admin;
+    const { pagos } = req.body || {};
     await pool.query(
-      `UPDATE comandas SET estado = 'cerrada', cerrado_en = NOW() WHERE id = $1 AND negocio_id = $2`,
-      [req.params.id, negocio_id]
+      `UPDATE comandas SET estado = 'cerrada', cerrado_en = NOW(),
+        cancha_efectivo = $3, cancha_qr = $4, cancha_transf = $5,
+        otros_efectivo = $6, otros_qr = $7, otros_transf = $8
+       WHERE id = $1 AND negocio_id = $2`,
+      [req.params.id, negocio_id,
+        pagos?.cancha_efectivo||0, pagos?.cancha_qr||0, pagos?.cancha_transf||0,
+        pagos?.otros_efectivo||0, pagos?.otros_qr||0, pagos?.otros_transf||0]
     );
     res.json({ ok: true });
   } catch (err) {
