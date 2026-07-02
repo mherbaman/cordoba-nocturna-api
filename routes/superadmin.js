@@ -274,7 +274,7 @@ router.delete('/negocios/:id', authAdmin, async (req, res) => {
     await pool.query('DELETE FROM reservas_padel WHERE negocio_id = $1', [id]);
     await pool.query('DELETE FROM disponibilidad_padel WHERE negocio_id = $1', [id]);
     await pool.query('DELETE FROM cierre_caja_diaria WHERE negocio_id = $1', [id]);
-    await pool.query('DELETE FROM admins WHERE negocio_id = $1', [id]);
+    // await pool.query('DELETE FROM admins WHERE negocio_id = $1', [id]); // archivo corrupto
     await pool.query('DELETE FROM negocios WHERE id = $1', [id]);
 
     console.log(`[SUPERADMIN] Negocio eliminado: ${nombre} (${id})`);
