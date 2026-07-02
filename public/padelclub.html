@@ -875,7 +875,7 @@ function showCanchaTab(tab) {
   if (tab === 'gestion') cargarCanchasConfig();
   if (tab === 'jugadores') { cargarJugadoresClub(); cargarComunidadClub(); }
   if (tab === 'agenda') {
-    agendaFechaBase = agendaFechaBase || lunesDe(new Date());
+    if (!agendaFechaBase) { agendaFechaBase = new Date(); agendaFechaBase.setHours(0,0,0,0); }
     renderAgendaNav();
     cargarAgenda();
   }
@@ -2281,7 +2281,7 @@ async function agregarProductoClub() {
 
 // ── AGENDA SEMANAL ──────────────────────────────────────────
 
-let agendaFechaBase = null; // lunes de la semana visible
+let agendaFechaBase = null; // dia visible
 let agendaReservas = [];
 let agendaDisponibles = [];
 
@@ -2305,15 +2305,16 @@ function fmtFechaCorta(d) {
 }
 
 function irSemanaActual() {
-  agendaFechaBase = lunesDe(new Date());
+  agendaFechaBase = new Date();
+  agendaFechaBase.setHours(0,0,0,0);
   renderAgendaNav();
   cargarAgenda();
 }
 
 function cambiarSemana(delta) {
-  if (!agendaFechaBase) agendaFechaBase = lunesDe(new Date());
+  if (!agendaFechaBase) { agendaFechaBase = new Date(); agendaFechaBase.setHours(0,0,0,0); }
   agendaFechaBase = new Date(agendaFechaBase);
-  agendaFechaBase.setDate(agendaFechaBase.getDate() + delta * 7);
+  agendaFechaBase.setDate(agendaFechaBase.getDate() + delta);
   renderAgendaNav();
   cargarAgenda();
 }
@@ -2321,10 +2322,9 @@ function cambiarSemana(delta) {
 function renderAgendaNav() {
   const lbl = document.getElementById('agenda-semana-lbl');
   if (!lbl || !agendaFechaBase) return;
-  const fin = new Date(agendaFechaBase);
-  fin.setDate(fin.getDate() + 6);
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  lbl.textContent = agendaFechaBase.getDate() + ' ' + MESES[agendaFechaBase.getMonth()] + ' — ' + fin.getDate() + ' ' + MESES[fin.getMonth()] + ' ' + fin.getFullYear();
+  lbl.textContent = DIAS[agendaFechaBase.getDay()] + ' ' + agendaFechaBase.getDate() + ' ' + MESES[agendaFechaBase.getMonth()] + ' ' + agendaFechaBase.getFullYear();
 }
 
 async function cargarAgenda() {
@@ -2333,31 +2333,18 @@ async function cargarAgenda() {
   const cont = document.getElementById('agenda-container');
   cont.innerHTML = '<div class="loader"></div>';
 
-  // Cargar los 7 dias de la semana en paralelo
-  const dias = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(agendaFechaBase);
-    d.setDate(d.getDate() + i);
-    dias.push(fmtFecha(d));
-  }
+  // Cargar solo el dia visible
+  const fechaDia = fmtFecha(agendaFechaBase);
+  const dias = [fechaDia];
 
   try {
-    const [todasReservas, disponibles] = await Promise.all([
-      // Cargar reservas de toda la semana
-      Promise.all(dias.map(f =>
-        apiAdmin('/padel/club/turnos-del-dia?negocio_id=' + nid + '&fecha=' + f).catch(()=>[])
-      )),
-      // Disponibilidad base
+    const [reservasDia, disponibles] = await Promise.all([
+      apiAdmin('/padel/club/turnos-del-dia?negocio_id=' + nid + '&fecha=' + fechaDia).catch(()=>[]),
       apiAdmin('/padel/disponibilidad/' + nid).catch(()=>[])
     ]);
 
     agendaDisponibles = disponibles;
-
-    // Flatten reservas con fecha
-    agendaReservas = [];
-    todasReservas.forEach((reservasDia, idx) => {
-      reservasDia.forEach(r => { agendaReservas.push({...r, _fecha: dias[idx]}); });
-    });
+    agendaReservas = reservasDia.map(r => ({...r, _fecha: fechaDia}));
 
     renderAgenda(dias, disponibles, agendaReservas);
   } catch(e) {
