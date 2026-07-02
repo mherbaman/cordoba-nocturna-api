@@ -2269,7 +2269,7 @@ function renderProductosClub(prods) {
         <button onclick="editarPrecioProducto(${p.id},${p.precio})" style="padding:5px 8px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-size:12px;cursor:pointer">✏ Precio</button>
         <button onclick="toggleProductoClub(${p.id},${p.activo})" style="padding:5px 8px;border:1px solid rgba(251,191,36,.3);border-radius:6px;background:rgba(251,191,36,.08);color:#fbbf24;font-size:12px;cursor:pointer">${p.activo?'Pausar':'Activar'}</button>
         <button onclick="borrarProductoClub(${p.id})" style="padding:5px 8px;border:1px solid rgba(239,68,68,.3);border-radius:6px;background:rgba(239,68,68,.08);color:#ef4444;font-size:12px;cursor:pointer">&#128465;</button>
-      </div>`).join('');
+      </div>`).join(''));
 }
 
 async function editarPrecioProducto(id, precioActual) {
