@@ -348,7 +348,6 @@ function navTo(page, btn) {
   if (page === "canchas") {
     setTimeout(function() {
       var gSec = document.getElementById('ci-gestion');
-      var tSec = document.getElementById('ci-turnos');
       var cSec = document.getElementById('ci-caja');
       if (gSec) gSec.style.display = 'block';
       if (tSec) tSec.style.display = 'none';
@@ -2936,7 +2935,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
           <div class="quick-label">Mis Canchas</div>
           <div class="quick-sub">Gestionar turnos</div>
         </div>
-        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(function(){showCanchaTab('turnos')},120)">
+        <div class="quick-card" onclick="navTo('canchas',document.querySelectorAll('.tab')[1]);setTimeout(function(){showCanchaTab('agenda')},120)">
           <div class="quick-icon">&#128197;</div>
           <div class="quick-label">Turnos de Hoy</div>
           <div class="quick-sub">Ver y cargar</div>
@@ -2964,7 +2963,6 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
       <div class="canchas-inner-nav">
         <button class="ci-tab active" id="cit-gestion" onclick="showCanchaTab('gestion')">&#9881; Gestionar Canchas</button>
         <button class="ci-tab" id="cit-agenda" onclick="showCanchaTab('agenda')">&#128198; Agenda Semanal</button>
-        <button class="ci-tab" id="cit-turnos" onclick="showCanchaTab('turnos')">&#128197; Turnos del Dia</button>
         <button class="ci-tab" id="cit-caja" onclick="showCanchaTab('caja')">&#128181; Cierre de Caja</button>
         <button class="ci-tab" id="cit-comandas" onclick="showCanchaTab('comandas')">&#127860; Comandas <span style="font-size:9px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:2px 6px;border-radius:20px;font-weight:700;margin-left:4px">⭐ PREMIUM</span></button>
         <button class="ci-tab" id="cit-productos" onclick="showCanchaTab('productos')">&#127873; Mis Productos <span style="font-size:9px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:2px 6px;border-radius:20px;font-weight:700;margin-left:4px">⭐ PREMIUM</span></button>
@@ -2991,35 +2989,7 @@ function abrirCrearAmericano() { navTo('partidos', document.querySelectorAll('.t
         <div id="agenda-container" style="overflow-x:auto"><div class="loader"></div></div>
       </div>
 
-      <div id="ci-turnos" class="ci-sec" style="display:none">
-        <div class="section-hdr" style="flex-wrap:wrap;gap:10px">
-          <div class="section-title">&#128197; Turnos por fecha</div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <!-- Selector de fecha -->
-            <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:4px 14px">
-              <button onclick="cambiarFechaTurnos(-1)" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 2px">&#8249;</button>
-              <input type="date" id="turnos-fecha-picker" style="background:transparent;border:none;color:#fff;font-size:12px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark" onchange="cargarTurnosDia(this.value)">
-              <button onclick="cambiarFechaTurnos(1)" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 2px">&#8250;</button>
-            </div>
-            <button class="btn-sm" onclick="irAHoyTurnos()" id="btn-hoy-turnos">Hoy</button>
-          </div>
-        </div>
-        <!-- Resumen del dia -->
-        <div id="turnos-resumen-dia" style="display:none;background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:12px 16px;margin-bottom:12px;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
-          <div><div style="font-size:11px;color:var(--muted)">Reservados</div><div style="font-size:22px;font-weight:700;color:var(--green)" id="tr-count">0</div></div>
-          <div><div style="font-size:11px;color:var(--muted)">Disponibles</div><div style="font-size:22px;font-weight:700;color:rgba(255,255,255,.4)" id="tr-libres">0</div></div>
-          <div><div style="font-size:11px;color:var(--muted)">Recaudado</div><div style="font-size:22px;font-weight:700;color:var(--green)" id="tr-monto">ARS 0</div></div>
-          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn-sm cf-btn active" id="cf-todos" onclick="filtrarTurnosDia('todos',this)">Todos</button>
-            <button class="btn-sm cf-btn" id="cf-app" onclick="filtrarTurnosDia('app',this)">App</button>
-            <button class="btn-sm cf-btn" id="cf-presencial" onclick="filtrarTurnosDia('presencial',this)">Presencial</button>
-            <button class="btn-sm cf-btn" id="cf-whatsapp" onclick="filtrarTurnosDia('whatsapp',this)">WhatsApp</button>
-            <button class="btn-export" style="font-size:11px" onclick="abrirModalTurnoManual()">+ Cargar turno</button>
-          </div>
-        </div>
-        <!-- Vista combinada: disponibles + reservados -->
-        <div id="turnos-dia-list"><div class="loader"></div></div>
-      </div>
+
 
       <div id="ci-caja" class="ci-sec" style="display:none">
         <div class="section-hdr">
