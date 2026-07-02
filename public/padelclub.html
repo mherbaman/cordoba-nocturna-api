@@ -350,7 +350,6 @@ function navTo(page, btn) {
       var gSec = document.getElementById('ci-gestion');
       var cSec = document.getElementById('ci-caja');
       if (gSec) gSec.style.display = 'block';
-      if (tSec) tSec.style.display = 'none';
       if (cSec) cSec.style.display = 'none';
       document.querySelectorAll('.ci-tab').forEach(function(t,i){ t.classList.toggle('active', i===0); });
       cargarCanchasConfig();
@@ -2185,6 +2184,8 @@ function imprimirComanda(id, nombre, items) {
   <div class="sep"></div>
   <div class="footer">${clubDireccion}</div>
   
+
+
 <!-- MODAL NUEVA COMANDA -->
 <div id="modal-nueva-comanda" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
   <div class="modal-inner" style="max-width:380px;width:90%">
