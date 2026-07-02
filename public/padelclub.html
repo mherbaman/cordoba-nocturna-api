@@ -2067,7 +2067,7 @@ function renderComandas(comandas, periodo) {
   const secAbiertas = document.getElementById('comandas-abiertas');
   const btnNueva = document.querySelector('#ci-comandas .btn-export');
   if (btnNueva) btnNueva.style.display = soloHoy ? '' : 'none';
-  secAbiertas.style.display = soloHoy ? '' : 'none';
+  secAbiertas.style.display = soloHoy ? 'grid' : 'none';
   secAbiertas.innerHTML = abiertas.length === 0
     ? '<div style="color:var(--muted);font-size:13px;padding:12px 0">No hay comandas abiertas</div>'
     : abiertas.map(c => renderComandaCard(c, true)).join('');
