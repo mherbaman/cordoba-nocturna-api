@@ -2578,6 +2578,7 @@ router.get('/club/turnos-del-dia', authAdmin, async (req, res) => {
         r.nombre_manual,
         r.notas,
         r.pago_por_app,
+        r.tipo_turno,
         COALESCE(NULLIF(r.nombre_manual,''), NULLIF(j.nombre,''), NULLIF(u.nombre,''), 'Sin nombre') AS jugador_nombre,
         u.telefono AS jugador_tel,
         j.nivel AS jugador_nivel,
