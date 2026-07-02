@@ -2184,7 +2184,42 @@ function imprimirComanda(id, nombre, items) {
   </table>
   <div class="sep"></div>
   <div class="footer">${clubDireccion}</div>
-  </body></html>`;
+  
+<!-- MODAL NUEVA COMANDA -->
+<div id="modal-nueva-comanda" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(8px)">
+  <div class="modal-inner" style="max-width:380px;width:90%">
+    <div class="modal-title">🧾 Nueva Comanda</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label class="field-label">Tipo</label>
+        <select class="input-field" id="mc-tipo" style="color:#fff;background:#1a0030;margin:0">
+          <option value="jugadores">🎾 Jugadores</option>
+          <option value="personal">👤 Personal</option>
+          <option value="visitantes">🏠 Visitantes</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Cancha (opcional)</label>
+        <select class="input-field" id="mc-cancha" style="color:#fff;background:#1a0030;margin:0">
+          <option value="">— Sin cancha —</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Descripción (nombre, horario, etc.)</label>
+        <input class="input-field" id="mc-descripcion" type="text" placeholder="Ej: Juan · 19hs" style="margin:0">
+      </div>
+      <div>
+        <label class="field-label">Fecha</label>
+        <input class="input-field" id="mc-fecha" type="date" style="margin:0;color-scheme:dark">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button onclick="cerrarModalNuevaComanda()" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+      <button onclick="confirmarNuevaComanda()" style="flex:1;background:linear-gradient(135deg,#c2410c,#f97316);border:none;color:#fff;padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer">CREAR COMANDA</button>
+    </div>
+  </div>
+</div>
+</body></html>`;
   const w = window.open('', '_blank', 'width=320,height=500');
   w.document.write(html);
   w.document.close();
@@ -2248,12 +2283,37 @@ async function eliminarComanda(id) {
 }
 
 function abrirModalComanda() {
-  const nomb = prompt('Nombre de la comanda (ej: Cancha 2 · 19hs, Mesa visitantes)');
-  if (!nomb) return;
-  const precioStr = prompt('Precio de la cancha en ARS (Enter si no aplica)');
-  const precio_cancha = parseInt(precioStr) || 0;
-  apiAdmin('/club/comandas', { method: 'POST', body: JSON.stringify({ nombre: nomb, precio_cancha }) })
-    .then(() => cargarComandas()).catch(e => alert('Error: ' + e.message));
+  // Poblar selector de canchas
+  const sel = document.getElementById('mc-cancha');
+  if (sel && canchasData.length) {
+    const nums = [...new Set(canchasData.map(t => t.numero_cancha))].sort((a,b)=>a-b);
+    sel.innerHTML = '<option value="">— Sin cancha —</option>' + nums.map(n => '<option value="' + n + '">Cancha ' + n + '</option>').join('');
+  }
+  // Fecha por defecto hoy
+  document.getElementById('mc-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('modal-nueva-comanda').style.display = 'flex';
+}
+function cerrarModalNuevaComanda() {
+  document.getElementById('modal-nueva-comanda').style.display = 'none';
+  document.getElementById('mc-descripcion').value = '';
+  document.getElementById('mc-cancha').value = '';
+  document.getElementById('mc-tipo').value = 'jugadores';
+}
+async function confirmarNuevaComanda() {
+  const tipo = document.getElementById('mc-tipo').value;
+  const cancha = document.getElementById('mc-cancha').value;
+  const descripcion = document.getElementById('mc-descripcion').value.trim();
+  const fecha = document.getElementById('mc-fecha').value;
+  if (!fecha) { alert('Ingresá la fecha'); return; }
+  const nombre = (cancha ? 'Cancha ' + cancha : tipo) + (descripcion ? ' · ' + descripcion : '');
+  try {
+    await apiAdmin('/club/comandas', { method: 'POST', body: JSON.stringify({
+      nombre, tipo, numero_cancha: cancha ? parseInt(cancha) : null,
+      descripcion, fecha, precio_cancha: 0
+    })});
+    cerrarModalNuevaComanda();
+    cargarComandas();
+  } catch(e) { alert('Error: ' + e.message); }
 }
 
 // ── PRODUCTOS DEL CLUB ─────────────────────────────────────────────────

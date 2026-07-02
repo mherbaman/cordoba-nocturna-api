@@ -113,21 +113,14 @@ router.get('/comandas', authAdmin, async (req, res) => {
 router.post('/comandas', authAdmin, async (req, res) => {
   try {
     const { negocio_id } = req.admin;
-    const { nombre, precio_cancha } = req.body;
+    const { nombre, tipo, numero_cancha, descripcion, fecha } = req.body;
     if (!nombre) return res.status(400).json({ error: 'Falta el nombre' });
     const comanda = await pool.query(
-      'INSERT INTO comandas (negocio_id, nombre) VALUES ($1, $2) RETURNING *',
-      [negocio_id, nombre]
+      'INSERT INTO comandas (negocio_id, nombre, tipo, numero_cancha, descripcion, fecha) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [negocio_id, nombre, tipo||'jugadores', numero_cancha||null, descripcion||null, fecha||new Date().toISOString().split('T')[0]]
     );
     const c = comanda.rows[0];
     c.items = [];
-    if (precio_cancha && parseInt(precio_cancha) > 0) {
-      const item = await pool.query(
-        'INSERT INTO comanda_items (comanda_id, descripcion, monto, tipo) VALUES ($1, $2, $3, $4) RETURNING *',
-        [c.id, 'Cancha', parseInt(precio_cancha), 'cancha']
-      );
-      c.items.push(item.rows[0]);
-    }
     res.json(c);
   } catch (err) {
     console.error(err);
