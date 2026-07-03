@@ -200,8 +200,8 @@
     .caja-hero-sub{font-size:13px;color:rgba(255,255,255,.5)}
     .caja-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
     .caja-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
-    .caja-card-lbl{font-size:11px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:5px}
-    .caja-card-val{font-size:20px;font-weight:700;color:#fff}
+    .caja-card-lbl{font-size:12px;color:rgba(255,255,255,.85);font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+    .caja-card-val{font-size:22px;font-weight:800;color:#ffffff}
     .caja-card-val.g{color:var(--green)}
     .caja-canal-pill{font-size:10px;padding:1px 7px;border-radius:20px;display:inline-block;margin-bottom:4px}
     .caja-por-cancha{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
@@ -2068,11 +2068,11 @@ function renderComandas(comandas, periodo) {
     if (i.tipo === 'egreso') totEgresos += parseInt(i.monto||0);
   }));
   const totDia = totCanchas + totConsumos;
-  const subLbl = (ef, qt) => '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.45);margin-top:4px"><span>💵 Efect.</span><span>' + fmt(ef) + '</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.45);margin-top:2px"><span>📱 QR+Transf.</span><span>' + fmt(qt) + '</span></div>';
+  const subLbl = (ef, qt) => '<div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.75);margin-top:5px"><span>💵 Efectivo</span><span style="font-weight:700">' + fmt(ef) + '</span></div><div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.75);margin-top:3px"><span>📱 QR+Transf.</span><span style="font-weight:700">' + fmt(qt) + '</span></div>';
   document.getElementById('comandas-resumen').innerHTML =
     '<div class="caja-card"><div class="caja-card-lbl">🎾 Canchas</div><div class="caja-card-val">' + fmt(totCanchas) + '</div>' + subLbl(canchaEfectivo, canchaQrTransf) + '</div>' +
     '<div class="caja-card"><div class="caja-card-lbl">🛒 Consumos</div><div class="caja-card-val">' + fmt(totConsumos) + '</div>' + subLbl(otrosEfectivo, otrosQrTransf) + '</div>' +
-    '<div class="caja-card"><div class="caja-card-lbl">💰 Total del día</div><div class="caja-card-val g">' + fmt(totDia) + '</div>' + subLbl(canchaEfectivo + otrosEfectivo, canchaQrTransf + otrosQrTransf) + '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(239,68,68,.6);margin-top:6px;border-top:1px dashed rgba(255,255,255,.08);padding-top:6px"><span>👤 Egresos</span><span>-' + fmt(totEgresos) + '</span></div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#22c55e;margin-top:4px;border-top:1px solid rgba(34,197,94,.2);padding-top:4px"><span>Neto</span><span>' + fmt(totDia - totEgresos) + '</span></div></div>';
+    '<div class="caja-card"><div class="caja-card-lbl">💰 Total del día</div><div class="caja-card-val g">' + fmt(totDia) + '</div>' + subLbl(canchaEfectivo + otrosEfectivo, canchaQrTransf + otrosQrTransf) + '<div style="display:flex;justify-content:space-between;font-size:11px;color:#f87171;margin-top:6px;border-top:1px dashed rgba(255,255,255,.08);padding-top:6px"><span>👤 Egresos</span><span>-' + fmt(totEgresos) + '</span></div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#22c55e;margin-top:4px;border-top:1px solid rgba(34,197,94,.2);padding-top:4px"><span>Neto</span><span>' + fmt(totDia - totEgresos) + '</span></div></div>';
 
 
   const secAbiertas = document.getElementById('comandas-abiertas');
