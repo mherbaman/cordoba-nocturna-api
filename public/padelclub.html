@@ -2200,7 +2200,7 @@ function imprimirComanda(id, nombre, items) {
   w.document.write(html);
   w.document.close();
   w.focus();
-  setTimeout(() => { w.print(); w.close(); }, 400);
+  setTimeout(() => { w.print(); }, 400);
 }
 
 function toggleComanda(id) {
