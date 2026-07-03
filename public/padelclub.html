@@ -2052,16 +2052,27 @@ function renderComandas(comandas, periodo) {
   const cerradas = comandas.filter(c => c.estado === 'cerrada');
   const soloHoy = periodo === 'hoy' || periodo == null;
 
-  let totCanchas = 0, totConsumos = 0;
+  let totCanchas = 0, totConsumos = 0, totEgresos = 0;
+  let canchaEfectivo = 0, canchaQrTransf = 0;
+  let otrosEfectivo = 0, otrosQrTransf = 0;
+  const cerradasRes = comandas.filter(c => c.estado === 'cerrada');
+  cerradasRes.forEach(c => {
+    canchaEfectivo += parseInt(c.cancha_efectivo||0);
+    canchaQrTransf += parseInt(c.cancha_qr||0) + parseInt(c.cancha_transf||0);
+    otrosEfectivo += parseInt(c.otros_efectivo||0);
+    otrosQrTransf += parseInt(c.otros_qr||0) + parseInt(c.otros_transf||0);
+  });
+  totCanchas = canchaEfectivo + canchaQrTransf;
+  totConsumos = otrosEfectivo + otrosQrTransf;
   comandas.forEach(c => (c.items||[]).forEach(i => {
-    if (i.tipo === 'cancha') totCanchas += parseInt(i.monto||0);
-    else totConsumos += parseInt(i.monto||0);
+    if (i.tipo === 'egreso') totEgresos += parseInt(i.monto||0);
   }));
-
-  document.getElementById('comandas-resumen').innerHTML = `
-    <div class="caja-card"><div class="caja-card-lbl">Canchas</div><div class="caja-card-val">${fmt(totCanchas)}</div></div>
-    <div class="caja-card"><div class="caja-card-lbl">Consumos</div><div class="caja-card-val">${fmt(totConsumos)}</div></div>
-    <div class="caja-card"><div class="caja-card-lbl">Total del dia</div><div class="caja-card-val g">${fmt(totCanchas+totConsumos)}</div></div>
+  const totDia = totCanchas + totConsumos;
+  const subLbl = (ef, qt) => '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.45);margin-top:4px"><span>💵 Efect.</span><span>' + fmt(ef) + '</span></div><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.45);margin-top:2px"><span>📱 QR+Transf.</span><span>' + fmt(qt) + '</span></div>';
+  document.getElementById('comandas-resumen').innerHTML =
+    '<div class="caja-card"><div class="caja-card-lbl">🎾 Canchas</div><div class="caja-card-val">' + fmt(totCanchas) + '</div>' + subLbl(canchaEfectivo, canchaQrTransf) + '</div>' +
+    '<div class="caja-card"><div class="caja-card-lbl">🛒 Consumos</div><div class="caja-card-val">' + fmt(totConsumos) + '</div>' + subLbl(otrosEfectivo, otrosQrTransf) + '</div>' +
+    '<div class="caja-card"><div class="caja-card-lbl">💰 Total del día</div><div class="caja-card-val g">' + fmt(totDia) + '</div><div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(239,68,68,.6);margin-top:4px"><span>👤 Egresos</span><span>-' + fmt(totEgresos) + '</span></div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:#22c55e;margin-top:4px;border-top:1px solid rgba(34,197,94,.2);padding-top:4px"><span>Neto</span><span>' + fmt(totDia - totEgresos) + '</span></div></div>';
   `;
 
   const secAbiertas = document.getElementById('comandas-abiertas');
