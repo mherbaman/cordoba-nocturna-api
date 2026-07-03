@@ -2295,6 +2295,19 @@ async function confirmarCobro() {
     otros_qr: parseInt(document.getElementById('cobro-otros-qr').value) || 0,
     otros_transf: parseInt(document.getElementById('cobro-otros-transf').value) || 0,
   };
+  // Validar que no se cobre de más
+  const totalCancha = parseInt(document.getElementById('cobro-total-cancha').textContent.replace(/[^0-9]/g,'')) || 0;
+  const totalOtros = parseInt(document.getElementById('cobro-total-otros').textContent.replace(/[^0-9]/g,'')) || 0;
+  const sumCancha = pagos.cancha_efectivo + pagos.cancha_qr + pagos.cancha_transf;
+  const sumOtros = pagos.otros_efectivo + pagos.otros_qr + pagos.otros_transf;
+  if (sumCancha > totalCancha) {
+    alert('⚠️ El total de pago de cancha ($' + sumCancha.toLocaleString('es-AR') + ') supera el total de la cancha ($' + totalCancha.toLocaleString('es-AR') + ')');
+    return;
+  }
+  if (sumOtros > totalOtros) {
+    alert('⚠️ El total de pago de otros items ($' + sumOtros.toLocaleString('es-AR') + ') supera el total de otros items ($' + totalOtros.toLocaleString('es-AR') + ')');
+    return;
+  }
   try {
     await apiAdmin('/club/comandas/' + id + '/cerrar', { method: 'PUT', body: JSON.stringify({ pagos }) });
     cerrarModalCobro();
